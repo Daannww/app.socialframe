@@ -23,8 +23,11 @@
   <div class="topbar-left">
     <img src="logo.svg" alt="Socialframe" class="logo">
     <h1>Order Dashboard</h1>
+    <button id="mobileMenuToggle" class="mobile-menu-toggle" aria-label="Menu">
+      <i class="fa-solid fa-bars"></i>
+    </button>
   </div>
-  <div class="topbar-right">
+  <div class="topbar-right" id="topbarRight">
     <span id="stockWarning" class="stock-warning hidden"></span>
     <span id="lastSync" class="last-sync">Nog niet gesynchroniseerd</span>
     <button id="printFilesBtn" class="btn btn-secondary" disabled><i class="fa-solid fa-download"></i> Drukwerkbestanden (PDF)</button>
@@ -34,7 +37,7 @@
 </header>
 
 <main>
-  <div class="filters-row">
+  <div class="filters-row" id="filtersRow">
     <div class="filters">
       <button class="filter-btn active" data-status="">Alle orders</button>
       <button class="filter-btn" data-status="wacht op drukwerkbestand">Wacht op drukwerkbestand</button>
