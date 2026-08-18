@@ -740,6 +740,20 @@ printFilesBtn.addEventListener('click', async () => {
 const ordersView = document.getElementById('ordersView');
 const inventoryView = document.getElementById('inventoryView');
 const searchBarWrap = document.getElementById('searchBarWrap');
+
+// Hamburger-menu (alleen relevant op mobiel — op desktop blijft alles gewoon
+// altijd zichtbaar, zie de @media-regel in style.css). Klapt de statusfilters
+// + knoppenrij (drukwerkbestanden/sync/uitloggen) samen open/dicht.
+const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+const topbarRight = document.getElementById('topbarRight');
+const filtersEl = document.querySelector('.filters');
+if (mobileMenuToggle) {
+  mobileMenuToggle.addEventListener('click', () => {
+    topbarRight.classList.toggle('mobile-open');
+    filtersEl.classList.toggle('mobile-open');
+  });
+}
+
 const selectionBarWrap = document.getElementById('selectionBarWrap');
 
 document.querySelectorAll('.filter-btn').forEach(btn => {
