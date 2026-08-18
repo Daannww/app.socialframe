@@ -238,7 +238,14 @@ function extractAutoFrameItemsFromOrder(rawOrder) {
 // "... personaliseerbaar met eigen foto"), dan geldt altijd gewoon de
 // normale standaardstatus — we vertrouwen hier op de daadwerkelijk gevonden
 // link, niet op het gokken naar woorden als "foto"/"personaliseerbaar" in de titel.
-function determineInitialStatus(lineItems, photoLinks) {
+// `fulfillmentStatus` is Shopify's eigen fulfillment-status ('fulfilled',
+// 'partial', of null/undefined) — staat een order daar al als volledig
+// verzonden, dan hoeft 'ie hier niet nog eens als "te doen" te verschijnen.
+// Vooral relevant bij het met terugwerkende kracht ophalen van oudere orders
+// (INITIAL_SYNC_DAYS hoger gezet): zonder deze check zouden allang verzonden
+// orders alsnog als "wacht op drukwerkbestand" binnenkomen.
+function determineInitialStatus(lineItems, photoLinks, fulfillmentStatus) {
+  if (fulfillmentStatus === 'fulfilled') return 'verzonden';
   if (!lineItems || lineItems.length === 0) return 'wacht op drukwerkbestand';
   if (photoLinks && photoLinks.length > 0) return 'wacht op drukwerkbestand';
   const allTextTiles = lineItems.every(li => /tegeltje met tekst/i.test(li.title || ''));
@@ -267,6 +274,15 @@ function mapOrder(order) {
 
   const photoLinks = extractPhotoLinks(order);
 
+  // Realistisch verzend-tijdstip proberen te achterhalen uit Shopify's eigen
+  // fulfillment-data — belangrijk voor de Trustpilot-review-mail (die telt 5
+  // dagen vanaf DIT moment) en ook gewoon inhoudelijk correcter dan het
+  // moment van synchroniseren te gebruiken.
+  const fulfillmentCreatedAt = order.fulfillments && order.fulfillments[0]
+    ? order.fulfillments[0].created_at
+    : null;
+  const verzondenAt = fulfillmentCreatedAt || order.closed_at || null;
+
   return {
     shopify_order_id: String(order.id),
     order_number: String(order.order_number || order.name || ''),
@@ -280,7 +296,8 @@ function mapOrder(order) {
     photo_links_json: JSON.stringify(photoLinks),
     raw_json: JSON.stringify(order),
     shopify_created_at: order.created_at,
-    initial_status: determineInitialStatus(lineItems, photoLinks)
+    initial_status: determineInitialStatus(lineItems, photoLinks, order.fulfillment_status),
+    verzonden_at: verzondenAt
   };
 }
 
