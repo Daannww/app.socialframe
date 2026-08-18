@@ -173,17 +173,21 @@ function upsertOrder(order) {
     // Nieuwe order: normaal "wacht op drukwerkbestand", tenzij de order
     // uitsluitend uit "Tegeltje met tekst"-producten bestaat (zie
     // determineInitialStatus in shopify.js) — dan direct "wacht op productie".
+    // Staat de order in Shopify zelf al als volledig fulfilled, dan komt 'ie
+    // direct op "verzonden" binnen, mét het bijbehorende verzonden_at (nodig
+    // voor de Trustpilot-review-mail-timing).
     const initialStatus = order.initial_status || 'wacht op drukwerkbestand';
+    const verzondenAt = initialStatus === 'verzonden' ? (order.verzonden_at || new Date().toISOString()) : null;
     db.prepare(`
       INSERT INTO orders
       (shopify_order_id, order_number, customer_name, customer_email, customer_phone,
-       shipping_address, shipping_country_code, line_items_json, spotify_links_json, photo_links_json, raw_json, shopify_created_at, status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       shipping_address, shipping_country_code, line_items_json, spotify_links_json, photo_links_json, raw_json, shopify_created_at, status, verzonden_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       order.shopify_order_id, order.order_number, order.customer_name, order.customer_email,
       order.customer_phone, order.shipping_address, order.shipping_country_code, order.line_items_json,
       order.spotify_links_json, order.photo_links_json, order.raw_json, order.shopify_created_at,
-      initialStatus
+      initialStatus, verzondenAt
     );
 
     // Voorraad automatisch bijwerken voor deze nieuwe order (alleen bij
