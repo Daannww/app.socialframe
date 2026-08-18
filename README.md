@@ -22,17 +22,19 @@ van kan maken, en waarmee je de status van orders kan wijzigen.
   server) worden orders ouder dan 30 dagen uit de lokale database verwijderd,
   zodat de server niet onbeperkt blijft groeien. Instelbaar via
   `ORDER_RETENTION_DAYS` in `.env`.
-- **Automatische drukwerkbestanden-export**: elke doordeweekse dag (ma-vr) om
-  12:00 verzamelt de server zelf alle drukwerkbestanden (PDF) van orders die
-  op status `wacht op drukwerkbestand` staan en een autopictura-link hebben —
-  precies zoals de handmatige `⬇ Drukwerkbestanden (PDF)`-knop, maar dan voor
-  alle openstaande orders in die status i.p.v. een selectie. Het resultaat
-  wordt niet naar de browser gedownload (dat kan niet zomaar automatisch op
-  de achtergrond), maar opgeslagen als zip-bestand in de map `exports/` in de
-  projectmap, bijvoorbeeld `exports/tegeltjes-2026-08-14.zip`. Verwerkte orders
-  krijgen automatisch status `wacht op productie`. Wil je dit zelf even
-  testen zonder tot 12:00 te wachten: open het dashboard in de browser (zodat
-  je ingelogd bent), open de Developer Tools (Console-tabblad), en typ:
+- **Drukwerkbestanden-export op verzoek**: naast de bulk-downloadknop in het
+  dashboard, staat er ook een los endpoint klaar
+  (`/api/print-files/run-scheduled-export`, admin-only) dat alle
+  drukwerkbestanden verzamelt van orders die op status
+  `wacht op drukwerkbestand` staan en een autopictura-link hebben — precies
+  zoals de handmatige `⬇ Drukwerkbestanden (PDF)`-knop, maar dan voor alle
+  openstaande orders in die status i.p.v. een selectie. Het resultaat wordt
+  niet naar de browser gedownload (dat kan niet zomaar automatisch), maar
+  opgeslagen als zip-bestand in de map `exports/` in de projectmap. **Er is
+  bewust geen automatische planning meer aan gekoppeld** (voorheen elke dag om
+  12:00) — dit wordt nu alleen handmatig getriggerd. Wil je dit gebruiken: open
+  het dashboard in de browser (zodat je ingelogd bent), open de Developer
+  Tools (Console-tabblad), en typ:
   `fetch('/api/print-files/run-scheduled-export', {method:'POST'})`.
 - **Orderoverzicht** met filter op status. Vóór de klantnaam staat een subtiel
   vlaggetje van het land van het verzendadres (via de gratis
@@ -165,7 +167,8 @@ van kan maken, en waarmee je de status van orders kan wijzigen.
   en klik dan bovenin op **⬇ Drukwerkbestanden (PDF)** — deze knop werkt alleen
   op je **huidige selectie** (staat uitgeschakeld zolang er niets is aangevinkt).
   Alles komt gebundeld in één zip-bestand, met deze mapstructuur (geldt ook
-  voor de geplande export om 12:00 hieronder):
+  voor de handmatige export via `/api/print-files/run-scheduled-export`,
+  zie hierboven):
   ```
   {datum van vandaag}/
   ├── tegels/
@@ -224,7 +227,7 @@ van kan maken, en waarmee je de status van orders kan wijzigen.
   de titel "Muziek-frame" of "Valentijn-frame" bevat, krijgen automatisch een
   eigen drukwerkbestand (200x300mm PDF, met foto, Regel 1/2, hartje, tijdlijn,
   iconenrij en eventueel een QR-/Spotify-code) — dit gebeurt **samen** met de
-  hierboven beschreven bulk-download, de geplande export om 12:00, én los per
+  hierboven beschreven bulk-download, de handmatige export, én los per
   order via een knop in de popup ("Download muziekframe-bestand"). Bestelt een
   klant 2x hetzelfde frame, dan komen er 2 losse bestanden. Staat er "klein" of
   "dik" bij de titel/variant (net als "13x13" bij de tegeltjes), dan komt het
