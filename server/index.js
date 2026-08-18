@@ -723,18 +723,14 @@ cron.schedule('0 3 * * *', () => {
   }
 });
 
-// --- Cron: elke doordeweekse dag (ma-vr) om 12:00 automatisch alle drukwerk-
-// bestanden verzamelen voor orders die op "wacht op drukwerkbestand" staan ---
-cron.schedule('0 12 * * 1-5', async () => {
-  try {
-    console.log('[auto-export] start automatische verzameling drukwerkbestanden...');
-    await runScheduledPrintFilesExport();
-  } catch (e) {
-    console.error('[auto-export] fout tijdens automatische export:', e.message);
-  }
-});
+// --- Automatische export om 12:00 is UITGEZET op verzoek — dit gebeurt nu
+// alleen nog handmatig, via de knop "Drukwerkbestanden (PDF)" in het
+// dashboard, of via het endpoint hieronder (/api/print-files/run-scheduled-
+// export). De functie runScheduledPrintFilesExport() zelf staat nog gewoon
+// klaar, alleen de automatische cron-planning ernaartoe is verwijderd.
 
-// --- Handmatig endpoint om de automatische export direct te testen/triggeren ---
+// --- Handmatig endpoint om dezelfde verzameling (op basis van status "wacht
+// op drukwerkbestand") alsnog handmatig te triggeren ---
 app.post('/api/print-files/run-scheduled-export', requireAdmin, async (req, res) => {
   try {
     await runScheduledPrintFilesExport();
