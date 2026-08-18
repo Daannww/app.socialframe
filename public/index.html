@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Order Dashboard</title>
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<meta name="theme-color" content="#000000">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icons/7.5.0/css/flag-icons.min.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-left">
+    <img src="logo.svg" alt="Socialframe" class="logo">
+    <h1>Order Dashboard</h1>
+  </div>
+  <div class="topbar-right">
+    <span id="stockWarning" class="stock-warning hidden"></span>
+    <span id="lastSync" class="last-sync">Nog niet gesynchroniseerd</span>
+    <button id="printFilesBtn" class="btn btn-secondary" disabled><i class="fa-solid fa-download"></i> Drukwerkbestanden (PDF)</button>
+    <button id="syncBtn" class="btn btn-secondary"><i class="fa-solid fa-arrows-rotate"></i> Nu synchroniseren</button>
+    <button id="logoutBtn" class="btn btn-secondary"><i class="fa-solid fa-right-from-bracket"></i> Uitloggen</button>
+  </div>
+</header>
+
+<main>
+  <div class="filters-row">
+    <div class="filters">
+      <button class="filter-btn active" data-status="">Alle orders</button>
+      <button class="filter-btn" data-status="wacht op drukwerkbestand">Wacht op drukwerkbestand</button>
+      <button class="filter-btn" data-status="wacht op productie">Wacht op productie</button>
+      <button class="filter-btn" data-status="verzonden">Verzonden</button>
+      <button class="filter-btn" data-status="geannuleerd">Geannuleerd</button>
+      <button class="filter-btn" data-status="onjuiste gegevens">Onjuiste gegevens</button>
+      <button class="filter-btn" id="voorraadTab" data-status="__voorraad__">Voorraad</button>
+    </div>
+    <div class="search-bar" id="searchBarWrap">
+      <input type="text" id="searchInput" placeholder="Zoek op naam, adres of ordernummer...">
+    </div>
+    <div class="selection-bar" id="selectionBarWrap">
+      <span id="selectionCount">0 geselecteerd</span>
+      <select id="bulkStatusSelect" class="bulk-status-select">
+        <option value="">Zet status naar...</option>
+        <option value="wacht op drukwerkbestand">Wacht op drukwerkbestand</option>
+        <option value="wacht op productie">Wacht op productie</option>
+        <option value="verzonden">Verzonden</option>
+        <option value="geannuleerd">Geannuleerd</option>
+        <option value="onjuiste gegevens">Onjuiste gegevens</option>
+      </select>
+      <button id="bulkStatusBtn" class="btn btn-status" disabled>Toepassen</button>
+      <button id="printSelectedBtn" class="btn btn-primary" disabled><i class="fa-solid fa-print"></i> Print pakbonnen</button>
+    </div>
+  </div>
+
+  <div id="ordersView">
+    <table class="orders-table">
+      <thead>
+        <tr>
+          <th><input type="checkbox" id="selectAllBox"></th>
+          <th>Order #</th>
+          <th>Klant</th>
+          <th>Datum</th>
+          <th>Spotify</th>
+          <th>Foto</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="ordersBody">
+        <tr><td colspan="8" class="empty-row">Orders laden...</td></tr>
+      </tbody>
+    </table>
+
+    <div class="pagination" id="pagination"></div>
+  </div>
+
+  <div id="inventoryView" class="inventory-panel hidden">
+    <h2>Voorraad</h2>
+    <p class="inventory-hint">Vul hier bij hoeveel je van elk artikel op voorraad hebt. Bij elke nieuwe bestelling wordt automatisch het bestelde aantal van de bijbehorende artikelen afgetrokken.</p>
+    <div id="inventoryItems" class="inventory-items">Voorraad laden...</div>
+    <button id="saveInventoryBtn" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Opslaan</button>
+
+    <div class="inventory-add-row">
+      <input type="text" id="newInventoryName" placeholder="Naam nieuw artikel (bv. Houten standaard)">
+      <input type="number" id="newInventoryStock" placeholder="Aantal" min="0" value="0">
+      <button id="addInventoryBtn" class="btn btn-secondary"><i class="fa-solid fa-plus"></i> Artikel toevoegen</button>
+    </div>
+  </div>
+</main>
+
+<!-- Popup / modal voor orderdetails -->
+<div id="orderModal" class="modal-overlay hidden">
+  <div class="modal">
+    <button class="modal-close" id="modalClose">✕</button>
+    <div id="modalContent">Laden...</div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

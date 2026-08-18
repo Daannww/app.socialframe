@@ -1,0 +1,13 @@
+De Montserrat-fontbestanden (Montserrat-Regular.ttf en Montserrat-Bold.ttf)
+staan hier al in, en zitten voortaan gewoon in elke update die je van dit
+project krijgt — je hoeft hier zelf niets meer aan te doen.
+
+Mocht je ze ooit toch willen vervangen (bv. een andere gewicht/variant): zet
+gewoon nieuwe bestanden neer met exact deze namen:
+
+  Montserrat-Regular.ttf
+  Montserrat-Bold.ttf
+
+Zonder deze bestanden valt het Muziek-/Valentijnframe-drukwerkbestand terug
+op een systeemlettertype (Helvetica) — de tekst komt er dan nog steeds
+netjes op te staan, alleen niet met exact het Montserrat-lettertype.
