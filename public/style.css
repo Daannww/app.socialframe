@@ -148,6 +148,15 @@ main { padding: 24px; max-width: 1100px; margin: 0 auto; }
   overflow: hidden;
   box-shadow: 0 1px 2px rgba(0,0,0,0.04);
 }
+/* Op een smal scherm past de tabel (8 kolommen) niet naast elkaar — i.p.v. de
+   inhoud onleesbaar samen te persen, laten we 'm gewoon zijwaarts scrollen.
+   Op een breed scherm (desktop) verandert hier niets aan. */
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 10px;
+}
+.table-scroll .orders-table { min-width: 720px; box-shadow: none; }
 .orders-table th, .orders-table td {
   text-align: left;
   padding: 12px 14px;
@@ -362,4 +371,29 @@ main { padding: 24px; max-width: 1100px; margin: 0 auto; }
   border-radius: 8px;
   border: 1px solid var(--border);
   font-size: 14px;
+}
+
+/* --- Mobiel (iPhone/Android e.d.) --- */
+@media (max-width: 640px) {
+  .topbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 16px;
+  }
+  .logo { height: 40px; }
+  .topbar-right { flex-wrap: wrap; gap: 8px; width: 100%; }
+  .topbar-right .btn { font-size: 12px; padding: 7px 10px; }
+  .last-sync { font-size: 11px; }
+
+  main { padding: 12px; }
+
+  .filters-row { flex-direction: column; align-items: stretch; }
+  .filters { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px; }
+  .filter-btn { flex-shrink: 0; white-space: nowrap; }
+  .search-bar { max-width: none; }
+  .selection-bar { flex-wrap: wrap; }
+
+  .modal { width: 100vw; max-height: 100vh; height: 100vh; border-radius: 0; padding: 16px; }
+  .modal-overlay { padding: 0; }
 }
