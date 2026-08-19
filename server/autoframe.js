@@ -219,32 +219,37 @@ async function generateAutoFramePdf(data) {
   if (hasCode && data.link) {
     const qrBarColorHex = isWhite ? 'fffffd' : null;
     const codeSvg = await getCodeSvg('qr', data.link, qrBarColorHex);
-    const box = layout.qrBox;
-    const codePng = await sharp(Buffer.from(codeSvg))
-      .resize(box.sizeMm * 12)
-      .png()
-      .toBuffer();
-    const codeImage = await doc.embedPng(codePng);
+    // Kan null zijn als het genereren om wat voor reden dan ook mislukte —
+    // dan liever de rest van het bestand gewoon compleet, zonder code, dan
+    // de hele PDF-generatie te laten crashen.
+    if (codeSvg) {
+      const box = layout.qrBox;
+      const codePng = await sharp(Buffer.from(codeSvg))
+        .resize(box.sizeMm * 12)
+        .png()
+        .toBuffer();
+      const codeImage = await doc.embedPng(codePng);
 
-    // Witte achtergrond — behalve bij een marmer-achtergrond, dan 1% geel
-    // (anders staat er een vreemd wit blok bovenop de marmertextuur).
-    const codeBackgroundColor = isMarbleBackground(data.achtergrondKleur)
-      ? nearWhiteCmyk(cmyk)
-      : COLOR_CODE_BACKGROUND;
+      // Witte achtergrond — behalve bij een marmer-achtergrond, dan 1% geel
+      // (anders staat er een vreemd wit blok bovenop de marmertextuur).
+      const codeBackgroundColor = isMarbleBackground(data.achtergrondKleur)
+        ? nearWhiteCmyk(cmyk)
+        : COLOR_CODE_BACKGROUND;
 
-    page.drawRectangle({
-      x: box.xMm * MM,
-      y: fromTopMm(box.topMm + box.sizeMm),
-      width: box.sizeMm * MM,
-      height: box.sizeMm * MM,
-      color: codeBackgroundColor
-    });
-    page.drawImage(codeImage, {
-      x: box.xMm * MM,
-      y: fromTopMm(box.topMm + box.sizeMm),
-      width: box.sizeMm * MM,
-      height: box.sizeMm * MM
-    });
+      page.drawRectangle({
+        x: box.xMm * MM,
+        y: fromTopMm(box.topMm + box.sizeMm),
+        width: box.sizeMm * MM,
+        height: box.sizeMm * MM,
+        color: codeBackgroundColor
+      });
+      page.drawImage(codeImage, {
+        x: box.xMm * MM,
+        y: fromTopMm(box.topMm + box.sizeMm),
+        width: box.sizeMm * MM,
+        height: box.sizeMm * MM
+      });
+    }
   }
 
   return doc.save();
