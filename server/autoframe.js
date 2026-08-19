@@ -116,18 +116,9 @@ async function generateAutoFramePdf(data) {
       width: renderWidthMm * MM,
       height: renderHeightMm * MM
     });
-
-    // Technische markering voor de drukkerij: 100% geel op 1% opacity, exact
-    // even groot/gepositioneerd als de foto zelf — zelfde protocol als het
-    // muziekframe (zie daar voor de volledige toelichting).
-    page.drawRectangle({
-      x: renderXMm * MM,
-      y: fromTopMm(renderTopMm + renderHeightMm),
-      width: renderWidthMm * MM,
-      height: renderHeightMm * MM,
-      color: cmyk(0, 0, 1, 0),
-      opacity: 0.01
-    });
+    // De technische print-markering (subtiele gele tint) zit al in de foto
+    // zelf gebakken — zie applyPrintMarkerTint in pdf-shared.js — dus hier
+    // geen apart laagje met PDF-opacity meer nodig (was onbetrouwbaar).
   }
 
   // --- Fonts: Montserrat Bold (enige gebruikte gewicht in dit ontwerp) ---
