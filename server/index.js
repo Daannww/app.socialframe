@@ -7,7 +7,7 @@ const path = require('path');
 const fs = require('fs');
 const QRCode = require('qrcode');
 
-const { listOrders, getOrder, updateStatus, updateStatusBulk, getAllOrdersRaw, updateDerivedFields, deleteOldOrders, getInventory, setInventoryStock, addInventoryItem, deleteInventoryItem, getOrdersReadyForReviewEmail, markReviewEmailSent, setSizeOverride, setNote } = require('./db');
+const { listOrders, getOrder, updateStatus, updateStatusBulk, getAllOrdersRaw, updateDerivedFields, deleteOldOrders, getInventory, setInventoryStock, addInventoryItem, deleteInventoryItem, getOrdersReadyForReviewEmail, markReviewEmailSent, setSizeOverride, setNote, db } = require('./db');
 const { syncOrders, mapOrder, extractFotoTegelPhotoUrls, extractPosterlyPhotoUrls, extractTileItemsFromOrder, extractAutoFrameItemsFromOrder } = require('./shopify');
 const axios = require('axios');
 const archiver = require('archiver');
@@ -15,6 +15,7 @@ const { imageBufferToPrintPdf, cropPosterlyCanvas } = require('./printfile');
 const { generateMusicFramePdf, extractMusicFrameItemsFromOrder } = require('./musicframe');
 const { generateAutoFramePdf } = require('./autoframe');
 const { sendReviewEmail } = require('./reviewEmail');
+const SqliteSessionStore = require('./sqliteSessionStore');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -34,6 +35,7 @@ if (!process.env.PAKBON_USER || !process.env.PAKBON_PASS) {
 const SESSION_SECRET = process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex');
 
 app.use(session({
+  store: new SqliteSessionStore(db),
   secret: SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
