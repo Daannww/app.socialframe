@@ -320,17 +320,22 @@ async function generateMusicFramePdf(data) {
       });
 
       const codeSvg = await getCodeSvg('qr', data.link, qrBarColorHex);
-      const codePng = await sharp(Buffer.from(codeSvg))
-        .resize(CODE_SIZE_MM * 12)
-        .png()
-        .toBuffer();
-      const codeImage = await doc.embedPng(codePng);
-      page.drawImage(codeImage, {
-        x: codeXMm * MM,
-        y: codeYPdf,
-        width: CODE_SIZE_MM * MM,
-        height: CODE_SIZE_MM * MM
-      });
+      // Kan null zijn als het ophalen om wat voor reden dan ook mislukte —
+      // dan liever de rest van het bestand gewoon compleet, zonder code, dan
+      // de hele PDF-generatie te laten crashen.
+      if (codeSvg) {
+        const codePng = await sharp(Buffer.from(codeSvg))
+          .resize(CODE_SIZE_MM * 12)
+          .png()
+          .toBuffer();
+        const codeImage = await doc.embedPng(codePng);
+        page.drawImage(codeImage, {
+          x: codeXMm * MM,
+          y: codeYPdf,
+          width: CODE_SIZE_MM * MM,
+          height: CODE_SIZE_MM * MM
+        });
+      }
     } else if (codeType === 'spotify') {
       // Exact gemeten vak uit FRAME_spotify_code.pdf: x=43.55mm, top=261.32mm,
       // 113x28.25mm. De echte Spotify Code (met logo + soundwave) wordt via
@@ -342,31 +347,36 @@ async function generateMusicFramePdf(data) {
       const boxHeightMm = 28.25;
 
       const codeSvg = await getCodeSvg('spotify', data.link);
-      let codePng = await sharp(Buffer.from(codeSvg))
-        .resize(boxWidthMm * 12, boxHeightMm * 12, { fit: 'contain', background: { r: 255, g: 255, b: 255, alpha: 1 } })
-        .png()
-        .toBuffer();
-      // Bij de witte stijl: balkjes omkleuren naar #fffffc (1% geel CMYK-
-      // equivalent), als ECHTE pixelkleur, niet als PDF-transparantie.
-      if (isWhite) {
-        codePng = await recolorDarkPixels(codePng, SPOTIFY_NEAR_WHITE_RGB);
-      }
-      const codeImage = await doc.embedPng(codePng);
+      // Kan null zijn als het ophalen mislukte (bv. een link die niet
+      // herkend werd, of Spotify's service tijdelijk niet bereikbaar) — dan
+      // liever de rest van het bestand gewoon compleet, zonder code.
+      if (codeSvg) {
+        let codePng = await sharp(Buffer.from(codeSvg))
+          .resize(boxWidthMm * 12, boxHeightMm * 12, { fit: 'contain', background: { r: 255, g: 255, b: 255, alpha: 1 } })
+          .png()
+          .toBuffer();
+        // Bij de witte stijl: balkjes omkleuren naar #fffffc (1% geel CMYK-
+        // equivalent), als ECHTE pixelkleur, niet als PDF-transparantie.
+        if (isWhite) {
+          codePng = await recolorDarkPixels(codePng, SPOTIFY_NEAR_WHITE_RGB);
+        }
+        const codeImage = await doc.embedPng(codePng);
 
-      // Witte achtergrond over het hele vak, dan de code erbovenop.
-      page.drawRectangle({
-        x: boxXMm * MM,
-        y: fromTopMm(boxTopMm + boxHeightMm),
-        width: boxWidthMm * MM,
-        height: boxHeightMm * MM,
-        color: codeBackgroundColor
-      });
-      page.drawImage(codeImage, {
-        x: boxXMm * MM,
-        y: fromTopMm(boxTopMm + boxHeightMm),
-        width: boxWidthMm * MM,
-        height: boxHeightMm * MM
-      });
+        // Witte achtergrond over het hele vak, dan de code erbovenop.
+        page.drawRectangle({
+          x: boxXMm * MM,
+          y: fromTopMm(boxTopMm + boxHeightMm),
+          width: boxWidthMm * MM,
+          height: boxHeightMm * MM,
+          color: codeBackgroundColor
+        });
+        page.drawImage(codeImage, {
+          x: boxXMm * MM,
+          y: fromTopMm(boxTopMm + boxHeightMm),
+          width: boxWidthMm * MM,
+          height: boxHeightMm * MM
+        });
+      }
     }
   }
 
