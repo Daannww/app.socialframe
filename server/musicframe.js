@@ -25,8 +25,11 @@ const COLOR_HEART_RED = rgb(0.87, 0.15, 0.22);
 // bewust een andere kleur dan de #fffffd "witte tekst"-stijl hierboven.
 const COLOR_CODE_BACKGROUND = rgb(1, 1, 1);
 
+// Herkent zowel de Nederlandse ("Muziek-frame"/"Valentijn-frame") als de
+// Duitse ("Musik-rahmen") productnaam — Duitse orders hebben namelijk een
+// écht andere titel in Shopify zelf (niet alleen een vertaling op de pakbon).
 function isMusicFrameLineItem(li) {
-  return /muziek-?frame|valentijn-?frame/i.test(li.title || '');
+  return /muziek-?frame|valentijn-?frame|musik-?rahmen/i.test(li.title || '');
 }
 
 // Herkent de "klein" / "dik" variant van een Muziek-/Valentijn-frame, op basis
