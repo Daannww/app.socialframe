@@ -281,12 +281,24 @@ async function recolorDarkPixels(pngBuffer, targetRgb) {
 // Genereert de svg voor een QR-code of Spotify Code.
 async function getCodeSvg(codeType, link, barColorHex) {
   if (codeType === 'qr') {
-    const dark = barColorHex ? `#${barColorHex}` : '#000000';
-    return QRCode.toString(link, { type: 'svg', margin: 1, color: { dark, light: '#ffffff' } });
+    try {
+      const dark = barColorHex ? `#${barColorHex}` : '#000000';
+      return await QRCode.toString(link, { type: 'svg', margin: 1, color: { dark, light: '#ffffff' } });
+    } catch (e) {
+      // Zelfde redenering als bij Spotify hieronder: nooit de hele PDF laten
+      // crashen enkel omdat 1 QR-code niet gegenereerd kon worden.
+      console.warn(`[pdf-shared] kon QR-code niet genereren voor "${link}", wordt weggelaten:`, e.message);
+      return null;
+    }
   }
   if (codeType === 'spotify') {
     let uri = link.trim();
-    const match = uri.match(/open\.spotify\.com\/(track|album|playlist|artist|episode|show)\/([a-zA-Z0-9]+)/);
+    // Spotify-deellinks bevatten soms een extra onderdeel vlak na
+    // "spotify.com/" (taal-/regiocode zoals "intl-de", of bv. "embed") — dat
+    // onderdeel is generiek optioneel meegenomen, zodat de link hoe dan ook
+    // correct naar het juiste spotify:type:id-formaat wordt omgezet, ongeacht
+    // welke variant Spotify gebruikt.
+    const match = uri.match(/open\.spotify\.com\/(?:[a-z0-9-]+\/)?(track|album|playlist|artist|episode|show)\/([a-zA-Z0-9]+)/i);
     if (match) uri = `spotify:${match[1]}:${match[2]}`;
     const encoded = encodeURIComponent(uri);
     // Spotify's eigen scannables-service accepteert voor de voorgrondkleur
@@ -294,8 +306,17 @@ async function getCodeSvg(codeType, link, barColorHex) {
     // hex geeft een 400-fout). We halen 'm daarom altijd met zwarte balkjes op
     // (altijd geldig, altijd contrast) en kleuren die zelf achteraf om.
     const svgUrl = `https://scannables.scdn.co/uri/plain/svg/ffffff/black/640/${encoded}`;
-    const res = await axios.get(svgUrl, { responseType: 'text' });
-    return res.data;
+    try {
+      const res = await axios.get(svgUrl, { responseType: 'text' });
+      return res.data;
+    } catch (e) {
+      // Nooit de HELE PDF-generatie laten crashen enkel omdat de Spotify-code
+      // niet opgehaald kon worden (bv. een link die toch niet herkend werd,
+      // of Spotify's service tijdelijk niet bereikbaar) — liever een bestand
+      // zonder code dan helemaal geen bestand.
+      console.warn(`[pdf-shared] kon Spotify Code niet ophalen voor "${link}", wordt weggelaten:`, e.message);
+      return null;
+    }
   }
   return null;
 }
