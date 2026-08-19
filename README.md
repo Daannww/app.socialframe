@@ -363,6 +363,15 @@ zonder dat je zelf een server hoeft te beheren.
 zip, dus die komen automatisch mee bij een GitHub-push/Railway-deploy — je
 hoeft ze niet apart te uploaden.
 
+**Sessies (ingelogd blijven) overleven een herstart**: login-sessies worden
+opgeslagen in dezelfde SQLite-database als de orders (dus ook op de
+permanente Volume, zie stap 2 hierboven) — niet in het geheugen van het
+serverproces. Zonder dit zou iedereen bij **elke** nieuwe deploy automatisch
+worden uitgelogd, ook al is de sessie-cookie zelf nog 7 dagen geldig. Zorg
+dus vooral dat `SESSION_SECRET` (stap 3) én de Volume (stap 2) allebei goed
+staan — mist een van de twee, dan werkt "ingelogd blijven" nog steeds niet
+betrouwbaar.
+
 ## Een Shopify Admin API token aanmaken
 
 1. Ga naar je Shopify Admin → **Instellingen → Apps en verkoopkanalen → Apps ontwikkelen**.
