@@ -170,22 +170,9 @@ async function generateMusicFramePdf(data) {
       width: renderWidthMm * MM,
       height: renderHeightMm * MM
     });
-
-    // Technische markering voor de drukkerij: 100% geel op 1% opacity, exact
-    // even groot/gepositioneerd als de FOTO ZELF (dus niet het hele vak) —
-    // anders zou een niet-vierkante foto een gele waas over het lege deel van
-    // het vak krijgen, wat niet de bedoeling is. Verder bewust BOVENOP de
-    // foto getekend (niet erachter), anders wordt 'm door de ondoorzichtige
-    // foto volledig bedekt en is 'm nergens meer te detecteren door
-    // raster-/RIP-software.
-    page.drawRectangle({
-      x: renderXMm * MM,
-      y: fromTopMm(renderTopMm + renderHeightMm),
-      width: renderWidthMm * MM,
-      height: renderHeightMm * MM,
-      color: cmyk(0, 0, 1, 0),
-      opacity: 0.01
-    });
+    // De technische print-markering (subtiele gele tint) zit al in de foto
+    // zelf gebakken — zie applyPrintMarkerTint in pdf-shared.js — dus hier
+    // geen apart laagje met PDF-opacity meer nodig (was onbetrouwbaar).
   }
 
   // --- Fonts: Montserrat (Regular + Bold) als je die in server/fonts/ hebt
