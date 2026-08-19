@@ -65,9 +65,12 @@ const LAYOUT_QR = {
 };
 
 // Herkent of een productregel een Auto-frame is.
+// Herkent zowel de Nederlandse ("Auto-frame") als de Duitse ("Auto-rahmen")
+// productnaam — zelfde soort fix als bij het muziekframe.
 function isAutoFrameLineItem(li) {
-  return /auto-?frame/i.test(li.title || '');
+  return /auto-?frame|auto-?rahmen/i.test(li.title || '');
 }
+
 
 // Haalt de door de klant ingevulde velden uit de properties van 1 productregel.
 function extractAutoFrameData(li) {
