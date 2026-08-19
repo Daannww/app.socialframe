@@ -64,50 +64,13 @@ const LAYOUT_QR = {
   }
 };
 
-// Herkent of een productregel een Auto-frame is.
-// Herkent zowel de Nederlandse ("Auto-frame") als de Duitse ("Auto-rahmen")
-// productnaam — zelfde soort fix als bij het muziekframe.
-function isAutoFrameLineItem(li) {
-  return /auto-?frame|auto-?rahmen/i.test(li.title || '');
-}
-
-
-// Haalt de door de klant ingevulde velden uit de properties van 1 productregel.
-function extractAutoFrameData(li) {
-  const props = li.properties || [];
-  const getProp = (regex) => {
-    const p = props.find(p => regex.test(p.name || ''));
-    return p ? String(p.value || '').trim() : '';
-  };
-
-  return {
-    style: getProp(/stijl van jouw/i),
-    link: getProp(/link naar/i),
-    fotoFilter: getProp(/foto-?filter/i),
-    achtergrondKleur: getProp(/achtergrond\s*kleur/i),
-    titel: getProp(/merk en type auto|merk\s*\/?\s*type/i),
-    motor: getProp(/\bmotor\b/i),
-    pk: getProp(/\bpk\b/i),
-    snelheid: getProp(/snelheid/i),
-    naam: getProp(/\bnaam\b/i),
-    photoUrl: getProp(/upload hier jouw favoriete foto|kies jouw foto/i)
-  };
-}
-
-// Zoekt in een volledige (raw) Shopify-order naar Auto-frame productregels,
-// en geeft voor elk besteld exemplaar (quantity) een los item terug.
-function extractAutoFrameItemsFromOrder(rawOrder) {
-  const items = [];
-  (rawOrder.line_items || []).forEach(li => {
-    if (!isAutoFrameLineItem(li)) return;
-    const data = extractAutoFrameData(li);
-    const qty = li.quantity && li.quantity > 0 ? li.quantity : 1;
-    for (let i = 0; i < qty; i++) {
-      items.push({ title: li.title, data });
-    }
-  });
-  return items;
-}
+// Producttitel-/veldherkenning voor Auto-frame staat NIET hier, maar in
+// server/shopify.js (isAutoFrameLineItem/extractAutoFrameData/
+// extractAutoFrameItemsFromOrder) — dat is de enige, actief gebruikte versie
+// (zie index.js). Voorheen stond hier een eigen, verouderde kopie van
+// dezelfde functies, die daardoor niet meekreeg als de herkenning ergens
+// werd bijgesteld (bv. de Duitse "Musik-rahmen"/"Auto-rahmen"-namen) — die
+// dubbeling is nu opgeruimd om dat soort verwarring te voorkomen.
 
 function parseStyle(styleText) {
   const t = (styleText || '').toLowerCase();
@@ -287,7 +250,4 @@ async function generateAutoFramePdf(data) {
   return doc.save();
 }
 
-module.exports = {
-  generateAutoFramePdf, parseStyle,
-  isAutoFrameLineItem, extractAutoFrameData, extractAutoFrameItemsFromOrder
-};
+module.exports = { generateAutoFramePdf, parseStyle };
