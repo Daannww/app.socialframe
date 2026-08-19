@@ -224,13 +224,38 @@ async function embedPhoto(doc, photoUrl, filterValue, targetZoneSizeMm = 160) {
   // ruim voldoende voor beide richtingen.
   const targetPx = Math.ceil((targetZoneSizeMm / 25.4) * 300);
 
-  const jpegBuffer = await sharp(rotatedBuffer)
+  const resizedBuffer = await sharp(rotatedBuffer)
     .resize({ width: targetPx, height: targetPx, fit: 'inside', withoutEnlargement: true }) // verhouding intact, nooit opschalen
-    .jpeg({ quality: 92 })
     .toBuffer();
+
+  // Technische markering voor de drukkerij: een nét detecteerbare gele tint,
+  // ECHT in de pixels van de foto gebakken (i.p.v. een los laagje met 1%
+  // PDF-opacity erover) — opacity wordt namelijk niet door elke drukkerij-RIP
+  // betrouwbaar verwerkt (zelfde reden waarom de Spotify-code-balkjes ook al
+  // via echte pixelkleur i.p.v. opacity werken). Zo blijft de marker overal
+  // gegarandeerd exact even subtiel, zonder kans op een zichtbare gele waas.
+  const jpegBuffer = await applyPrintMarkerTint(resizedBuffer);
 
   const image = await doc.embedJpg(jpegBuffer);
   return { image, aspectRatio };
+}
+
+// Blendt elke pixel een fractie (1%) richting zuiver geel (255,255,0) — dus
+// een ECHTE, in de pixeldata gebakken variant van "100% geel op 1% opacity",
+// zonder afhankelijk te zijn van of een RIP/PDF-viewer transparantie correct
+// verwerkt. Bij een normale foto met het blote oog niet waarneembaar.
+async function applyPrintMarkerTint(imageBuffer) {
+  const image = sharp(imageBuffer).ensureAlpha();
+  const { data, info } = await image.raw().toBuffer({ resolveWithObject: true });
+  const blend = 0.01; // 1%
+
+  for (let i = 0; i < data.length; i += info.channels) {
+    data[i] = Math.round(data[i] * (1 - blend) + 255 * blend);     // R -> richting 255
+    data[i + 1] = Math.round(data[i + 1] * (1 - blend) + 255 * blend); // G -> richting 255
+    data[i + 2] = Math.round(data[i + 2] * (1 - blend) + 0 * blend);   // B -> richting 0 (dus per saldo een fractie geler)
+  }
+
+  return sharp(data, { raw: info }).jpeg({ quality: 92 }).toBuffer();
 }
 
 // Berekent, gegeven een vierkant vak (zoneSizeMm) en de beeldverhouding van de
@@ -326,5 +351,5 @@ module.exports = {
   splitTextEmoji, emojiToCodepoints, fetchEmojiPng, preloadEmojiImages,
   measureMixedTextWidth, drawMixedText, fitFontSizeToWidth,
   embedPhoto, fitPhotoInSquareZone, recolorDarkPixels, getCodeSvg,
-  drawBackground, isMarbleBackground, nearWhiteCmyk
+  drawBackground, isMarbleBackground, nearWhiteCmyk, applyPrintMarkerTint
 };
