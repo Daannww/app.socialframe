@@ -338,6 +338,15 @@ schoon en haalt hij alleen je echte orders op).
 Railway is een eenvoudige hostingdienst waar deze app 24/7 kan draaien,
 zonder dat je zelf een server hoeft te beheren.
 
+**Node-versie vastgezet op 22.x** (zie `"engines"` in `package.json`): Node
+24.19.0 bevat een bekende bug die de server af en toe kan laten crashen bij
+het afsluiten (`RemoveEnvironmentCleanupHook`/`Assertion failed: (env) !=
+nullptr`, in combinatie met `better-sqlite3`). Railway's standaard
+bouwsysteem (Nixpacks) kan alleen een hóófdversie vastzetten (dus geen
+specifieke subversie zoals 24.18.1) — vandaar de keuze voor de 22.x-lijn,
+die deze bug niet heeft en nog steeds actief onderhouden wordt (tot april
+2027).
+
 1. Maak op [railway.app](https://railway.app) een nieuw project, en kies
    **"Deploy from GitHub repo"** (zet dit project dus eerst in een eigen
    GitHub-repository — of gebruik Railway's "Empty Project" + upload via hun
