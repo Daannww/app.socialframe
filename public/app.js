@@ -377,13 +377,16 @@ function renderModal(order) {
     </button>
   `;
 
+  // Alleen de voornaam gebruiken voor de aanhef (i.p.v. de volledige naam)
+  const firstName = (order.customer_name || '').trim().split(' ')[0] || '';
+
   const mailtoHref = order.customer_email
-    ? `mailto:${encodeURIComponent(order.customer_email)}?subject=${encodeURIComponent('Huisnummer ontbreekt bij bestelling #' + (order.order_number || order.shopify_order_id))}&body=${encodeURIComponent(`Beste ${order.customer_name || ''},\n\nBij het verwerken van je bestelling #${order.order_number || order.shopify_order_id} zagen we dat het huisnummer nog ontbreekt (of niet klopte) in het adres. Zou je dit aan ons willen doorgeven zodat we je bestelling correct kunnen verzenden?\n\nAlvast bedankt!\n\nMet vriendelijke groet,\nSocialframe®`)}`
+    ? `mailto:${encodeURIComponent(order.customer_email)}?subject=${encodeURIComponent('Huisnummer ontbreekt bij bestelling #' + (order.order_number || order.shopify_order_id))}&body=${encodeURIComponent(`Hoi ${firstName},\n\nBedankt voor je bestelling! Bij het verwerken zagen we dat het huisnummer nog ontbreekt in het adres. Zou je dit aan ons willen doorgeven zodat we je bestelling correct kunnen verzenden?\n\nSocialframe®`)}`
     : null;
 
   const waDigits = phoneToWhatsAppDigits(order.customer_phone);
   const whatsappHref = waDigits
-    ? `https://wa.me/${waDigits}?text=${encodeURIComponent(`Hoi ${order.customer_name || ''}, bij het verwerken van je bestelling #${order.order_number || order.shopify_order_id} zagen we dat het huisnummer nog ontbreekt. Zou je dit even willen doorgeven? Alvast bedankt! - Socialframe`)}`
+    ? `https://wa.me/${waDigits}?text=${encodeURIComponent(`Hoi ${firstName}, bedankt voor je bestelling! Bij het verwerken zagen we dat het huisnummer nog ontbreekt. Zou je dit even willen doorgeven? Alvast bedankt! - Socialframe`)}`
     : null;
 
   // Adresregels los weergeven i.p.v. één lange regel, voor de leesbaarheid in de popup
