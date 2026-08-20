@@ -175,12 +175,12 @@ function extractTileItemsFromOrder(lineItems) {
   return items;
 }
 
-// Herkent of een productregel een Auto-frame is — zowel de Nederlandse
-// ("Auto-frame") als de Duitse ("Auto-rahmen") productnaam, want Duitse
-// orders hebben een écht andere titel in Shopify (niet alleen een vertaling
-// op de pakbon).
+// Herkent of een productregel een Auto-frame is — Nederlands ("Auto-frame")
+// en Duits ("Auto-rahmen"), met of zonder streepje, of met een spatie in
+// plaats van een streepje (Shopify-titels zijn hierin niet altijd
+// consistent, bv. "Auto frame" i.p.v. "Auto-frame").
 function isAutoFrameLineItem(li) {
-  return /auto-?frame|auto-?rahmen/i.test(li.title || '');
+  return /auto[\s-]?frame|auto[\s-]?rahmen/i.test(li.title || '');
 }
 
 // Herkent de "klein" / "dik" variant, net als bij het muziekframe.
