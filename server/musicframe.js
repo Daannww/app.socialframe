@@ -25,13 +25,13 @@ const COLOR_HEART_RED = rgb(0.87, 0.15, 0.22);
 // bewust een andere kleur dan de #fffffd "witte tekst"-stijl hierboven.
 const COLOR_CODE_BACKGROUND = rgb(1, 1, 1);
 
-// Herkent zowel de Nederlandse ("Muziek-frame"/"Valentijn-frame"), Engelse
-// ("Music-frame"/"Valentine-frame") als de Duitse ("Musik-rahmen"/
-// "Valentins-rahmen") productnaam — internationale orders hebben namelijk
-// een écht andere titel in Shopify zelf (niet alleen een vertaling op de
-// pakbon).
+// Herkent alle bekende taal-/schrijfwijze-varianten van dit product: NL
+// ("Muziek-frame"/"Valentijn-frame"), EN ("Music-frame"/"Valentine-frame"),
+// DE ("Musik-rahmen"/"Valentins-rahmen") — met of zonder streepje, of met een
+// spatie in plaats van een streepje (Shopify-titels zijn hierin niet altijd
+// consistent, bv. "Music frame" i.p.v. "Music-frame").
 function isMusicFrameLineItem(li) {
-  return /muziek-?frame|music-?frame|valentijn-?frame|valentine?s?-?frame|musik-?rahmen|valentins?-?rahmen/i.test(li.title || '');
+  return /muziek[\s-]?frame|music[\s-]?frame|valentijn[\s-]?frame|valentine?s?[\s-]?frame|musik[\s-]?rahmen|valentins?[\s-]?rahmen/i.test(li.title || '');
 }
 
 // Herkent de "klein" / "dik" variant van een Muziek-/Valentijn-frame, op basis
