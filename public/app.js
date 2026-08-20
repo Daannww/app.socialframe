@@ -270,7 +270,7 @@ function renderModal(order) {
     </div>
   `).join('') || '<p>Geen items gevonden</p>';
 
-  const musicFrameLineItems = (order.line_items || []).filter(li => /muziek-?frame|valentijn-?frame|musik-?rahmen/i.test(li.title || ''));
+  const musicFrameLineItems = (order.line_items || []).filter(li => /muziek-?frame|music-?frame|valentijn-?frame|valentine?s?-?frame|musik-?rahmen|valentins?-?rahmen/i.test(li.title || ''));
   // Houd rekening met aantal (quantity): 2x hetzelfde besteld = 2 losse knoppen/bestanden
   const musicFrameCount = musicFrameLineItems.reduce((sum, li) => sum + (li.quantity && li.quantity > 0 ? li.quantity : 1), 0);
   const musicFrameHtml = musicFrameCount > 0
