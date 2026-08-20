@@ -270,7 +270,7 @@ function renderModal(order) {
     </div>
   `).join('') || '<p>Geen items gevonden</p>';
 
-  const musicFrameLineItems = (order.line_items || []).filter(li => /muziek-?frame|music-?frame|valentijn-?frame|valentine?s?-?frame|musik-?rahmen|valentins?-?rahmen/i.test(li.title || ''));
+  const musicFrameLineItems = (order.line_items || []).filter(li => /muziek[\s-]?frame|music[\s-]?frame|valentijn[\s-]?frame|valentine?s?[\s-]?frame|musik[\s-]?rahmen|valentins?[\s-]?rahmen/i.test(li.title || ''));
   // Houd rekening met aantal (quantity): 2x hetzelfde besteld = 2 losse knoppen/bestanden
   const musicFrameCount = musicFrameLineItems.reduce((sum, li) => sum + (li.quantity && li.quantity > 0 ? li.quantity : 1), 0);
   const musicFrameHtml = musicFrameCount > 0
@@ -283,7 +283,7 @@ function renderModal(order) {
       }</div>`
     : '';
 
-  const autoFrameLineItems = (order.line_items || []).filter(li => /auto-?frame|auto-?rahmen/i.test(li.title || ''));
+  const autoFrameLineItems = (order.line_items || []).filter(li => /auto[\s-]?frame|auto[\s-]?rahmen/i.test(li.title || ''));
   const autoFrameCount = autoFrameLineItems.reduce((sum, li) => sum + (li.quantity && li.quantity > 0 ? li.quantity : 1), 0);
   const autoFrameHtml = autoFrameCount > 0
     ? `<div style="display:flex; flex-direction:column; gap:8px;">${
