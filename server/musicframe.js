@@ -8,7 +8,7 @@ const paths = require('./musicframe-paths');
 const {
   MM, splitTextEmoji, preloadEmojiImages, measureMixedTextWidth, drawMixedText,
   fitFontSizeToWidth, embedPhoto, fitPhotoInSquareZone, recolorDarkPixels, getCodeSvg,
-  drawBackground, isMarbleBackground, nearWhiteCmyk
+  drawBackground, nearWhiteCmyk, hasPageBackground
 } = require('./pdf-shared');
 
 const PAGE_W_MM = 200;
@@ -21,9 +21,9 @@ const COLOR_BLACK = rgb(0, 0, 0);
 const COLOR_WHITE = rgb(1, 1, 253 / 255); // #fffffd
 // Standaard rood voor het hartje ("Hartje rood") — zelf gekozen, warm/verzadigd rood.
 const COLOR_HEART_RED = rgb(0.87, 0.15, 0.22);
-// Zuiver wit (#ffffff) voor de achtergrond ACHTER de QR-/Spotify-code — dit is
-// bewust een andere kleur dan de #fffffd "witte tekst"-stijl hierboven.
-const COLOR_CODE_BACKGROUND = rgb(1, 1, 1);
+// LET OP: geen pure rgb(1,1,1) meer als code-achtergrond — sommige printers
+// detecteren #FFFFFF niet en maken er dan een gat van. Wordt daarom altijd
+// via nearWhiteCmyk() (1% geel-tint, CMYK) bepaald, zie verderop.
 
 // Herkent alle bekende taal-/schrijfwijze-varianten van dit product: NL
 // ("Muziek-frame"/"Valentijn-frame"), EN ("Music-frame"/"Valentine-frame"),
@@ -166,6 +166,21 @@ async function generateMusicFramePdf(data) {
     const { renderWidthMm, renderHeightMm, renderXMm, renderTopMm } =
       fitPhotoInSquareZone(aspectRatio, zoneXMm, zoneTopMm, zoneSizeMm);
 
+    // Bij een niet-vierkante foto blijft de lege marge binnen het vak anders
+    // helemaal ongekleurd als de pagina zelf geen achtergrond heeft
+    // ("Transparant") — dat is voor een printer nog problematischer dan puur
+    // wit. Daarom eerst het VOLLEDIGE fotovak met de 1%-gele tint vullen, en
+    // de foto er vervolgens overheen tekenen.
+    if (!hasPageBackground(data.achtergrondKleur)) {
+      page.drawRectangle({
+        x: zoneXMm * MM,
+        y: fromTopMm(zoneTopMm + zoneSizeMm),
+        width: zoneSizeMm * MM,
+        height: zoneSizeMm * MM,
+        color: nearWhiteCmyk(cmyk)
+      });
+    }
+
     page.drawImage(jpegImage, {
       x: renderXMm * MM,
       y: fromTopMm(renderTopMm + renderHeightMm),
@@ -282,12 +297,10 @@ async function generateMusicFramePdf(data) {
     drawIconPath(page, { ...paths[name], pageTopMm: paths[name].pageTopMm + iconShiftMm }, styleColor);
   });
 
-  // --- QR-/Spotify-code, met witte achtergrond — behalve bij een marmer-
-  // achtergrond, dan wordt dat 1% geel (anders staat er een vreemd wit blok
-  // bovenop de marmertextuur). ---
-  const codeBackgroundColor = isMarbleBackground(data.achtergrondKleur)
-    ? nearWhiteCmyk(cmyk)
-    : COLOR_CODE_BACKGROUND;
+  // --- QR-/Spotify-code-achtergrond: altijd de 1%-gele tint (nooit pure
+  // #FFFFFF) — een printer kan #FFFFFF soms niet detecteren en er dan een
+  // gat van maken. ---
+  const codeBackgroundColor = nearWhiteCmyk(cmyk);
 
   if (hasCode) {
     if (codeType === 'qr') {

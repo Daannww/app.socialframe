@@ -6,7 +6,7 @@ const path = require('path');
 const {
   MM, splitTextEmoji, preloadEmojiImages, drawMixedText, fitFontSizeToWidth,
   measureMixedTextWidth, embedPhoto, fitPhotoInSquareZone, recolorDarkPixels, getCodeSvg,
-  drawBackground, isMarbleBackground, nearWhiteCmyk
+  drawBackground, nearWhiteCmyk, hasPageBackground
 } = require('./pdf-shared');
 
 const PAGE_W_MM = 200;
@@ -14,7 +14,10 @@ const PAGE_H_MM = 300;
 
 const COLOR_BLACK = rgb(0, 0, 0);
 const COLOR_WHITE = rgb(1, 1, 253 / 255); // #fffffd — consistent met het muziekframe
-const COLOR_CODE_BACKGROUND = rgb(1, 1, 1);
+// LET OP: geen pure rgb(1,1,1) meer als code-achtergrond — sommige printers
+// detecteren #FFFFFF niet en maken er dan een gat van. Wordt daarom altijd
+// via nearWhiteCmyk() (1% geel-tint, CMYK) bepaald, niet als losse constante
+// hier — zie de aanroep verderop in dit bestand.
 
 // --- Alle posities hieronder zijn 1-op-1 gemeten uit het door de klant
 // aangeleverde referentiebestand "Autoframe.pdf" (2 pagina's: zonder en met
@@ -109,6 +112,22 @@ async function generateAutoFramePdf(data) {
     const { image: jpegImage, aspectRatio } = await embedPhoto(doc, data.photoUrl, data.fotoFilter, PHOTO_ZONE.sizeMm);
     const { renderWidthMm, renderHeightMm, renderXMm, renderTopMm } =
       fitPhotoInSquareZone(aspectRatio, PHOTO_ZONE.xMm, PHOTO_ZONE.topMm, PHOTO_ZONE.sizeMm);
+
+    // Bij een niet-vierkante foto (dus met lege marge boven/onder of links/
+    // rechts binnen het vierkante fotovak) blijft die marge anders helemaal
+    // ongekleurd als de pagina zelf geen achtergrond heeft ("Transparant") —
+    // dat is voor een printer nog problematischer dan puur wit. Daarom eerst
+    // het VOLLEDIGE fotovak met de 1%-gele tint vullen, en de foto er
+    // vervolgens overheen tekenen.
+    if (!hasPageBackground(data.achtergrondKleur)) {
+      page.drawRectangle({
+        x: PHOTO_ZONE.xMm * MM,
+        y: fromTopMm(PHOTO_ZONE.topMm + PHOTO_ZONE.sizeMm),
+        width: PHOTO_ZONE.sizeMm * MM,
+        height: PHOTO_ZONE.sizeMm * MM,
+        color: nearWhiteCmyk(cmyk)
+      });
+    }
 
     page.drawImage(jpegImage, {
       x: renderXMm * MM,
@@ -221,11 +240,9 @@ async function generateAutoFramePdf(data) {
         .toBuffer();
       const codeImage = await doc.embedPng(codePng);
 
-      // Witte achtergrond — behalve bij een marmer-achtergrond, dan 1% geel
-      // (anders staat er een vreemd wit blok bovenop de marmertextuur).
-      const codeBackgroundColor = isMarbleBackground(data.achtergrondKleur)
-        ? nearWhiteCmyk(cmyk)
-        : COLOR_CODE_BACKGROUND;
+      // Altijd de 1%-gele tint als achtergrond (nooit pure #FFFFFF) — een
+      // printer kan #FFFFFF soms niet detecteren en er dan een gat van maken.
+      const codeBackgroundColor = nearWhiteCmyk(cmyk);
 
       page.drawRectangle({
         x: box.xMm * MM,

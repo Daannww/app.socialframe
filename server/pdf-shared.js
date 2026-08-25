@@ -41,6 +41,17 @@ async function drawBackground(doc, page, achtergrondKleur, pageWidthMm, pageHeig
   // "Transparant" (of onbekend/leeg): niets tekenen, blijft leeg/transparant.
 }
 
+// Geeft aan of drawBackground hierboven daadwerkelijk iets tekent voor de
+// gegeven waarde (dus alles behalve "Transparant"/leeg/onbekend). Gebruikt
+// om te bepalen of een fotovak (bij een niet-vierkante foto, dus met lege
+// marge eromheen) zelf nog een vulling nodig heeft — anders blijft die marge
+// helemaal ongekleurd, en dat kan een printer nog problematischer vinden dan
+// puur wit (#FFFFFF): daar staat dan letterlijk niks getekend.
+function hasPageBackground(achtergrondKleur) {
+  const bg = (achtergrondKleur || '').toLowerCase();
+  return bg.includes('marmer') || bg.includes('wit') || bg.includes('zwart');
+}
+
 async function drawImageBackground(doc, page, filename, wPt, hPt) {
   const imgPath = path.join(__dirname, 'background-assets', filename);
   const jpgBuffer = fs.readFileSync(imgPath);
@@ -240,14 +251,23 @@ async function embedPhoto(doc, photoUrl, filterValue, targetZoneSizeMm = 160) {
   return { image, aspectRatio };
 }
 
-// Blendt elke pixel een fractie (1%) richting zuiver geel (255,255,0) — dus
-// een ECHTE, in de pixeldata gebakken variant van "100% geel op 1% opacity",
-// zonder afhankelijk te zijn van of een RIP/PDF-viewer transparantie correct
+// Blendt elke pixel een fractie richting zuiver geel (255,255,0) — dus een
+// ECHTE, in de pixeldata gebakken variant van "geel op lage opacity", zonder
+// afhankelijk te zijn van of een RIP/PDF-viewer transparantie correct
 // verwerkt. Bij een normale foto met het blote oog niet waarneembaar.
+//
+// Sterkte: 3% (niet 1%) — experimenteel bepaald tegen een echte, uitdagende
+// testfoto (scherpe wit-op-rood contrastrand, zoals witte tekst op een bord):
+// bij 1% bleven er na de JPEG-compressie hierna nog een handvol pixels over
+// die per ongeluk toch weer exact #FFFFFF werden (JPEG's blokgewijze
+// compressie kan een net-niet-wit pixel binnen een verder fel blok weer
+// "gladstrijken" naar wit). 2,5% was het omslagpunt naar 0 resterende
+// pixels bij die testfoto; 3% geeft daar nog een kleine veiligheidsmarge
+// bovenop.
 async function applyPrintMarkerTint(imageBuffer) {
   const image = sharp(imageBuffer).ensureAlpha();
   const { data, info } = await image.raw().toBuffer({ resolveWithObject: true });
-  const blend = 0.01; // 1%
+  const blend = 0.03;
 
   for (let i = 0; i < data.length; i += info.channels) {
     data[i] = Math.round(data[i] * (1 - blend) + 255 * blend);     // R -> richting 255
@@ -255,7 +275,26 @@ async function applyPrintMarkerTint(imageBuffer) {
     data[i + 2] = Math.round(data[i + 2] * (1 - blend) + 0 * blend);   // B -> richting 0 (dus per saldo een fractie geler)
   }
 
-  return sharp(data, { raw: info }).jpeg({ quality: 92 }).toBuffer();
+  let jpegBuffer = await sharp(data, { raw: info }).jpeg({ quality: 92 }).toBuffer();
+
+  // Extra vangnet, voor de zeldzame foto die zelfs bij 3% nog een enkele
+  // #FFFFFF-pixel zou overhouden: controleer na de compressie, en corrigeer
+  // zo nodig met een paar herhalingen (herhaling nodig omdat de HERcompressie
+  // zelf ook weer een paar nieuwe gevallen kan veroorzaken).
+  for (let poging = 0; poging < 3; poging++) {
+    const gecomprimeerd = await sharp(jpegBuffer).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    let gecorrigeerd = false;
+    for (let i = 0; i < gecomprimeerd.data.length; i += gecomprimeerd.info.channels) {
+      if (gecomprimeerd.data[i] === 255 && gecomprimeerd.data[i + 1] === 255 && gecomprimeerd.data[i + 2] === 255) {
+        gecomprimeerd.data[i + 2] = 230;
+        gecorrigeerd = true;
+      }
+    }
+    if (!gecorrigeerd) break;
+    jpegBuffer = await sharp(gecomprimeerd.data, { raw: gecomprimeerd.info }).jpeg({ quality: 92 }).toBuffer();
+  }
+
+  return jpegBuffer;
 }
 
 // Berekent, gegeven een vierkant vak (zoneSizeMm) en de beeldverhouding van de
@@ -351,5 +390,5 @@ module.exports = {
   splitTextEmoji, emojiToCodepoints, fetchEmojiPng, preloadEmojiImages,
   measureMixedTextWidth, drawMixedText, fitFontSizeToWidth,
   embedPhoto, fitPhotoInSquareZone, recolorDarkPixels, getCodeSvg,
-  drawBackground, isMarbleBackground, nearWhiteCmyk, applyPrintMarkerTint
+  drawBackground, isMarbleBackground, hasPageBackground, nearWhiteCmyk, applyPrintMarkerTint
 };
