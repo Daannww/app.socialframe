@@ -340,8 +340,19 @@ async function generateMusicFramePdf(data) {
       // herkend werd, of Spotify's service tijdelijk niet bereikbaar) — dan
       // liever de rest van het bestand gewoon compleet, zonder code.
       if (codeSvg) {
+        // Heeft de plaat zelf al een achtergrond (wit/zwart/marmer, dus niet
+        // "Transparant")? Dan geen apart wit/geel vlak áchter de Spotify-code
+        // meer — dat oogde als een onnodig "los blokje" bovenop de eigen
+        // achtergrond. De plaat se eigen achtergrond schijnt dan gewoon door,
+        // ook in eventuele opvulruimte rond de code (vandaar transparant
+        // i.p.v. wit als opvulkleur bij het passend maken hieronder).
+        const plaatHeeftAchtergrond = !!(data.achtergrondKleur && !/transparant/i.test(data.achtergrondKleur));
+        const opvulkleur = plaatHeeftAchtergrond
+          ? { r: 255, g: 255, b: 255, alpha: 0 }
+          : { r: 255, g: 255, b: 255, alpha: 1 };
+
         let codePng = await sharp(Buffer.from(codeSvg))
-          .resize(boxWidthMm * 12, boxHeightMm * 12, { fit: 'contain', background: { r: 255, g: 255, b: 255, alpha: 1 } })
+          .resize(boxWidthMm * 12, boxHeightMm * 12, { fit: 'contain', background: opvulkleur })
           .png()
           .toBuffer();
         // Bij de witte stijl: balkjes omkleuren naar #fffffc (1% geel CMYK-
@@ -351,14 +362,16 @@ async function generateMusicFramePdf(data) {
         }
         const codeImage = await doc.embedPng(codePng);
 
-        // Witte achtergrond over het hele vak, dan de code erbovenop.
-        page.drawRectangle({
-          x: boxXMm * MM,
-          y: fromTopMm(boxTopMm + boxHeightMm),
-          width: boxWidthMm * MM,
-          height: boxHeightMm * MM,
-          color: codeBackgroundColor
-        });
+        if (!plaatHeeftAchtergrond) {
+          // Witte achtergrond over het hele vak, dan de code erbovenop.
+          page.drawRectangle({
+            x: boxXMm * MM,
+            y: fromTopMm(boxTopMm + boxHeightMm),
+            width: boxWidthMm * MM,
+            height: boxHeightMm * MM,
+            color: codeBackgroundColor
+          });
+        }
         page.drawImage(codeImage, {
           x: boxXMm * MM,
           y: fromTopMm(boxTopMm + boxHeightMm),
