@@ -239,48 +239,68 @@ async function embedPhoto(doc, photoUrl, filterValue, targetZoneSizeMm = 160) {
     .resize({ width: targetPx, height: targetPx, fit: 'inside', withoutEnlargement: true }) // verhouding intact, nooit opschalen
     .toBuffer();
 
-  // Technische markering voor de drukkerij: een nét detecteerbare gele tint,
-  // ECHT in de pixels van de foto gebakken (i.p.v. een los laagje met 1%
-  // PDF-opacity erover) — opacity wordt namelijk niet door elke drukkerij-RIP
-  // betrouwbaar verwerkt (zelfde reden waarom de Spotify-code-balkjes ook al
-  // via echte pixelkleur i.p.v. opacity werken). Zo blijft de marker overal
-  // gegarandeerd exact even subtiel, zonder kans op een zichtbare gele waas.
-  const jpegBuffer = await applyPrintMarkerTint(resizedBuffer);
+  // Kleurbalans-correctie (echte CMYK-conversie, zelfde soort aanpassing als
+  // in Illustrator/Photoshop se "Kleuren wijzigen") op elke foto. Y+3% i.p.v.
+  // de oorspronkelijk gevraagde Y+1% — experimenteel bepaald tegen een echte,
+  // uitdagende testfoto (grote egaal-witte vlakken, zoals een overbelichte
+  // lucht): bij 1% bleven er ná de onvermijdelijke JPEG-compressie soms een
+  // handvol pixels toch weer exact #FFFFFF over, en dat bleek NIET met
+  // per-pixel-correctie op te lossen (JPEG's blokgewijze compressie duwt een
+  // geïsoleerde correctie binnen een verder volledig egaal wit 8x8-blok
+  // gewoon weer terug). 3% bleek bij diezelfde foto wél altijd naar 0 te
+  // convergeren. Lost als bijeffect ook op dat een foto nergens een
+  // letterlijk #FFFFFF-pixel bevat (dat kan een drukkerij-RIP als "geen
+  // inkt"/gat zien).
+  const jpegBuffer = await adjustCmykChannels(resizedBuffer, { c: 0, m: 0, y: 0.03, k: 0 });
 
   const image = await doc.embedJpg(jpegBuffer);
   return { image, aspectRatio };
 }
 
-// Blendt elke pixel een fractie richting zuiver geel (255,255,0) — dus een
-// ECHTE, in de pixeldata gebakken variant van "geel op lage opacity", zonder
-// afhankelijk te zijn van of een RIP/PDF-viewer transparantie correct
-// verwerkt. Bij een normale foto met het blote oog niet waarneembaar.
-//
-// Sterkte: 3% (niet 1%) — experimenteel bepaald tegen een echte, uitdagende
-// testfoto (scherpe wit-op-rood contrastrand, zoals witte tekst op een bord):
-// bij 1% bleven er na de JPEG-compressie hierna nog een handvol pixels over
-// die per ongeluk toch weer exact #FFFFFF werden (JPEG's blokgewijze
-// compressie kan een net-niet-wit pixel binnen een verder fel blok weer
-// "gladstrijken" naar wit). 2,5% was het omslagpunt naar 0 resterende
-// pixels bij die testfoto; 3% geeft daar nog een kleine veiligheidsmarge
-// bovenop.
-async function applyPrintMarkerTint(imageBuffer) {
+// Past een ECHTE CMYK-kanaalaanpassing toe op een foto (RGB -> CMYK omreke-
+// nen, de kanalen bijstellen, terug naar RGB) — zelfde soort aanpassing als
+// in het "Kleuren wijzigen"-dialoogvenster van Illustrator/Photoshop, i.p.v.
+// een RGB-benadering. Gebruikt de standaard, eenvoudige CMYK<->RGB-formules
+// (geen ICC-kleurprofielen, dat is voor dit doel niet nodig).
+// `delta` = { c, m, y, k } als fractie (0.01 = 1%), mag ook negatief zijn.
+async function adjustCmykChannels(imageBuffer, delta) {
   const image = sharp(imageBuffer).ensureAlpha();
   const { data, info } = await image.raw().toBuffer({ resolveWithObject: true });
-  const blend = 0.03;
+  const dC = delta.c || 0, dM = delta.m || 0, dY = delta.y || 0, dK = delta.k || 0;
 
   for (let i = 0; i < data.length; i += info.channels) {
-    data[i] = Math.round(data[i] * (1 - blend) + 255 * blend);     // R -> richting 255
-    data[i + 1] = Math.round(data[i + 1] * (1 - blend) + 255 * blend); // G -> richting 255
-    data[i + 2] = Math.round(data[i + 2] * (1 - blend) + 0 * blend);   // B -> richting 0 (dus per saldo een fractie geler)
+    const r = data[i] / 255, g = data[i + 1] / 255, b = data[i + 2] / 255;
+
+    // RGB -> CMYK
+    const k = 1 - Math.max(r, g, b);
+    let c, m, y;
+    if (k >= 1) {
+      c = 0; m = 0; y = 0; // puur zwart, C/M/Y zijn dan niet gedefinieerd (deling door 0)
+    } else {
+      c = (1 - r - k) / (1 - k);
+      m = (1 - g - k) / (1 - k);
+      y = (1 - b - k) / (1 - k);
+    }
+
+    // Kanalen bijstellen, elk apart tussen 0 en 1 geklemd
+    const c2 = Math.min(1, Math.max(0, c + dC));
+    const m2 = Math.min(1, Math.max(0, m + dM));
+    const y2 = Math.min(1, Math.max(0, y + dY));
+    const k2 = Math.min(1, Math.max(0, k + dK));
+
+    // CMYK -> RGB
+    data[i] = Math.round(255 * (1 - c2) * (1 - k2));
+    data[i + 1] = Math.round(255 * (1 - m2) * (1 - k2));
+    data[i + 2] = Math.round(255 * (1 - y2) * (1 - k2));
   }
 
   let jpegBuffer = await sharp(data, { raw: info }).jpeg({ quality: 92 }).toBuffer();
 
-  // Extra vangnet, voor de zeldzame foto die zelfs bij 3% nog een enkele
-  // #FFFFFF-pixel zou overhouden: controleer na de compressie, en corrigeer
-  // zo nodig met een paar herhalingen (herhaling nodig omdat de HERcompressie
-  // zelf ook weer een paar nieuwe gevallen kan veroorzaken).
+  // JPEG-compressie hierna is LOSSY en kan bij scherpe contrastranden een
+  // klein aantal pixels toch weer terug naar exact #FFFFFF duwen — zelfde
+  // vangnet als eerder al bewezen nodig was: controleren én zo nodig
+  // corrigeren ná de compressie, met een paar herhalingen (de hercompressie
+  // zelf kan namelijk ook weer een paar nieuwe gevallen veroorzaken).
   for (let poging = 0; poging < 3; poging++) {
     const gecomprimeerd = await sharp(jpegBuffer).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
     let gecorrigeerd = false;
@@ -635,6 +655,6 @@ module.exports = {
   splitTextEmoji, emojiToCodepoints, fetchEmojiPng, preloadEmojiImages,
   measureMixedTextWidth, drawMixedText, fitFontSizeToWidth,
   embedPhoto, fitPhotoInSquareZone, recolorDarkPixels, recolorLightPixels, getCodeSvg,
-  drawBackground, isMarbleBackground, hasPageBackground, nearWhiteCmyk, applyPrintMarkerTint,
+  drawBackground, isMarbleBackground, hasPageBackground, nearWhiteCmyk, adjustCmykChannels,
   extractSvgShapes, drawSvgShapesInBox
 };
