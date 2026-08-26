@@ -438,6 +438,62 @@ async function getCodeSvg(codeType, link, barColorHex) {
 // altijd een of andere vulling nodig), bij vectorvormen wel: gewoon niets
 // tekenen waar geen balkje staat, en de plaat se eigen achtergrond (marmer,
 // kleur, of niets bij "Transparant") schijnt daar dan vanzelf doorheen.
+// Zoekt alle <g transform="translate(a,b)">...</g>-blokken en hun bereik
+// (start/eind-positie in de string) — SVG's van dit soort scanbare codes
+// gebruiken vaak zo'n groep om een logo of balkjesrij als geheel te
+// verschuiven, en dat missen we anders volledig (enkel de rauwe x/y/d-
+// coördinaten binnen zo'n groep zijn NIET al de uiteindelijke positie).
+function findGroupTransforms(svgString) {
+  const groups = [];
+  const gOpenRegex = /<g\b([^>]*)>/gi;
+  let gm;
+  while ((gm = gOpenRegex.exec(svgString)) !== null) {
+    const attrs = gm[1];
+    const transformMatch = attrs.match(/transform=["']\s*translate\(\s*([-\d.]+)[,\s]+([-\d.]+)\s*\)["']/i);
+    if (!transformMatch) continue;
+    const dx = parseFloat(transformMatch[1]);
+    const dy = parseFloat(transformMatch[2]);
+    const openEnd = gm.index + gm[0].length;
+    // Simpele aanpak: de eerstvolgende sluitende </g> na deze open-tag —
+    // werkt prima voor niet-geneste of simpele SVG's zoals scanbare codes.
+    const closeIndex = svgString.indexOf('</g>', openEnd);
+    const closeEnd = closeIndex === -1 ? svgString.length : closeIndex;
+    groups.push({ start: gm.index, end: closeEnd, dx, dy });
+  }
+  return groups;
+}
+
+// Telt de verschuiving op van alle <g>-groepen waar deze positie (in de
+// oorspronkelijke svg-string) binnenin valt — kan er meerdere zijn bij
+// geneste groepen.
+function getGroupOffsetForPosition(groups, position) {
+  let dx = 0, dy = 0;
+  groups.forEach(g => {
+    if (position >= g.start && position <= g.end) {
+      dx += g.dx;
+      dy += g.dy;
+    }
+  });
+  return { dx, dy };
+}
+
+// Bouwt een SVG-pad-string voor een afgeronde rechthoek (nodig omdat pdf-lib
+// se drawRectangle geen hoekafronding ondersteunt) — zelfde uiterlijk als een
+// <rect rx=".." ry="..">, maar dan als los pad om via drawSvgPath te tekenen.
+function roundedRectPath(x, y, width, height, rx, ry) {
+  const rxClamped = Math.min(rx, width / 2);
+  const ryClamped = Math.min(ry, height / 2);
+  return `M ${x + rxClamped},${y} ` +
+    `L ${x + width - rxClamped},${y} ` +
+    `Q ${x + width},${y} ${x + width},${y + ryClamped} ` +
+    `L ${x + width},${y + height - ryClamped} ` +
+    `Q ${x + width},${y + height} ${x + width - rxClamped},${y + height} ` +
+    `L ${x + rxClamped},${y + height} ` +
+    `Q ${x},${y + height} ${x},${y + height - ryClamped} ` +
+    `L ${x},${y + ryClamped} ` +
+    `Q ${x},${y} ${x + rxClamped},${y} Z`;
+}
+
 function extractSvgShapes(svgString) {
   const viewBoxMatch = svgString.match(/viewBox=["']([^"']+)["']/i);
   const widthMatch = svgString.match(/\swidth=["']([\d.]+)["']/i);
@@ -453,6 +509,7 @@ function extractSvgShapes(svgString) {
     canvasHeight = heightMatch ? parseFloat(heightMatch[1]) : 100;
   }
 
+  const groups = findGroupTransforms(svgString);
   const shapes = [];
 
   // <rect .../> — voor barcode-achtige balkjes is dit de meest voorkomende vorm.
@@ -464,11 +521,14 @@ function extractSvgShapes(svgString) {
       const am = attrs.match(new RegExp(`${naam}=["']([^"']+)["']`, 'i'));
       return am ? am[1] : null;
     };
-    const x = parseFloat(getAttr('x') || '0');
-    const y = parseFloat(getAttr('y') || '0');
+    const { dx, dy } = getGroupOffsetForPosition(groups, m.index);
+    const x = parseFloat(getAttr('x') || '0') + dx;
+    const y = parseFloat(getAttr('y') || '0') + dy;
     const width = parseFloat(getAttr('width') || '0');
     const height = parseFloat(getAttr('height') || '0');
     const fill = (getAttr('fill') || '').toLowerCase();
+    const rx = parseFloat(getAttr('rx') || '0');
+    const ry = parseFloat(getAttr('ry') || getAttr('rx') || '0'); // ry valt terug op rx, zoals SVG's eigen regel
 
     // De achtergrond-rect: (nagenoeg) de volledige canvas bedekkend, wit
     // gevuld — die slaan we bewust over.
@@ -478,7 +538,13 @@ function extractSvgShapes(svgString) {
     if (isFullCanvasBackground) continue;
     if (width <= 0 || height <= 0) continue;
 
-    shapes.push({ type: 'rect', x, y, width, height });
+    if (rx > 0 || ry > 0) {
+      // Afgeronde balkjes (het gebruikelijke uiterlijk van een Spotify Code)
+      // — als vectorpad getekend, want drawRectangle kent geen afronding.
+      shapes.push({ type: 'path', d: roundedRectPath(x, y, width, height, rx, ry) });
+    } else {
+      shapes.push({ type: 'rect', x, y, width, height });
+    }
   }
 
   // <path .../> — voor een eventueel logo of afgeronde vormen.
@@ -486,7 +552,9 @@ function extractSvgShapes(svgString) {
   while ((m = pathRegex.exec(svgString)) !== null) {
     const attrs = m[1];
     const dMatch = attrs.match(/\sd=["']([^"']+)["']/i);
-    if (dMatch) shapes.push({ type: 'path', d: dMatch[1] });
+    if (!dMatch) continue;
+    const { dx, dy } = getGroupOffsetForPosition(groups, m.index);
+    shapes.push({ type: 'path', d: dMatch[1], groupDx: dx, groupDy: dy });
   }
 
   // <circle .../> — voor het geval een logo als cirkel i.p.v. pad staat.
@@ -497,8 +565,9 @@ function extractSvgShapes(svgString) {
       const am = attrs.match(new RegExp(`${naam}=["']([^"']+)["']`, 'i'));
       return am ? parseFloat(am[1]) : 0;
     };
-    const cx = getAttr('cx');
-    const cy = getAttr('cy');
+    const { dx, dy } = getGroupOffsetForPosition(groups, m.index);
+    const cx = getAttr('cx') + dx;
+    const cy = getAttr('cy') + dy;
     const r = getAttr('r');
     if (r > 0) shapes.push({ type: 'circle', cx, cy, r });
   }
@@ -535,9 +604,14 @@ function drawSvgShapesInBox(page, svgData, boxXMm, boxTopMm, boxWidthMm, boxHeig
     } else if (shape.type === 'path') {
       // SVG-y-as loopt omlaag, drawSvgPath van pdf-lib ook (t.o.v. het eigen
       // y-punt) — dus hier ook via fromTopMm werken, met dezelfde schaal.
+      // Een eventuele groepsverschuiving (groupDx/groupDy, bv. van een
+      // omvattende <g transform="translate(...)">, zoals bij een logo) wordt
+      // hier alsnog meegeteld — dat zit namelijk niet al in het pad zelf.
+      const groupDxMm = (shape.groupDx || 0) * schaal;
+      const groupDyMm = (shape.groupDy || 0) * schaal;
       page.drawSvgPath(shape.d, {
-        x: offsetXMm * MM,
-        y: fromTopMm(offsetTopMm),
+        x: (offsetXMm + groupDxMm) * MM,
+        y: fromTopMm(offsetTopMm + groupDyMm),
         scale: schaal * MM,
         color
       });
