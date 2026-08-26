@@ -240,9 +240,11 @@ async function generateAutoFramePdf(data) {
         .toBuffer();
       const codeImage = await doc.embedPng(codePng);
 
-      // Altijd de 1%-gele tint als achtergrond (nooit pure #FFFFFF) — een
-      // printer kan #FFFFFF soms niet detecteren en er dan een gat van maken.
-      const codeBackgroundColor = nearWhiteCmyk(cmyk);
+      // Puur wit (#FFFFFF) — dit is bewust een uitzondering op de "nooit
+      // puur wit"-regel die verder overal in dit bestand geldt (foto's,
+      // achtergrondkleur "Wit"): voor de QR-code-achtergrond specifiek moet
+      // het wél letterlijk #FFFFFF zijn.
+      const codeBackgroundColor = rgb(1, 1, 1);
 
       page.drawRectangle({
         x: box.xMm * MM,

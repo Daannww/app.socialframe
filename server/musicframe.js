@@ -297,10 +297,14 @@ async function generateMusicFramePdf(data) {
     drawIconPath(page, { ...paths[name], pageTopMm: paths[name].pageTopMm + iconShiftMm }, styleColor);
   });
 
-  // --- QR-/Spotify-code-achtergrond: altijd de 1%-gele tint (nooit pure
-  // #FFFFFF) — een printer kan #FFFFFF soms niet detecteren en er dan een
-  // gat van maken. ---
-  const codeBackgroundColor = nearWhiteCmyk(cmyk);
+  // --- QR-code-achtergrond: puur wit (#FFFFFF) — dit is bewust een
+  // uitzondering op de "nooit puur wit"-regel die verder overal in dit
+  // bestand geldt (foto's, achtergrondkleur "Wit"): voor de QR-code-
+  // achtergrond specifiek moet het wél letterlijk #FFFFFF zijn.
+  // (De Spotify-code hieronder heeft GEEN eigen achtergrondvlak meer — die
+  // svg heeft zelf al een witte achtergrond ingebakken, en een extra vlak
+  // erachter oogde als een onnodig "los blokje" op elke plaat-achtergrond.) ---
+  const codeBackgroundColor = rgb(1, 1, 1);
 
   if (hasCode) {
     if (codeType === 'qr') {
@@ -353,19 +357,15 @@ async function generateMusicFramePdf(data) {
       // herkend werd, of Spotify's service tijdelijk niet bereikbaar) — dan
       // liever de rest van het bestand gewoon compleet, zonder code.
       if (codeSvg) {
-        // Heeft de plaat zelf al een achtergrond (wit/zwart/marmer, dus niet
-        // "Transparant")? Dan geen apart wit/geel vlak áchter de Spotify-code
-        // meer — dat oogde als een onnodig "los blokje" bovenop de eigen
-        // achtergrond. De plaat se eigen achtergrond schijnt dan gewoon door,
-        // ook in eventuele opvulruimte rond de code (vandaar transparant
-        // i.p.v. wit als opvulkleur bij het passend maken hieronder).
-        const plaatHeeftAchtergrond = !!(data.achtergrondKleur && !/transparant/i.test(data.achtergrondKleur));
-        const opvulkleur = plaatHeeftAchtergrond
-          ? { r: 255, g: 255, b: 255, alpha: 0 }
-          : { r: 255, g: 255, b: 255, alpha: 1 };
-
+        // Geen apart wit/geel achtergrondvlak meer áchter de Spotify-code, in
+        // GEEN enkel geval (ook niet bij "Transparant") — dat oogde als een
+        // onnodig "los blokje". De code-svg zelf heeft al een eigen witte
+        // achtergrond ingebakken (opgehaald met bg=ffffff); alleen de
+        // opvulruimte rond de code (bij een net iets andere beeldverhouding
+        // dan het vak) blijft nu gewoon transparant, zodat de plaat se eigen
+        // achtergrond (of het lege canvas bij Transparant) daar doorschijnt.
         let codePng = await sharp(Buffer.from(codeSvg))
-          .resize(boxWidthMm * 12, boxHeightMm * 12, { fit: 'contain', background: opvulkleur })
+          .resize(boxWidthMm * 12, boxHeightMm * 12, { fit: 'contain', background: { r: 255, g: 255, b: 255, alpha: 0 } })
           .png()
           .toBuffer();
         // Bij de witte stijl: balkjes omkleuren naar #fffffc (1% geel CMYK-
@@ -375,16 +375,6 @@ async function generateMusicFramePdf(data) {
         }
         const codeImage = await doc.embedPng(codePng);
 
-        if (!plaatHeeftAchtergrond) {
-          // Witte achtergrond over het hele vak, dan de code erbovenop.
-          page.drawRectangle({
-            x: boxXMm * MM,
-            y: fromTopMm(boxTopMm + boxHeightMm),
-            width: boxWidthMm * MM,
-            height: boxHeightMm * MM,
-            color: codeBackgroundColor
-          });
-        }
         page.drawImage(codeImage, {
           x: boxXMm * MM,
           y: fromTopMm(boxTopMm + boxHeightMm),
