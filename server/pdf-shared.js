@@ -342,6 +342,51 @@ async function recolorDarkPixels(pngBuffer, targetRgb) {
   return sharp(data, { raw: info }).png().toBuffer();
 }
 
+// Het omgekeerde van recolorDarkPixels: elke LICHTE pixel (de eigen witte
+// achtergrond van bv. een Spotify-code) wordt de opgegeven, bijna-witte
+// doelkleur i.p.v. letterlijk puur wit — donkere pixels blijven onveranderd.
+// Nodig omdat een scanbare code altijd een eigen lichte achtergrond MOET
+// hebben (anders onscanbaar), maar die achtergrond hoeft daarvoor niet
+// letterlijk #FFFFFF te zijn — net zo subtiel gemaakt als de rest van dit
+// project (foto's, "Wit" als achtergrondkleur, enz.).
+async function recolorLightPixels(pngBuffer, targetRgb) {
+  const image = sharp(pngBuffer).ensureAlpha();
+  const { data, info } = await image.raw().toBuffer({ resolveWithObject: true });
+
+  for (let i = 0; i < data.length; i += info.channels) {
+    const luminance = (data[i] + data[i + 1] + data[i + 2]) / 3;
+    if (luminance >= 128) {
+      data[i] = targetRgb.r;
+      data[i + 1] = targetRgb.g;
+      data[i + 2] = targetRgb.b;
+    }
+  }
+
+  return sharp(data, { raw: info }).png().toBuffer();
+}
+
+// Maakt specifiek de LICHTE pixels van een code (bv. de witte achtergrond van
+// een Spotify-code) grotendeels doorzichtig via het ALFAKANAAL van de
+// afbeelding zelf — dus ECHT in de pixeldata ingebakken, niet als losse
+// PDF-drawImage-opacity (die is minder betrouwbaar op sommige RIP's). Donkere
+// pixels (de balkjes zelf) blijven altijd 100% dekkend, voor de scanbaarheid.
+// Gebruikt bij een gekleurde/marmer-achtergrond, zodat die textuur nog door
+// de code-achtergrond heen te zien blijft, i.p.v. een dekkend wit blok.
+async function makeLightPixelsTranslucent(pngBuffer, opacityPercent) {
+  const image = sharp(pngBuffer).ensureAlpha();
+  const { data, info } = await image.raw().toBuffer({ resolveWithObject: true });
+  const targetAlpha = Math.round(255 * (opacityPercent / 100));
+
+  for (let i = 0; i < data.length; i += info.channels) {
+    const luminance = (data[i] + data[i + 1] + data[i + 2]) / 3;
+    if (luminance >= 128) {
+      data[i + 3] = targetAlpha; // alleen het alfakanaal aanpassen, kleur blijft wit
+    }
+  }
+
+  return sharp(data, { raw: info }).png().toBuffer();
+}
+
 // Genereert de svg voor een QR-code of Spotify Code.
 async function getCodeSvg(codeType, link, barColorHex) {
   if (codeType === 'qr') {
@@ -385,10 +430,137 @@ async function getCodeSvg(codeType, link, barColorHex) {
   return null;
 }
 
+// Haalt uit een simpele SVG (zoals de Spotify Code — <rect>/<path>-elementen
+// met een fill-kleur) alle vormen op, MINUS de volledige-canvas-achtergrond-
+// rect (fill=wit/#ffffff, exact zo groot als de hele svg). Zo kunnen we de
+// balkjes als ECHTE vectorvormen op de pagina tekenen, zonder dat daar ooit
+// een achtergrond bij hoeft — dat kan bij een pixelafbeelding niet (die heeft
+// altijd een of andere vulling nodig), bij vectorvormen wel: gewoon niets
+// tekenen waar geen balkje staat, en de plaat se eigen achtergrond (marmer,
+// kleur, of niets bij "Transparant") schijnt daar dan vanzelf doorheen.
+function extractSvgShapes(svgString) {
+  const viewBoxMatch = svgString.match(/viewBox=["']([^"']+)["']/i);
+  const widthMatch = svgString.match(/\swidth=["']([\d.]+)["']/i);
+  const heightMatch = svgString.match(/\sheight=["']([\d.]+)["']/i);
+
+  let canvasWidth, canvasHeight;
+  if (viewBoxMatch) {
+    const parts = viewBoxMatch[1].trim().split(/\s+/).map(Number);
+    canvasWidth = parts[2];
+    canvasHeight = parts[3];
+  } else {
+    canvasWidth = widthMatch ? parseFloat(widthMatch[1]) : 100;
+    canvasHeight = heightMatch ? parseFloat(heightMatch[1]) : 100;
+  }
+
+  const shapes = [];
+
+  // <rect .../> — voor barcode-achtige balkjes is dit de meest voorkomende vorm.
+  const rectRegex = /<rect\b([^>]*)\/?>/gi;
+  let m;
+  while ((m = rectRegex.exec(svgString)) !== null) {
+    const attrs = m[1];
+    const getAttr = (naam) => {
+      const am = attrs.match(new RegExp(`${naam}=["']([^"']+)["']`, 'i'));
+      return am ? am[1] : null;
+    };
+    const x = parseFloat(getAttr('x') || '0');
+    const y = parseFloat(getAttr('y') || '0');
+    const width = parseFloat(getAttr('width') || '0');
+    const height = parseFloat(getAttr('height') || '0');
+    const fill = (getAttr('fill') || '').toLowerCase();
+
+    // De achtergrond-rect: (nagenoeg) de volledige canvas bedekkend, wit
+    // gevuld — die slaan we bewust over.
+    const isFullCanvasBackground =
+      x <= 1 && y <= 1 && width >= canvasWidth - 2 && height >= canvasHeight - 2 &&
+      (fill === '#ffffff' || fill === '#fff' || fill === 'white');
+    if (isFullCanvasBackground) continue;
+    if (width <= 0 || height <= 0) continue;
+
+    shapes.push({ type: 'rect', x, y, width, height });
+  }
+
+  // <path .../> — voor een eventueel logo of afgeronde vormen.
+  const pathRegex = /<path\b([^>]*)\/?>/gi;
+  while ((m = pathRegex.exec(svgString)) !== null) {
+    const attrs = m[1];
+    const dMatch = attrs.match(/\sd=["']([^"']+)["']/i);
+    if (dMatch) shapes.push({ type: 'path', d: dMatch[1] });
+  }
+
+  // <circle .../> — voor het geval een logo als cirkel i.p.v. pad staat.
+  const circleRegex = /<circle\b([^>]*)\/?>/gi;
+  while ((m = circleRegex.exec(svgString)) !== null) {
+    const attrs = m[1];
+    const getAttr = (naam) => {
+      const am = attrs.match(new RegExp(`${naam}=["']([^"']+)["']`, 'i'));
+      return am ? parseFloat(am[1]) : 0;
+    };
+    const cx = getAttr('cx');
+    const cy = getAttr('cy');
+    const r = getAttr('r');
+    if (r > 0) shapes.push({ type: 'circle', cx, cy, r });
+  }
+
+  return { canvasWidth, canvasHeight, shapes };
+}
+
+// Tekent de vormen uit extractSvgShapes hierboven als ECHTE vectorvormen op
+// de pagina, geschaald naar het opgegeven doelvak (in mm) — geen enkele
+// achtergrond, dus de plaat se eigen achtergrond (marmer/kleur/niets) blijft
+// overal zichtbaar behalve waar een balkje staat.
+function drawSvgShapesInBox(page, svgData, boxXMm, boxTopMm, boxWidthMm, boxHeightMm, color, fromTopMm, MM) {
+  const { canvasWidth, canvasHeight, shapes } = svgData;
+  // "Contain"-schaling: dezelfde verhouding aanhouden, gecentreerd in het vak.
+  const schaal = Math.min(boxWidthMm / canvasWidth, boxHeightMm / canvasHeight);
+  const getekendeBreedteMm = canvasWidth * schaal;
+  const getekendeHoogteMm = canvasHeight * schaal;
+  const offsetXMm = boxXMm + (boxWidthMm - getekendeBreedteMm) / 2;
+  const offsetTopMm = boxTopMm + (boxHeightMm - getekendeHoogteMm) / 2;
+
+  shapes.forEach(shape => {
+    if (shape.type === 'rect') {
+      const xMm = offsetXMm + shape.x * schaal;
+      const topMm = offsetTopMm + shape.y * schaal;
+      const wMm = shape.width * schaal;
+      const hMm = shape.height * schaal;
+      page.drawRectangle({
+        x: xMm * MM,
+        y: fromTopMm(topMm + hMm),
+        width: wMm * MM,
+        height: hMm * MM,
+        color
+      });
+    } else if (shape.type === 'path') {
+      // SVG-y-as loopt omlaag, drawSvgPath van pdf-lib ook (t.o.v. het eigen
+      // y-punt) — dus hier ook via fromTopMm werken, met dezelfde schaal.
+      page.drawSvgPath(shape.d, {
+        x: offsetXMm * MM,
+        y: fromTopMm(offsetTopMm),
+        scale: schaal * MM,
+        color
+      });
+    } else if (shape.type === 'circle') {
+      const cxMm = offsetXMm + shape.cx * schaal;
+      const cyTopMm = offsetTopMm + shape.cy * schaal;
+      const rMm = shape.r * schaal;
+      page.drawEllipse({
+        x: cxMm * MM,
+        y: fromTopMm(cyTopMm),
+        xScale: rMm * MM,
+        yScale: rMm * MM,
+        color
+      });
+    }
+  });
+}
+
 module.exports = {
   MM,
   splitTextEmoji, emojiToCodepoints, fetchEmojiPng, preloadEmojiImages,
   measureMixedTextWidth, drawMixedText, fitFontSizeToWidth,
-  embedPhoto, fitPhotoInSquareZone, recolorDarkPixels, getCodeSvg,
-  drawBackground, isMarbleBackground, hasPageBackground, nearWhiteCmyk, applyPrintMarkerTint
+  embedPhoto, fitPhotoInSquareZone, recolorDarkPixels, recolorLightPixels, getCodeSvg,
+  drawBackground, isMarbleBackground, hasPageBackground, nearWhiteCmyk, applyPrintMarkerTint,
+  extractSvgShapes, drawSvgShapesInBox
 };

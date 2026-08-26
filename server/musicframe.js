@@ -7,7 +7,7 @@ const path = require('path');
 const paths = require('./musicframe-paths');
 const {
   MM, splitTextEmoji, preloadEmojiImages, measureMixedTextWidth, drawMixedText,
-  fitFontSizeToWidth, embedPhoto, fitPhotoInSquareZone, recolorDarkPixels, getCodeSvg,
+  fitFontSizeToWidth, embedPhoto, fitPhotoInSquareZone, getCodeSvg, extractSvgShapes, drawSvgShapesInBox,
   drawBackground, nearWhiteCmyk, hasPageBackground
 } = require('./pdf-shared');
 
@@ -141,12 +141,9 @@ async function generateMusicFramePdf(data) {
   const hasCode = codeType !== 'geen' && !!data.link;
   // QR-code (lokaal gegenereerd, exacte hex mogelijk): #fffffd bij witte stijl.
   const qrBarColorHex = isWhite ? 'fffffd' : null;
-  // Spotify Code (via Spotify's service, alleen zwart/wit mogelijk): bij de
-  // witte stijl kleuren we de balkjes zelf om naar #fffffc — dat is het
-  // RGB-equivalent van dezelfde CMYK 1%-geel-truc (C0 M0 Y1 K0) die ook al
-  // achter de foto gebruikt wordt. Een ECHTE pixelkleur i.p.v. PDF-transparantie,
-  // want niet elke drukkerij-RIP verwerkt transparantie betrouwbaar.
-  const SPOTIFY_NEAR_WHITE_RGB = { r: 255, g: 255, b: 252 }; // #fffffc
+  // Spotify Code: wordt als ECHTE vectorvormen getekend (zie verderop), niet
+  // als pixelafbeelding — de balkjes blijven daarom altijd gewoon zwart, voor
+  // maximale scanbaarheid, ongeacht de gekozen tekststijl.
 
   // Achtergrondkleur: "Wit" (1% geel-truc), "Zwart" (diepzwart), "Marmerwit"/
   // "Marmerzwart" (echte textuur), of niets bij "Transparant" / onbekend.
@@ -357,30 +354,20 @@ async function generateMusicFramePdf(data) {
       // herkend werd, of Spotify's service tijdelijk niet bereikbaar) — dan
       // liever de rest van het bestand gewoon compleet, zonder code.
       if (codeSvg) {
-        // Geen apart wit/geel achtergrondvlak meer áchter de Spotify-code, in
-        // GEEN enkel geval (ook niet bij "Transparant") — dat oogde als een
-        // onnodig "los blokje". De code-svg zelf heeft al een eigen witte
-        // achtergrond ingebakken (opgehaald met bg=ffffff); alleen de
-        // opvulruimte rond de code (bij een net iets andere beeldverhouding
-        // dan het vak) blijft nu gewoon transparant, zodat de plaat se eigen
-        // achtergrond (of het lege canvas bij Transparant) daar doorschijnt.
-        let codePng = await sharp(Buffer.from(codeSvg))
-          .resize(boxWidthMm * 12, boxHeightMm * 12, { fit: 'contain', background: { r: 255, g: 255, b: 255, alpha: 0 } })
-          .png()
-          .toBuffer();
-        // Bij de witte stijl: balkjes omkleuren naar #fffffc (1% geel CMYK-
-        // equivalent), als ECHTE pixelkleur, niet als PDF-transparantie.
-        if (isWhite) {
-          codePng = await recolorDarkPixels(codePng, SPOTIFY_NEAR_WHITE_RGB);
-        }
-        const codeImage = await doc.embedPng(codePng);
-
-        page.drawImage(codeImage, {
-          x: boxXMm * MM,
-          y: fromTopMm(boxTopMm + boxHeightMm),
-          width: boxWidthMm * MM,
-          height: boxHeightMm * MM
-        });
+        // Als ECHTE vectorvormen getekend (niet als pixelafbeelding) — dat
+        // maakt het mogelijk om de achtergrond van de code VOLLEDIG weg te
+        // laten (geen tint, geen opacity-truc nodig): er wordt simpelweg
+        // niets getekend waar geen balkje staat, dus de plaat se eigen
+        // achtergrond (marmer, kleur, of niets bij "Transparant") blijft
+        // daar gewoon 100% zichtbaar. De balkjes zelf blijven altijd 100%
+        // dekkend in de juiste kleur, voor de scanbaarheid.
+        const svgData = extractSvgShapes(codeSvg);
+        // De balkjes blijven ALTIJD zwart, ongeacht de gekozen tekststijl —
+        // scanbaarheid staat voorop, en zonder een eigen achtergrondvlak zou
+        // een "witte" balkjeskleur juist onzichtbaar worden tegen een
+        // donkere plaat i.p.v. juist subtiel, zoals dat vroeger (met een wél
+        // aanwezige witte achtergrond) wel de bedoeling was.
+        drawSvgShapesInBox(page, svgData, boxXMm, boxTopMm, boxWidthMm, boxHeightMm, COLOR_BLACK, fromTopMm, MM);
       }
     }
   }
@@ -391,6 +378,5 @@ async function generateMusicFramePdf(data) {
 module.exports = {
   generateMusicFramePdf, parseStyle, parseHeartColor, parsePercent,
   isMusicFrameLineItem, extractMusicFrameData, extractMusicFrameItemsFromOrder,
-  getMusicFrameVariant, embedPhoto, splitTextEmoji, preloadEmojiImages, measureMixedTextWidth, drawMixedText,
-  recolorDarkPixels
+  getMusicFrameVariant, embedPhoto, splitTextEmoji, preloadEmojiImages, measureMixedTextWidth, drawMixedText
 };
