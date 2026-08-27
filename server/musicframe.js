@@ -8,7 +8,7 @@ const paths = require('./musicframe-paths');
 const {
   MM, splitTextEmoji, preloadEmojiImages, measureMixedTextWidth, drawMixedText,
   fitFontSizeToWidth, embedPhoto, fitPhotoInSquareZone, getCodeSvg, extractSvgShapes, drawSvgShapesInBox,
-  drawBackground, nearWhiteCmyk, hasPageBackground
+  drawBackground
 } = require('./pdf-shared');
 
 const PAGE_W_MM = 200;
@@ -21,9 +21,7 @@ const COLOR_BLACK = rgb(0, 0, 0);
 const COLOR_WHITE = rgb(1, 1, 253 / 255); // #fffffd
 // Standaard rood voor het hartje ("Hartje rood") — zelf gekozen, warm/verzadigd rood.
 const COLOR_HEART_RED = rgb(0.87, 0.15, 0.22);
-// LET OP: geen pure rgb(1,1,1) meer als code-achtergrond — sommige printers
-// detecteren #FFFFFF niet en maken er dan een gat van. Wordt daarom altijd
-// via nearWhiteCmyk() (1% geel-tint, CMYK) bepaald, zie verderop.
+// QR-code-achtergrond is bewust puur wit (#FFFFFF) — zie verderop.
 
 // Herkent alle bekende taal-/schrijfwijze-varianten van dit product: NL
 // ("Muziek-frame"/"Valentijn-frame"), EN ("Music-frame"/"Valentine-frame"),
@@ -163,30 +161,18 @@ async function generateMusicFramePdf(data) {
     const { renderWidthMm, renderHeightMm, renderXMm, renderTopMm } =
       fitPhotoInSquareZone(aspectRatio, zoneXMm, zoneTopMm, zoneSizeMm);
 
-    // Bij een niet-vierkante foto blijft de lege marge binnen het vak anders
-    // helemaal ongekleurd als de pagina zelf geen achtergrond heeft
-    // ("Transparant") — dat is voor een printer nog problematischer dan puur
-    // wit. Daarom eerst het VOLLEDIGE fotovak met de 1%-gele tint vullen, en
-    // de foto er vervolgens overheen tekenen.
-    if (!hasPageBackground(data.achtergrondKleur)) {
-      page.drawRectangle({
-        x: zoneXMm * MM,
-        y: fromTopMm(zoneTopMm + zoneSizeMm),
-        width: zoneSizeMm * MM,
-        height: zoneSizeMm * MM,
-        color: nearWhiteCmyk(cmyk)
-      });
-    }
-
+    // Alleen de foto zelf krijgt kleur/tint (via de foto-eigen kleurbalans-
+    // correctie in pdf-shared.js) — de lege marge binnen het vak (bij een
+    // niet-vierkante foto) blijft bewust gewoon leeg/ongemoeid, niet
+    // kunstmatig opgevuld met een los vlak over het HELE vak.
     page.drawImage(jpegImage, {
       x: renderXMm * MM,
       y: fromTopMm(renderTopMm + renderHeightMm),
       width: renderWidthMm * MM,
       height: renderHeightMm * MM
     });
-    // De technische print-markering (subtiele gele tint) zit al in de foto
-    // zelf gebakken — zie applyPrintMarkerTint in pdf-shared.js — dus hier
-    // geen apart laagje met PDF-opacity meer nodig (was onbetrouwbaar).
+    // De kleurbalans-/print-correctie (echte CMYK-aanpassing) zit al in de
+    // foto zelf gebakken — zie adjustCmykChannels in pdf-shared.js.
   }
 
   // --- Fonts: Montserrat (Regular + Bold) als je die in server/fonts/ hebt
