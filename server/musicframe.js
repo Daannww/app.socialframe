@@ -362,12 +362,13 @@ async function generateMusicFramePdf(data) {
         // daar gewoon 100% zichtbaar. De balkjes zelf blijven altijd 100%
         // dekkend in de juiste kleur, voor de scanbaarheid.
         const svgData = extractSvgShapes(codeSvg);
-        // De balkjes blijven ALTIJD zwart, ongeacht de gekozen tekststijl —
-        // scanbaarheid staat voorop, en zonder een eigen achtergrondvlak zou
-        // een "witte" balkjeskleur juist onzichtbaar worden tegen een
-        // donkere plaat i.p.v. juist subtiel, zoals dat vroeger (met een wél
-        // aanwezige witte achtergrond) wel de bedoeling was.
-        drawSvgShapesInBox(page, svgData, boxXMm, boxTopMm, boxWidthMm, boxHeightMm, COLOR_BLACK, fromTopMm, MM);
+        // De balkjes volgen de gekozen tekststijl-kleur (styleColor) — bij
+        // "Witte tekst" dus wit (#fffffd), net als de rest van de tekst en de
+        // QR-code. Dit was eerder per ongeluk vast op zwart gezet, maar "witte
+        // tekst" wordt juist gekozen bij een DONKERE plaat — zwarte balkjes
+        // zouden daar dan juist onzichtbaar worden, in plaats van wit die daar
+        // wél goed op contrasteert.
+        drawSvgShapesInBox(page, svgData, boxXMm, boxTopMm, boxWidthMm, boxHeightMm, styleColor, fromTopMm, MM);
       }
     }
   }
