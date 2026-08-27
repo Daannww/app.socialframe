@@ -240,18 +240,15 @@ async function embedPhoto(doc, photoUrl, filterValue, targetZoneSizeMm = 160) {
     .toBuffer();
 
   // Kleurbalans-correctie (echte CMYK-conversie, zelfde soort aanpassing als
-  // in Illustrator/Photoshop se "Kleuren wijzigen") op elke foto. Y+3% i.p.v.
-  // de oorspronkelijk gevraagde Y+1% — experimenteel bepaald tegen een echte,
-  // uitdagende testfoto (grote egaal-witte vlakken, zoals een overbelichte
-  // lucht): bij 1% bleven er ná de onvermijdelijke JPEG-compressie soms een
-  // handvol pixels toch weer exact #FFFFFF over, en dat bleek NIET met
-  // per-pixel-correctie op te lossen (JPEG's blokgewijze compressie duwt een
-  // geïsoleerde correctie binnen een verder volledig egaal wit 8x8-blok
-  // gewoon weer terug). 3% bleek bij diezelfde foto wél altijd naar 0 te
-  // convergeren. Lost als bijeffect ook op dat een foto nergens een
-  // letterlijk #FFFFFF-pixel bevat (dat kan een drukkerij-RIP als "geen
-  // inkt"/gat zien).
-  const jpegBuffer = await adjustCmykChannels(resizedBuffer, { c: 0, m: 0, y: 0.03, k: 0 });
+  // in Illustrator/Photoshop se "Kleuren wijzigen") op elke foto. Nu Y+8% —
+  // eerst 1% (oorspronkelijk gevraagd), toen 3% (loste #FFFFFF-pixels op in
+  // digitale test tegen een echte, uitdagende testfoto), maar in de
+  // PRAKTIJK bij het echt printen bleken er nog gaten te ontstaan (al wel
+  // kleiner dan voorheen) — dus de daadwerkelijke drempel van de printer/RIP
+  // ligt kennelijk hoger dan waar puur digitaal op te testen is. Naar 8%
+  // gezet als praktische, flink sterkere marge; nog altijd met het blote oog
+  // nauwelijks waarneembaar (zie de vergelijkingstest in de chat).
+  const jpegBuffer = await adjustCmykChannels(resizedBuffer, { c: 0, m: 0, y: 0.08, k: 0 });
 
   const image = await doc.embedJpg(jpegBuffer);
   return { image, aspectRatio };
