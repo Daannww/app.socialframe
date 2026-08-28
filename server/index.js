@@ -21,6 +21,21 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const publicDir = path.join(__dirname, '..', 'public');
 
+// Geeft de datum van VANDAAG terug als "YYYY-MM-DD", in de Nederlandse
+// tijdzone (Europe/Amsterdam) — dus NIET zomaar new Date().toISOString(),
+// want die geeft de UTC-datum van de server, die (afhankelijk van zomer-/
+// wintertijd) 1-2 uur achterloopt op Nederlandse tijd. Rond middernacht kan
+// dat verschil de datum zelf laten omslaan (bv. om 00:30 's nachts is het in
+// Nederland al de volgende dag, maar in UTC nog niet) — precies het probleem
+// waar de mapnamen van geëxporteerde drukwerkbestanden last van hadden.
+function getDutchDateString(datum = new Date()) {
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Amsterdam',
+    year: 'numeric', month: '2-digit', day: '2-digit'
+  });
+  return formatter.format(datum); // en-CA geeft toevallig precies het YYYY-MM-DD-formaat
+}
+
 if (!process.env.AUTH_USER || !process.env.AUTH_PASS) {
   console.warn('WAARSCHUWING: AUTH_USER / AUTH_PASS niet ingesteld in .env — stel deze in voor je live gaat!');
 }
@@ -535,7 +550,7 @@ app.get('/api/print-files/pdf-zip', requireAdmin, async (req, res) => {
 //   {datum}/muziekframe/klein/1055 klein.pdf
 //   {datum}/muziekframe/Dik/1055 dik.pdf
 async function appendPrintFilesToArchive(archive, targets) {
-  const dateFolder = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  const dateFolder = getDutchDateString(); // YYYY-MM-DD, Nederlandse tijdzone
 
   for (const order of targets) {
     let orderSucceeded = false;
@@ -685,7 +700,7 @@ async function runScheduledPrintFilesExport() {
   // opslaglocatie (bv. een Railway Volume) gebruiken voor de geplande exports.
   const exportsDir = path.join(process.env.DATA_DIR || path.join(__dirname, '..'), 'exports');
   fs.mkdirSync(exportsDir, { recursive: true });
-  const dateStr = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  const dateStr = getDutchDateString(); // YYYY-MM-DD, Nederlandse tijdzone
   const outputPath = path.join(exportsDir, `tegeltjes-${dateStr}.zip`);
 
   await new Promise((resolve, reject) => {
@@ -714,7 +729,8 @@ cron.schedule('*/5 * * * *', async () => {
   }
 });
 
-// --- Cron: elke nacht om 03:00 orders ouder dan 1 maand opruimen, om de database schoon te houden ---
+// --- Cron: elke nacht om 03:00 (Nederlandse tijd) orders ouder dan 1 maand
+// opruimen, om de database schoon te houden ---
 const ORDER_RETENTION_DAYS = parseInt(process.env.ORDER_RETENTION_DAYS || '30', 10);
 cron.schedule('0 3 * * *', () => {
   try {
@@ -723,7 +739,7 @@ cron.schedule('0 3 * * *', () => {
   } catch (e) {
     console.error('[opruimen] fout tijdens opruimen van oude orders:', e.message);
   }
-});
+}, { timezone: 'Europe/Amsterdam' });
 
 // --- Automatische export om 12:00 is UITGEZET op verzoek — dit gebeurt nu
 // alleen nog handmatig, via de knop "Drukwerkbestanden (PDF)" in het
@@ -767,7 +783,7 @@ async function runReviewEmailCheck() {
   console.log(`[review-mail] ${succeeded}/${orders.length} review-mails verstuurd.`);
 }
 
-// Elke dag om 10:00 controleren
+// Elke dag om 10:00 (Nederlandse tijd) controleren
 cron.schedule('0 10 * * *', async () => {
   try {
     console.log('[review-mail] start controle op orders voor review-mail...');
@@ -775,7 +791,7 @@ cron.schedule('0 10 * * *', async () => {
   } catch (e) {
     console.error('[review-mail] fout tijdens automatische controle:', e.message);
   }
-});
+}, { timezone: 'Europe/Amsterdam' });
 
 // --- Handmatig endpoint om de review-mail-controle direct te testen/triggeren ---
 app.post('/api/reviews/run-scheduled-check', requireAdmin, async (req, res) => {
