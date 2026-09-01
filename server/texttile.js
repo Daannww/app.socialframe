@@ -77,6 +77,47 @@ const TEGEL_TEKST_ONTWERPEN = [
       ankerXMm: 53.27,
       ankerTopMm: 85.284
     }
+  },
+  {
+    id: 'wat-je-in-je-hart-bewaart',
+    // Titel in Shopify: "Tegeltje met tekst - Wat je in je hart bewaart."
+    herken: /wat\s*je\s*in\s*je\s*hart\s*bewaart/i,
+    lettertypeBestanden: { semibold: 'MinionPro-Semibold.otf' },
+    lettertypeTerugval: { semibold: StandardFonts.TimesRomanBold },
+    regels: [
+      { tekst: 'Wat je in je hart bewaart', fontStijl: 'semibold', puntgrootteMm: 7.14, topMm: 41.82, accent: false },
+      { tekst: 'raak je nooit meer kwijt.', fontStijl: 'semibold', puntgrootteMm: 7.14, topMm: 50.39, accent: false }
+    ],
+    // "pdf-punten": zelfde extractiemethode als de andere hartjes hierboven.
+    hart: {
+      eenheid: 'pdf-punten',
+      pad: 'M 0,-0.0 C -1.801,1.887 -3.067,3.373 -3.955,5.903 C -4.046,6.162 -4.394,7.638 -4.471,7.69 C -4.861,7.955 -5.125,6.934 -5.176,6.704 C -6.157,2.271 -1.176,-1.93 1.453,-4.922 C 3.663,-7.438 6.261,-10.735 6.478,-14.219 C 6.738,-18.393 2.287,-17.624 -0.206,-16.298 C -2.854,-14.89 -5.7,-11.447 -5.933,-8.377 C -5.952,-8.132 -5.876,-7.387 -5.985,-7.249 C -6.906,-6.867 -6.788,-7.975 -6.973,-8.575 C -7.473,-10.203 -8.96,-12.189 -10.32,-13.203 C -14.288,-16.163 -17.863,-13.374 -16.971,-8.742 C -16.121,-4.326 -11.034,0.11 -7.135,1.978 C -7.079,2.005 -6.527,2.126 -6.72,2.239 C -7.02,2.415 -7.662,2.203 -7.985,2.099 C -12.421,0.659 -18.346,-4.937 -18.733,-9.789 C -19.192,-15.554 -13.285,-17.097 -9.387,-13.687 C -8.206,-12.654 -7.37,-11.392 -6.669,-10.002 C -6.647,-9.958 -6.65,-9.827 -6.553,-9.922 C -6.502,-9.972 -6.164,-11.056 -6.073,-11.268 C -4.555,-14.797 -1.222,-18.489 2.857,-18.74 C 5.549,-18.905 8.229,-17.257 8.55,-14.436 C 9.186,-8.849 3.497,-3.663 0,-0.0 Z',
+      kleur: cmyk(0.2, 0.3, 0.75, 0.05), // goud — altijd deze kleur, ongeacht tegelkleur
+      ankerXMm: 51.817,
+      ankerTopMm: 70.751
+    }
+  },
+  {
+    id: 'liefde-neemt-nooit-afscheid',
+    // Titel in Shopify: "Tegeltje met tekst - Liefde neemt nooit afscheid."
+    herken: /liefde\s*neemt.*afscheid/i,
+    lettertypeBestanden: { regular: 'Blastered-Regular.otf' },
+    lettertypeTerugval: { regular: StandardFonts.HelveticaBold },
+    regels: [
+      { tekst: 'LIEFDE NEEMT', fontStijl: 'regular', puntgrootteMm: 15.35, topMm: 41.93, accent: false },
+      { tekst: 'NOOIT AFSCHEID', fontStijl: 'regular', puntgrootteMm: 15.35, topMm: 61.11, accent: false }
+    ],
+    hart: {
+      eenheid: 'pdf-punten',
+      pad: 'M 0,-0.0 C -0.286,1.635 -1.3,3.266 -2.108,4.691 C -4.574,9.041 -7.838,12.954 -11.73,16.092 C -13.817,13.987 -15.551,11.554 -16.726,8.768 C -18.076,5.564 -18.663,2.01 -18.126,-1.442 C -17.884,-3.006 -17.476,-4.72 -16.498,-6.002 C -16.465,-6.045 -16.425,-6.08 -16.386,-6.109 C -16.26,-6.08 -15.969,-6.07 -15.986,-6.074 C -15.622,-5.979 -15.286,-5.924 -14.941,-5.762 C -14.189,-5.41 -13.569,-4.814 -13.123,-4.119 C -10.816,-0.528 -13.458,4.172 -12.053,8.06 C -11.841,8.645 -9.677,7.103 -9.5,6.825 C -8.351,5.022 -7.201,3.22 -6.052,1.417 C -5.286,0.215 -4.384,-1.607 -3.118,-2.369 C -1.491,-3.347 0.291,-1.661 0,-0.0 M 2.626,-2.611 C 2.217,-4.06 0.523,-4.376 -0.772,-4.172 C -2.239,-3.941 -3.653,-3.134 -4.798,-2.216 C -6.113,-1.161 -7.129,0.191 -8.037,1.597 C -8.638,2.529 -9.234,3.465 -9.829,4.401 C -10.027,0.871 -8.461,-3.112 -10.779,-6.039 C -13.101,-8.972 -17.134,-7.573 -19.069,-4.921 C -21.203,-1.994 -21.277,2.434 -20.671,5.855 C -19.955,9.899 -17.991,13.611 -15.264,16.659 C -14.895,17.072 -14.513,17.473 -14.119,17.861 C -14.689,18.25 -15.267,18.626 -15.859,18.981 C -16.073,19.11 -17.18,19.73 -16.969,20.095 C -16.765,20.449 -15.607,19.786 -15.45,19.691 C -14.789,19.295 -14.14,18.881 -13.5,18.454 C -10.87,20.898 -7.789,22.84 -4.558,24.394 C -3.891,24.714 -1.71,22.944 -2.132,22.741 C -5.362,21.188 -8.466,19.196 -11.081,16.726 C -7.193,13.761 -3.78,10.197 -1.075,6.096 C -0.196,4.763 0.602,3.378 1.325,1.954 C 1.988,0.647 3.057,-1.082 2.626,-2.611 Z',
+      // Dit hartje heeft GEEN eigen vaste kleur (i.t.t. de andere ontwerpen)
+      // — volgt in plaats daarvan dezelfde zwart/wit-regel als de hoofdtekst
+      // (bevestigd met de opdrachtgever: anders zou het op een zwarte tegel
+      // onzichtbaar worden, zwart-op-zwart).
+      volgtHoofdtekstkleur: true,
+      ankerXMm: 52.5,
+      ankerTopMm: 81.13
+    }
   }
 ];
 
@@ -204,9 +245,12 @@ async function generateTegelTekstPdf(data) {
     });
   });
 
-  // --- Hartje: altijd de eigen, vaste kleur van dit ontwerp — nooit
-  // afhankelijk van de tegelkleur. ---
-  drawHart(page, ontwerp.hart);
+  // --- Hartje: meestal een eigen, vaste kleur (ongeacht tegelkleur) — tenzij
+  // het ontwerp zelf aangeeft dat het hartje de hoofdtekst-kleur moet volgen
+  // (volgtHoofdtekstkleur: true), bv. om te voorkomen dat een zwart hartje
+  // onzichtbaar wordt op een zwarte tegel. ---
+  const hartKleur = ontwerp.hart.volgtHoofdtekstkleur ? hoofdtekstKleur : ontwerp.hart.kleur;
+  drawHart(page, { ...ontwerp.hart, kleur: hartKleur });
 
   return doc.save();
 }

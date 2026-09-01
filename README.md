@@ -288,6 +288,15 @@ van kan maken, en waarmee je de status van orders kan wijzigen.
     bij het project, geen verdere actie nodig. Geen aparte accentregel — de
     kenmerkende bordeauxrode kleur zit alleen in het (met de hand getekende)
     hartje.
+  - **"Wat je in je hart bewaart"** — lettertype **Minion Pro Semibold**
+    (Adobe) — `MinionPro-Semibold.otf` zit al bij het project. Geen aparte
+    accentregel — het (dunne, open) hartje is goud.
+  - **"Liefde neemt nooit afscheid"** — hergebruikt het al aanwezige
+    Blastered-lettertype. Geen aparte accentregel — het (dunne, open)
+    hartje heeft hier bewust GEEN vaste kleur (i.t.t. de andere 3 ontwerpen):
+    het volgt dezelfde zwart/wit-regel als de hoofdtekst
+    (`volgtHoofdtekstkleur: true` bij dit ontwerp in `server/texttile.js`),
+    anders zou het op een zwarte tegel onzichtbaar worden.
   **Belangrijk**: een "Tegeltje met tekst"-order krijgt alleen automatisch
   status "wacht op drukwerkbestand" als het ontwerp herkend wordt — een nog
   onbekende tekst-variant valt terug op het oude gedrag ("wacht op
