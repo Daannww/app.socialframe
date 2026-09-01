@@ -1,5 +1,6 @@
 const axios = require('axios');
 const { upsertOrder, getMeta, setMeta } = require('./db');
+const { isTegelTekstLineItem } = require('./texttile');
 
 const STORE = process.env.SHOPIFY_STORE;
 const TOKEN = process.env.SHOPIFY_ACCESS_TOKEN;
@@ -252,7 +253,17 @@ function determineInitialStatus(lineItems, photoLinks, fulfillmentStatus) {
   if (!lineItems || lineItems.length === 0) return 'wacht op drukwerkbestand';
   if (photoLinks && photoLinks.length > 0) return 'wacht op drukwerkbestand';
   const allTextTiles = lineItems.every(li => /tegeltje met tekst/i.test(li.title || ''));
-  return allTextTiles ? 'wacht op productie' : 'wacht op drukwerkbestand';
+  if (allTextTiles) {
+    // Herkennen we voor ELK van deze tegeltjes een vast ontwerp (zie
+    // texttile.js), dan kan er nu automatisch een drukwerkbestand voor
+    // gegenereerd worden — dus net als de andere producten naar "wacht op
+    // drukwerkbestand". Staat er een tegeltje-met-tekst tussen waar (nog)
+    // geen ontwerp voor bekend is, dan blijft de oude "wacht op productie"-
+    // aanpak gelden (handmatig afhandelen, kan nu eenmaal niet automatisch).
+    const alleOntwerpenBekend = lineItems.every(li => isTegelTekstLineItem(li));
+    return alleOntwerpenBekend ? 'wacht op drukwerkbestand' : 'wacht op productie';
+  }
+  return 'wacht op drukwerkbestand';
 }
 
 function mapOrder(order) {

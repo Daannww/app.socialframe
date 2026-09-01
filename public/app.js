@@ -295,6 +295,20 @@ function renderModal(order) {
       }</div>`
     : '';
 
+  // "Tegeltje met tekst": gebruikt het server-berekende texttile_items-veld
+  // (i.p.v. hier zelf opnieuw met een regex te gokken) — blijft zo
+  // automatisch in sync zodra er in texttile.js nieuwe ontwerpen bijkomen.
+  const tegelTekstItems = order.texttile_items || [];
+  const tegelTekstHtml = tegelTekstItems.length > 0
+    ? `<div style="display:flex; flex-direction:column; gap:8px;">${
+        tegelTekstItems.map((item, idx) => `
+      <button class="btn btn-primary" onclick="downloadTegelTekstPdf(${order.id}, ${idx}, this)">
+        <i class="fa-solid fa-download"></i> Download tegeltje-bestand${tegelTekstItems.length > 1 ? ` (${idx + 1})` : ''}${item.kleur ? ` — ${escapeHtml(item.kleur)}` : ''}
+      </button>
+    `).join('')
+      }</div>`
+    : '';
+
   const spotifyHtml = (order.spotify_links || []).map((link, idx) => `
     <div class="spotify-link-row" data-link="${escapeHtml(link)}">
       <a href="${escapeHtml(link)}" target="_blank" rel="noopener" class="copyable" onclick="event.preventDefault(); copyText(this, '${jsEscape(link)}')" title="Klik om te kopiëren">${escapeHtml(link)}</a>
@@ -475,6 +489,13 @@ function renderModal(order) {
     </div>
     ` : ''}
 
+    ${tegelTekstHtml ? `
+    <div class="modal-section">
+      <h3>Tegeltje met tekst</h3>
+      ${tegelTekstHtml}
+    </div>
+    ` : ''}
+
     <div class="modal-section">
       <h3>Notitie</h3>
       <textarea id="noteInput-${order.id}" class="note-textarea" placeholder="Bijzonderheden over deze order... (verschijnt ook op de pakbon, onder het adres)">${escapeHtml(order.note || '')}</textarea>
@@ -593,6 +614,33 @@ window.downloadAutoFramePdf = async function (orderId, idx, btn) {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   } catch (e) {
     alert('Kon auto-frame-bestand niet genereren: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalLabel;
+  }
+};
+
+window.downloadTegelTekstPdf = async function (orderId, idx, btn) {
+  const originalLabel = btn.innerHTML;
+  btn.disabled = true;
+  btn.textContent = 'Bezig...';
+  try {
+    const res = await fetch(`/api/print-files/texttile-pdf?orderId=${orderId}&itemIndex=${idx}`);
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || 'Server gaf een fout terug');
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `tegeltje-met-tekst-order-${orderId}-${idx + 1}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } catch (e) {
+    alert('Kon tegeltje-bestand niet genereren: ' + e.message);
   } finally {
     btn.disabled = false;
     btn.innerHTML = originalLabel;

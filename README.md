@@ -263,6 +263,32 @@ van kan maken, en waarmee je de status van orders kan wijzigen.
   is wel nog een inschatting; geef door als die een keer niet klopt.
   De 4 icoontjes (zwart én wit) staan als losse PNG-bestanden in
   `server/autoframe-assets/`.
+- **"Tegeltje met tekst"-drukwerkbestanden (standaardproduct, géén
+  personalisatie)**: dit is een familie van vaste, voorgedefinieerde
+  tegeltjes (100x100mm) — de klant kiest alleen de **tegelkleur** (9 opties:
+  Wit, Rose, Beige, Marineblauw, Grijs, Blauw, Zwart, Donker groen, Licht
+  groen), de tekst zelf ligt al vast per productvariant. Werkt op dezelfde 3
+  plekken als de andere producten (bulk-download, geplande export, losse
+  downloadknop in de popup — "Download tegeltje-bestand"), met bestelnummer
+  + gekozen kleur in de bestandsnaam (bv. `1099 Marineblauw.pdf`).
+  **Tekstkleur-regel** (bevestigd met de opdrachtgever): bij tegelkleur Wit
+  of Beige wordt de hoofdtekst zwart, bij alle 7 overige kleuren wit. Een
+  eventuele 2e/accentkleur (bv. "GOUD") blijft altijd die vaste accentkleur,
+  ongeacht de gekozen tegelkleur.
+  Elk afzonderlijk ontwerp (tekst + lay-out) staat als eigen item in de
+  `TEGEL_TEKST_ONTWERPEN`-lijst in `server/texttile.js`, herkend aan een
+  kenmerkende zin in de producttitel — voeg hier een nieuw item toe zodra er
+  een referentiebestand + voorbeeldbestelling is van een volgend tegeltje.
+  **Belangrijk**: een "Tegeltje met tekst"-order krijgt alleen automatisch
+  status "wacht op drukwerkbestand" als het ontwerp herkend wordt — een nog
+  onbekende tekst-variant valt terug op het oude gedrag ("wacht op
+  productie", geen bestand wordt gegenereerd).
+  **Lettertype**: Playfair Display (Medium + Black Italic) — de bestanden
+  `PlayfairDisplay-Medium.ttf` en `PlayfairDisplay-BlackItalic.ttf` zitten al
+  bij het project — geen verdere actie nodig.
+  De "witte" tekstkleur (bij de 7 tegelkleuren die geen zwarte tekst krijgen)
+  gebruikt dezelfde 1%-gele CMYK-truc als de rest van het project — nooit
+  letterlijk #FFFFFF.
 - **Achtergrondkleur (muziekframe én auto-frame)**: 4 opties — "Wit" (subtiele
   1%-gele CMYK-truc, C0 M0 Y1 K0, i.p.v. puur wit), "Zwart" (diepzwart),
   "Marmerwit" en "Marmerzwart" (echte marmertextuur, beeldvullend over de hele

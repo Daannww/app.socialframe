@@ -14,6 +14,7 @@ const archiver = require('archiver');
 const { imageBufferToPrintPdf, cropPosterlyCanvas } = require('./printfile');
 const { generateMusicFramePdf, extractMusicFrameItemsFromOrder } = require('./musicframe');
 const { generateAutoFramePdf } = require('./autoframe');
+const { generateTegelTekstPdf, extractTegelTekstItemsFromOrder } = require('./texttile');
 const { sendReviewEmail } = require('./reviewEmail');
 const SqliteSessionStore = require('./sqliteSessionStore');
 
@@ -160,7 +161,9 @@ app.get('/api/orders/:id', (req, res) => {
     // toepast (zie ook extractTileItemsFromOrder in shopify.js).
     tile_items: extractTileItemsFromOrder(lineItems),
     // Auto-frame-items in deze order (voor de downloadknop in de popup)
-    autoframe_items: extractAutoFrameItemsFromOrder({ line_items: lineItems })
+    autoframe_items: extractAutoFrameItemsFromOrder({ line_items: lineItems }),
+    // "Tegeltje met tekst"-items met een bekend ontwerp (voor de downloadknop in de popup)
+    texttile_items: extractTegelTekstItemsFromOrder({ line_items: lineItems })
   });
 });
 
@@ -464,6 +467,34 @@ app.get('/api/print-files/musicframe-pdf', requireAdmin, async (req, res) => {
   }
 });
 
+// --- Eén "Tegeltje met tekst"-drukwerkbestand downloaden vanuit de order-popup ---
+app.get('/api/print-files/texttile-pdf', requireAdmin, async (req, res) => {
+  const orderId = parseInt(req.query.orderId, 10);
+  const itemIndex = parseInt(req.query.itemIndex, 10) || 0;
+  if (!orderId) return res.status(400).json({ error: 'orderId is verplicht' });
+
+  try {
+    const order = getOrder(orderId);
+    if (!order) return res.status(404).json({ error: 'Order niet gevonden' });
+
+    const lineItems = JSON.parse(order.line_items_json || '[]');
+    const items = extractTegelTekstItemsFromOrder({ line_items: lineItems });
+    const item = items[itemIndex];
+    if (!item) return res.status(404).json({ error: 'Geen "Tegeltje met tekst" met bekend ontwerp gevonden op deze order' });
+
+    const pdfBytes = await generateTegelTekstPdf(item.data);
+    const baseName = String(order.order_number || order.shopify_order_id).replace(/[\\/:*?"<>|]/g, '-');
+    const suffix = items.length > 1 ? ` ${itemIndex + 1}` : '';
+    // Bestandsnaam bevat zowel het bestelnummer als de gekozen tegelkleur.
+    const kleurSuffix = item.kleur ? ` ${item.kleur.replace(/[\\/:*?"<>|]/g, '-')}` : '';
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${baseName}${suffix}${kleurSuffix}.pdf"`);
+    res.send(Buffer.from(pdfBytes));
+  } catch (e) {
+    res.status(500).json({ error: 'Kon tegeltje-bestand niet genereren: ' + e.message });
+  }
+});
+
 // --- Eén Auto-frame-drukwerkbestand downloaden vanuit de order-popup ---
 app.get('/api/print-files/autoframe-pdf', requireAdmin, async (req, res) => {
   const orderId = parseInt(req.query.orderId, 10);
@@ -516,7 +547,8 @@ app.get('/api/print-files/pdf-zip', requireAdmin, async (req, res) => {
       extractMusicFrameItemsFromOrder({ line_items: o.line_items }).length > 0 ||
       extractFotoTegelPhotoUrls(o.line_items).length > 0 ||
       extractPosterlyPhotoUrls(o.line_items).length > 0 ||
-      extractAutoFrameItemsFromOrder({ line_items: o.line_items }).length > 0
+      extractAutoFrameItemsFromOrder({ line_items: o.line_items }).length > 0 ||
+      extractTegelTekstItemsFromOrder({ line_items: o.line_items }).length > 0
     );
 
     if (targets.length === 0) {
@@ -667,6 +699,29 @@ async function appendPrintFilesToArchive(archive, targets) {
       }
     }
 
+    // --- "Tegeltje met tekst": eigen drukwerkbestand per besteld exemplaar,
+    // met bestelnummer + gekozen tegelkleur in de bestandsnaam. ---
+    const tegelTekstItems = extractTegelTekstItemsFromOrder({ line_items: order.line_items });
+    if (tegelTekstItems.length > 0) {
+      const multipleTegels = tegelTekstItems.length > 1;
+      for (let i = 0; i < tegelTekstItems.length; i++) {
+        const numberSuffix = multipleTegels ? ` ${i + 1}` : '';
+        const item = tegelTekstItems[i];
+        const kleurSuffix = item.kleur ? ` ${item.kleur.replace(/[\\/:*?"<>|]/g, '-')}` : '';
+        const filename = `${dateFolder}/tegeltje-met-tekst/${baseName}${numberSuffix}${kleurSuffix}.pdf`;
+        try {
+          const pdfBytes = await generateTegelTekstPdf(item.data);
+          archive.append(Buffer.from(pdfBytes), { name: filename });
+          orderSucceeded = true;
+        } catch (e) {
+          archive.append(
+            `Kon het tegeltje-bestand voor order ${baseName}${numberSuffix} niet genereren: ${e.message}`,
+            { name: `${dateFolder}/tegeltje-met-tekst/FOUT-${baseName}${numberSuffix}.txt` }
+          );
+        }
+      }
+    }
+
     // Order automatisch naar "wacht op productie" zetten zodra minstens 1 drukwerkbestand is gelukt
     if (orderSucceeded) {
       updateStatus(order.id, 'wacht op productie');
@@ -688,7 +743,8 @@ async function runScheduledPrintFilesExport() {
     extractMusicFrameItemsFromOrder({ line_items: o.line_items }).length > 0 ||
     extractFotoTegelPhotoUrls(o.line_items).length > 0 ||
     extractPosterlyPhotoUrls(o.line_items).length > 0 ||
-    extractAutoFrameItemsFromOrder({ line_items: o.line_items }).length > 0
+    extractAutoFrameItemsFromOrder({ line_items: o.line_items }).length > 0 ||
+    extractTegelTekstItemsFromOrder({ line_items: o.line_items }).length > 0
   );
 
   if (targets.length === 0) {
