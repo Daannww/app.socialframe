@@ -275,17 +275,23 @@ van kan maken, en waarmee je de status van orders kan wijzigen.
   of Beige wordt de hoofdtekst zwart, bij alle 7 overige kleuren wit. Een
   eventuele 2e/accentkleur (bv. "GOUD") blijft altijd die vaste accentkleur,
   ongeacht de gekozen tegelkleur.
-  Elk afzonderlijk ontwerp (tekst + lay-out) staat als eigen item in de
-  `TEGEL_TEKST_ONTWERPEN`-lijst in `server/texttile.js`, herkend aan een
-  kenmerkende zin in de producttitel — voeg hier een nieuw item toe zodra er
-  een referentiebestand + voorbeeldbestelling is van een volgend tegeltje.
+  Elk afzonderlijk ontwerp (tekst + lay-out + eigen lettertype + eigen
+  hartje) staat als eigen item in de `TEGEL_TEKST_ONTWERPEN`-lijst in
+  `server/texttile.js`, herkend aan een kenmerkende zin in de producttitel —
+  voeg hier een nieuw item toe zodra er een referentiebestand +
+  voorbeeldbestelling is van een volgend tegeltje. Momenteel bekend:
+  - **"Jij bent goud"** — lettertype Playfair Display (Medium + Black
+    Italic, gratis via Google Fonts, bestanden zitten al in het project).
+    "GOUD" is de accentregel (altijd goud, ongeacht tegelkleur).
+  - **"Altijd fijn om bij Oma te zijn"** — lettertype **Blastered**
+    (Pizzadude.dk, een betaald lettertype) — `Blastered-Regular.otf` zit al
+    bij het project, geen verdere actie nodig. Geen aparte accentregel — de
+    kenmerkende bordeauxrode kleur zit alleen in het (met de hand getekende)
+    hartje.
   **Belangrijk**: een "Tegeltje met tekst"-order krijgt alleen automatisch
   status "wacht op drukwerkbestand" als het ontwerp herkend wordt — een nog
   onbekende tekst-variant valt terug op het oude gedrag ("wacht op
   productie", geen bestand wordt gegenereerd).
-  **Lettertype**: Playfair Display (Medium + Black Italic) — de bestanden
-  `PlayfairDisplay-Medium.ttf` en `PlayfairDisplay-BlackItalic.ttf` zitten al
-  bij het project — geen verdere actie nodig.
   De "witte" tekstkleur (bij de 7 tegelkleuren die geen zwarte tekst krijgen)
   gebruikt dezelfde 1%-gele CMYK-truc als de rest van het project — nooit
   letterlijk #FFFFFF.
