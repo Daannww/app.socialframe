@@ -62,8 +62,9 @@ van kan maken, en waarmee je de status van orders kan wijzigen.
   artikelen **verwijderen** (prullenbak-icoontje per rij). Bij elke **nieuwe**
   bestelling wordt automatisch herkend welk(e) artikel(en) daarin zitten (op
   basis van de producttekst) en wordt het bestelde aantal van de voorraad
-  afgetrokken. Zakt een artikel onder de 20 stuks, dan verschijnt er een
-  waarschuwing in de zwarte balk bovenin ("Voorraad van X is bijna op").
+  afgetrokken. Zakt een artikel onder de 50 stuks (standaarddrempel,
+  instelbaar per artikel), dan verschijnt er een waarschuwing in de zwarte
+  balk bovenin ("Voorraad van X is bijna op").
   De 5 standaardartikelen gebruiken slimme matching-regels (in
   `server/inventory.js`, bv. "tegel" + "10x10" samen) — zelf toegevoegde
   artikelen worden herkend zodra de naam die je intypt letterlijk (ongeacht

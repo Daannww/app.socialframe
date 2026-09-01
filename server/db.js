@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS inventory_items (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT UNIQUE NOT NULL,
   stock INTEGER NOT NULL DEFAULT 0,
-  low_stock_threshold INTEGER NOT NULL DEFAULT 20,
+  low_stock_threshold INTEGER NOT NULL DEFAULT 50,
   updated_at TEXT DEFAULT (datetime('now'))
 );
 `);
@@ -96,6 +96,16 @@ try {
   db.exec("ALTER TABLE orders ADD COLUMN note TEXT");
 } catch (e) {
   // kolom bestaat al, negeren
+}
+
+// Migratie: standaard-lagevoorraaddrempel opgehoogd van 20 naar 50 stuks —
+// bestaande artikelen die nog op de OUDE standaardwaarde (20) staan, worden
+// hier EENMALIG bijgewerkt (via een vlag in sync_meta, zodat dit maar 1x
+// gebeurt — anders zou een later bewust wéér op 20 gezette drempel bij elke
+// serverherstart steeds opnieuw teruggezet worden naar 50).
+if (!getMeta('migratie_lagevoorraad_50_uitgevoerd')) {
+  db.exec('UPDATE inventory_items SET low_stock_threshold = 50 WHERE low_stock_threshold = 20');
+  setMeta('migratie_lagevoorraad_50_uitgevoerd', 'true');
 }
 
 function getMeta(key) {

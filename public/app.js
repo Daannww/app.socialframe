@@ -842,7 +842,7 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
 });
 
 // --- Voorraad ---
-const LOW_STOCK_THRESHOLD = 20;
+const LOW_STOCK_THRESHOLD = 50;
 
 async function loadInventory() {
   const container = document.getElementById('inventoryItems');
