@@ -578,6 +578,7 @@ app.get('/api/print-files/pdf-zip', requireAdmin, async (req, res) => {
 // Mapstructuur in de zip:
 //   {datum}/tegels/1007.pdf
 //   {datum}/tegels/groot/1007 groot.pdf
+//   {datum}/tegels/gekleurd/1099 Marineblauw.pdf
 //   {datum}/muziekframe/1055 muziekframe.pdf
 //   {datum}/muziekframe/klein/1055 klein.pdf
 //   {datum}/muziekframe/Dik/1055 dik.pdf
@@ -700,7 +701,9 @@ async function appendPrintFilesToArchive(archive, targets) {
     }
 
     // --- "Tegeltje met tekst": eigen drukwerkbestand per besteld exemplaar,
-    // met bestelnummer + gekozen tegelkleur in de bestandsnaam. ---
+    // met bestelnummer + gekozen tegelkleur in de bestandsnaam. Komt net als
+    // de 13x13-foto-tegels ("tegels/groot/") in een eigen submap onder de
+    // bestaande "tegels/"-map te staan, i.p.v. een aparte hoofdmap. ---
     const tegelTekstItems = extractTegelTekstItemsFromOrder({ line_items: order.line_items });
     if (tegelTekstItems.length > 0) {
       const multipleTegels = tegelTekstItems.length > 1;
@@ -708,7 +711,7 @@ async function appendPrintFilesToArchive(archive, targets) {
         const numberSuffix = multipleTegels ? ` ${i + 1}` : '';
         const item = tegelTekstItems[i];
         const kleurSuffix = item.kleur ? ` ${item.kleur.replace(/[\\/:*?"<>|]/g, '-')}` : '';
-        const filename = `${dateFolder}/tegeltje-met-tekst/${baseName}${numberSuffix}${kleurSuffix}.pdf`;
+        const filename = `${dateFolder}/tegels/gekleurd/${baseName}${numberSuffix}${kleurSuffix}.pdf`;
         try {
           const pdfBytes = await generateTegelTekstPdf(item.data);
           archive.append(Buffer.from(pdfBytes), { name: filename });
@@ -716,7 +719,7 @@ async function appendPrintFilesToArchive(archive, targets) {
         } catch (e) {
           archive.append(
             `Kon het tegeltje-bestand voor order ${baseName}${numberSuffix} niet genereren: ${e.message}`,
-            { name: `${dateFolder}/tegeltje-met-tekst/FOUT-${baseName}${numberSuffix}.txt` }
+            { name: `${dateFolder}/tegels/gekleurd/FOUT-${baseName}${numberSuffix}.txt` }
           );
         }
       }

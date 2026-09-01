@@ -270,7 +270,10 @@ van kan maken, en waarmee je de status van orders kan wijzigen.
   groen), de tekst zelf ligt al vast per productvariant. Werkt op dezelfde 3
   plekken als de andere producten (bulk-download, geplande export, losse
   downloadknop in de popup — "Download tegeltje-bestand"), met bestelnummer
-  + gekozen kleur in de bestandsnaam (bv. `1099 Marineblauw.pdf`).
+  + gekozen kleur in de bestandsnaam (bv. `1099 Marineblauw.pdf`), in een
+  eigen submap `tegels/gekleurd/` — net als de 13x13-foto-tegels in
+  `tegels/groot/` terechtkomen, staan deze tekst-tegeltjes gebundeld onder
+  dezelfde `tegels/`-hoofdmap in plaats van een aparte hoofdmap.
   **Tekstkleur-regel** (bevestigd met de opdrachtgever): bij tegelkleur Wit
   of Beige wordt de hoofdtekst zwart, bij alle 7 overige kleuren wit. Een
   eventuele 2e/accentkleur (bv. "GOUD") blijft altijd die vaste accentkleur,
