@@ -75,6 +75,17 @@ function isMarbleBackground(achtergrondKleur) {
 // platform (dus ook Apple) er overal consistent uit te laten zien.
 const EMOJI_REGEX = /(\p{Regional_Indicator}{2}|[0-9#*]\ufe0f?\u20e3|\p{Extended_Pictographic}(?:\u200d\p{Extended_Pictographic})*(?:\ufe0f)?|\p{Emoji_Presentation})/gu;
 
+// Hebreeuws schrift (incl. de "Alphabetic Presentation Forms"-tekens die bij
+// bepaalde toetsenborden/lettercombinaties gebruikt worden) — wordt NIET als
+// emoji behandeld maar als eigen "hebrew"-tekst-type (zie splitRemainderSafely
+// hieronder), en rechts-naar-links getekend (zie drawMixedText). Ontdekt na een
+// echte order waarbij Hebreeuwse tekst stilzwijgend wegviel: die tekens vielen
+// vroeger buiten SAFE_TEXT_CHAR_REGEX en werden dus ten onrechte als "emoji"
+// behandeld — er werd dan (tevergeefs) een emoji-plaatje voor gezocht, dat
+// natuurlijk nooit bestaat, dus er verscheen stilzwijgend niets (wel schoof de
+// cursor door, als was er wél iets getekend).
+const HEBREW_CHAR_REGEX = /[\u0590-\u05FF\uFB1D-\uFB4F]/u;
+
 // Vangnet: elk los teken dat overblijft in een "tekst"-stuk, maar buiten het
 // normale Latijnse schrift valt (dus geen normale letters/cijfers/leestekens/
 // accenten), wordt ALSNOG als "emoji" behandeld. Dit vangt nieuwere/zeldzame
@@ -97,20 +108,41 @@ function splitTextEmoji(text) {
 }
 
 // Splitst een "tekst"-stuk verder op: normale tekens blijven gewoon tekst,
-// maar elk teken buiten het veilige Latijnse bereik wordt als eigen "emoji"-
-// deel behandeld (vangnet, zie SAFE_TEXT_CHAR_REGEX hierboven).
+// Hebreeuwse tekens (mét de spaties daartussenin, anders zou de WOORDVOLGORDE
+// bij het omdraaien alsnog verkeerd blijven staan — alleen de losse woorden
+// zouden dan omgedraaid zijn, niet hun onderlinge volgorde) worden een eigen
+// "hebrew"-deel (rechts-naar-links, dus de hele frase wordt hier al in
+// tekenvolgorde omgedraaid — zie drawMixedText voor de toelichting waarom),
+// en alles daarbuiten wordt als "emoji" behandeld (vangnet, zie
+// SAFE_TEXT_CHAR_REGEX hierboven).
 function splitRemainderSafely(text) {
   const out = [];
   let buffer = '';
+  let bufferType = null;
+  const flush = () => {
+    if (!buffer) return;
+    out.push({ type: bufferType, value: bufferType === 'hebrew' ? [...buffer].reverse().join('') : buffer });
+    buffer = '';
+  };
   for (const char of text) {
-    if (SAFE_TEXT_CHAR_REGEX.test(char)) {
-      buffer += char;
+    let type;
+    if (HEBREW_CHAR_REGEX.test(char)) {
+      type = 'hebrew';
+    } else if (char === ' ' && bufferType === 'hebrew') {
+      // Spatie MIDDEN in een Hebreeuwse frase: bij die frase houden, i.p.v.
+      // een apart "text"-deel te worden — anders zou alleen elk Hebreeuws
+      // woord los omgedraaid worden, maar de woorden onderling nog steeds in
+      // de verkeerde (links-naar-rechts) volgorde blijven staan.
+      type = 'hebrew';
+    } else if (SAFE_TEXT_CHAR_REGEX.test(char)) {
+      type = 'text';
     } else {
-      if (buffer) { out.push({ type: 'text', value: buffer }); buffer = ''; }
-      out.push({ type: 'emoji', value: char });
+      type = 'emoji';
     }
+    if (type !== bufferType) { flush(); bufferType = type; }
+    buffer += char;
   }
-  if (buffer) out.push({ type: 'text', value: buffer });
+  flush();
   return out;
 }
 
@@ -164,17 +196,39 @@ async function preloadEmojiImages(doc, texts, sizePx = 128) {
 }
 
 // Meet de totale breedte (in PDF-punten) van tekst + emoji samen, bij een
-// gegeven puntgrootte — emoji tellen even breed als hoog (1 "em").
-function measureMixedTextWidth(parts, font, sizePt) {
+// gegeven puntgrootte — emoji tellen even breed als hoog (1 "em"). Voor
+// "hebrew"-delen wordt (indien meegegeven) hebrewFont gebruikt om de breedte
+// te meten — zonder hebrewFont tellen ze NIET mee (0 breedte) i.p.v. het
+// gewone lettertype te proberen: dat lettertype heeft nooit Hebreeuwse
+// glyphs, en bij een STANDAARD PDF-lettertype (bv. de Helvetica-noodgreep als
+// zelfs Montserrat ontbreekt) gooit pdf-lib daar zelfs een harde fout op
+// (WinAnsi-encoding kan het teken niet coderen) — dat zou de HELE PDF-
+// generatie laten crashen, terwijl "die tekst blijft leeg" nooit fataal mag
+// zijn. Een try/catch eromheen als extra vangnet voor onverwachte tekens
+// die zelfs hebrewFont zelf niet kent.
+function measureMixedTextWidth(parts, font, sizePt, hebrewFont) {
   return parts.reduce((total, p) => {
     if (p.type === 'emoji') return total + sizePt;
+    if (p.type === 'hebrew') {
+      if (!hebrewFont) return total; // geen lettertype beschikbaar: telt niet mee, crasht niet
+      try {
+        return total + hebrewFont.widthOfTextAtSize(p.value, sizePt);
+      } catch (e) {
+        return total;
+      }
+    }
     return total + font.widthOfTextAtSize(p.value, sizePt);
   }, 0);
 }
 
-// Tekent een regel tekst+emoji door elkaar, op de gegeven basislijn (PDF-punten,
-// dus al vanaf de onderkant van de pagina).
-function drawMixedText(page, parts, font, sizePt, xPt, baselineYPt, color, emojiCache) {
+// Tekent een regel tekst+emoji(+Hebreeuws) door elkaar, op de gegeven
+// basislijn (PDF-punten, dus al vanaf de onderkant van de pagina). Hebreeuwse
+// delen zijn door splitRemainderSafely hierboven al in de juiste (omgekeerde)
+// tekenvolgorde gezet, en worden — indien meegegeven — met hebrewFont
+// getekend. Zonder hebrewFont (of bij een onverwacht teken dat zelfs
+// hebrewFont niet kent) wordt dat deel gewoon overgeslagen i.p.v. een crash
+// te riskeren — zie de toelichting bij measureMixedTextWidth hierboven.
+function drawMixedText(page, parts, font, sizePt, xPt, baselineYPt, color, emojiCache, hebrewFont) {
   let cursorX = xPt;
   parts.forEach(p => {
     if (p.type === 'emoji') {
@@ -189,6 +243,14 @@ function drawMixedText(page, parts, font, sizePt, xPt, baselineYPt, color, emoji
         });
       }
       cursorX += sizePt;
+    } else if (p.type === 'hebrew') {
+      if (!hebrewFont) return; // geen lettertype beschikbaar: overslaan, niet crashen
+      try {
+        page.drawText(p.value, { x: cursorX, y: baselineYPt, size: sizePt, font: hebrewFont, color });
+        cursorX += hebrewFont.widthOfTextAtSize(p.value, sizePt);
+      } catch (e) {
+        console.warn('[pdf-shared] kon Hebreeuws tekstdeel niet tekenen, wordt overgeslagen:', e.message);
+      }
     } else {
       page.drawText(p.value, { x: cursorX, y: baselineYPt, size: sizePt, font, color });
       cursorX += font.widthOfTextAtSize(p.value, sizePt);
@@ -197,10 +259,11 @@ function drawMixedText(page, parts, font, sizePt, xPt, baselineYPt, color, emoji
 }
 
 // Past een font-grootte automatisch aan (in stapjes van 0.5pt) totdat de
-// tekst (incl. eventuele emoji) binnen de opgegeven maximale breedte past.
-function fitFontSizeToWidth(parts, font, defaultSizePt, maxWidthPt, minSizePt = 6) {
+// tekst (incl. eventuele emoji/Hebreeuws) binnen de opgegeven maximale
+// breedte past.
+function fitFontSizeToWidth(parts, font, defaultSizePt, maxWidthPt, minSizePt = 6, hebrewFont) {
   let size = defaultSizePt;
-  while (size > minSizePt && measureMixedTextWidth(parts, font, size) > maxWidthPt) {
+  while (size > minSizePt && measureMixedTextWidth(parts, font, size, hebrewFont) > maxWidthPt) {
     size -= 0.5;
   }
   return size;
@@ -719,10 +782,27 @@ async function embedPhotoRounded(doc, photoUrl, filterValue, targetSizeMm, corne
   return { image };
 }
 
+// Laadt een Hebreeuws lettertype (indien aanwezig) voor gebruik in
+// drawMixedText/fitFontSizeToWidth/measureMixedTextWidth hierboven — Latijnse
+// lettertypen zoals Montserrat hebben geen Hebreeuwse glyphs. Geeft `null`
+// terug (met een duidelijke waarschuwing) als het bestand nog ontbreekt, dan
+// valt de tekst terug op het gewone lettertype (geen Hebreeuwse tekens
+// zichtbaar, maar ook geen stilzwijgend wegvallende cursor-positie meer zoals
+// vóór deze fix). `gewicht` is 'Regular' of 'Bold'.
+async function loadHebrewFont(doc, gewicht = 'Regular') {
+  const bestandsnaam = `NotoSansHebrew-${gewicht}.ttf`;
+  const bestandsPad = path.join(__dirname, 'fonts', bestandsnaam);
+  if (!fs.existsSync(bestandsPad)) {
+    console.warn(`[pdf-shared] ${bestandsnaam} niet gevonden in server/fonts/ — Hebreeuwse tekst kan niet getekend worden (blijft leeg i.p.v. verkeerd lettertype). Zie README voor hoe je het toevoegt.`);
+    return null;
+  }
+  return doc.embedFont(fs.readFileSync(bestandsPad));
+}
+
 module.exports = {
   MM,
   splitTextEmoji, emojiToCodepoints, fetchEmojiPng, preloadEmojiImages,
-  measureMixedTextWidth, drawMixedText, fitFontSizeToWidth,
+  measureMixedTextWidth, drawMixedText, fitFontSizeToWidth, loadHebrewFont,
   embedPhoto, fitPhotoInSquareZone, recolorDarkPixels, recolorLightPixels, getCodeSvg,
   drawBackground, isMarbleBackground, hasPageBackground, nearWhiteCmyk, adjustCmykChannels,
   extractSvgShapes, drawSvgShapesInBox, embedPhotoRounded

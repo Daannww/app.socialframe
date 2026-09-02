@@ -8,7 +8,7 @@ const paths = require('./musicframe-paths');
 const {
   MM, splitTextEmoji, preloadEmojiImages, measureMixedTextWidth, drawMixedText,
   fitFontSizeToWidth, embedPhoto, fitPhotoInSquareZone, getCodeSvg, extractSvgShapes, drawSvgShapesInBox,
-  drawBackground
+  drawBackground, loadHebrewFont
 } = require('./pdf-shared');
 
 const PAGE_W_MM = 200;
@@ -196,6 +196,14 @@ async function generateMusicFramePdf(data) {
   // bevatten geen glyph in Montserrat, dus die tekenen we als kleine plaatjes) ---
   const emojiCache = await preloadEmojiImages(doc, [data.regel1, data.regel2, data.begintijd, data.eindtijd]);
 
+  // --- Hebreeuws lettertype (indien aanwezig) — Montserrat heeft geen
+  // Hebreeuwse glyphs. Zonder dit bestand blijft Hebreeuwse tekst leeg i.p.v.
+  // verkeerd/onleesbaar, en verschijnt er een duidelijke waarschuwing in de
+  // server-log (zie loadHebrewFont in pdf-shared.js). Regel 1 is de dikke
+  // ("Bold") variant, Regel 2/tijd-labels de gewone. ---
+  const hebrewFontBold = await loadHebrewFont(doc, 'Bold');
+  const hebrewFontRegular = await loadHebrewFont(doc, 'Regular');
+
   // --- Regel 1 (verplicht) ---
   // Tekst mag nooit dichter dan 3mm bij het hartje komen. Past de tekst niet op
   // de standaard-puntgrootte, dan wordt het lettertype automatisch verkleind
@@ -207,15 +215,15 @@ async function generateMusicFramePdf(data) {
 
   if (data.regel1) {
     const parts = splitTextEmoji(data.regel1);
-    const size = fitFontSizeToWidth(parts, fontBold, 27.8, textMaxWidthPt);
-    drawMixedText(page, parts, fontBold, size, textStartXMm * MM, fromTopMm(189.7 + 9.8), styleColor, emojiCache);
+    const size = fitFontSizeToWidth(parts, fontBold, 27.8, textMaxWidthPt, 6, hebrewFontBold);
+    drawMixedText(page, parts, fontBold, size, textStartXMm * MM, fromTopMm(189.7 + 9.8), styleColor, emojiCache, hebrewFontBold);
   }
 
   // --- Regel 2 (optioneel — weglaten als niet ingevuld) ---
   if (data.regel2) {
     const parts = splitTextEmoji(data.regel2);
-    const size = fitFontSizeToWidth(parts, fontRegular, 28, textMaxWidthPt);
-    drawMixedText(page, parts, fontRegular, size, textStartXMm * MM, fromTopMm(203.1 + 9.9), styleColor, emojiCache);
+    const size = fitFontSizeToWidth(parts, fontRegular, 28, textMaxWidthPt, 6, hebrewFontRegular);
+    drawMixedText(page, parts, fontRegular, size, textStartXMm * MM, fromTopMm(203.1 + 9.9), styleColor, emojiCache, hebrewFontRegular);
   }
 
   // --- Hartje (optioneel — weglaten als "geen" gekozen) ---
@@ -253,15 +261,15 @@ async function generateMusicFramePdf(data) {
   const timeLabelMaxWidthPt = 70 * MM;
   if (data.begintijd) {
     const parts = splitTextEmoji(data.begintijd);
-    const size = fitFontSizeToWidth(parts, fontBold, 17.2, timeLabelMaxWidthPt, 8);
-    drawMixedText(page, parts, fontBold, size, 19.8 * MM, fromTopMm(230.5 + 6.1), styleColor, emojiCache);
+    const size = fitFontSizeToWidth(parts, fontBold, 17.2, timeLabelMaxWidthPt, 8, hebrewFontBold);
+    drawMixedText(page, parts, fontBold, size, 19.8 * MM, fromTopMm(230.5 + 6.1), styleColor, emojiCache, hebrewFontBold);
   }
   if (data.eindtijd) {
     const parts = splitTextEmoji(data.eindtijd);
-    const size = fitFontSizeToWidth(parts, fontBold, 17.2, timeLabelMaxWidthPt, 8);
-    const totalWidthPt = measureMixedTextWidth(parts, fontBold, size);
+    const size = fitFontSizeToWidth(parts, fontBold, 17.2, timeLabelMaxWidthPt, 8, hebrewFontBold);
+    const totalWidthPt = measureMixedTextWidth(parts, fontBold, size, hebrewFontBold);
     const xPt = (PAGE_W_MM - 19.8) * MM - totalWidthPt;
-    drawMixedText(page, parts, fontBold, size, xPt, fromTopMm(230.5 + 6.1), styleColor, emojiCache);
+    drawMixedText(page, parts, fontBold, size, xPt, fromTopMm(230.5 + 6.1), styleColor, emojiCache, hebrewFontBold);
   }
 
   // --- Vaste iconenrij (shuffle, vorige, afspelen, volgende, herhalen) ---

@@ -6,7 +6,7 @@ const path = require('path');
 const {
   MM, splitTextEmoji, preloadEmojiImages, drawMixedText, fitFontSizeToWidth,
   measureMixedTextWidth, embedPhoto, fitPhotoInSquareZone, getCodeSvg,
-  drawBackground
+  drawBackground, loadHebrewFont
 } = require('./pdf-shared');
 
 const PAGE_W_MM = 200;
@@ -141,17 +141,22 @@ async function generateAutoFramePdf(data) {
     data.titel, data.motor, data.pk, data.snelheid, data.naam
   ]);
 
+  // --- Hebreeuws lettertype (indien aanwezig) — Montserrat heeft geen
+  // Hebreeuwse glyphs. Zie loadHebrewFont in pdf-shared.js. Dit ontwerp
+  // gebruikt overal fontBold, dus ook hier de "Bold"-Hebreeuwse variant. ---
+  const hebrewFontBold = await loadHebrewFont(doc, 'Bold');
+
   // --- Titel ("Merk & type auto" -> klant-ingevulde tekst): horizontaal
   // gecentreerd op de plaat, verticaal gecentreerd tussen de foto en de
   // eerste veld-regel eronder (die positie verschilt per layout). ---
   if (data.titel) {
     const parts = splitTextEmoji(data.titel);
     const maxWidthPt = TITLE.maxWidthMm * MM;
-    const size = fitFontSizeToWidth(parts, fontBold, TITLE.fontSizePt, maxWidthPt, 10);
+    const size = fitFontSizeToWidth(parts, fontBold, TITLE.fontSizePt, maxWidthPt, 10, hebrewFontBold);
 
     // Horizontaal centreren: gebaseerd op de daadwerkelijke breedte bij de
     // uiteindelijk gekozen (eventueel verkleinde) lettergrootte.
-    const textWidthMm = measureMixedTextWidth(parts, fontBold, size) / MM;
+    const textWidthMm = measureMixedTextWidth(parts, fontBold, size, hebrewFontBold) / MM;
     const xMm = (PAGE_W_MM - textWidthMm) / 2;
 
     // Verticaal centreren tussen foto-onderkant en de bovenkant van het
@@ -162,7 +167,7 @@ async function generateAutoFramePdf(data) {
     const blockHeightMm = size * (25.4 / 72);
     const baselineMm = gapCenterMm - blockHeightMm / 2 + blockHeightMm * TITLE.baselineRatio;
 
-    drawMixedText(page, parts, fontBold, size, xMm * MM, fromTopMm(baselineMm), styleColor, emojiCache);
+    drawMixedText(page, parts, fontBold, size, xMm * MM, fromTopMm(baselineMm), styleColor, emojiCache, hebrewFontBold);
   }
 
   // --- Vaste iconenrij + 4 klant-ingevulde velden ---
@@ -192,11 +197,11 @@ async function generateAutoFramePdf(data) {
     if (waarde) {
       const parts = splitTextEmoji(waarde);
       const maxWidthPt = pos.maxWidthMm * MM;
-      const size = fitFontSizeToWidth(parts, fontBold, LABEL_FONT_SIZE_PT, maxWidthPt, 8);
+      const size = fitFontSizeToWidth(parts, fontBold, LABEL_FONT_SIZE_PT, maxWidthPt, 8, hebrewFontBold);
       drawMixedText(
         page, parts, fontBold, size,
         pos.labelXMm * MM, fromTopMm(pos.labelTopMm + LABEL_BASELINE_OFFSET_MM),
-        styleColor, emojiCache
+        styleColor, emojiCache, hebrewFontBold
       );
     }
   }

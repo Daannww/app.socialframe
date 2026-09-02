@@ -247,6 +247,19 @@ van kan maken, en waarmee je de status van orders kan wijzigen.
   heeft. Lukt het ophalen van een specifieke emoji een keer niet (bv. geen
   internet op dat moment), dan wordt die ene emoji overgeslagen en blijft de
   rest van de tekst gewoon staan — het bestand mislukt er niet door.
+  **Hebreeuwse tekst** (bv. bestelling 655, waar dit een leeg bestand
+  opleverde) wordt automatisch herkend en rechts-naar-links getekend (zowel
+  de woordvolgorde als de letters binnen elk woord worden omgedraaid, want
+  Hebreeuws leest andersom en de tekencode tekent altijd links-naar-rechts).
+  Vereist een apart lettertype — Montserrat heeft geen Hebreeuwse glyphs —
+  namelijk **Noto Sans Hebrew** (`server/fonts/NotoSansHebrew-Regular.ttf`
+  en `NotoSansHebrew-Bold.ttf`, zitten al bij het project). Mocht dit
+  bestand ooit ontbreken (bv. bij een schone install zonder deze fontmap),
+  dan blijft Hebreeuwse tekst leeg (met een duidelijke waarschuwing in de
+  server-log) i.p.v. een crash of half-onzichtbare tekst te veroorzaken — de
+  rest van het bestand (foto, hartje, overige tekst) wordt gewoon compleet
+  gegenereerd. Dezelfde Hebreeuws-ondersteuning geldt ook voor auto-frame en
+  Sound-Frame hieronder (gedeelde code in `server/pdf-shared.js`).
 - **Auto-frame-drukwerkbestanden**: orders met een product waarvan de titel
   "Auto-frame" bevat, krijgen automatisch een eigen drukwerkbestand (200x300mm
   PDF, met foto op eigen beeldverhouding, een titel ("Merk en type auto") en 4
