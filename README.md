@@ -327,12 +327,19 @@ van kan maken, en waarmee je de status van orders kan wijzigen.
   dezelfde opties als het muziekframe (Regel 1/2, Begintijd/Eindtijd tijdlijn,
   Positie Bolletje Tijdlijn, Kleur van het hartje, Foto-filter — herkend via
   dezelfde soort eigenschap-matching), maar met een compleet andere opmaak:
-  de foto vult een **vierkant met afgeronde hoeken** (63,5x63,5mm, cover-fit
+  de foto vult de **VOLLEDIGE 100x100mm tegel** (afgeronde hoeken, cover-fit
   — snijdt bij tot vierkant i.p.v. de eigen beeldverhouding te behouden), met
   titel/artiest/hartje/tijdlijn er **overheen** getekend i.p.v. eronder. Geen
   achtergrondkleur-keuze en geen Spotify-/QR-code-optie (alleen "Kies hier de
-  stijl van jouw Socialframe.": Zwart/Wit, bepaalt zowel de tekstkleur als
-  welke overlay-afbeelding gebruikt wordt).
+  stijl van jouw Socialframe.": Zwart/Wit, bepaalt zowel de tekstkleur als de
+  kleur van de play-knop).
+  **Let op — belangrijke correctie na de eerste versie**: het aangeleverde
+  referentiebestand bleek een gestileerde PREVIEW te zijn (kleiner kaartje
+  van ~63,5x63,5mm met witruimte eromheen, bedoeld voor social media), GEEN
+  1-op-1 drukklaar bestand — alle posities in `soundframe.js` zijn daarom
+  PROPORTIONEEL herschaald naar de volledige 100x100mm (zie de constanten
+  bovenaan het bestand: `KAART_SIZE_MM = 100`, met elders in het bestand
+  overal dezelfde herschalings-logica).
   - **Afgeronde hoeken**: nieuwe techniek (`embedPhotoRounded` in
     `pdf-shared.js`) — de foto wordt als PNG (met echte alpha-transparantie
     in de afgeronde hoeken) i.p.v. JPEG ingebed, want JPEG ondersteunt geen
@@ -342,14 +349,18 @@ van kan maken, en waarmee je de status van orders kan wijzigen.
   - **Afspeelknoppen + tijdlijn**: ECHTE vectorvormen — hergebruikt de
     bestaande iconen (shuffle/vorige/afspelen/volgende/herhalen) uit
     `server/musicframe-paths.js`, herschaald met een experimenteel bepaalde
-    factor (`ICOON_SCHAAL` in `server/soundframe.js`) om in het veel kleinere
-    Sound-Frame-kaartje te passen — scherper op elke printresolutie dan de
-    aanvankelijk gebruikte, aangeleverde raster-overlay (die is inmiddels
-    niet meer nodig/aanwezig). **Let op**: de play-knop is hier bewust een
-    VOLLEDIG GEVULDE cirkel (i.t.t. de open ring die het muziekframe voor
-    `play_circle` gebruikt) — het driehoekje erin krijgt daarom de
-    tegenovergestelde kleur (wit op een zwarte knop, zwart op een witte
-    knop), anders zou het onzichtbaar worden.
+    factor (`ICOON_SCHAAL` in `server/soundframe.js`) om in het Sound-Frame-
+    kaartje te passen — scherper op elke printresolutie dan de aanvankelijk
+    gebruikte, aangeleverde raster-overlay (die is inmiddels niet meer nodig/
+    aanwezig).
+  - **Play-knop**: een gevulde cirkel MET EEN ECHT TRANSPARANT GAT in de
+    vorm van het driehoekje (`maakPlayknopMetGat` in `server/soundframe.js`)
+    — dus NIET een ondoorzichtig driehoekje erbovenop getekend (dat was de
+    eerste, foute versie), maar een uitsparing waar de foto gewoon doorheen
+    zichtbaar blijft, zoals in het referentiebestand. Gebouwd via een SVG met
+    `fill-rule="evenodd"` (cirkel + geneste driehoek, gerenderd met sharp/
+    librsvg — dat geeft echte alfa-transparantie in het "gat", geen kwestie
+    van een verkeerde vulkleur).
   - **Hartje**: een echt hart-icoon (niet een benaderende cirkel) —
     `server/soundframe-assets/hart-masker.png` is een grijswaarden-
     luminantiemasker (uit het referentiebestand gehaald, dezelfde techniek
