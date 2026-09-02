@@ -323,6 +323,44 @@ van kan maken, en waarmee je de status van orders kan wijzigen.
   De "witte" tekstkleur (bij de 7 tegelkleuren die geen zwarte tekst krijgen)
   gebruikt dezelfde 1%-gele CMYK-truc als de rest van het project — nooit
   letterlijk #FFFFFF.
+- **Sound-Frame-drukwerkbestanden** (`server/soundframe.js`, 100x100mm):
+  dezelfde opties als het muziekframe (Regel 1/2, Begintijd/Eindtijd tijdlijn,
+  Positie Bolletje Tijdlijn, Kleur van het hartje, Foto-filter — herkend via
+  dezelfde soort eigenschap-matching), maar met een compleet andere opmaak:
+  de foto vult een **vierkant met afgeronde hoeken** (63,5x63,5mm, cover-fit
+  — snijdt bij tot vierkant i.p.v. de eigen beeldverhouding te behouden), met
+  titel/artiest/hartje/tijdlijn er **overheen** getekend i.p.v. eronder. Geen
+  achtergrondkleur-keuze en geen Spotify-/QR-code-optie (alleen "Kies hier de
+  stijl van jouw Socialframe.": Zwart/Wit, bepaalt zowel de tekstkleur als
+  welke overlay-afbeelding gebruikt wordt).
+  - **Afgeronde hoeken**: nieuwe techniek (`embedPhotoRounded` in
+    `pdf-shared.js`) — de foto wordt als PNG (met echte alpha-transparantie
+    in de afgeronde hoeken) i.p.v. JPEG ingebed, want JPEG ondersteunt geen
+    transparantie. Dezelfde Y+8%-kleurbalans-correctie als embedPhoto blijft
+    behouden, alleen zonder het JPEG-hercompressie-vangnet (niet nodig, PNG
+    is lossless).
+  - **Afspeelknoppen + tijdlijn**: ECHTE vectorvormen — hergebruikt de
+    bestaande iconen (shuffle/vorige/afspelen/volgende/herhalen) uit
+    `server/musicframe-paths.js`, herschaald met een experimenteel bepaalde
+    factor (`ICOON_SCHAAL` in `server/soundframe.js`) om in het veel kleinere
+    Sound-Frame-kaartje te passen — scherper op elke printresolutie dan de
+    aanvankelijk gebruikte, aangeleverde raster-overlay (die is inmiddels
+    niet meer nodig/aanwezig). **Let op**: de play-knop is hier bewust een
+    VOLLEDIG GEVULDE cirkel (i.t.t. de open ring die het muziekframe voor
+    `play_circle` gebruikt) — het driehoekje erin krijgt daarom de
+    tegenovergestelde kleur (wit op een zwarte knop, zwart op een witte
+    knop), anders zou het onzichtbaar worden.
+  - **Hartje**: een echt hart-icoon (niet een benaderende cirkel) —
+    `server/soundframe-assets/hart-masker.png` is een grijswaarden-
+    luminantiemasker (uit het referentiebestand gehaald, dezelfde techniek
+    als een PDF-SMask) dat tijdens het genereren dynamisch wordt ingekleurd
+    (rood/zwart/wit) via sharp se `joinChannel` — LET OP: dit is expliciet
+    ANDERS dan een normaal alfakanaal, `composite(...,{blend:'dest-in'})`
+    werkt hier niet (behandelt een grijswaardenbeeld als ondoorzichtig, geen
+    maskering).
+  - Komt in de bulk-export in een eigen map `soundframe/` terecht (net als
+    muziekframe/auto-frame hun eigen map hebben), met "soundframe" in de
+    bestandsnaam.
 - **Achtergrondkleur (muziekframe én auto-frame)**: 4 opties — "Wit" (subtiele
   1%-gele CMYK-truc, C0 M0 Y1 K0, i.p.v. puur wit), "Zwart" (diepzwart),
   "Marmerwit" en "Marmerzwart" (echte marmertextuur, beeldvullend over de hele

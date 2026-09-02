@@ -647,11 +647,83 @@ function drawSvgShapesInBox(page, svgData, boxXMm, boxTopMm, boxWidthMm, boxHeig
   });
 }
 
+// Zelfde CMYK-kleurbalans-wiskunde als adjustCmykChannels hierboven, maar dan
+// met PNG als uitvoer i.p.v. JPEG — nodig voor foto's die een alpha-kanaal
+// (transparantie) moeten behouden, zoals bij afgeronde hoeken. PNG is
+// lossless, dus het JPEG-hercompressie-vangnet van adjustCmykChannels is hier
+// niet nodig (dat bestond specifiek om JPEG-compressieartefacten op te
+// vangen). Bewust een LOSSE functie i.p.v. adjustCmykChannels hergebruiken/
+// aanpassen — die wordt al door meerdere, al geteste producten gebruikt.
+async function adjustCmykChannelsToPng(imageBuffer, delta) {
+  const image = sharp(imageBuffer).ensureAlpha();
+  const { data, info } = await image.raw().toBuffer({ resolveWithObject: true });
+  const dC = delta.c || 0, dM = delta.m || 0, dY = delta.y || 0, dK = delta.k || 0;
+
+  for (let i = 0; i < data.length; i += info.channels) {
+    const r = data[i] / 255, g = data[i + 1] / 255, b = data[i + 2] / 255;
+    const k = 1 - Math.max(r, g, b);
+    let c, m, y;
+    if (k >= 1) {
+      c = 0; m = 0; y = 0;
+    } else {
+      c = (1 - r - k) / (1 - k);
+      m = (1 - g - k) / (1 - k);
+      y = (1 - b - k) / (1 - k);
+    }
+    const c2 = Math.min(1, Math.max(0, c + dC));
+    const m2 = Math.min(1, Math.max(0, m + dM));
+    const y2 = Math.min(1, Math.max(0, y + dY));
+    const k2 = Math.min(1, Math.max(0, k + dK));
+    data[i] = Math.round(255 * (1 - c2) * (1 - k2));
+    data[i + 1] = Math.round(255 * (1 - m2) * (1 - k2));
+    data[i + 2] = Math.round(255 * (1 - y2) * (1 - k2));
+  }
+
+  return sharp(data, { raw: info }).png().toBuffer();
+}
+
+// Haalt een foto op, snijdt 'm bij tot een VIERKANT (cover-fit — vult altijd
+// het hele vak, i.t.t. embedPhoto's contain-fit dat de eigen beeldverhouding
+// behoudt), past dezelfde print-kleurbalans-correctie toe, en rondt de hoeken
+// af (echte alpha-transparantie in de hoeken, geen wit vlak). Gebruikt voor
+// het Sound-Frame-product, waar de foto altijd als afgerond vierkant kaartje
+// wordt getoond.
+async function embedPhotoRounded(doc, photoUrl, filterValue, targetSizeMm, cornerRadiusMm) {
+  const imgRes = await axios.get(photoUrl, { responseType: 'arraybuffer' });
+  let pipeline = sharp(Buffer.from(imgRes.data)).rotate(); // EXIF-rotatie vast "bakken"
+
+  const filter = (filterValue || '').toLowerCase();
+  if (filter.includes('zwart') || filter.includes('grijs') || filter.includes('black') || filter.includes('white')) {
+    pipeline = pipeline.grayscale();
+  }
+  const rotatedBuffer = await pipeline.toBuffer();
+
+  const targetPx = Math.round((targetSizeMm / 25.4) * 300);
+  const vierkantBuffer = await sharp(rotatedBuffer)
+    .resize(targetPx, targetPx, { fit: 'cover', position: 'centre' })
+    .toBuffer();
+
+  // Zelfde Y+8%-correctie als embedPhoto (zie adjustCmykChannels hierboven
+  // voor de uitgebreide toelichting waarom precies 8%).
+  const gecorrigeerdBuffer = await adjustCmykChannelsToPng(vierkantBuffer, { c: 0, m: 0, y: 0.08, k: 0 });
+
+  const radiusPx = Math.round((cornerRadiusMm / 25.4) * 300);
+  const maskSvg = `<svg width="${targetPx}" height="${targetPx}"><rect x="0" y="0" width="${targetPx}" height="${targetPx}" rx="${radiusPx}" ry="${radiusPx}" fill="white"/></svg>`;
+  const maskBuffer = await sharp(Buffer.from(maskSvg)).png().toBuffer();
+  const afgerondBuffer = await sharp(gecorrigeerdBuffer)
+    .composite([{ input: maskBuffer, blend: 'dest-in' }])
+    .png()
+    .toBuffer();
+
+  const image = await doc.embedPng(afgerondBuffer);
+  return { image };
+}
+
 module.exports = {
   MM,
   splitTextEmoji, emojiToCodepoints, fetchEmojiPng, preloadEmojiImages,
   measureMixedTextWidth, drawMixedText, fitFontSizeToWidth,
   embedPhoto, fitPhotoInSquareZone, recolorDarkPixels, recolorLightPixels, getCodeSvg,
   drawBackground, isMarbleBackground, hasPageBackground, nearWhiteCmyk, adjustCmykChannels,
-  extractSvgShapes, drawSvgShapesInBox
+  extractSvgShapes, drawSvgShapesInBox, embedPhotoRounded
 };

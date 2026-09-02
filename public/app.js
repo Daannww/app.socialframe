@@ -309,6 +309,18 @@ function renderModal(order) {
       }</div>`
     : '';
 
+  // Sound-Frame: zelfde aanpak — server-berekend soundframe_items-veld gebruiken.
+  const soundFrameItems = order.soundframe_items || [];
+  const soundFrameHtml = soundFrameItems.length > 0
+    ? `<div style="display:flex; flex-direction:column; gap:8px;">${
+        soundFrameItems.map((item, idx) => `
+      <button class="btn btn-primary" onclick="downloadSoundFramePdf(${order.id}, ${idx}, this)">
+        <i class="fa-solid fa-download"></i> Download soundframe-bestand${soundFrameItems.length > 1 ? ` (${idx + 1})` : ''}
+      </button>
+    `).join('')
+      }</div>`
+    : '';
+
   const spotifyHtml = (order.spotify_links || []).map((link, idx) => `
     <div class="spotify-link-row" data-link="${escapeHtml(link)}">
       <a href="${escapeHtml(link)}" target="_blank" rel="noopener" class="copyable" onclick="event.preventDefault(); copyText(this, '${jsEscape(link)}')" title="Klik om te kopiëren">${escapeHtml(link)}</a>
@@ -496,6 +508,13 @@ function renderModal(order) {
     </div>
     ` : ''}
 
+    ${soundFrameHtml ? `
+    <div class="modal-section">
+      <h3>Sound-Frame</h3>
+      ${soundFrameHtml}
+    </div>
+    ` : ''}
+
     <div class="modal-section">
       <h3>Notitie</h3>
       <textarea id="noteInput-${order.id}" class="note-textarea" placeholder="Bijzonderheden over deze order... (verschijnt ook op de pakbon, onder het adres)">${escapeHtml(order.note || '')}</textarea>
@@ -641,6 +660,33 @@ window.downloadTegelTekstPdf = async function (orderId, idx, btn) {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   } catch (e) {
     alert('Kon tegeltje-bestand niet genereren: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalLabel;
+  }
+};
+
+window.downloadSoundFramePdf = async function (orderId, idx, btn) {
+  const originalLabel = btn.innerHTML;
+  btn.disabled = true;
+  btn.textContent = 'Bezig...';
+  try {
+    const res = await fetch(`/api/print-files/soundframe-pdf?orderId=${orderId}&itemIndex=${idx}`);
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || 'Server gaf een fout terug');
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `soundframe-order-${orderId}-${idx + 1}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } catch (e) {
+    alert('Kon soundframe-bestand niet genereren: ' + e.message);
   } finally {
     btn.disabled = false;
     btn.innerHTML = originalLabel;

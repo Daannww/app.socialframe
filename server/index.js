@@ -15,6 +15,7 @@ const { imageBufferToPrintPdf, cropPosterlyCanvas } = require('./printfile');
 const { generateMusicFramePdf, extractMusicFrameItemsFromOrder } = require('./musicframe');
 const { generateAutoFramePdf } = require('./autoframe');
 const { generateTegelTekstPdf, extractTegelTekstItemsFromOrder } = require('./texttile');
+const { generateSoundFramePdf, extractSoundFrameItemsFromOrder } = require('./soundframe');
 const { sendReviewEmail } = require('./reviewEmail');
 const SqliteSessionStore = require('./sqliteSessionStore');
 
@@ -163,7 +164,9 @@ app.get('/api/orders/:id', (req, res) => {
     // Auto-frame-items in deze order (voor de downloadknop in de popup)
     autoframe_items: extractAutoFrameItemsFromOrder({ line_items: lineItems }),
     // "Tegeltje met tekst"-items met een bekend ontwerp (voor de downloadknop in de popup)
-    texttile_items: extractTegelTekstItemsFromOrder({ line_items: lineItems })
+    texttile_items: extractTegelTekstItemsFromOrder({ line_items: lineItems }),
+    // Sound-Frame-items in deze order (voor de downloadknop in de popup)
+    soundframe_items: extractSoundFrameItemsFromOrder({ line_items: lineItems })
   });
 });
 
@@ -495,6 +498,32 @@ app.get('/api/print-files/texttile-pdf', requireAdmin, async (req, res) => {
   }
 });
 
+// --- Eén Sound-Frame-drukwerkbestand downloaden vanuit de order-popup ---
+app.get('/api/print-files/soundframe-pdf', requireAdmin, async (req, res) => {
+  const orderId = parseInt(req.query.orderId, 10);
+  const itemIndex = parseInt(req.query.itemIndex, 10) || 0;
+  if (!orderId) return res.status(400).json({ error: 'orderId is verplicht' });
+
+  try {
+    const order = getOrder(orderId);
+    if (!order) return res.status(404).json({ error: 'Order niet gevonden' });
+
+    const lineItems = JSON.parse(order.line_items_json || '[]');
+    const items = extractSoundFrameItemsFromOrder({ line_items: lineItems });
+    const item = items[itemIndex];
+    if (!item) return res.status(404).json({ error: 'Geen Sound-Frame gevonden op deze order' });
+
+    const pdfBytes = await generateSoundFramePdf(item.data);
+    const baseName = String(order.order_number || order.shopify_order_id).replace(/[\\/:*?"<>|]/g, '-');
+    const suffix = items.length > 1 ? ` ${itemIndex + 1}` : '';
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${baseName}${suffix} soundframe.pdf"`);
+    res.send(Buffer.from(pdfBytes));
+  } catch (e) {
+    res.status(500).json({ error: 'Kon soundframe-bestand niet genereren: ' + e.message });
+  }
+});
+
 // --- Eén Auto-frame-drukwerkbestand downloaden vanuit de order-popup ---
 app.get('/api/print-files/autoframe-pdf', requireAdmin, async (req, res) => {
   const orderId = parseInt(req.query.orderId, 10);
@@ -548,7 +577,8 @@ app.get('/api/print-files/pdf-zip', requireAdmin, async (req, res) => {
       extractFotoTegelPhotoUrls(o.line_items).length > 0 ||
       extractPosterlyPhotoUrls(o.line_items).length > 0 ||
       extractAutoFrameItemsFromOrder({ line_items: o.line_items }).length > 0 ||
-      extractTegelTekstItemsFromOrder({ line_items: o.line_items }).length > 0
+      extractTegelTekstItemsFromOrder({ line_items: o.line_items }).length > 0 ||
+      extractSoundFrameItemsFromOrder({ line_items: o.line_items }).length > 0
     );
 
     if (targets.length === 0) {
@@ -582,6 +612,7 @@ app.get('/api/print-files/pdf-zip', requireAdmin, async (req, res) => {
 //   {datum}/muziekframe/1055 muziekframe.pdf
 //   {datum}/muziekframe/klein/1055 klein.pdf
 //   {datum}/muziekframe/Dik/1055 dik.pdf
+//   {datum}/soundframe/1099 soundframe.pdf
 async function appendPrintFilesToArchive(archive, targets) {
   const dateFolder = getDutchDateString(); // YYYY-MM-DD, Nederlandse tijdzone
 
@@ -725,6 +756,29 @@ async function appendPrintFilesToArchive(archive, targets) {
       }
     }
 
+    // --- Sound-Frame: eigen drukwerkbestand per besteld exemplaar, in een
+    // eigen map "soundframe" (net als muziekframe/auto-frame een eigen map
+    // hebben) — met bestelnummer + "soundframe" in de bestandsnaam. ---
+    const soundFrameItems = extractSoundFrameItemsFromOrder({ line_items: order.line_items });
+    if (soundFrameItems.length > 0) {
+      const multipleSoundFrames = soundFrameItems.length > 1;
+      for (let i = 0; i < soundFrameItems.length; i++) {
+        const numberSuffix = multipleSoundFrames ? ` ${i + 1}` : '';
+        const item = soundFrameItems[i];
+        const filename = `${dateFolder}/soundframe/${baseName}${numberSuffix} soundframe.pdf`;
+        try {
+          const pdfBytes = await generateSoundFramePdf(item.data);
+          archive.append(Buffer.from(pdfBytes), { name: filename });
+          orderSucceeded = true;
+        } catch (e) {
+          archive.append(
+            `Kon het soundframe-bestand voor order ${baseName}${numberSuffix} niet genereren: ${e.message}`,
+            { name: `${dateFolder}/soundframe/FOUT-${baseName}${numberSuffix}.txt` }
+          );
+        }
+      }
+    }
+
     // Order automatisch naar "wacht op productie" zetten zodra minstens 1 drukwerkbestand is gelukt
     if (orderSucceeded) {
       updateStatus(order.id, 'wacht op productie');
@@ -747,7 +801,8 @@ async function runScheduledPrintFilesExport() {
     extractFotoTegelPhotoUrls(o.line_items).length > 0 ||
     extractPosterlyPhotoUrls(o.line_items).length > 0 ||
     extractAutoFrameItemsFromOrder({ line_items: o.line_items }).length > 0 ||
-    extractTegelTekstItemsFromOrder({ line_items: o.line_items }).length > 0
+    extractTegelTekstItemsFromOrder({ line_items: o.line_items }).length > 0 ||
+    extractSoundFrameItemsFromOrder({ line_items: o.line_items }).length > 0
   );
 
   if (targets.length === 0) {
