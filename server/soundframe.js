@@ -17,40 +17,41 @@ const PAGE_H_MM = 100;
 
 const COLOR_BLACK = rgb(0, 0, 0);
 const COLOR_WHITE = nearWhiteCmyk(cmyk); // 1%-gele CMYK-truc, net als de rest van het project
+const RGB255_BLACK = [0, 0, 0];
+const RGB255_WHITE = [255, 255, 253];
 
-// --- Alle posities hieronder zijn 1-op-1 opgemeten uit het door de klant
-// aangeleverde referentiebestand (zie de opmeet-sessie in de chat) — een
-// 1000x1000pt-PDF die exact 100x100mm voorstelt (dus 1pt = 0.1mm, geen
-// standaard 72dpi-conversie zoals bij de Illustrator-bestanden). ---
-
-// Het "kaartje" (foto + overlay) — vierkant, afgeronde hoeken, gecentreerd
-// op de tegel met witruimte eromheen (dus NIET beeldvullend).
-const KAART_X_MM = 18.3;
-const KAART_TOP_MM = 19.15;
-const KAART_SIZE_MM = 63.5;
-const KAART_RADIUS_MM = 3;
+// --- Het "kaartje" (foto + overlay) vult nu de VOLLEDIGE 100x100mm tegel —
+// het referentiebestand bleek een gestileerde preview te zijn (kleiner
+// kaartje met witruimte eromheen, voor social-media-gebruik), niet een
+// drukklaar 1-op-1-bestand. Alle overige posities hieronder zijn daarom
+// PROPORTIONEEL herschaald (t.o.v. het oorspronkelijk gemeten 63.5mm-
+// kaartje) i.p.v. simpelweg de oude mm-waarden te hergebruiken. ---
+const KAART_X_MM = 0;
+const KAART_TOP_MM = 0;
+const KAART_SIZE_MM = 100;
+const KAART_RADIUS_MM = 4.724;
 
 // Tijdlijnbalk: horizontaal bereik afgeleid van de overlay-afbeelding se
 // eigen, interne verhoudingen (10.15%-89.17% van het kaartje), verticaal
-// gecentreerd rond 74.2% van de kaartje-hoogte.
+// gecentreerd rond 74.2% van de kaartje-hoogte — deze formule schaalt vanzelf
+// mee met KAART_X_MM/KAART_SIZE_MM hierboven.
 const TIJDLIJN_LINKS_MM = KAART_X_MM + 0.1015 * KAART_SIZE_MM;
 const TIJDLIJN_RECHTS_MM = KAART_X_MM + 0.8917 * KAART_SIZE_MM;
 const TIJDLIJN_TOP_MM = KAART_TOP_MM + 0.742 * KAART_SIZE_MM;
-const BOLLETJE_DIAMETER_MM = 3.5;
+const BOLLETJE_DIAMETER_MM = 5.512;
 
 // --- Afspeelknoppen-rij: hergebruikt de bestaande vector-iconen van het
-// muziekframe (musicframe-paths.js), herschaald om in het veel kleinere
-// Sound-Frame-kaartje te passen. REFERENTIE_* is de linkerboven-hoek van die
-// iconrij zoals gemeten in het muziekframe se EIGEN 200x300mm-canvas; ICOON_
-// SCHAAL is experimenteel bepaald zodat de herschaalde rij dezelfde relatieve
-// breedte inneemt als de oorspronkelijk aangeleverde raster-overlay
-// (10.15%-89.17% van het kaartje, zie hierboven).
+// muziekframe (musicframe-paths.js), herschaald om in het Sound-Frame-
+// kaartje te passen. REFERENTIE_* is de linkerboven-hoek van die iconrij
+// zoals gemeten in het muziekframe se EIGEN 200x300mm-canvas; ICOON_SCHAAL
+// is experimenteel bepaald zodat de herschaalde rij dezelfde relatieve
+// breedte inneemt als de oorspronkelijk aangeleverde raster-overlay. ---
 const ICOON_REFERENTIE_X_MM = 18.777;
 const ICOON_REFERENTIE_TOP_MM = 237.8;
-const ICOON_SCHAAL = 0.3085;
-// Iconrij verticaal gepositioneerd t.o.v. de tijdlijnbalk (net onder de balk,
-// net als bij het muziekframe) — TIJDLIJN_TOP_MM is het MIDDEN van de balk.
-const ICOON_RIJ_TOP_MM = TIJDLIJN_TOP_MM + 3.2;
+const ICOON_SCHAAL = 0.48581;
+// Iconrij verticaal gepositioneerd t.o.v. de tijdlijnbalk (net onder de
+// balk, net als bij het muziekframe) — TIJDLIJN_TOP_MM is het MIDDEN van de balk.
+const ICOON_RIJ_TOP_MM = TIJDLIJN_TOP_MM + 5.039;
 
 function fromTopMm(topMm) {
   return (PAGE_H_MM - topMm) * MM;
@@ -112,8 +113,7 @@ function extractSoundFrameItemsFromOrder(rawOrder) {
 }
 
 // Stijl: alleen "Zwart"/"Wit" (geen QR-/Spotify-code-varianten zoals bij het
-// muziekframe) — bepaalt zowel de tekstkleur als welke overlay-afbeelding
-// (zwarte of witte iconen) gebruikt wordt.
+// muziekframe) — bepaalt zowel de tekstkleur als de kleur van de play-knop.
 function parseStyle(styleText) {
   const t = (styleText || '').toLowerCase();
   const isWhite = t.includes('wit');
@@ -155,6 +155,32 @@ async function maakIngekleurdHart(kleurRgb255) {
     .toBuffer();
 }
 
+// Bouwt de play-knop als een gevulde cirkel MET EEN ECHT GAT in de vorm van
+// het driehoekje — dus geen ondoorzichtig driehoekje erbovenop getekend,
+// maar een uitsparing waar de foto (of wat er verder onder zit) gewoon
+// doorheen zichtbaar blijft. Gebruikt SVG se fill-rule="evenodd": een punt
+// dat binnen ZOWEL de cirkel als het (erin geneste) driehoekje valt, telt als
+// "even" aantal overlappende vormen en blijft dus ongevuld — precies het
+// gewenste gat-effect. Sharp/librsvg rendert dat als echte alfa-transparantie
+// in de uitvoer-PNG (dus geen kwestie van "witte" of "zwarte" vulling, maar
+// oprecht doorzichtig).
+async function maakPlayknopMetGat(kleurRgb255, pixelGrootte) {
+  const R = 45.4121; // straal, in dezelfde eenheden als musicframe-paths.js se eigen (punt-gebaseerde) iconen
+  const cirkelPad = `M ${R},0 A ${R},${R} 0 1,1 ${R},${2 * R} A ${R},${R} 0 1,1 ${R},0 Z`;
+  // Driehoekje van musicframe-paths.js se play_triangle, verschoven naar zijn
+  // relatieve positie BINNEN de cirkel (zelfde relatieve plek als in het
+  // muziekframe se eigen 200x300mm-canvas).
+  const driehoekPad = 'M 62.7075,45.408 L 34.27,28.99 L 34.27,61.8298 Z';
+  const [r, g, b] = kleurRgb255;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${2 * R}" height="${2 * R}" viewBox="0 0 ${2 * R} ${2 * R}">
+    <path fill-rule="evenodd" fill="rgb(${r},${g},${b})" d="${cirkelPad} ${driehoekPad}"/>
+  </svg>`;
+  return sharp(Buffer.from(svg))
+    .resize(pixelGrootte, pixelGrootte)
+    .png()
+    .toBuffer();
+}
+
 async function generateSoundFramePdf(data) {
   const doc = await PDFDocument.create();
   doc.registerFontkit(fontkit);
@@ -176,9 +202,8 @@ async function generateSoundFramePdf(data) {
   }
 
   // --- Overlay (tijdlijnbalk + afspeelknoppen-rij): als ECHTE vectorvormen
-  // getekend (hergebruik van musicframe-paths.js), i.p.v. de aangeleverde
-  // raster-overlay — scherper op elke printresolutie. Kleur volgt de
-  // gekozen stijl (zwart/wit), net als de tekst. ---
+  // getekend (hergebruik van musicframe-paths.js). Kleur volgt de gekozen
+  // stijl (zwart/wit), net als de tekst. ---
   const timelineWidthMm = TIJDLIJN_RECHTS_MM - TIJDLIJN_LINKS_MM;
   const timelineScale = timelineWidthMm / iconPaths.timeline_bar.widthMm;
   page.drawSvgPath(iconPaths.timeline_bar.d, {
@@ -191,22 +216,24 @@ async function generateSoundFramePdf(data) {
   ['shuffle_1', 'shuffle_2', 'shuffle_3', 'prev', 'next', 'repeat_1', 'repeat_2']
     .forEach(naam => drawScaledIcon(page, iconPaths[naam], styleColor));
 
-  // Play-knop: VOLLEDIG GEVULDE cirkel (i.t.t. muziekframe se open ring-
-  // vormige play_circle-pad) — zo staat het in het Sound-Frame-
-  // referentiebestand. Het driehoekje erin krijgt de TEGENOVERGESTELDE
-  // kleur, anders zou het niet zichtbaar zijn tegen de gevulde cirkel.
+  // Play-knop: gevulde cirkel MET EEN ECHT TRANSPARANT GAT voor het
+  // driehoekje (zie maakPlayknopMetGat hierboven) — dus niet een ondoorzichtig
+  // driehoekje erbovenop, maar een uitsparing waar de foto doorheen schijnt.
   const playCenterXMm = KAART_X_MM + (0.1015 * KAART_SIZE_MM) +
     (iconPaths.play_circle.pageXMm + iconPaths.play_circle.widthMm / 2 - ICOON_REFERENTIE_X_MM) * ICOON_SCHAAL;
   const playCenterTopMm = ICOON_RIJ_TOP_MM +
     (iconPaths.play_circle.pageTopMm + iconPaths.play_circle.heightMm / 2 - ICOON_REFERENTIE_TOP_MM) * ICOON_SCHAAL;
-  const playRadiusMm = (iconPaths.play_circle.widthMm / 2) * ICOON_SCHAAL;
-  page.drawCircle({
-    x: playCenterXMm * MM,
-    y: fromTopMm(playCenterTopMm),
-    size: playRadiusMm * MM,
-    color: styleColor
+  const playDiameterMm = iconPaths.play_circle.widthMm * ICOON_SCHAAL;
+  const playPixelGrootte = Math.round((playDiameterMm / 25.4) * 300); // 300dpi
+  const playKnopKleur = isWhite ? RGB255_WHITE : RGB255_BLACK;
+  const playKnopPngBuffer = await maakPlayknopMetGat(playKnopKleur, playPixelGrootte);
+  const playKnopImage = await doc.embedPng(playKnopPngBuffer);
+  page.drawImage(playKnopImage, {
+    x: (playCenterXMm - playDiameterMm / 2) * MM,
+    y: fromTopMm(playCenterTopMm + playDiameterMm / 2),
+    width: playDiameterMm * MM,
+    height: playDiameterMm * MM
   });
-  drawScaledIcon(page, iconPaths.play_triangle, isWhite ? COLOR_BLACK : COLOR_WHITE);
 
   // --- Fonts: Montserrat (al aanwezig, zelfde bestanden als muziekframe) ---
   const fontsDir = path.join(__dirname, 'fonts');
@@ -225,22 +252,22 @@ async function generateSoundFramePdf(data) {
   const emojiCache = await preloadEmojiImages(doc, [data.regel1, data.regel2, data.begintijd, data.eindtijd]);
 
   // --- Regel 1 (titel, bold) / Regel 2 (artiest, regular) — mogen nooit
-  // onder het hartje doorlopen, dus max-breedte tot 3mm ervoor, met
+  // onder het hartje doorlopen, dus max-breedte tot een marge ervoor, met
   // automatisch verkleinen (net als bij het muziekframe) als vangnet. ---
-  const heartLeftEdgeMm = 68.19;
-  const textStartXMm = 25.14;
-  const textMaxWidthMm = heartLeftEdgeMm - 3 - textStartXMm;
+  const heartLeftEdgeMm = 78.567;
+  const textStartXMm = 10.772;
+  const textMaxWidthMm = heartLeftEdgeMm - 4.724 - textStartXMm;
   const textMaxWidthPt = textMaxWidthMm * MM;
 
   if (data.regel1) {
     const parts = splitTextEmoji(data.regel1);
-    const size = fitFontSizeToWidth(parts, fontBold, 2.93 * MM, textMaxWidthPt);
-    drawMixedText(page, parts, fontBold, size, textStartXMm * MM, fromTopMm(60.10) - size * 0.75, styleColor, emojiCache);
+    const size = fitFontSizeToWidth(parts, fontBold, 4.614 * MM, textMaxWidthPt);
+    drawMixedText(page, parts, fontBold, size, textStartXMm * MM, fromTopMm(64.488) - size * 0.75, styleColor, emojiCache);
   }
   if (data.regel2) {
     const parts = splitTextEmoji(data.regel2);
-    const size = fitFontSizeToWidth(parts, fontRegular, 2.53 * MM, textMaxWidthPt);
-    drawMixedText(page, parts, fontRegular, size, textStartXMm * MM, fromTopMm(63.54) - size * 0.75, styleColor, emojiCache);
+    const size = fitFontSizeToWidth(parts, fontRegular, 3.984 * MM, textMaxWidthPt);
+    drawMixedText(page, parts, fontRegular, size, textStartXMm * MM, fromTopMm(69.906) - size * 0.75, styleColor, emojiCache);
   }
 
   // --- Hartje (optioneel — weglaten als "geen" gekozen) — als echte,
@@ -248,20 +275,19 @@ async function generateSoundFramePdf(data) {
   // benaderende cirkel. ---
   const heartRgb = parseHeartColor(data.hartjeKleur);
   if (heartRgb) {
-    const heartSizeMm = 8.1;
+    const heartSizeMm = 12.756;
     const heartPngBuffer = await maakIngekleurdHart({ r: heartRgb[0], g: heartRgb[1], b: heartRgb[2] });
     const heartImage = await doc.embedPng(heartPngBuffer);
     page.drawImage(heartImage, {
       x: heartLeftEdgeMm * MM,
-      y: fromTopMm(58.29 + heartSizeMm),
+      y: fromTopMm(61.638 + heartSizeMm),
       width: heartSizeMm * MM,
       height: heartSizeMm * MM
     });
   }
 
-  // --- Bolletje op de tijdlijn: ALTIJD zichtbaar (de balk zelf zit al in de
-  // overlay-afbeelding hierboven), positie 0-100% net als bij het
-  // muziekframe, standaard 20% als niet ingevuld. ---
+  // --- Bolletje op de tijdlijn: ALTIJD zichtbaar, positie 0-100% net als bij
+  // het muziekframe, standaard 20% als niet ingevuld. ---
   const dotPercent = parsePercent(data.bolletjePositie, 20);
   const dotCenterXMm = TIJDLIJN_LINKS_MM + (TIJDLIJN_RECHTS_MM - TIJDLIJN_LINKS_MM) * dotPercent / 100;
   page.drawCircle({
@@ -273,18 +299,18 @@ async function generateSoundFramePdf(data) {
 
   // --- Tijd-labels (Begintijd links, Eindtijd rechts van de tijdlijn) —
   // allebei optioneel, onafhankelijk van elkaar. ---
-  const tijdLabelMaxWidthPt = 25 * MM;
+  const tijdLabelMaxWidthPt = 40 * MM;
   if (data.begintijd) {
     const parts = splitTextEmoji(data.begintijd);
-    const size = fitFontSizeToWidth(parts, fontBold, 1.6 * MM, tijdLabelMaxWidthPt, 6);
-    drawMixedText(page, parts, fontBold, size, TIJDLIJN_LINKS_MM * MM, fromTopMm(68.10) - size * 0.75, styleColor, emojiCache);
+    const size = fitFontSizeToWidth(parts, fontBold, 2.52 * MM, tijdLabelMaxWidthPt, 6);
+    drawMixedText(page, parts, fontBold, size, TIJDLIJN_LINKS_MM * MM, fromTopMm(77.087) - size * 0.75, styleColor, emojiCache);
   }
   if (data.eindtijd) {
     const parts = splitTextEmoji(data.eindtijd);
-    const size = fitFontSizeToWidth(parts, fontBold, 1.6 * MM, tijdLabelMaxWidthPt, 6);
+    const size = fitFontSizeToWidth(parts, fontBold, 2.52 * MM, tijdLabelMaxWidthPt, 6);
     const totalWidthPt = measureMixedTextWidth(parts, fontBold, size);
     const xPt = TIJDLIJN_RECHTS_MM * MM - totalWidthPt;
-    drawMixedText(page, parts, fontBold, size, xPt, fromTopMm(68.10) - size * 0.75, styleColor, emojiCache);
+    drawMixedText(page, parts, fontBold, size, xPt, fromTopMm(77.087) - size * 0.75, styleColor, emojiCache);
   }
 
   return doc.save();
