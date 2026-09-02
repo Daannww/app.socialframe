@@ -316,6 +316,15 @@ van kan maken, en waarmee je de status van orders kan wijzigen.
     hoofdletters omzetten). Hergebruikt hetzelfde bordeauxrode hartje als de
     Oma-/Opa & Oma-ontwerpen (identiek pad + kleur, weer een ander
     ankerpunt).
+  - **"Beste vriendin met definitie"** — woordenboek-stijl lay-out (titel +
+    dun lijntje + "zelfstandig naamwoord" + 5 genummerde regels). **LINKS
+    uitgelijnd** i.p.v. gecentreerd (`xMm` per regel in plaats van het
+    automatisch-centreren van de andere ontwerpen) en **geen hartje**. Het
+    lijntje onder de titel (`ontwerp.lijn`) volgt gewoon de hoofdtekst-kleur
+    (geen aparte accentkleur). Titel in **Bodoni Moda Bold**, ondertitel in
+    **Bodoni Moda Regular**, de 5 genummerde regels in **Playfair Display
+    Medium Italic** — alle 3 bestanden zitten al bij het project, geen
+    verdere actie nodig.
   **Belangrijk**: een "Tegeltje met tekst"-order krijgt alleen automatisch
   status "wacht op drukwerkbestand" als het ontwerp herkend wordt — een nog
   onbekende tekst-variant valt terug op het oude gedrag ("wacht op

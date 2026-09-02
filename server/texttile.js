@@ -166,6 +166,26 @@ const TEGEL_TEKST_ONTWERPEN = [
       ankerXMm: 53.27,
       ankerTopMm: 83.985
     }
+  },
+  {
+    id: 'beste-vriendin-definitie',
+    // Titel in Shopify: "Tegeltje met Tekst - Beste vriendin met definitie."
+    herken: /beste\s*vriendin/i,
+    // LET OP: dit ontwerp is LINKS uitgelijnd (xMm per regel), i.t.t. alle
+    // andere ontwerpen hierboven die gecentreerd zijn. Geen hartje. Het
+    // lijntje onder de titel (ontwerp.lijn) volgt de hoofdtekst-kleur.
+    lettertypeBestanden: { bold: 'BodoniModa-Bold.ttf', regular: 'BodoniModa-Regular.ttf', italic: 'PlayfairDisplay-MediumItalic.ttf' },
+    lettertypeTerugval: { bold: StandardFonts.TimesRomanBold, regular: StandardFonts.TimesRoman, italic: StandardFonts.TimesRomanItalic },
+    regels: [
+      { tekst: 'Beste vriendin', fontStijl: 'bold', puntgrootteMm: 10.00, topMm: 20.76, xMm: 11.07, accent: false },
+      { tekst: 'zelfstandig naamwoord', fontStijl: 'regular', puntgrootteMm: 3.95, topMm: 36.08, xMm: 10.91, accent: false },
+      { tekst: '1. Samen lachen tot het gênant wordt', fontStijl: 'italic', puntgrootteMm: 3.53, topMm: 51.04, xMm: 11.07, accent: false },
+      { tekst: '2. Ongevraagd eerlijk', fontStijl: 'italic', puntgrootteMm: 3.53, topMm: 58.09, xMm: 11.07, accent: false },
+      { tekst: '3. De zus die ik zelf mocht kiezen', fontStijl: 'italic', puntgrootteMm: 3.53, topMm: 65.15, xMm: 11.07, accent: false },
+      { tekst: '4. Altijd samen, nooit saai', fontStijl: 'italic', puntgrootteMm: 3.53, topMm: 72.21, xMm: 11.07, accent: false },
+      { tekst: '5. Je privé-psycholoog zonder diploma', fontStijl: 'italic', puntgrootteMm: 3.53, topMm: 79.26, xMm: 11.07, accent: false }
+    ],
+    lijn: { xMm: 11.07, topMm: 31.45, breedteMm: 72.90, hoogteMm: 0.56 }
   }
 ];
 
@@ -280,10 +300,18 @@ async function generateTegelTekstPdf(data) {
 
   (ontwerp.regels || []).forEach(regel => {
     const font = fonts[regel.fontStijl];
-    const kleur = regel.accent ? (regel.accentKleur || ontwerp.hart.kleur) : hoofdtekstKleur;
+    const kleur = regel.accent ? (regel.accentKleur || (ontwerp.hart && ontwerp.hart.kleur)) : hoofdtekstKleur;
     const sizePt = regel.puntgrootteMm * MM;
-    const textWidthPt = font.widthOfTextAtSize(regel.tekst, sizePt);
-    const xPt = (PAGE_W_MM * MM - textWidthPt) / 2; // horizontaal gecentreerd
+    // Standaard gecentreerd (zoals alle eerdere ontwerpen) — tenzij de regel
+    // een eigen xMm meegeeft, dan links uitgelijnd vanaf die positie (nodig
+    // voor ontwerpen zoals "Beste vriendin", die links uitgelijnd zijn).
+    let xPt;
+    if (regel.xMm !== undefined) {
+      xPt = regel.xMm * MM;
+    } else {
+      const textWidthPt = font.widthOfTextAtSize(regel.tekst, sizePt);
+      xPt = (PAGE_W_MM * MM - textWidthPt) / 2;
+    }
     page.drawText(regel.tekst, {
       x: xPt,
       y: fromTopMm(regel.topMm) - sizePt * 0.75, // tekst-baseline t.o.v. de top van de tekstregel (empirisch bepaald, zie opmeet-sessie)
@@ -293,12 +321,29 @@ async function generateTegelTekstPdf(data) {
     });
   });
 
-  // --- Hartje: meestal een eigen, vaste kleur (ongeacht tegelkleur) — tenzij
-  // het ontwerp zelf aangeeft dat het hartje de hoofdtekst-kleur moet volgen
-  // (volgtHoofdtekstkleur: true), bv. om te voorkomen dat een zwart hartje
-  // onzichtbaar wordt op een zwarte tegel. ---
-  const hartKleur = ontwerp.hart.volgtHoofdtekstkleur ? hoofdtekstKleur : ontwerp.hart.kleur;
-  drawHart(page, { ...ontwerp.hart, kleur: hartKleur });
+  // --- Lijn (optioneel, bv. bij "Beste vriendin" onder de titel) — volgt
+  // ALTIJD de hoofdtekst-kleur (geen aparte accentkleur-optie nodig, is in
+  // het referentiebestand ook gewoon dezelfde kleur als de tekst). ---
+  if (ontwerp.lijn) {
+    const lijn = ontwerp.lijn;
+    page.drawRectangle({
+      x: lijn.xMm * MM,
+      y: fromTopMm(lijn.topMm + lijn.hoogteMm),
+      width: lijn.breedteMm * MM,
+      height: lijn.hoogteMm * MM,
+      color: hoofdtekstKleur
+    });
+  }
+
+  // --- Hartje (optioneel — sommige ontwerpen, zoals "Beste vriendin",
+  // hebben er geen). Meestal een eigen, vaste kleur (ongeacht tegelkleur) —
+  // tenzij het ontwerp zelf aangeeft dat het hartje de hoofdtekst-kleur moet
+  // volgen (volgtHoofdtekstkleur: true), bv. om te voorkomen dat een zwart
+  // hartje onzichtbaar wordt op een zwarte tegel. ---
+  if (ontwerp.hart) {
+    const hartKleur = ontwerp.hart.volgtHoofdtekstkleur ? hoofdtekstKleur : ontwerp.hart.kleur;
+    drawHart(page, { ...ontwerp.hart, kleur: hartKleur });
+  }
 
   return doc.save();
 }
