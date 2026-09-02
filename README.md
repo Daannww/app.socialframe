@@ -309,6 +309,13 @@ van kan maken, en waarmee je de status van orders kan wijzigen.
     zijn" in de lijst staan, want die laatste se herkenningsregex
     (`/altijd\s*fijn.*oma/i`) zou een "Opa & Oma"-titel ook matchen (bevat
     immers ook "oma") — `.find()` pakt altijd de eerste match.
+  - **"Huisje vol liefde"** — lettertype **Blooming Elegant Hand**
+    (`BloomingElegantHand.otf`, zit al bij het project) — een schrijfletter-
+    achtig lettertype waarbij kleine letters er zelf al hoofdletter-achtig
+    uitzien (dus "Huisje"/"vol"/"liefde" precies zo overnemen, niet zelf naar
+    hoofdletters omzetten). Hergebruikt hetzelfde bordeauxrode hartje als de
+    Oma-/Opa & Oma-ontwerpen (identiek pad + kleur, weer een ander
+    ankerpunt).
   **Belangrijk**: een "Tegeltje met tekst"-order krijgt alleen automatisch
   status "wacht op drukwerkbestand" als het ontwerp herkend wordt — een nog
   onbekende tekst-variant valt terug op het oude gedrag ("wacht op
