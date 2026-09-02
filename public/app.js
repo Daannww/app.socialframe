@@ -1225,12 +1225,25 @@ function buildReceiptHtml(order) {
     const displayTitle = translateProductText(li.title, isGerman);
     const displayVariant = translateProductText(li.variant_title, isGerman);
 
+    // Cadeauverpakking wordt vaak vergeten bij het inpakken — laat deze regel
+    // in de artikelenlijst zelf opvallen (dikker omrand, groter, vet), i.p.v.
+    // 'm hetzelfde te laten ogen als een gewoon artikel. Herkenning op de
+    // ORIGINELE (Nederlandse) titel, ongeacht of de pakbon zelf in het Duits
+    // wordt weergegeven.
+    const isGiftWrap = /cadeauverpakking/i.test(li.title || '');
+    const rowStyle = isGiftWrap
+      ? 'border:2px solid black; font-weight:800; font-size:14px; padding:6px;'
+      : '';
+    const qtyStyle = isGiftWrap
+      ? 'text-align:right; vertical-align:top; border:2px solid black; border-left:none; font-weight:800; font-size:14px; padding:6px;'
+      : 'text-align:right; vertical-align:top;';
+
     return `
       <tr>
-        <td style="word-break:break-all;">
-          ${escapeHtml(displayTitle)}${displayVariant ? ' – ' + escapeHtml(displayVariant) : ''}${propsHtml ? '<br>' + propsHtml : ''}<br>
+        <td style="word-break:break-all; ${rowStyle}">
+          ${isGiftWrap ? '🎁 ' : ''}${escapeHtml(displayTitle)}${displayVariant ? ' – ' + escapeHtml(displayVariant) : ''}${propsHtml ? '<br>' + propsHtml : ''}<br>
         </td>
-        <td style="text-align:right; vertical-align:top;">${qty}</td>
+        <td style="${qtyStyle}">${qty}</td>
       </tr>
       <tr>
         <td colspan="2" style="border-bottom:1px dotted black;"></td>
