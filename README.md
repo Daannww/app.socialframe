@@ -338,6 +338,22 @@ van kan maken, en waarmee je de status van orders kan wijzigen.
     **Bodoni Moda Regular**, de 5 genummerde regels in **Playfair Display
     Medium Italic** — alle 3 bestanden zitten al bij het project, geen
     verdere actie nodig.
+  - **"In dit huis plassen we zittend, bedankt."** — hergebruikt het
+    al aanwezige Blastered-lettertype (net als de Oma-/Opa & Oma-/Liefde-
+    ontwerpen), maar **links uitgelijnd** i.p.v. gecentreerd en **geen
+    hartje** (net als "Beste vriendin met definitie").
+  - **"Opa met definitie"** — zelfde woordenboek-stijl als "Beste vriendin
+    met definitie" (titel + dun lijntje + cursief-ogende ondertitel + een
+    genummerde lijst, links uitgelijnd, geen hartje), hergebruikt dezelfde
+    Bodoni Moda-lettertypebestanden. **Let op**: in het referentiebestand
+    was de genummerde lijst technisch ingebed als het macOS-systeemfont
+    "Khmer MN" — de letters zien er zelf gewoon Bodoni-achtig en rechtop
+    uit (geen Khmer-schrift), dus vrijwel zeker een verkeerd-geëxporteerde
+    fallback in het originele bestand. Aangenomen dat dit gewoon Bodoni
+    Moda Regular moet zijn — laat het weten als dat toch niet blijkt te
+    kloppen. De nummering in het referentiebestand zelf sloeg per ongeluk
+    "2" over (1, 3, 4, 5) — inmiddels rechtgezet naar netjes doorlopend
+    1, 2, 3, 4.
   **Belangrijk**: een "Tegeltje met tekst"-order krijgt alleen automatisch
   status "wacht op drukwerkbestand" als het ontwerp herkend wordt — een nog
   onbekende tekst-variant valt terug op het oude gedrag ("wacht op

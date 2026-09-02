@@ -186,6 +186,52 @@ const TEGEL_TEKST_ONTWERPEN = [
       { tekst: '5. Je privé-psycholoog zonder diploma', fontStijl: 'italic', puntgrootteMm: 3.53, topMm: 79.26, xMm: 11.07, accent: false }
     ],
     lijn: { xMm: 11.07, topMm: 31.45, breedteMm: 72.90, hoogteMm: 0.56 }
+  },
+  {
+    id: 'in-dit-huis-plassen-we-zittend',
+    // Titel in Shopify: "Tegeltje met tekst – In dit huis plassen we zittend, bedankt."
+    herken: /plassen.*zittend/i,
+    // Zelfde lettertype als de andere Blastered-ontwerpen (Oma/Opa & Oma/
+    // Liefde), maar LINKS uitgelijnd (xMm per regel) i.p.v. gecentreerd — en
+    // geen hartje (net als "Beste vriendin met definitie").
+    lettertypeBestanden: { regular: 'Blastered-Regular.otf' },
+    lettertypeTerugval: { regular: StandardFonts.HelveticaBold },
+    regels: [
+      { tekst: 'IN DIT HUIS', fontStijl: 'regular', puntgrootteMm: 16.71, topMm: 15.24, xMm: 13.16, accent: false },
+      { tekst: 'PLASSEN WE', fontStijl: 'regular', puntgrootteMm: 16.71, topMm: 33.98, xMm: 13.16, accent: false },
+      { tekst: 'ZITTEND,', fontStijl: 'regular', puntgrootteMm: 16.71, topMm: 52.73, xMm: 13.16, accent: false },
+      { tekst: 'BEDANKT.', fontStijl: 'regular', puntgrootteMm: 16.71, topMm: 71.48, xMm: 13.16, accent: false }
+    ]
+  },
+  {
+    id: 'opa-met-definitie',
+    // Titel in Shopify: "Tegeltje met Tekst - Opa met definitie."
+    // LET OP: specifiek genoeg om NIET de "Altijd fijn om bij Opa & Oma"-
+    // titel te matchen (die bevat ook "Opa") — vereist expliciet "met
+    // definitie" direct na "Opa".
+    herken: /\bopa\s+met\s+definitie/i,
+    // Zelfde woordenboek-stijl als "Beste vriendin met definitie" — titel in
+    // Bodoni Moda Bold, de rest (ondertitel + genummerde lijst) in Bodoni
+    // Moda Regular. LET OP: het referentiebestand had de genummerde lijst
+    // technisch ingebed als "KhmerMN" (een macOS-systeemfont) — de letters
+    // zien er zelf gewoon Bodoni-achtig en rechtop uit (geen Khmer-schrift),
+    // dus dit is vrijwel zeker een verkeerd-geëxporteerde fallback in het
+    // originele bestand, niet een bewuste keuze. Aangenomen dat dit ook
+    // gewoon Bodoni Moda Regular moet zijn (i.p.v. Playfair Display Medium
+    // Italic zoals bij "Beste vriendin" — deze lijst is namelijk rechtop,
+    // niet cursief). Corrigeer dit als dat toch niet klopt.
+    lettertypeBestanden: { bold: 'BodoniModa-Bold.ttf', regular: 'BodoniModa-Regular.ttf' },
+    lettertypeTerugval: { bold: StandardFonts.TimesRomanBold, regular: StandardFonts.TimesRoman },
+    regels: [
+      { tekst: 'Opa', fontStijl: 'bold', puntgrootteMm: 11.88, topMm: 31.97, xMm: 8.97, accent: false },
+      { tekst: "[de; meervoud: opa's]", fontStijl: 'regular', puntgrootteMm: 4.18, topMm: 48.73, xMm: 8.80, accent: false },
+      { tekst: '1. Officiele expert in verhalen die altijd', fontStijl: 'regular', puntgrootteMm: 3.70, topMm: 60.92, xMm: 8.66, accent: false },
+      { tekst: 'beginnen met "vroeger..."', fontStijl: 'regular', puntgrootteMm: 3.70, topMm: 65.36, xMm: 8.66, accent: false },
+      { tekst: '2. Professioneel knuffelaar met een hart van goud..', fontStijl: 'regular', puntgrootteMm: 3.70, topMm: 69.80, xMm: 8.66, accent: false },
+      { tekst: '3. Geheim wapen tegen honger: altijd koekjes in de buurt.', fontStijl: 'regular', puntgrootteMm: 3.70, topMm: 74.24, xMm: 8.66, accent: false },
+      { tekst: '4. Combineert wijsheid met een ondeugende glimlach.', fontStijl: 'regular', puntgrootteMm: 3.70, topMm: 78.69, xMm: 8.66, accent: false }
+    ],
+    lijn: { xMm: 8.97, topMm: 44.26, breedteMm: 82.65, hoogteMm: 0.56 }
   }
 ];
 
