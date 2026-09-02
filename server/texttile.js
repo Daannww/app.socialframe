@@ -57,6 +57,32 @@ const TEGEL_TEKST_ONTWERPEN = [
     }
   },
   {
+    id: 'altijd-fijn-opa-en-oma',
+    // Titel in Shopify: "Tegeltje met tekst - Altijd fijn om bij Opa & Oma te zijn."
+    // LET OP: deze regex moet VÓÓR "altijd-fijn-oma" in de lijst staan — die
+    // laatste se regex (/altijd\s*fijn.*oma/i) zou deze titel namelijk OOK
+    // matchen (bevat immers ook "oma"), en TEGEL_TEKST_ONTWERPEN.find() pakt
+    // altijd de EERSTE match in de lijst.
+    herken: /altijd\s*fijn.*opa.*oma/i,
+    lettertypeBestanden: { regular: 'Blastered-Regular.otf' },
+    lettertypeTerugval: { regular: StandardFonts.HelveticaBold },
+    regels: [
+      { tekst: 'ALTIJD FIJN', fontStijl: 'regular', puntgrootteMm: 15.35, topMm: 23.24, accent: false },
+      { tekst: 'OM BIJ OPA & OMA', fontStijl: 'regular', puntgrootteMm: 15.35, topMm: 42.42, accent: false },
+      { tekst: 'TE ZIJN!', fontStijl: 'regular', puntgrootteMm: 15.35, topMm: 61.60, accent: false }
+    ],
+    // Zelfde hart-pad als "altijd-fijn-oma" hieronder (identiek bevestigd:
+    // gelijke kleur + gelijke deelvorm-afmetingen), alleen het ankerpunt is
+    // hier lager (Y) omdat er 3 in plaats van 2 tekstregels boven staan.
+    hart: {
+      eenheid: 'pdf-punten',
+      pad: 'M 0,-0.0 C 0.784,-6.955 2.052,-13.846 3.8,-20.629 C 3.825,-20.209 3.84,-19.806 3.857,-19.447 C 4.169,-12.73 2.426,-6.241 0,-0.0 M -8.402,3.299 C -8.309,3.193 -8.243,3.093 -8.214,3.004 C -7.516,0.838 -6.818,-1.328 -6.12,-3.493 C -6.412,-1.037 -6.703,1.419 -6.995,3.876 C -7.054,4.374 -5.137,3.694 -3.976,2.904 C -4.122,4.287 -4.25,5.673 -4.357,7.061 C -5.693,5.834 -7.055,4.584 -8.402,3.299 M -19.896,-11.142 C -19.458,-11.363 -19.015,-11.635 -18.658,-11.916 C -17.959,-10.137 -17.26,-8.359 -16.561,-6.58 C -16.441,-6.279 -15.513,-6.534 -14.596,-6.989 C -13.934,-5.237 -13.416,-3.432 -13.045,-1.573 C -12.973,-1.216 -12.218,-1.487 -11.404,-1.921 C -11.505,-1.265 -11.594,-0.607 -11.674,0.053 C -14.937,-3.343 -17.893,-7.017 -19.896,-11.142 M -14.108,-14.076 C -14.291,-14.005 -14.487,-13.912 -14.685,-13.806 C -15.09,-14.837 -15.495,-15.867 -15.9,-16.898 C -15.189,-16.022 -14.607,-15.072 -14.108,-14.076 M 0.03,-24.901 C 0.528,-25.549 0.225,-25.471 1.125,-25.33 C 1.839,-25.218 2.354,-24.88 2.736,-24.414 C 2.072,-24.068 1.288,-23.563 1.07,-22.927 C 0.412,-21.01 -0.227,-19.087 -0.853,-17.159 C -0.685,-18.571 -0.518,-19.983 -0.35,-21.395 C -0.306,-21.769 -1.235,-21.515 -2.195,-21.055 C -1.78,-21.903 -1.337,-22.74 -0.855,-23.55 C -0.58,-24.011 -0.298,-24.475 0.03,-24.901 M 6.334,-26.926 C 4.688,-28.486 2.125,-27.717 0.365,-26.805 C -2.103,-25.528 -3.717,-23.576 -5.034,-21.168 C -6.564,-18.369 -7.8,-15.439 -8.742,-12.415 C -9.904,-15.96 -11.433,-19.326 -14.635,-21.517 C -16.571,-22.842 -19,-23.523 -21.31,-22.864 C -23.483,-22.244 -26.066,-20.66 -26.194,-18.179 C -26.477,-12.708 -23.057,-7.05 -19.855,-2.897 C -15.835,2.315 -10.883,6.771 -6.078,11.237 C -5.67,11.616 -4.668,11.19 -3.785,10.61 C -2.719,10.249 -0.946,9.104 -0.722,8.621 C 2.025,2.698 4.763,-3.296 6.382,-9.645 C 7.148,-12.649 7.656,-15.729 7.743,-18.832 C 7.807,-21.121 8.156,-25.199 6.334,-26.926 Z',
+      kleur: cmyk(0.223, 0.973, 0.602, 0.156), // bordeauxrood — altijd deze kleur, ongeacht tegelkleur
+      ankerXMm: 53.27,
+      ankerTopMm: 89.983
+    }
+  },
+  {
     id: 'altijd-fijn-oma',
     // Titel in Shopify: "Tegeltje met tekst - Altijd fijn om bij Oma te zijn."
     herken: /altijd\s*fijn.*oma/i,

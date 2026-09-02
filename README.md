@@ -297,10 +297,18 @@ van kan maken, en waarmee je de status van orders kan wijzigen.
     accentregel — het (dunne, open) hartje is goud.
   - **"Liefde neemt nooit afscheid"** — hergebruikt het al aanwezige
     Blastered-lettertype. Geen aparte accentregel — het (dunne, open)
-    hartje heeft hier bewust GEEN vaste kleur (i.t.t. de andere 3 ontwerpen):
+    hartje heeft hier bewust GEEN vaste kleur (i.t.t. de andere ontwerpen):
     het volgt dezelfde zwart/wit-regel als de hoofdtekst
     (`volgtHoofdtekstkleur: true` bij dit ontwerp in `server/texttile.js`),
     anders zou het op een zwarte tegel onzichtbaar worden.
+  - **"Altijd fijn om bij Opa & Oma te zijn"** — hergebruikt zowel het
+    Blastered-lettertype als het bordeauxrode hartje (identiek pad + kleur)
+    van "Altijd fijn om bij Oma te zijn" hierboven, alleen 3 tekstregels
+    i.p.v. 2 (en het hartje dus ietsje lager). **Let op de volgorde** in
+    `TEGEL_TEKST_ONTWERPEN`: dit ontwerp moet VÓÓR "Altijd fijn om bij Oma te
+    zijn" in de lijst staan, want die laatste se herkenningsregex
+    (`/altijd\s*fijn.*oma/i`) zou een "Opa & Oma"-titel ook matchen (bevat
+    immers ook "oma") — `.find()` pakt altijd de eerste match.
   **Belangrijk**: een "Tegeltje met tekst"-order krijgt alleen automatisch
   status "wacht op drukwerkbestand" als het ontwerp herkend wordt — een nog
   onbekende tekst-variant valt terug op het oude gedrag ("wacht op
