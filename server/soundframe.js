@@ -43,7 +43,7 @@ const TIJDLIJN_RECHTS_MM = KAART_X_MM + 0.8917 * KAART_SIZE_MM;
 // om precies gecentreerd te staan (eerder stond het bolletje per ongeluk op
 // TIJDLIJN_TOP_MM zelf, dus zichtbaar iets te hoog t.o.v. de balk).
 const TIJDLIJN_TOP_MM = KAART_TOP_MM + 0.742 * KAART_SIZE_MM;
-const BOLLETJE_DIAMETER_MM = 2.3;
+const BOLLETJE_DIAMETER_MM = 4.6; // 2x zo groot als de vorige 2.3mm, op verzoek
 
 // --- Afspeelknoppen-rij: hergebruikt de bestaande vector-iconen van het
 // muziekframe (musicframe-paths.js), herschaald om in het Sound-Frame-
