@@ -37,8 +37,13 @@ const KAART_RADIUS_MM = 4.724;
 // mee met KAART_X_MM/KAART_SIZE_MM hierboven.
 const TIJDLIJN_LINKS_MM = KAART_X_MM + 0.1015 * KAART_SIZE_MM;
 const TIJDLIJN_RECHTS_MM = KAART_X_MM + 0.8917 * KAART_SIZE_MM;
+// TIJDLIJN_TOP_MM is de BOVENKANT van de balk (drawSvgPath se anker-punt is
+// de top van het pad, niet het midden) — TIJDLIJN_MIDDEN_MM hieronder is het
+// écht verticale midden van de balk, en is wat het bolletje moet gebruiken
+// om precies gecentreerd te staan (eerder stond het bolletje per ongeluk op
+// TIJDLIJN_TOP_MM zelf, dus zichtbaar iets te hoog t.o.v. de balk).
 const TIJDLIJN_TOP_MM = KAART_TOP_MM + 0.742 * KAART_SIZE_MM;
-const BOLLETJE_DIAMETER_MM = 5.512;
+const BOLLETJE_DIAMETER_MM = 2.3;
 
 // --- Afspeelknoppen-rij: hergebruikt de bestaande vector-iconen van het
 // muziekframe (musicframe-paths.js), herschaald om in het Sound-Frame-
@@ -287,12 +292,16 @@ async function generateSoundFramePdf(data) {
   }
 
   // --- Bolletje op de tijdlijn: ALTIJD zichtbaar, positie 0-100% net als bij
-  // het muziekframe, standaard 20% als niet ingevuld. ---
+  // het muziekframe, standaard 20% als niet ingevuld. Verticaal gecentreerd
+  // op het ECHTE midden van de balk (TIJDLIJN_TOP_MM is de bovenkant van de
+  // balk, dus + de helft van de geschaalde balkhoogte). ---
+  const timelineBarHeightMm = iconPaths.timeline_bar.heightMm * timelineScale;
+  const tijdlijnMiddenMm = TIJDLIJN_TOP_MM + timelineBarHeightMm / 2;
   const dotPercent = parsePercent(data.bolletjePositie, 20);
   const dotCenterXMm = TIJDLIJN_LINKS_MM + (TIJDLIJN_RECHTS_MM - TIJDLIJN_LINKS_MM) * dotPercent / 100;
   page.drawCircle({
     x: dotCenterXMm * MM,
-    y: fromTopMm(TIJDLIJN_TOP_MM),
+    y: fromTopMm(tijdlijnMiddenMm),
     size: (BOLLETJE_DIAMETER_MM / 2) * MM,
     color: styleColor
   });
