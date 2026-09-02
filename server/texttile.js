@@ -2,7 +2,7 @@ const { PDFDocument, rgb, cmyk, StandardFonts } = require('pdf-lib');
 const fontkit = require('@pdf-lib/fontkit');
 const fs = require('fs');
 const path = require('path');
-const { MM, nearWhiteCmyk } = require('./pdf-shared');
+const { MM, nearWhiteCmyk, voorkomLigatuurGaten } = require('./pdf-shared');
 const paths = require('./musicframe-paths');
 
 const PAGE_W_MM = 100;
@@ -179,11 +179,11 @@ const TEGEL_TEKST_ONTWERPEN = [
     regels: [
       { tekst: 'Beste vriendin', fontStijl: 'bold', puntgrootteMm: 10.00, topMm: 20.76, xMm: 11.07, accent: false },
       { tekst: 'zelfstandig naamwoord', fontStijl: 'regular', puntgrootteMm: 3.95, topMm: 36.08, xMm: 10.91, accent: false },
-      { tekst: '1. Samen lachen tot het gênant wordt', fontStijl: 'italic', puntgrootteMm: 3.53, topMm: 51.04, xMm: 11.07, accent: false },
-      { tekst: '2. Ongevraagd eerlijk', fontStijl: 'italic', puntgrootteMm: 3.53, topMm: 58.09, xMm: 11.07, accent: false },
-      { tekst: '3. De zus die ik zelf mocht kiezen', fontStijl: 'italic', puntgrootteMm: 3.53, topMm: 65.15, xMm: 11.07, accent: false },
-      { tekst: '4. Altijd samen, nooit saai', fontStijl: 'italic', puntgrootteMm: 3.53, topMm: 72.21, xMm: 11.07, accent: false },
-      { tekst: '5. Je privé-psycholoog zonder diploma', fontStijl: 'italic', puntgrootteMm: 3.53, topMm: 79.26, xMm: 11.07, accent: false }
+      { tekst: '1. Samen lachen tot het gênant wordt', fontStijl: 'italic', puntgrootteMm: 3.53, topMm: 51.04, xMm: 11.07, maxBreedteMm: 77.86, accent: false },
+      { tekst: '2. Ongevraagd eerlijk', fontStijl: 'italic', puntgrootteMm: 3.53, topMm: 58.09, xMm: 11.07, maxBreedteMm: 77.86, accent: false },
+      { tekst: '3. De zus die ik zelf mocht kiezen', fontStijl: 'italic', puntgrootteMm: 3.53, topMm: 65.15, xMm: 11.07, maxBreedteMm: 77.86, accent: false },
+      { tekst: '4. Altijd samen, nooit saai', fontStijl: 'italic', puntgrootteMm: 3.53, topMm: 72.21, xMm: 11.07, maxBreedteMm: 77.86, accent: false },
+      { tekst: '5. Je privé-psycholoog zonder diploma', fontStijl: 'italic', puntgrootteMm: 3.53, topMm: 79.26, xMm: 11.07, maxBreedteMm: 77.86, accent: false }
     ],
     lijn: { xMm: 11.07, topMm: 31.45, breedteMm: 72.90, hoogteMm: 0.56 }
   },
@@ -225,11 +225,11 @@ const TEGEL_TEKST_ONTWERPEN = [
     regels: [
       { tekst: 'Opa', fontStijl: 'bold', puntgrootteMm: 11.88, topMm: 31.97, xMm: 8.97, accent: false },
       { tekst: "[de; meervoud: opa's]", fontStijl: 'regular', puntgrootteMm: 4.18, topMm: 48.73, xMm: 8.80, accent: false },
-      { tekst: '1. Officiele expert in verhalen die altijd', fontStijl: 'regular', puntgrootteMm: 3.70, topMm: 60.92, xMm: 8.66, accent: false },
-      { tekst: 'beginnen met "vroeger..."', fontStijl: 'regular', puntgrootteMm: 3.70, topMm: 65.36, xMm: 8.66, accent: false },
-      { tekst: '2. Professioneel knuffelaar met een hart van goud..', fontStijl: 'regular', puntgrootteMm: 3.70, topMm: 69.80, xMm: 8.66, accent: false },
-      { tekst: '3. Geheim wapen tegen honger: altijd koekjes in de buurt.', fontStijl: 'regular', puntgrootteMm: 3.70, topMm: 74.24, xMm: 8.66, accent: false },
-      { tekst: '4. Combineert wijsheid met een ondeugende glimlach.', fontStijl: 'regular', puntgrootteMm: 3.70, topMm: 78.69, xMm: 8.66, accent: false }
+      { tekst: '1. Officiele expert in verhalen die altijd', fontStijl: 'regular', puntgrootteMm: 3.70, topMm: 60.92, xMm: 8.66, maxBreedteMm: 82.68, accent: false },
+      { tekst: 'beginnen met "vroeger..."', fontStijl: 'regular', puntgrootteMm: 3.70, topMm: 65.36, xMm: 8.66, maxBreedteMm: 82.68, accent: false },
+      { tekst: '2. Professioneel knuffelaar met een hart van goud..', fontStijl: 'regular', puntgrootteMm: 3.70, topMm: 69.80, xMm: 8.66, maxBreedteMm: 82.68, accent: false },
+      { tekst: '3. Geheim wapen tegen honger: altijd koekjes in de buurt.', fontStijl: 'regular', puntgrootteMm: 3.70, topMm: 74.24, xMm: 8.66, maxBreedteMm: 82.68, accent: false },
+      { tekst: '4. Combineert wijsheid met een ondeugende glimlach.', fontStijl: 'regular', puntgrootteMm: 3.70, topMm: 78.69, xMm: 8.66, maxBreedteMm: 82.68, accent: false }
     ],
     lijn: { xMm: 8.97, topMm: 44.26, breedteMm: 82.65, hoogteMm: 0.56 }
   }
@@ -347,7 +347,21 @@ async function generateTegelTekstPdf(data) {
   (ontwerp.regels || []).forEach(regel => {
     const font = fonts[regel.fontStijl];
     const kleur = regel.accent ? (regel.accentKleur || (ontwerp.hart && ontwerp.hart.kleur)) : hoofdtekstKleur;
-    const sizePt = regel.puntgrootteMm * MM;
+    const veiligeTekst = voorkomLigatuurGaten(regel.tekst, font); // vangnet tegen een bekende pdf-lib-ligatuur-bug, zie pdf-shared.js
+    let sizePt = regel.puntgrootteMm * MM;
+
+    // Optioneel vangnet tegen tekstoverloop (bv. als het echte lettertype
+    // net iets breder blijkt dan waarmee de positie oorspronkelijk is
+    // opgemeten): lettergrootte in kleine stapjes verkleinen totdat de regel
+    // weer binnen de opgegeven maximale breedte past. Alleen actief als het
+    // ontwerp voor déze regel een maxBreedteMm meegeeft.
+    if (regel.maxBreedteMm !== undefined) {
+      const maxWidthPt = regel.maxBreedteMm * MM;
+      while (sizePt > 2 * MM && font.widthOfTextAtSize(veiligeTekst, sizePt) > maxWidthPt) {
+        sizePt -= 0.05 * MM;
+      }
+    }
+
     // Standaard gecentreerd (zoals alle eerdere ontwerpen) — tenzij de regel
     // een eigen xMm meegeeft, dan links uitgelijnd vanaf die positie (nodig
     // voor ontwerpen zoals "Beste vriendin", die links uitgelijnd zijn).
@@ -355,10 +369,10 @@ async function generateTegelTekstPdf(data) {
     if (regel.xMm !== undefined) {
       xPt = regel.xMm * MM;
     } else {
-      const textWidthPt = font.widthOfTextAtSize(regel.tekst, sizePt);
+      const textWidthPt = font.widthOfTextAtSize(veiligeTekst, sizePt);
       xPt = (PAGE_W_MM * MM - textWidthPt) / 2;
     }
-    page.drawText(regel.tekst, {
+    page.drawText(veiligeTekst, {
       x: xPt,
       y: fromTopMm(regel.topMm) - sizePt * 0.75, // tekst-baseline t.o.v. de top van de tekstregel (empirisch bepaald, zie opmeet-sessie)
       size: sizePt,

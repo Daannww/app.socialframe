@@ -6,6 +6,37 @@ const path = require('path');
 
 const MM = 72 / 25.4; // PDF-punten per millimeter
 
+// Voorkomt een bekende pdf-lib-bug (github.com/Hopding/pdf-lib/issues/1275):
+// lettertypen met ingebouwde ligaturen voor "ff"/"fi"/"fl"/"ffi"/"ffl" geven
+// soms een net-niet-kloppende breedteberekening bij drawText/
+// widthOfTextAtSize, wat een onbedoelde extra spatie in de tekst veroorzaakt
+// (bv. "Officiele" -> "Offi ciele", "knuffelaar" -> "knuff elaar" — precies
+// waar zo'n letter-combinatie zit). Een Zero-Width Non-Joiner (U+200C)
+// tussen zo'n combinatie voorkomt dat de ligatuur gevormd wordt — de losse
+// letters blijven normaal zichtbaar (geen zichtbaar verschil), maar de bug
+// (en dus de ongewenste spatie) treedt niet meer op.
+// LET OP: de ZWNJ zelf kan niet door elk lettertype gecodeerd worden — de
+// ingebouwde PDF-basisfonts (WinAnsi-codering, zoals de Times Roman/
+// Helvetica-noodgrepen die gebruikt worden als een echt fontbestand
+// ontbreekt) gooien daar een harde fout op. `font` is daarom optioneel maar
+// aanbevolen: als meegegeven, wordt eerst getoetst of dát specifieke
+// lettertype de ZWNJ-versie ook echt kan coderen — lukt dat niet, dan valt
+// deze functie terug op de originele tekst (kleine kans op de ligatuur-bug,
+// maar in elk geval geen crash).
+function voorkomLigatuurGaten(tekst, font) {
+  if (!tekst) return tekst;
+  const metZwnj = tekst.replace(/ffi|ffl|ff|fi|fl/gi, m => m.split('').join('\u200C'));
+  if (metZwnj === tekst) return tekst; // geen ligatuur-gevoelige combinatie aanwezig
+  if (font) {
+    try {
+      font.widthOfTextAtSize(metZwnj, 10); // toetst alleen of coderen lukt, de grootte doet er niet toe
+    } catch (e) {
+      return tekst;
+    }
+  }
+  return metZwnj;
+}
+
 // 1% geel (CMYK C0 M0 Y1 K0) — bewust als ECHTE volledig-dekkende kleur, niet
 // via PDF-transparantie (niet elke drukkerij-RIP verwerkt transparantie
 // betrouwbaar, zie ook de eerdere Spotify-code-balkjes-discussie). Wordt
@@ -217,7 +248,7 @@ function measureMixedTextWidth(parts, font, sizePt, hebrewFont) {
         return total;
       }
     }
-    return total + font.widthOfTextAtSize(p.value, sizePt);
+    return total + font.widthOfTextAtSize(voorkomLigatuurGaten(p.value, font), sizePt);
   }, 0);
 }
 
@@ -252,8 +283,9 @@ function drawMixedText(page, parts, font, sizePt, xPt, baselineYPt, color, emoji
         console.warn('[pdf-shared] kon Hebreeuws tekstdeel niet tekenen, wordt overgeslagen:', e.message);
       }
     } else {
-      page.drawText(p.value, { x: cursorX, y: baselineYPt, size: sizePt, font, color });
-      cursorX += font.widthOfTextAtSize(p.value, sizePt);
+      const veiligeTekst = voorkomLigatuurGaten(p.value, font);
+      page.drawText(veiligeTekst, { x: cursorX, y: baselineYPt, size: sizePt, font, color });
+      cursorX += font.widthOfTextAtSize(veiligeTekst, sizePt);
     }
   });
 }
@@ -805,5 +837,5 @@ module.exports = {
   measureMixedTextWidth, drawMixedText, fitFontSizeToWidth, loadHebrewFont,
   embedPhoto, fitPhotoInSquareZone, recolorDarkPixels, recolorLightPixels, getCodeSvg,
   drawBackground, isMarbleBackground, hasPageBackground, nearWhiteCmyk, adjustCmykChannels,
-  extractSvgShapes, drawSvgShapesInBox, embedPhotoRounded
+  extractSvgShapes, drawSvgShapesInBox, embedPhotoRounded, voorkomLigatuurGaten
 };

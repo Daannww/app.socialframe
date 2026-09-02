@@ -260,6 +260,19 @@ van kan maken, en waarmee je de status van orders kan wijzigen.
   rest van het bestand (foto, hartje, overige tekst) wordt gewoon compleet
   gegenereerd. Dezelfde Hebreeuws-ondersteuning geldt ook voor auto-frame en
   Sound-Frame hieronder (gedeelde code in `server/pdf-shared.js`).
+  **Ligatuur-spatiebug** ("Officiele" -> "Offi ciele", "knuffelaar" ->
+  "knuff elaar" — ontdekt bij een "Tegeltje met tekst"-ontwerp, maar de fix
+  geldt voor de hele PDF-tekenlaag): een bekende `pdf-lib`-bug
+  (github.com/Hopding/pdf-lib/issues/1275) waarbij lettertypen met
+  ingebouwde ligaturen voor "ff"/"fi"/"fl"/"ffi"/"ffl" een verkeerde
+  breedteberekening geven, met een ongewenste extra spatie tot gevolg.
+  `voorkomLigatuurGaten()` in `server/pdf-shared.js` zet een onzichtbare
+  Zero-Width Non-Joiner tussen zo'n letter-combinatie om de ligatuur-vorming
+  (en dus de bug) te voorkomen — met een ingebouwde toets of het actieve
+  lettertype dat teken ook echt kan coderen (de ingebouwde PDF-basisfonts,
+  zoals de Times Roman/Helvetica-noodgrepen, kunnen dat namelijk niet en
+  zouden anders crashen) — valt in dat geval terug op de gewone tekst i.p.v.
+  te crashen.
 - **Auto-frame-drukwerkbestanden**: orders met een product waarvan de titel
   "Auto-frame" bevat, krijgen automatisch een eigen drukwerkbestand (200x300mm
   PDF, met foto op eigen beeldverhouding, een titel ("Merk en type auto") en 4
@@ -353,7 +366,13 @@ van kan maken, en waarmee je de status van orders kan wijzigen.
     Moda Regular moet zijn — laat het weten als dat toch niet blijkt te
     kloppen. De nummering in het referentiebestand zelf sloeg per ongeluk
     "2" over (1, 3, 4, 5) — inmiddels rechtgezet naar netjes doorlopend
-    1, 2, 3, 4.
+    1, 2, 3, 4. De genummerde lijst-regels van dit ontwerp (en van "Beste
+    vriendin met definitie") hebben een `maxBreedteMm` — een optioneel
+    vangnet (`regel.maxBreedteMm` in `server/texttile.js`) dat de
+    lettergrootte in kleine stapjes verkleint als de tekst met het echte
+    lettertype toch net iets breder blijkt dan waarmee de positie
+    oorspronkelijk is opgemeten (ontdekt doordat regel 3 van "Opa" in het
+    echte, gedeployde lettertype net buiten de tegel liep).
   **Belangrijk**: een "Tegeltje met tekst"-order krijgt alleen automatisch
   status "wacht op drukwerkbestand" als het ontwerp herkend wordt — een nog
   onbekende tekst-variant valt terug op het oude gedrag ("wacht op
