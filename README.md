@@ -295,10 +295,15 @@ van kan maken, en waarmee je de status van orders kan wijzigen.
   export, losse downloadknop in de popup — "Download auto-frame-bestand"),
   inclusief dezelfde "klein"/"dik"-submap-logica en hetzelfde foto-protocol
   (eigen beeldverhouding behouden, 1%-gele print-markering alleen over de
-  foto). De opmaak zelf staat in `server/autoframe.js`, en is 1-op-1 gemeten
-  uit een door de klant aangeleverd voorbeeldbestand — de herkenning van de
-  klant-ingevulde *veldnamen* (in `extractAutoFrameData` in `server/shopify.js`)
-  is wel nog een inschatting; geef door als die een keer niet klopt.
+  foto). **Let op**: op verzoek komt dit sinds kort NIET meer in een eigen
+  map terecht, maar gewoon bij het muziekframe (samen 200x300mm, dus samen
+  te printen) — zie de "Foto-frame"-toelichting verderop voor de details
+  (botsingen-preventie in de bestandsnaam, enz.) — dat geldt hier op
+  dezelfde manier. De opmaak zelf staat in `server/autoframe.js`, en is
+  1-op-1 gemeten uit een door de klant aangeleverd voorbeeldbestand — de
+  herkenning van de klant-ingevulde *veldnamen* (in `extractAutoFrameData`
+  in `server/shopify.js`) is wel nog een inschatting; geef door als die een
+  keer niet klopt.
   De 4 icoontjes (zwart én wit) staan als losse PNG-bestanden in
   `server/autoframe-assets/`.
 - **"Tegeltje met tekst"-drukwerkbestanden (standaardproduct, géén
@@ -438,6 +443,28 @@ van kan maken, en waarmee je de status van orders kan wijzigen.
   - Komt in de bulk-export in een eigen map `soundframe/` terecht (net als
     muziekframe/auto-frame hun eigen map hebben), met "soundframe" in de
     bestandsnaam.
+- **Foto-frame-drukwerkbestanden** (`server/photoframe.js`, 200x300mm —
+  zelfde formaat als het muziekframe, ongeacht wat de variant-titel zelf
+  suggereert, bv. "S 20x13cm" — dat is vermoedelijk de zichtbare foto-
+  afmeting in de fysieke houten standaard, niet de drukwerkbestand-
+  afmeting): het eenvoudigste product — alleen een foto (en optioneel een
+  zwart-wit-filter), geen tekst, geen hartje, geen stijlkeuze. De foto vult
+  de VOLLEDIGE plaat beeldvullend (cover-fit via de nieuwe
+  `embedPhotoCoverRect` in `server/pdf-shared.js` — snijdt bij i.p.v. de
+  eigen beeldverhouding te behouden), met dezelfde print-kleurbalans-
+  correctie als de andere producten (voorkomt #FFFFFF-"gaten" bij het
+  printen) — expliciet getest voor zowel een kleuren- als een zwart-wit-
+  foto (0 puur-witte pixels in beide gevallen). **Let op**: op verzoek komt
+  dit NIET in een eigen map terecht, maar (net als auto-frame) gewoon bij
+  het muziekframe — beide zijn 200x300mm en kunnen samen geprint worden.
+  De variant "S" is bevestigd de kleine variant (`getPhotoFrameVariant` in
+  `server/photoframe.js`, zelfde soort herkenning als het muziekframe se
+  eigen "klein"/"dik") en komt dus in `muziekframe/klein/` terecht, net als
+  een klein muziekframe. Om botsingen te voorkomen als dezelfde order
+  toevallig meerdere van deze producten in dezelfde submap zou krijgen,
+  blijft "fotoframe"/"autoframe" wel gewoon in de bestandsnaam zelf staan
+  (bv. `1099 fotoframe klein.pdf` naast `1099 klein.pdf` voor het
+  muziekframe).
 - **Achtergrondkleur (muziekframe én auto-frame)**: 4 opties — "Wit" (subtiele
   1%-gele CMYK-truc, C0 M0 Y1 K0, i.p.v. puur wit), "Zwart" (diepzwart),
   "Marmerwit" en "Marmerzwart" (echte marmertextuur, beeldvullend over de hele

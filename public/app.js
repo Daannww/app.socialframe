@@ -321,6 +321,18 @@ function renderModal(order) {
       }</div>`
     : '';
 
+  // Foto-frame: zelfde aanpak — server-berekend photoframe_items-veld gebruiken.
+  const photoFrameItems = order.photoframe_items || [];
+  const photoFrameHtml = photoFrameItems.length > 0
+    ? `<div style="display:flex; flex-direction:column; gap:8px;">${
+        photoFrameItems.map((item, idx) => `
+      <button class="btn btn-primary" onclick="downloadPhotoFramePdf(${order.id}, ${idx}, this)">
+        <i class="fa-solid fa-download"></i> Download fotoframe-bestand${photoFrameItems.length > 1 ? ` (${idx + 1})` : ''}
+      </button>
+    `).join('')
+      }</div>`
+    : '';
+
   const spotifyHtml = (order.spotify_links || []).map((link, idx) => `
     <div class="spotify-link-row" data-link="${escapeHtml(link)}">
       <a href="${escapeHtml(link)}" target="_blank" rel="noopener" class="copyable" onclick="event.preventDefault(); copyText(this, '${jsEscape(link)}')" title="Klik om te kopiëren">${escapeHtml(link)}</a>
@@ -515,6 +527,13 @@ function renderModal(order) {
     </div>
     ` : ''}
 
+    ${photoFrameHtml ? `
+    <div class="modal-section">
+      <h3>Foto-frame</h3>
+      ${photoFrameHtml}
+    </div>
+    ` : ''}
+
     <div class="modal-section">
       <h3>Notitie</h3>
       <textarea id="noteInput-${order.id}" class="note-textarea" placeholder="Bijzonderheden over deze order... (verschijnt ook op de pakbon, onder het adres)">${escapeHtml(order.note || '')}</textarea>
@@ -687,6 +706,33 @@ window.downloadSoundFramePdf = async function (orderId, idx, btn) {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   } catch (e) {
     alert('Kon soundframe-bestand niet genereren: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalLabel;
+  }
+};
+
+window.downloadPhotoFramePdf = async function (orderId, idx, btn) {
+  const originalLabel = btn.innerHTML;
+  btn.disabled = true;
+  btn.textContent = 'Bezig...';
+  try {
+    const res = await fetch(`/api/print-files/photoframe-pdf?orderId=${orderId}&itemIndex=${idx}`);
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || 'Server gaf een fout terug');
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `fotoframe-order-${orderId}-${idx + 1}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } catch (e) {
+    alert('Kon fotoframe-bestand niet genereren: ' + e.message);
   } finally {
     btn.disabled = false;
     btn.innerHTML = originalLabel;

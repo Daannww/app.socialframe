@@ -16,6 +16,7 @@ const { generateMusicFramePdf, extractMusicFrameItemsFromOrder } = require('./mu
 const { generateAutoFramePdf } = require('./autoframe');
 const { generateTegelTekstPdf, extractTegelTekstItemsFromOrder } = require('./texttile');
 const { generateSoundFramePdf, extractSoundFrameItemsFromOrder } = require('./soundframe');
+const { generatePhotoFramePdf, extractPhotoFrameItemsFromOrder } = require('./photoframe');
 const { sendReviewEmail } = require('./reviewEmail');
 const SqliteSessionStore = require('./sqliteSessionStore');
 
@@ -166,7 +167,9 @@ app.get('/api/orders/:id', (req, res) => {
     // "Tegeltje met tekst"-items met een bekend ontwerp (voor de downloadknop in de popup)
     texttile_items: extractTegelTekstItemsFromOrder({ line_items: lineItems }),
     // Sound-Frame-items in deze order (voor de downloadknop in de popup)
-    soundframe_items: extractSoundFrameItemsFromOrder({ line_items: lineItems })
+    soundframe_items: extractSoundFrameItemsFromOrder({ line_items: lineItems }),
+    // Foto-frame-items in deze order (voor de downloadknop in de popup)
+    photoframe_items: extractPhotoFrameItemsFromOrder({ line_items: lineItems })
   });
 });
 
@@ -524,6 +527,32 @@ app.get('/api/print-files/soundframe-pdf', requireAdmin, async (req, res) => {
   }
 });
 
+// --- Eén Foto-frame-drukwerkbestand downloaden vanuit de order-popup ---
+app.get('/api/print-files/photoframe-pdf', requireAdmin, async (req, res) => {
+  const orderId = parseInt(req.query.orderId, 10);
+  const itemIndex = parseInt(req.query.itemIndex, 10) || 0;
+  if (!orderId) return res.status(400).json({ error: 'orderId is verplicht' });
+
+  try {
+    const order = getOrder(orderId);
+    if (!order) return res.status(404).json({ error: 'Order niet gevonden' });
+
+    const lineItems = JSON.parse(order.line_items_json || '[]');
+    const items = extractPhotoFrameItemsFromOrder({ line_items: lineItems });
+    const item = items[itemIndex];
+    if (!item) return res.status(404).json({ error: 'Geen Foto-frame gevonden op deze order' });
+
+    const pdfBytes = await generatePhotoFramePdf(item.data);
+    const baseName = String(order.order_number || order.shopify_order_id).replace(/[\\/:*?"<>|]/g, '-');
+    const suffix = items.length > 1 ? ` ${itemIndex + 1}` : '';
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${baseName}${suffix} fotoframe.pdf"`);
+    res.send(Buffer.from(pdfBytes));
+  } catch (e) {
+    res.status(500).json({ error: 'Kon fotoframe-bestand niet genereren: ' + e.message });
+  }
+});
+
 // --- Eén Auto-frame-drukwerkbestand downloaden vanuit de order-popup ---
 app.get('/api/print-files/autoframe-pdf', requireAdmin, async (req, res) => {
   const orderId = parseInt(req.query.orderId, 10);
@@ -578,7 +607,8 @@ app.get('/api/print-files/pdf-zip', requireAdmin, async (req, res) => {
       extractPosterlyPhotoUrls(o.line_items).length > 0 ||
       extractAutoFrameItemsFromOrder({ line_items: o.line_items }).length > 0 ||
       extractTegelTekstItemsFromOrder({ line_items: o.line_items }).length > 0 ||
-      extractSoundFrameItemsFromOrder({ line_items: o.line_items }).length > 0
+      extractSoundFrameItemsFromOrder({ line_items: o.line_items }).length > 0 ||
+      extractPhotoFrameItemsFromOrder({ line_items: o.line_items }).length > 0
     );
 
     if (targets.length === 0) {
@@ -612,6 +642,10 @@ app.get('/api/print-files/pdf-zip', requireAdmin, async (req, res) => {
 //   {datum}/muziekframe/1055 muziekframe.pdf
 //   {datum}/muziekframe/klein/1055 klein.pdf
 //   {datum}/muziekframe/Dik/1055 dik.pdf
+//   {datum}/muziekframe/1032 autoframe.pdf              (zelfde map als muziekframe, samen te printen)
+//   {datum}/muziekframe/klein/1032 autoframe klein.pdf
+//   {datum}/muziekframe/1099 fotoframe.pdf               (ook zelfde map, "S"-variant -> klein-submap)
+//   {datum}/muziekframe/klein/1099 fotoframe klein.pdf
 //   {datum}/soundframe/1099 soundframe.pdf
 async function appendPrintFilesToArchive(archive, targets) {
   const dateFolder = getDutchDateString(); // YYYY-MM-DD, Nederlandse tijdzone
@@ -671,8 +705,12 @@ async function appendPrintFilesToArchive(archive, targets) {
       }
     }
 
-    // --- Auto-frame: eigen drukwerkbestand per besteld exemplaar (zelfde
-    // protocol als het muziekframe hierboven) ---
+    // --- Auto-frame: eigen drukwerkbestand per besteld exemplaar. Komt (op
+    // verzoek) in dezelfde mappen als het muziekframe hieronder terecht —
+    // beide zijn 200x300mm en kunnen samen geprint worden — maar behoudt
+    // "autoframe" in de bestandsnaam zelf, om botsingen te voorkomen als
+    // dezelfde order toevallig ZOWEL een muziekframe- als een auto-frame-
+    // bestand in dezelfde submap zou krijgen. ---
     const autoFrameItems = extractAutoFrameItemsFromOrder({ line_items: order.line_items });
     if (autoFrameItems.length > 0) {
       const multipleAutoFrames = autoFrameItems.length > 1;
@@ -681,11 +719,11 @@ async function appendPrintFilesToArchive(archive, targets) {
         const item = autoFrameItems[i];
         let filename;
         if (item.variant === 'dik') {
-          filename = `${dateFolder}/autoframe/Dik/${baseName}${numberSuffix} dik.pdf`;
+          filename = `${dateFolder}/muziekframe/Dik/${baseName}${numberSuffix} autoframe dik.pdf`;
         } else if (item.variant === 'klein') {
-          filename = `${dateFolder}/autoframe/klein/${baseName}${numberSuffix} klein.pdf`;
+          filename = `${dateFolder}/muziekframe/klein/${baseName}${numberSuffix} autoframe klein.pdf`;
         } else {
-          filename = `${dateFolder}/autoframe/${baseName}${numberSuffix} autoframe.pdf`;
+          filename = `${dateFolder}/muziekframe/${baseName}${numberSuffix} autoframe.pdf`;
         }
         try {
           const pdfBytes = await generateAutoFramePdf(item.data);
@@ -694,7 +732,7 @@ async function appendPrintFilesToArchive(archive, targets) {
         } catch (e) {
           archive.append(
             `Kon het auto-frame-bestand voor order ${baseName}${numberSuffix} niet genereren: ${e.message}`,
-            { name: `${dateFolder}/autoframe/FOUT-${baseName}${numberSuffix}-autoframe.txt` }
+            { name: `${dateFolder}/muziekframe/FOUT-${baseName}${numberSuffix}-autoframe.txt` }
           );
         }
       }
@@ -779,6 +817,34 @@ async function appendPrintFilesToArchive(archive, targets) {
       }
     }
 
+    // --- Foto-frame: eigen drukwerkbestand per besteld exemplaar. Komt (op
+    // verzoek) net als auto-frame in dezelfde mappen als het muziekframe
+    // terecht (allemaal 200x300mm, samen te printen) — de "S"-variant
+    // (bevestigd: dat IS de kleine variant) gaat naar de "klein"-submap,
+    // net als bij het muziekframe/auto-frame. Behoudt "fotoframe" in de
+    // bestandsnaam zelf om botsingen met de andere producten te voorkomen. ---
+    const photoFrameItems = extractPhotoFrameItemsFromOrder({ line_items: order.line_items });
+    if (photoFrameItems.length > 0) {
+      const multiplePhotoFrames = photoFrameItems.length > 1;
+      for (let i = 0; i < photoFrameItems.length; i++) {
+        const numberSuffix = multiplePhotoFrames ? ` ${i + 1}` : '';
+        const item = photoFrameItems[i];
+        const filename = item.variant === 'klein'
+          ? `${dateFolder}/muziekframe/klein/${baseName}${numberSuffix} fotoframe klein.pdf`
+          : `${dateFolder}/muziekframe/${baseName}${numberSuffix} fotoframe.pdf`;
+        try {
+          const pdfBytes = await generatePhotoFramePdf(item.data);
+          archive.append(Buffer.from(pdfBytes), { name: filename });
+          orderSucceeded = true;
+        } catch (e) {
+          archive.append(
+            `Kon het fotoframe-bestand voor order ${baseName}${numberSuffix} niet genereren: ${e.message}`,
+            { name: `${dateFolder}/muziekframe/FOUT-${baseName}${numberSuffix}-fotoframe.txt` }
+          );
+        }
+      }
+    }
+
     // Order automatisch naar "wacht op productie" zetten zodra minstens 1 drukwerkbestand is gelukt
     if (orderSucceeded) {
       updateStatus(order.id, 'wacht op productie');
@@ -802,7 +868,8 @@ async function runScheduledPrintFilesExport() {
     extractPosterlyPhotoUrls(o.line_items).length > 0 ||
     extractAutoFrameItemsFromOrder({ line_items: o.line_items }).length > 0 ||
     extractTegelTekstItemsFromOrder({ line_items: o.line_items }).length > 0 ||
-    extractSoundFrameItemsFromOrder({ line_items: o.line_items }).length > 0
+    extractSoundFrameItemsFromOrder({ line_items: o.line_items }).length > 0 ||
+    extractPhotoFrameItemsFromOrder({ line_items: o.line_items }).length > 0
   );
 
   if (targets.length === 0) {

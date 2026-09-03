@@ -372,6 +372,34 @@ async function embedPhoto(doc, photoUrl, filterValue, targetZoneSizeMm = 160) {
   return { image, aspectRatio };
 }
 
+// Haalt een foto op, snijdt 'm bij tot een RECHTHOEK die het VOLLEDIGE
+// opgegeven vak vult (cover-fit — dus NIET de eigen beeldverhouding
+// behouden zoals embedPhoto hierboven, maar bijsnijden zodat het vak
+// helemaal gevuld wordt, geen witruimte). Past dezelfde print-kleurbalans-
+// correctie toe als embedPhoto (voorkomt #FFFFFF-"gaten" bij het printen).
+// Gebruikt voor het Foto-frame-product, waar de foto de hele 200x300mm-
+// plaat beeldvullend moet vullen.
+async function embedPhotoCoverRect(doc, photoUrl, filterValue, targetWidthMm, targetHeightMm) {
+  const imgRes = await axios.get(photoUrl, { responseType: 'arraybuffer' });
+  let pipeline = sharp(Buffer.from(imgRes.data)).rotate(); // EXIF-rotatie vast "bakken"
+
+  const filter = (filterValue || '').toLowerCase();
+  if (filter.includes('zwart') || filter.includes('grijs') || filter.includes('black') || filter.includes('white')) {
+    pipeline = pipeline.grayscale();
+  }
+  const rotatedBuffer = await pipeline.toBuffer();
+
+  const targetWidthPx = Math.round((targetWidthMm / 25.4) * 300);
+  const targetHeightPx = Math.round((targetHeightMm / 25.4) * 300);
+  const gevuldeBuffer = await sharp(rotatedBuffer)
+    .resize(targetWidthPx, targetHeightPx, { fit: 'cover', position: 'centre' })
+    .toBuffer();
+
+  const jpegBuffer = await adjustCmykChannels(gevuldeBuffer, { c: 0, m: 0, y: 0.08, k: 0 });
+  const image = await doc.embedJpg(jpegBuffer);
+  return { image };
+}
+
 // Past een ECHTE CMYK-kanaalaanpassing toe op een foto (RGB -> CMYK omreke-
 // nen, de kanalen bijstellen, terug naar RGB) — zelfde soort aanpassing als
 // in het "Kleuren wijzigen"-dialoogvenster van Illustrator/Photoshop, i.p.v.
@@ -861,5 +889,6 @@ module.exports = {
   embedPhoto, fitPhotoInSquareZone, recolorDarkPixels, recolorLightPixels, getCodeSvg,
   drawBackground, isMarbleBackground, hasPageBackground, nearWhiteCmyk, adjustCmykChannels,
   extractSvgShapes, drawSvgShapesInBox, embedPhotoRounded, voorkomLigatuurGaten,
+  embedPhotoCoverRect,
   splitLigatuurVeilig, widthOfTextLigatuurVeiligAtSize, drawTextLigatuurVeilig
 };
