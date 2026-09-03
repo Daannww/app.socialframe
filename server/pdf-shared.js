@@ -11,11 +11,54 @@ const MM = 72 / 25.4; // PDF-punten per millimeter
 // bekende pdf-lib-ligatuur-breedtebug te omzeilen (github.com/Hopding/
 // pdf-lib/issues/1275). In de praktijk (met de echte, gedeployde
 // lettertypen) bleek dat teken zelf een ZICHTBARE ruimte te veroorzaken —
-// dus een duidelijk zichtbare fout, erger dan de oorspronkelijke (nauwelijks
-// zichtbare) bug. Teruggedraaid: deze functie doet nu weer niets, tekst gaat
-// ongewijzigd door naar drawText/widthOfTextAtSize.
+// en bleek dit probleem niet uniek aan 1 lettertype (zowel Bodoni Moda als
+// Playfair Display Medium Italic vertoonden het). Deze functie is nu een
+// no-op gelaten (geschiedenis/documentatie); de WERKENDE oplossing staat
+// hieronder: splitLigatuurVeilig/drawTextLigatuurVeilig/
+// widthOfTextLigatuurVeiligAtSize, die "ff"/"fi"/"fl"-reeksen in LOSSE,
+// afzonderlijke tekens opsplitst (elk teken zijn eigen drawText-aanroep) —
+// zo krijgt pdf-lib/fontkit NOOIT de kans om ze tot 1 ligatuur-glyph samen
+// te voegen, ongeacht welk lettertype er gebruikt wordt. Geen afhankelijkheid
+// meer van of een lettertype een bepaald speciaal teken (zoals ZWNJ) goed
+// ondersteunt.
 function voorkomLigatuurGaten(tekst) {
   return tekst;
+}
+
+// Splitst tekst in stukken: gewone tekst blijft heel (voor correcte kerning
+// binnen 1 drawText-aanroep), maar elke "ff"/"fi"/"fl"/"ffi"/"ffl"-reeks
+// wordt in LOSSE, losse tekens opgesplitst.
+function splitLigatuurVeilig(tekst) {
+  const tokens = [];
+  let buffer = '';
+  const regex = /ffi|ffl|ff|fi|fl/gi;
+  let lastIndex = 0;
+  let match;
+  while ((match = regex.exec(tekst)) !== null) {
+    buffer += tekst.slice(lastIndex, match.index);
+    if (buffer) { tokens.push(buffer); buffer = ''; }
+    for (const ch of match[0]) tokens.push(ch);
+    lastIndex = match.index + match[0].length;
+  }
+  buffer += tekst.slice(lastIndex);
+  if (buffer) tokens.push(buffer);
+  return tokens;
+}
+
+// widthOfTextAtSize-vervanger die ligatuur-vorming vermijdt (zie hierboven).
+function widthOfTextLigatuurVeiligAtSize(font, tekst, sizePt) {
+  return splitLigatuurVeilig(tekst).reduce((som, tok) => som + font.widthOfTextAtSize(tok, sizePt), 0);
+}
+
+// drawText-vervanger die ligatuur-vorming vermijdt (zie hierboven) — tekent
+// elk stuk na elkaar, cursor telkens met de eigen (ligatuur-veilige) breedte
+// van dat stuk opgeschoven.
+function drawTextLigatuurVeilig(page, font, tekst, xPt, yPt, sizePt, color) {
+  let cursorX = xPt;
+  splitLigatuurVeilig(tekst).forEach(tok => {
+    page.drawText(tok, { x: cursorX, y: yPt, size: sizePt, font, color });
+    cursorX += font.widthOfTextAtSize(tok, sizePt);
+  });
 }
 
 // 1% geel (CMYK C0 M0 Y1 K0) — bewust als ECHTE volledig-dekkende kleur, niet
@@ -229,7 +272,7 @@ function measureMixedTextWidth(parts, font, sizePt, hebrewFont) {
         return total;
       }
     }
-    return total + font.widthOfTextAtSize(voorkomLigatuurGaten(p.value), sizePt);
+    return total + widthOfTextLigatuurVeiligAtSize(font, p.value, sizePt);
   }, 0);
 }
 
@@ -264,9 +307,8 @@ function drawMixedText(page, parts, font, sizePt, xPt, baselineYPt, color, emoji
         console.warn('[pdf-shared] kon Hebreeuws tekstdeel niet tekenen, wordt overgeslagen:', e.message);
       }
     } else {
-      const veiligeTekst = voorkomLigatuurGaten(p.value);
-      page.drawText(veiligeTekst, { x: cursorX, y: baselineYPt, size: sizePt, font, color });
-      cursorX += font.widthOfTextAtSize(veiligeTekst, sizePt);
+      drawTextLigatuurVeilig(page, font, p.value, cursorX, baselineYPt, sizePt, color);
+      cursorX += widthOfTextLigatuurVeiligAtSize(font, p.value, sizePt);
     }
   });
 }
@@ -818,5 +860,6 @@ module.exports = {
   measureMixedTextWidth, drawMixedText, fitFontSizeToWidth, loadHebrewFont,
   embedPhoto, fitPhotoInSquareZone, recolorDarkPixels, recolorLightPixels, getCodeSvg,
   drawBackground, isMarbleBackground, hasPageBackground, nearWhiteCmyk, adjustCmykChannels,
-  extractSvgShapes, drawSvgShapesInBox, embedPhotoRounded, voorkomLigatuurGaten
+  extractSvgShapes, drawSvgShapesInBox, embedPhotoRounded, voorkomLigatuurGaten,
+  splitLigatuurVeilig, widthOfTextLigatuurVeiligAtSize, drawTextLigatuurVeilig
 };

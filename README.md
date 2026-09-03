@@ -260,22 +260,30 @@ van kan maken, en waarmee je de status van orders kan wijzigen.
   rest van het bestand (foto, hartje, overige tekst) wordt gewoon compleet
   gegenereerd. Dezelfde Hebreeuws-ondersteuning geldt ook voor auto-frame en
   Sound-Frame hieronder (gedeelde code in `server/pdf-shared.js`).
-  **Ligatuur-spatiebug** ("Officiele" -> "Offi ciele", "knuffelaar" ->
-  "knuff elaar" — ontdekt bij "Opa met definitie"): een bekende `pdf-lib`-bug
-  (github.com/Hopding/pdf-lib/issues/1275) waarbij sommige lettertypen met
-  ingebouwde ligaturen voor "ff"/"fi"/"fl"/"ffi"/"ffl" een verkeerde
-  breedteberekening geven, met een ongewenste extra spatie tot gevolg. Een
-  eerdere fix-poging (een onzichtbaar Zero-Width Non-Joiner-teken tussen
-  zo'n letter-combinatie, om de ligatuur-vorming te voorkomen) bleek in de
-  praktijk met de echte, gedeployde lettertypen zelf een ZICHTBARE extra
-  ruimte te veroorzaken — duidelijk zichtbaar en dus erger dan de
-  oorspronkelijke bug. **Teruggedraaid**: `voorkomLigatuurGaten()` in
-  `server/pdf-shared.js` doet nu weer niets (bewust als no-op gelaten, met
-  de geschiedenis in de code-comments, zodat niemand deze aanpak per ongeluk
-  opnieuw probeert). De praktische oplossing was uiteindelijk: bij "Opa met
-  definitie" voor de genummerde lijst hetzelfde lettertype gebruiken als
-  bij "Beste vriendin met definitie" (Playfair Display Medium Italic i.p.v.
-  Bodoni Moda Regular) — dat lettertype vertoont dit ligatuur-probleem niet.
+  **Ligatuur-spatiebug** ("Officiele" -> "Offi ciele" / bij tekst-extractie
+  zelfs een compleet fout teken zoals "OƂciele" — ontdekt bij "Opa met
+  definitie"): een bekende `pdf-lib`-bug (github.com/Hopding/pdf-lib/
+  issues/1275) waarbij lettertypen met ingebouwde ligaturen voor
+  "ff"/"fi"/"fl"/"ffi"/"ffl" een verkeerde breedteberekening (en soms zelfs
+  een verkeerd gekoppeld teken) geven. Dit bleek NIET uniek aan 1 lettertype
+  — zowel Bodoni Moda Regular als Playfair Display Medium Italic vertoonden
+  het probleem. **2 eerdere fix-pogingen losten het niet betrouwbaar op**:
+  (1) een onzichtbaar Zero-Width Non-Joiner-teken tussenvoegen bleek in de
+  praktijk zelf een ZICHTBARE extra ruimte te veroorzaken, en (2) simpelweg
+  een ander lettertype gebruiken loste het niet op (bleek dus geen
+  font-specifiek probleem). **Uiteindelijke, font-onafhankelijke oplossing**:
+  `splitLigatuurVeilig`/`widthOfTextLigatuurVeiligAtSize`/
+  `drawTextLigatuurVeilig` in `server/pdf-shared.js` knippen zo'n
+  lettercombinatie in LOSSE, afzonderlijke tekens (elk zijn eigen
+  drawText-aanroep) — zo krijgt pdf-lib/fontkit nooit de kans om ze tot 1
+  ligatuur-glyph samen te voegen, ongeacht het lettertype. Kleine bijwerking:
+  de kerning tussen die specifieke letters is daardoor net-niet-perfect
+  (nauwelijks zichtbaar, <1pt verschil op een woord van 70pt breed).
+  Daarnaast bleek het eerdere per-regel `maxBreedteMm`-vangnet (zie
+  hieronder) zichtbaar ongelijke lettergroottes te geven binnen 1 lijst, als
+  de ene regel wel moest verkleinen en een andere niet — regels met
+  hetzelfde `regel.groep` krijgen daarom nu allemaal DEZELFDE, gezamenlijk
+  berekende (kleinste-benodigde) lettergrootte.
 - **Auto-frame-drukwerkbestanden**: orders met een product waarvan de titel
   "Auto-frame" bevat, krijgen automatisch een eigen drukwerkbestand (200x300mm
   PDF, met foto op eigen beeldverhouding, een titel ("Merk en type auto") en 4
@@ -361,24 +369,19 @@ van kan maken, en waarmee je de status van orders kan wijzigen.
   - **"Opa met definitie"** — zelfde woordenboek-stijl als "Beste vriendin
     met definitie" (titel + dun lijntje + cursief-ogende ondertitel + een
     genummerde lijst, links uitgelijnd, geen hartje). Titel in Bodoni Moda
-    Bold, ondertitel in Bodoni Moda Regular — de genummerde lijst gebruikt,
-    net als bij "Beste vriendin met definitie", **Playfair Display Medium
-    Italic** (niet Bodoni Moda Regular, ook al staat de lijst in het
-    referentiebestand zelf rechtop i.p.v. cursief — een bewuste, praktische
-    afwijking: bij Bodoni Moda Regular gaf de "ff"/"ffi"-combinatie in
-    "Officiele"/"knuffelaar" een zichtbare, ongewenste extra ruimte, zie de
-    "Ligatuur-spatiebug"-toelichting verderop). In het referentiebestand
-    was de genummerde lijst overigens technisch ingebed als het macOS-
-    systeemfont "Khmer MN" (vrijwel zeker een verkeerd-geëxporteerde
-    fallback, geen bewuste keuze). De nummering in het referentiebestand
-    zelf sloeg per ongeluk "2" over (1, 3, 4, 5) — inmiddels rechtgezet naar
-    netjes doorlopend 1, 2, 3, 4. De genummerde lijst-regels van dit ontwerp
-    (en van "Beste vriendin met definitie") hebben een `maxBreedteMm` — een
-    optioneel vangnet (`regel.maxBreedteMm` in `server/texttile.js`) dat de
-    lettergrootte in kleine stapjes verkleint als de tekst met het echte
-    lettertype toch net iets breder blijkt dan waarmee de positie
-    oorspronkelijk is opgemeten (ontdekt doordat regel 3 van "Opa" in het
-    echte, gedeployde lettertype net buiten de tegel liep).
+    Bold, ondertitel + genummerde lijst in Bodoni Moda Regular (rechtop,
+    net als in het referentiebestand — zie de "Ligatuur-spatiebug"-
+    toelichting hierboven voor hoe de "ff"/"ffi"-problematiek uiteindelijk
+    font-onafhankelijk is opgelost). In het referentiebestand was de
+    genummerde lijst overigens technisch ingebed als het macOS-systeemfont
+    "Khmer MN" (vrijwel zeker een verkeerd-geëxporteerde fallback, geen
+    bewuste keuze). De nummering in het referentiebestand zelf sloeg per
+    ongeluk "2" over (1, 3, 4, 5) — inmiddels rechtgezet naar netjes
+    doorlopend 1, 2, 3, 4. De genummerde lijst-regels van dit ontwerp (en
+    van "Beste vriendin met definitie") delen 1 `regel.groep` ("lijst"),
+    zodat ze allemaal dezelfde, gezamenlijk berekende lettergrootte krijgen
+    i.p.v. onafhankelijk van elkaar te verkleinen — zie de "Ligatuur-
+    spatiebug"-toelichting hierboven voor waarom dat nodig was.
   **Belangrijk**: een "Tegeltje met tekst"-order krijgt alleen automatisch
   status "wacht op drukwerkbestand" als het ontwerp herkend wordt — een nog
   onbekende tekst-variant valt terug op het oude gedrag ("wacht op

@@ -2,7 +2,7 @@ const { PDFDocument, rgb, cmyk, StandardFonts } = require('pdf-lib');
 const fontkit = require('@pdf-lib/fontkit');
 const fs = require('fs');
 const path = require('path');
-const { MM, nearWhiteCmyk, voorkomLigatuurGaten } = require('./pdf-shared');
+const { MM, nearWhiteCmyk, widthOfTextLigatuurVeiligAtSize, drawTextLigatuurVeilig } = require('./pdf-shared');
 const paths = require('./musicframe-paths');
 
 const PAGE_W_MM = 100;
@@ -179,11 +179,11 @@ const TEGEL_TEKST_ONTWERPEN = [
     regels: [
       { tekst: 'Beste vriendin', fontStijl: 'bold', puntgrootteMm: 10.00, topMm: 20.76, xMm: 11.07, accent: false },
       { tekst: 'zelfstandig naamwoord', fontStijl: 'regular', puntgrootteMm: 3.95, topMm: 36.08, xMm: 10.91, accent: false },
-      { tekst: '1. Samen lachen tot het gênant wordt', fontStijl: 'italic', puntgrootteMm: 3.53, topMm: 51.04, xMm: 11.07, maxBreedteMm: 77.86, accent: false },
-      { tekst: '2. Ongevraagd eerlijk', fontStijl: 'italic', puntgrootteMm: 3.53, topMm: 58.09, xMm: 11.07, maxBreedteMm: 77.86, accent: false },
-      { tekst: '3. De zus die ik zelf mocht kiezen', fontStijl: 'italic', puntgrootteMm: 3.53, topMm: 65.15, xMm: 11.07, maxBreedteMm: 77.86, accent: false },
-      { tekst: '4. Altijd samen, nooit saai', fontStijl: 'italic', puntgrootteMm: 3.53, topMm: 72.21, xMm: 11.07, maxBreedteMm: 77.86, accent: false },
-      { tekst: '5. Je privé-psycholoog zonder diploma', fontStijl: 'italic', puntgrootteMm: 3.53, topMm: 79.26, xMm: 11.07, maxBreedteMm: 77.86, accent: false }
+      { tekst: '1. Samen lachen tot het gênant wordt', fontStijl: 'italic', puntgrootteMm: 3.53, topMm: 51.04, xMm: 11.07, maxBreedteMm: 77.86, groep: 'lijst', accent: false },
+      { tekst: '2. Ongevraagd eerlijk', fontStijl: 'italic', puntgrootteMm: 3.53, topMm: 58.09, xMm: 11.07, maxBreedteMm: 77.86, groep: 'lijst', accent: false },
+      { tekst: '3. De zus die ik zelf mocht kiezen', fontStijl: 'italic', puntgrootteMm: 3.53, topMm: 65.15, xMm: 11.07, maxBreedteMm: 77.86, groep: 'lijst', accent: false },
+      { tekst: '4. Altijd samen, nooit saai', fontStijl: 'italic', puntgrootteMm: 3.53, topMm: 72.21, xMm: 11.07, maxBreedteMm: 77.86, groep: 'lijst', accent: false },
+      { tekst: '5. Je privé-psycholoog zonder diploma', fontStijl: 'italic', puntgrootteMm: 3.53, topMm: 79.26, xMm: 11.07, maxBreedteMm: 77.86, groep: 'lijst', accent: false }
     ],
     lijn: { xMm: 11.07, topMm: 31.45, breedteMm: 72.90, hoogteMm: 0.56 }
   },
@@ -211,27 +211,30 @@ const TEGEL_TEKST_ONTWERPEN = [
     // definitie" direct na "Opa".
     herken: /\bopa\s+met\s+definitie/i,
     // Zelfde woordenboek-stijl als "Beste vriendin met definitie" — titel in
-    // Bodoni Moda Bold, ondertitel in Bodoni Moda Regular. De genummerde
-    // lijst gebruikt (net als bij "Beste vriendin") Playfair Display Medium
-    // Italic i.p.v. Bodoni Moda Regular: bij Bodoni Moda Regular gaf de
-    // "ff"/"ffi"-combinatie in "Officiele"/"knuffelaar" een zichtbare,
-    // ongewenste extra ruimte (een bekende pdf-lib-ligatuur-bug — een eerdere
-    // poging om dit met een onzichtbaar teken te omzeilen bleek in de
-    // praktijk zelf een zichtbare ruimte te veroorzaken, dus weer
-    // teruggedraaid). Playfair Display Medium Italic vertoont dit probleem
-    // niet. Enige verschil met het referentiebestand: de lijst staat daar
-    // rechtop i.p.v. cursief — een bewuste, praktische afwijking om de bug
-    // te vermijden.
-    lettertypeBestanden: { bold: 'BodoniModa-Bold.ttf', regular: 'BodoniModa-Regular.ttf', italic: 'PlayfairDisplay-MediumItalic.ttf' },
-    lettertypeTerugval: { bold: StandardFonts.TimesRomanBold, regular: StandardFonts.TimesRoman, italic: StandardFonts.TimesRomanItalic },
+    // Bodoni Moda Bold, ondertitel + genummerde lijst in Bodoni Moda Regular
+    // (rechtop, net als in het referentiebestand). De "ff"/"ffi"-combinatie
+    // in "Officiele"/"knuffelaar" triggerde een bekende pdf-lib-ligatuur-bug
+    // (zichtbare, ongewenste extra ruimte) — dit bleek NIET uniek aan Bodoni
+    // Moda (Playfair Display Medium Italic vertoonde het probleem óók), dus
+    // opgelost op een font-onafhankelijke manier: drawTextLigatuurVeilig in
+    // pdf-shared.js knipt zulke lettercombinaties in losse tekens, elk met
+    // een eigen drawText-aanroep, zodat er nooit een ligatuur kan ontstaan.
+    // (2 eerdere pogingen — een onzichtbaar Unicode-teken tussenvoegen, en
+    // simpelweg een ander lettertype proberen — losten het niet betrouwbaar
+    // op.) De genummerde lijst-regels delen bovendien 1 groep (`groep:
+    // 'lijst'`) zodat ze allemaal DEZELFDE lettergrootte krijgen, i.p.v. dat
+    // losse regels onafhankelijk van elkaar verkleinen (dat gaf zichtbaar
+    // ongelijke groottes binnen de lijst).
+    lettertypeBestanden: { bold: 'BodoniModa-Bold.ttf', regular: 'BodoniModa-Regular.ttf' },
+    lettertypeTerugval: { bold: StandardFonts.TimesRomanBold, regular: StandardFonts.TimesRoman },
     regels: [
       { tekst: 'Opa', fontStijl: 'bold', puntgrootteMm: 11.88, topMm: 31.97, xMm: 8.97, accent: false },
       { tekst: "[de; meervoud: opa's]", fontStijl: 'regular', puntgrootteMm: 4.18, topMm: 48.73, xMm: 8.80, accent: false },
-      { tekst: '1. Officiele expert in verhalen die altijd', fontStijl: 'italic', puntgrootteMm: 3.70, topMm: 60.92, xMm: 8.66, maxBreedteMm: 82.68, accent: false },
-      { tekst: 'beginnen met "vroeger..."', fontStijl: 'italic', puntgrootteMm: 3.70, topMm: 65.36, xMm: 8.66, maxBreedteMm: 82.68, accent: false },
-      { tekst: '2. Professioneel knuffelaar met een hart van goud..', fontStijl: 'italic', puntgrootteMm: 3.70, topMm: 69.80, xMm: 8.66, maxBreedteMm: 82.68, accent: false },
-      { tekst: '3. Geheim wapen tegen honger: altijd koekjes in de buurt.', fontStijl: 'italic', puntgrootteMm: 3.70, topMm: 74.24, xMm: 8.66, maxBreedteMm: 82.68, accent: false },
-      { tekst: '4. Combineert wijsheid met een ondeugende glimlach.', fontStijl: 'italic', puntgrootteMm: 3.70, topMm: 78.69, xMm: 8.66, maxBreedteMm: 82.68, accent: false }
+      { tekst: '1. Officiele expert in verhalen die altijd', fontStijl: 'regular', puntgrootteMm: 3.70, topMm: 60.92, xMm: 8.66, maxBreedteMm: 82.68, groep: 'lijst', accent: false },
+      { tekst: 'beginnen met "vroeger..."', fontStijl: 'regular', puntgrootteMm: 3.70, topMm: 65.36, xMm: 8.66, maxBreedteMm: 82.68, groep: 'lijst', accent: false },
+      { tekst: '2. Professioneel knuffelaar met een hart van goud..', fontStijl: 'regular', puntgrootteMm: 3.70, topMm: 69.80, xMm: 8.66, maxBreedteMm: 82.68, groep: 'lijst', accent: false },
+      { tekst: '3. Geheim wapen tegen honger: altijd koekjes in de buurt.', fontStijl: 'regular', puntgrootteMm: 3.70, topMm: 74.24, xMm: 8.66, maxBreedteMm: 82.68, groep: 'lijst', accent: false },
+      { tekst: '4. Combineert wijsheid met een ondeugende glimlach.', fontStijl: 'regular', puntgrootteMm: 3.70, topMm: 78.69, xMm: 8.66, maxBreedteMm: 82.68, groep: 'lijst', accent: false }
     ],
     lijn: { xMm: 8.97, topMm: 44.26, breedteMm: 82.65, hoogteMm: 0.56 }
   }
@@ -346,20 +349,39 @@ async function generateTegelTekstPdf(data) {
   const kleurNaam = (data.kleur || '').toLowerCase();
   const hoofdtekstKleur = LICHTE_TEGELKLEUREN.some(k => kleurNaam.includes(k)) ? COLOR_BLACK : COLOR_WHITE;
 
+  // --- Vooraf: voor regels die een gedeelde groep vormen (regel.groep), 1x
+  // een GEZAMENLIJKE, gelijke lettergrootte berekenen — i.p.v. elke regel
+  // onafhankelijk zijn eigen grootte te laten kiezen. Dat laatste gaf anders
+  // zichtbaar ongelijke lettergroottes binnen 1 genummerde lijst, als de ene
+  // regel (bv. een langere) wél moest verkleinen om te passen en een andere
+  // (kortere) regel niet. De hele groep krijgt nu de KLEINSTE grootte die
+  // ELK van zijn regels nodig heeft. ---
+  const groepGroottes = {};
+  (ontwerp.regels || []).forEach(regel => {
+    if (regel.groep === undefined || regel.maxBreedteMm === undefined) return;
+    const font = fonts[regel.fontStijl];
+    let sizePt = regel.puntgrootteMm * MM;
+    const maxWidthPt = regel.maxBreedteMm * MM;
+    while (sizePt > 2 * MM && widthOfTextLigatuurVeiligAtSize(font, regel.tekst, sizePt) > maxWidthPt) {
+      sizePt -= 0.05 * MM;
+    }
+    if (groepGroottes[regel.groep] === undefined || sizePt < groepGroottes[regel.groep]) {
+      groepGroottes[regel.groep] = sizePt;
+    }
+  });
+
   (ontwerp.regels || []).forEach(regel => {
     const font = fonts[regel.fontStijl];
     const kleur = regel.accent ? (regel.accentKleur || (ontwerp.hart && ontwerp.hart.kleur)) : hoofdtekstKleur;
-    const veiligeTekst = voorkomLigatuurGaten(regel.tekst); // huidige no-op, zie pdf-shared.js voor de geschiedenis
-    let sizePt = regel.puntgrootteMm * MM;
+    let sizePt = (regel.groep !== undefined && groepGroottes[regel.groep] !== undefined)
+      ? groepGroottes[regel.groep]
+      : regel.puntgrootteMm * MM;
 
-    // Optioneel vangnet tegen tekstoverloop (bv. als het echte lettertype
-    // net iets breder blijkt dan waarmee de positie oorspronkelijk is
-    // opgemeten): lettergrootte in kleine stapjes verkleinen totdat de regel
-    // weer binnen de opgegeven maximale breedte past. Alleen actief als het
-    // ontwerp voor déze regel een maxBreedteMm meegeeft.
-    if (regel.maxBreedteMm !== undefined) {
+    // Vangnet tegen tekstoverloop voor regels ZONDER groep (regels mét een
+    // groep gebruiken hierboven al de gezamenlijk-berekende grootte).
+    if (regel.groep === undefined && regel.maxBreedteMm !== undefined) {
       const maxWidthPt = regel.maxBreedteMm * MM;
-      while (sizePt > 2 * MM && font.widthOfTextAtSize(veiligeTekst, sizePt) > maxWidthPt) {
+      while (sizePt > 2 * MM && widthOfTextLigatuurVeiligAtSize(font, regel.tekst, sizePt) > maxWidthPt) {
         sizePt -= 0.05 * MM;
       }
     }
@@ -371,16 +393,14 @@ async function generateTegelTekstPdf(data) {
     if (regel.xMm !== undefined) {
       xPt = regel.xMm * MM;
     } else {
-      const textWidthPt = font.widthOfTextAtSize(veiligeTekst, sizePt);
+      const textWidthPt = widthOfTextLigatuurVeiligAtSize(font, regel.tekst, sizePt);
       xPt = (PAGE_W_MM * MM - textWidthPt) / 2;
     }
-    page.drawText(veiligeTekst, {
-      x: xPt,
-      y: fromTopMm(regel.topMm) - sizePt * 0.75, // tekst-baseline t.o.v. de top van de tekstregel (empirisch bepaald, zie opmeet-sessie)
-      size: sizePt,
-      font,
-      color: kleur
-    });
+    drawTextLigatuurVeilig(
+      page, font, regel.tekst,
+      xPt, fromTopMm(regel.topMm) - sizePt * 0.75, // tekst-baseline t.o.v. de top van de tekstregel (empirisch bepaald, zie opmeet-sessie)
+      sizePt, kleur
+    );
   });
 
   // --- Lijn (optioneel, bv. bij "Beste vriendin" onder de titel) — volgt
