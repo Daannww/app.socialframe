@@ -387,6 +387,41 @@ van kan maken, en waarmee je de status van orders kan wijzigen.
     zodat ze allemaal dezelfde, gezamenlijk berekende lettergrootte krijgen
     i.p.v. onafhankelijk van elkaar te verkleinen — zie de "Ligatuur-
     spatiebug"-toelichting hierboven voor waarom dat nodig was.
+  - **"You are a limited Edition."** — **nieuwe aanpak**: beide lettertypen
+    (Caveat voor "You are a"/"Edition.", Amsterdam ThreeSlant voor
+    "limited") zijn rechtstreeks UIT HET REFERENTIEBESTAND GEËXTRAHEERD
+    (het was al ingebed als subset-lettertype, dus geen los bestand van de
+    klant nodig) — op suggestie van de gebruiker, om alle eerdere font-
+    gerelateerde problemen (ontbrekend bestand, ligatuur-bug, verkeerd
+    gewicht) in één keer te vermijden: het is EXACT hetzelfde lettertype als
+    het origineel. Bevestigd met een losse render buiten `pdf-lib` om (via
+    Python/Pillow) dat de geëxtraheerde bestanden intact en compleet zijn.
+    Caveat is een bekend gratis Google Font; Amsterdam ThreeSlant bleek een
+    BETAALD lettertype (copyright Lettersiro 2017, zichtbaar in het
+    ingebedde font-bestand zelf) — extractie was hier dus extra waardevol.
+    Onder de tekst staat een sierlijntje-met-hartje (`ontwerp.decoratie` in
+    `server/texttile.js` — een nieuw, generiek veld voor 1 of meer losse
+    vectorvormen met een eigen ankerpunt), ook rechtstreeks als vectorpad
+    uit het referentiebestand gehaald — bevestigd pixel-voor-pixel identiek
+    aan het origineel.
+  - **"Lievelingsleukerd met definitie"** — **volgende stap na de vorige
+    aanpak**: dit hele referentiebestand kwam al aangeleverd als CONTOUREN
+    (elke letter al vooraf in Illustrator omgezet naar een eigen vectorvorm
+    — "Contouren maken", op suggestie van de gebruiker zelf gedaan) — dus
+    zelfs geen font-extractie meer nodig, puur automatisch uitgelezen. Alle
+    103 losse vormen zijn met een Python-script rechtstreeks uit het
+    PDF-bestand gehaald (`pikepdf`, ruwe `m`/`l`/`c`-tekenopdrachten) en als
+    `ontwerp.decoratie`-vormen opgeslagen (`regels: []` — geen tekst/
+    lettertype-object bij dit ontwerp). **Belangrijke valkuil, eerst fout
+    gegaan en toen gefixt**: de y-coördinaten van elk pad moesten worden
+    OMGEDRAAID (× -1) t.o.v. de ruwe PDF-waarden — PDF's eigen y-as loopt
+    omhoog, `drawSvgPath` verwacht (net als SVG zelf) y omlaag; zonder deze
+    correctie stond de hele tekst ondersteboven gespiegeld (eerst getest en
+    gezien via een tussentijdse render, toen pas de fix toegepast). Het
+    lijntje onder de titel is via `pdfplumber`'s eigen rect-detectie
+    gemeten (simpeler en betrouwbaarder dan de rauwe transform-matrix van
+    een `re`-operator handmatig proberen te herleiden). Eindresultaat
+    bevestigd pixel-voor-pixel identiek aan het origineel.
   **Belangrijk**: een "Tegeltje met tekst"-order krijgt alleen automatisch
   status "wacht op drukwerkbestand" als het ontwerp herkend wordt — een nog
   onbekende tekst-variant valt terug op het oude gedrag ("wacht op
