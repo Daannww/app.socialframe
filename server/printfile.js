@@ -37,7 +37,12 @@ async function imageBufferToPrintPdf(inputBuffer, { widthCm = 10, heightCm = 10,
   const jpegBuffer = await sharp(inputBuffer)
     .rotate() // houd rekening met EXIF orientatie
     .resize({ width: targetPxWidth, height: targetPxHeight, fit: 'fill' })
-    .removeAlpha()
+    // Doorzichtige pixels expliciet tegen een WITTE achtergrond "pletten" i.p.v.
+    // .removeAlpha() (die het kanaal gewoon weghaalt zonder te pletten, en dus
+    // de vaak-verborgen onderliggende RGB-waarden van transparante pixels
+    // blootlegt — bij veel PNG's toevallig zwart, ook al is de pixel zelf
+    // onzichtbaar). Zelfde bug als ontdekt bij het muziekframe.
+    .flatten({ background: { r: 255, g: 255, b: 255 } })
     .toColourspace('srgb')
     .jpeg({ quality: 95, chromaSubsampling: '4:4:4' })
     .toBuffer();

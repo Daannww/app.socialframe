@@ -437,7 +437,17 @@ async function adjustCmykChannels(imageBuffer, delta) {
     data[i + 2] = Math.round(255 * (1 - y2) * (1 - k2));
   }
 
-  let jpegBuffer = await sharp(data, { raw: info }).jpeg({ quality: 92 }).toBuffer();
+  let jpegBuffer = await sharp(data, { raw: info })
+    // Doorzichtige pixels expliciet tegen een WITTE achtergrond "pletten"
+    // vóór de JPEG-omzetting — zonder deze stap gebruikt sharp gewoon de
+    // onderliggende (vaak verborgen) RGB-waarden van doorzichtige pixels,
+    // en die staan bij veel PNG's toevallig op zwart (0,0,0) ook al is de
+    // pixel zelf onzichtbaar — dus zonder flatten werd een transparante
+    // achtergrond in de bron-foto per ongeluk zwart in het eindresultaat.
+    // Ontdekt bij een klant die een transparante PNG (sticker-achtig logo)
+    // uploadde voor het muziekframe.
+    .flatten({ background: { r: 255, g: 255, b: 255 } })
+    .jpeg({ quality: 92 }).toBuffer();
 
   // JPEG-compressie hierna is LOSSY en kan bij scherpe contrastranden een
   // klein aantal pixels toch weer terug naar exact #FFFFFF duwen — zelfde

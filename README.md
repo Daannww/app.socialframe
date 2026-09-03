@@ -387,23 +387,34 @@ van kan maken, en waarmee je de status van orders kan wijzigen.
     zodat ze allemaal dezelfde, gezamenlijk berekende lettergrootte krijgen
     i.p.v. onafhankelijk van elkaar te verkleinen — zie de "Ligatuur-
     spatiebug"-toelichting hierboven voor waarom dat nodig was.
-  - **"You are a limited Edition."** — **nieuwe aanpak**: beide lettertypen
-    (Caveat voor "You are a"/"Edition.", Amsterdam ThreeSlant voor
-    "limited") zijn rechtstreeks UIT HET REFERENTIEBESTAND GEËXTRAHEERD
-    (het was al ingebed als subset-lettertype, dus geen los bestand van de
-    klant nodig) — op suggestie van de gebruiker, om alle eerdere font-
-    gerelateerde problemen (ontbrekend bestand, ligatuur-bug, verkeerd
-    gewicht) in één keer te vermijden: het is EXACT hetzelfde lettertype als
-    het origineel. Bevestigd met een losse render buiten `pdf-lib` om (via
-    Python/Pillow) dat de geëxtraheerde bestanden intact en compleet zijn.
-    Caveat is een bekend gratis Google Font; Amsterdam ThreeSlant bleek een
-    BETAALD lettertype (copyright Lettersiro 2017, zichtbaar in het
-    ingebedde font-bestand zelf) — extractie was hier dus extra waardevol.
-    Onder de tekst staat een sierlijntje-met-hartje (`ontwerp.decoratie` in
-    `server/texttile.js` — een nieuw, generiek veld voor 1 of meer losse
-    vectorvormen met een eigen ankerpunt), ook rechtstreeks als vectorpad
-    uit het referentiebestand gehaald — bevestigd pixel-voor-pixel identiek
-    aan het origineel.
+  - **"You are a limited Edition."** — **nu volledig vector-gebaseerd** (net
+    als "Lievelingsleukerd" hieronder) — geen enkele font-afhankelijkheid
+    meer. **Eerdere aanpak werkte niet betrouwbaar**: eerst waren de
+    lettertypen (Caveat voor "You are a"/"Edition.", Amsterdam ThreeSlant
+    voor "limited") rechtstreeks uit het referentiebestand geëxtraheerd (was
+    al ingebed als subset) — leek in deze sandbox te werken (losse render
+    via Python/Pillow, buiten `pdf-lib` om), maar bleek bij een echte,
+    gedeployde test toch problemen te geven. **Root cause gevonden**: het
+    Caveat-subset was KAPOT — de letters 'a'/'n'/'t'/'u' hadden letterlijk 0
+    bytes aan padgegevens (Illustrator se "Contouren maken"/font-subsetting
+    liet ze per ongeluk leeg), iets wat pas zichtbaar werd bij een echte
+    fontkit-installatie, niet in deze sandbox te reproduceren. **Ook het
+    hartje bleek ondersteboven te staan** — dezelfde y-as-fout als bij
+    "Lievelingsleukerd" (zie hieronder), hier alleen niet meteen opgemerkt
+    omdat een hart-vorm minder overduidelijk "verkeerd om" oogt dan tekst.
+    **Definitieve oplossing**: gebruiker heeft het VOLLEDIGE (niet-subsette)
+    Caveat-Regular.ttf aangeleverd (fonts.google.com — 2 keer nodig, de
+    eerste upload bleek per ongeluk hetzelfde kapotte subset-bestand qua
+    bytes), waaruit alle 22 benodigde tekens als losse glyph-contouren zijn
+    geëxtraheerd (`fontTools` se `TransformPen`+`SVGPathPen`, schaal +
+    y-omdraaiing in 1 stap toegepast) en samen met het (nu wél goed-om
+    staande) hartje+lijntjes-deel in `ontwerp.decoratie` opgeslagen —
+    `regels: []`, dus geen tekst/lettertype-object meer bij dit ontwerp.
+    Bevestigd pixel-voor-pixel identiek aan het origineel, via de échte
+    productiecode. De fontbestanden zelf (`Caveat-Regular.ttf`,
+    `Amsterdam-ThreeSlant.ttf`) staan nog wel in `server/fonts/` als
+    referentie, maar worden door geen enkel ontwerp meer daadwerkelijk
+    ingeladen.
   - **"Lievelingsleukerd met definitie"** — **volgende stap na de vorige
     aanpak**: dit hele referentiebestand kwam al aangeleverd als CONTOUREN
     (elke letter al vooraf in Illustrator omgezet naar een eigen vectorvorm
@@ -642,6 +653,33 @@ wordt herkend en getoond in de popup.
 **Let op:** als jouw Spotify-links ergens anders in de order staan (bijvoorbeeld
 in een ander veld), stuur dat door en dan pas ik `extractSpotifyLinks` in
 `server/shopify.js` aan zodat die op de juiste plek zoekt.
+
+## Transparante foto's ("doorzichtig wordt zwart"-bug)
+
+Ontdekt bij een klant die een transparante PNG (een sticker-achtig logo, met
+tekst en een lepel op een doorzichtige achtergrond) uploadde voor het
+muziekframe: de doorzichtige achtergrond werd in het drukwerkbestand
+volledig **zwart** i.p.v. transparant/wit.
+
+**Oorzaak**: JPEG (het formaat waarin foto's uiteindelijk worden ingebed,
+zie hieronder) ondersteunt geen transparantie. Bij het omzetten werd het
+alfakanaal simpelweg WEGGEHAALD (`.removeAlpha()`) of impliciet genegeerd
+(rauwe RGBA-data rechtstreeks naar `.jpeg()`) — zonder eerst expliciet tegen
+een achtergrondkleur te "pletten". Veel PNG's slaan voor volledig
+doorzichtige pixels toevallig zwart (0,0,0) op als onderliggende RGB-waarde
+(al is die normaal onzichtbaar door alpha=0) — zodra het alfakanaal wegviel,
+werd die verborgen zwarte kleur alsnog zichtbaar. Bevestigd en gereproduceerd
+met een synthetische test-PNG vóór het fixen.
+
+**Fix**: `.flatten({ background: { r: 255, g: 255, b: 255 } })` toegevoegd
+vóór elke JPEG-omzetting — dat "plet" transparante pixels wél expliciet
+tegen wit, i.p.v. het kanaal blind weg te halen. Toegepast in
+`adjustCmykChannels` in `server/pdf-shared.js` (gebruikt door het
+muziekframe, auto-frame én Foto-frame via `embedPhoto`/
+`embedPhotoCoverRect`) en in `server/printfile.js` (autopictura/Posterly/
+foto-tegel). Sound-Frame was hier niet vatbaar voor: dat product bedt de
+foto als PNG in (`embedPhotoRounded`, nodig voor de afgeronde hoeken), en
+PNG behoudt transparantie sowieso.
 
 ## Hoe geüploade foto's herkend worden
 
