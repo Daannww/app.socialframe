@@ -659,10 +659,10 @@ in een ander veld), stuur dat door en dan pas ik `extractSpotifyLinks` in
 Ontdekt bij een klant die een transparante PNG (een sticker-achtig logo, met
 tekst en een lepel op een doorzichtige achtergrond) uploadde voor het
 muziekframe: de doorzichtige achtergrond werd in het drukwerkbestand
-volledig **zwart** i.p.v. transparant/wit.
+volledig **zwart** i.p.v. transparant.
 
-**Oorzaak**: JPEG (het formaat waarin foto's uiteindelijk worden ingebed,
-zie hieronder) ondersteunt geen transparantie. Bij het omzetten werd het
+**Oorzaak**: JPEG (het formaat waarin foto's meestal worden ingebed, zie
+hieronder) ondersteunt geen transparantie. Bij het omzetten werd het
 alfakanaal simpelweg WEGGEHAALD (`.removeAlpha()`) of impliciet genegeerd
 (rauwe RGBA-data rechtstreeks naar `.jpeg()`) — zonder eerst expliciet tegen
 een achtergrondkleur te "pletten". Veel PNG's slaan voor volledig
@@ -671,15 +671,32 @@ doorzichtige pixels toevallig zwart (0,0,0) op als onderliggende RGB-waarde
 werd die verborgen zwarte kleur alsnog zichtbaar. Bevestigd en gereproduceerd
 met een synthetische test-PNG vóór het fixen.
 
-**Fix**: `.flatten({ background: { r: 255, g: 255, b: 255 } })` toegevoegd
-vóór elke JPEG-omzetting — dat "plet" transparante pixels wél expliciet
-tegen wit, i.p.v. het kanaal blind weg te halen. Toegepast in
-`adjustCmykChannels` in `server/pdf-shared.js` (gebruikt door het
-muziekframe, auto-frame én Foto-frame via `embedPhoto`/
-`embedPhotoCoverRect`) en in `server/printfile.js` (autopictura/Posterly/
-foto-tegel). Sound-Frame was hier niet vatbaar voor: dat product bedt de
-foto als PNG in (`embedPhotoRounded`, nodig voor de afgeronde hoeken), en
-PNG behoudt transparantie sowieso.
+**Definitieve oplossing — transparantie blijft nu écht behouden**: i.p.v.
+elke foto altijd tegen wit te "pletten", wordt eerst gecontroleerd of een
+foto ECHTE transparantie bevat (`heeftEchteTransparantie()` in
+`server/pdf-shared.js` — controleert of er een alfakanaal is ÉN of daarin
+ook daadwerkelijk niet-volledig-ondekkende pixels voorkomen, niet alleen een
+aanwezig-maar-100%-ondoorzichtig kanaal). Bevat de foto ECHTE transparantie
+(komt maar af en toe voor), dan wordt die als PNG ingebed — transparantie
+blijft dan gewoon transparant, en de kleur van de tegel/plaat erachter
+schijnt er vanzelf doorheen. Bevat de foto geen transparantie (verreweg de
+meeste orders), dan blijft alles bij het oude: gewoon JPEG, tegen wit
+geplet voor de zekerheid.
+
+Toegepast in `embedPhoto`/`embedPhotoCoverRect` in `server/pdf-shared.js`
+(gebruikt door muziekframe, auto-frame en Foto-frame) en in
+`imageBufferToPrintPdf` in `server/printfile.js` (autopictura/Posterly/
+foto-tegel). Sound-Frame was hier nooit vatbaar voor: dat product bedt de
+foto altijd al als PNG in (`embedPhotoRounded`, nodig voor de afgeronde
+hoeken), dus daar bleef transparantie al behouden.
+
+Getest: een synthetische transparante PNG (zwarte vorm op transparante
+achtergrond) direct door de echte `embedPhoto`-functie gehaald en getekend
+óver een felgekleurde achtergrond-rechthoek — de kleur schijnt correct door
+de transparante delen heen, de zwarte vorm blijft zwart. Ook bevestigd dat
+gewone (niet-transparante) foto's nog gewoon als JPEG worden ingebed, op
+alle 5 betrokken producten (muziekframe, auto-frame, Foto-frame,
+Sound-Frame, autopictura/Posterly/foto-tegel via `printfile.js`).
 
 ## Hoe geüploade foto's herkend worden
 

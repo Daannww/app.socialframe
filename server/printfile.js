@@ -1,5 +1,6 @@
 const sharp = require('sharp');
 const { PDFDocument } = require('pdf-lib');
+const { heeftEchteTransparantie } = require('./pdf-shared');
 
 const PT_PER_CM = 72 / 2.54; // PostScript/PDF-punten per centimeter
 
@@ -33,27 +34,36 @@ async function imageBufferToPrintPdf(inputBuffer, { widthCm = 10, heightCm = 10,
   const targetPxWidth = Math.round((widthCm / 2.54) * dpi);
   const targetPxHeight = Math.round((heightCm / 2.54) * dpi);
 
-  // Foto naar de exacte pixelmaten voor het gevraagde formaat + dpi, als JPEG.
-  const jpegBuffer = await sharp(inputBuffer)
+  const geresized = await sharp(inputBuffer)
     .rotate() // houd rekening met EXIF orientatie
     .resize({ width: targetPxWidth, height: targetPxHeight, fit: 'fill' })
-    // Doorzichtige pixels expliciet tegen een WITTE achtergrond "pletten" i.p.v.
-    // .removeAlpha() (die het kanaal gewoon weghaalt zonder te pletten, en dus
-    // de vaak-verborgen onderliggende RGB-waarden van transparante pixels
-    // blootlegt — bij veel PNG's toevallig zwart, ook al is de pixel zelf
-    // onzichtbaar). Zelfde bug als ontdekt bij het muziekframe.
-    .flatten({ background: { r: 255, g: 255, b: 255 } })
-    .toColourspace('srgb')
-    .jpeg({ quality: 95, chromaSubsampling: '4:4:4' })
     .toBuffer();
 
+  // Echte transparantie (komt maar af en toe voor) blijft als PNG behouden
+  // i.p.v. tegen een witte achtergrond "geplet" te worden — de meeste
+  // foto's (gewone foto's zonder transparantie) gaan gewoon via de
+  // JPEG-weg hieronder.
   const widthPt = widthCm * PT_PER_CM;
   const heightPt = heightCm * PT_PER_CM;
-
   const pdfDoc = await PDFDocument.create();
   const page = pdfDoc.addPage([widthPt, heightPt]);
-  const jpegImage = await pdfDoc.embedJpg(jpegBuffer);
-  page.drawImage(jpegImage, { x: 0, y: 0, width: widthPt, height: heightPt });
+
+  if (await heeftEchteTransparantie(geresized)) {
+    const pngBuffer = await sharp(geresized).png().toBuffer();
+    const pngImage = await pdfDoc.embedPng(pngBuffer);
+    page.drawImage(pngImage, { x: 0, y: 0, width: widthPt, height: heightPt });
+  } else {
+    const jpegBuffer = await sharp(geresized)
+      // Voor de zekerheid nog steeds pletten tegen wit (i.p.v. .removeAlpha())
+      // voor het geval er toch een (volledig ondoorzichtig) alfakanaal aanwezig
+      // is zonder dat heeftEchteTransparantie dat als "echte" transparantie ziet.
+      .flatten({ background: { r: 255, g: 255, b: 255 } })
+      .toColourspace('srgb')
+      .jpeg({ quality: 95, chromaSubsampling: '4:4:4' })
+      .toBuffer();
+    const jpegImage = await pdfDoc.embedJpg(jpegBuffer);
+    page.drawImage(jpegImage, { x: 0, y: 0, width: widthPt, height: heightPt });
+  }
 
   const pdfBytes = await pdfDoc.save();
   return Buffer.from(pdfBytes);

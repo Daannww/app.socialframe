@@ -334,6 +334,22 @@ function fitFontSizeToWidth(parts, font, defaultSizePt, maxWidthPt, minSizePt = 
 // uitvallen). Een te kleine bronfoto wordt nooit kunstmatig opgeschaald
 // (fit: 'inside' vergroot nooit, alleen verkleinen indien nodig) — dat zou
 // alleen maar vervagen, geen echte kwaliteit toevoegen.
+// Controleert of een afbeelding ECHTE transparantie bevat (dus niet alleen
+// een aanwezig maar volledig-ondoorzichtig alfakanaal). Gebruikt om te
+// bepalen of een foto als PNG (transparantie behouden) i.p.v. JPEG (altijd
+// ondoorzichtig, dus tegen een achtergrondkleur "geplet") ingebed moet
+// worden — komt maar af en toe voor (bv. een klant die een sticker-achtig
+// logo met transparante achtergrond uploadt), de meeste foto's blijven
+// gewoon JPEG (kleiner bestand, en de al bestaande anti-gaten-kleurcorrectie
+// werkt daar het best op ingespeeld).
+async function heeftEchteTransparantie(buffer) {
+  const metadata = await sharp(buffer).metadata();
+  if (!metadata.hasAlpha) return false;
+  const { channels } = await sharp(buffer).stats();
+  const alfaKanaal = channels[channels.length - 1];
+  return alfaKanaal.min < 255;
+}
+
 async function embedPhoto(doc, photoUrl, filterValue, targetZoneSizeMm = 160) {
   const imgRes = await axios.get(photoUrl, { responseType: 'arraybuffer' });
   let pipeline = sharp(Buffer.from(imgRes.data)).rotate(); // EXIF-rotatie vast "bakken"
@@ -366,6 +382,17 @@ async function embedPhoto(doc, photoUrl, filterValue, targetZoneSizeMm = 160) {
   // ligt kennelijk hoger dan waar puur digitaal op te testen is. Naar 8%
   // gezet als praktische, flink sterkere marge; nog altijd met het blote oog
   // nauwelijks waarneembaar (zie de vergelijkingstest in de chat).
+  //
+  // Foto's met ECHTE transparantie (zie heeftEchteTransparantie hierboven)
+  // blijven als PNG ingebed — transparantie blijft dan gewoon transparant
+  // i.p.v. tegen wit geplet te worden. Komt maar af en toe voor; de meeste
+  // foto's gaan gewoon via de JPEG-weg hieronder.
+  if (await heeftEchteTransparantie(resizedBuffer)) {
+    const pngBuffer = await adjustCmykChannelsToPng(resizedBuffer, { c: 0, m: 0, y: 0.08, k: 0 });
+    const image = await doc.embedPng(pngBuffer);
+    return { image, aspectRatio };
+  }
+
   const jpegBuffer = await adjustCmykChannels(resizedBuffer, { c: 0, m: 0, y: 0.08, k: 0 });
 
   const image = await doc.embedJpg(jpegBuffer);
@@ -394,6 +421,15 @@ async function embedPhotoCoverRect(doc, photoUrl, filterValue, targetWidthMm, ta
   const gevuldeBuffer = await sharp(rotatedBuffer)
     .resize(targetWidthPx, targetHeightPx, { fit: 'cover', position: 'centre' })
     .toBuffer();
+
+  // Echte transparantie behouden als PNG (zie heeftEchteTransparantie
+  // hierboven) — komt maar af en toe voor, de meeste foto's gaan gewoon via
+  // de JPEG-weg hieronder.
+  if (await heeftEchteTransparantie(gevuldeBuffer)) {
+    const pngBuffer = await adjustCmykChannelsToPng(gevuldeBuffer, { c: 0, m: 0, y: 0.08, k: 0 });
+    const image = await doc.embedPng(pngBuffer);
+    return { image };
+  }
 
   const jpegBuffer = await adjustCmykChannels(gevuldeBuffer, { c: 0, m: 0, y: 0.08, k: 0 });
   const image = await doc.embedJpg(jpegBuffer);
@@ -899,6 +935,6 @@ module.exports = {
   embedPhoto, fitPhotoInSquareZone, recolorDarkPixels, recolorLightPixels, getCodeSvg,
   drawBackground, isMarbleBackground, hasPageBackground, nearWhiteCmyk, adjustCmykChannels,
   extractSvgShapes, drawSvgShapesInBox, embedPhotoRounded, voorkomLigatuurGaten,
-  embedPhotoCoverRect,
+  embedPhotoCoverRect, heeftEchteTransparantie,
   splitLigatuurVeilig, widthOfTextLigatuurVeiligAtSize, drawTextLigatuurVeilig
 };
