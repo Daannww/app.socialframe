@@ -261,18 +261,21 @@ van kan maken, en waarmee je de status van orders kan wijzigen.
   gegenereerd. Dezelfde Hebreeuws-ondersteuning geldt ook voor auto-frame en
   Sound-Frame hieronder (gedeelde code in `server/pdf-shared.js`).
   **Ligatuur-spatiebug** ("Officiele" -> "Offi ciele", "knuffelaar" ->
-  "knuff elaar" — ontdekt bij een "Tegeltje met tekst"-ontwerp, maar de fix
-  geldt voor de hele PDF-tekenlaag): een bekende `pdf-lib`-bug
-  (github.com/Hopding/pdf-lib/issues/1275) waarbij lettertypen met
+  "knuff elaar" — ontdekt bij "Opa met definitie"): een bekende `pdf-lib`-bug
+  (github.com/Hopding/pdf-lib/issues/1275) waarbij sommige lettertypen met
   ingebouwde ligaturen voor "ff"/"fi"/"fl"/"ffi"/"ffl" een verkeerde
-  breedteberekening geven, met een ongewenste extra spatie tot gevolg.
-  `voorkomLigatuurGaten()` in `server/pdf-shared.js` zet een onzichtbare
-  Zero-Width Non-Joiner tussen zo'n letter-combinatie om de ligatuur-vorming
-  (en dus de bug) te voorkomen — met een ingebouwde toets of het actieve
-  lettertype dat teken ook echt kan coderen (de ingebouwde PDF-basisfonts,
-  zoals de Times Roman/Helvetica-noodgrepen, kunnen dat namelijk niet en
-  zouden anders crashen) — valt in dat geval terug op de gewone tekst i.p.v.
-  te crashen.
+  breedteberekening geven, met een ongewenste extra spatie tot gevolg. Een
+  eerdere fix-poging (een onzichtbaar Zero-Width Non-Joiner-teken tussen
+  zo'n letter-combinatie, om de ligatuur-vorming te voorkomen) bleek in de
+  praktijk met de echte, gedeployde lettertypen zelf een ZICHTBARE extra
+  ruimte te veroorzaken — duidelijk zichtbaar en dus erger dan de
+  oorspronkelijke bug. **Teruggedraaid**: `voorkomLigatuurGaten()` in
+  `server/pdf-shared.js` doet nu weer niets (bewust als no-op gelaten, met
+  de geschiedenis in de code-comments, zodat niemand deze aanpak per ongeluk
+  opnieuw probeert). De praktische oplossing was uiteindelijk: bij "Opa met
+  definitie" voor de genummerde lijst hetzelfde lettertype gebruiken als
+  bij "Beste vriendin met definitie" (Playfair Display Medium Italic i.p.v.
+  Bodoni Moda Regular) — dat lettertype vertoont dit ligatuur-probleem niet.
 - **Auto-frame-drukwerkbestanden**: orders met een product waarvan de titel
   "Auto-frame" bevat, krijgen automatisch een eigen drukwerkbestand (200x300mm
   PDF, met foto op eigen beeldverhouding, een titel ("Merk en type auto") en 4
@@ -357,18 +360,21 @@ van kan maken, en waarmee je de status van orders kan wijzigen.
     hartje** (net als "Beste vriendin met definitie").
   - **"Opa met definitie"** — zelfde woordenboek-stijl als "Beste vriendin
     met definitie" (titel + dun lijntje + cursief-ogende ondertitel + een
-    genummerde lijst, links uitgelijnd, geen hartje), hergebruikt dezelfde
-    Bodoni Moda-lettertypebestanden. **Let op**: in het referentiebestand
-    was de genummerde lijst technisch ingebed als het macOS-systeemfont
-    "Khmer MN" — de letters zien er zelf gewoon Bodoni-achtig en rechtop
-    uit (geen Khmer-schrift), dus vrijwel zeker een verkeerd-geëxporteerde
-    fallback in het originele bestand. Aangenomen dat dit gewoon Bodoni
-    Moda Regular moet zijn — laat het weten als dat toch niet blijkt te
-    kloppen. De nummering in het referentiebestand zelf sloeg per ongeluk
-    "2" over (1, 3, 4, 5) — inmiddels rechtgezet naar netjes doorlopend
-    1, 2, 3, 4. De genummerde lijst-regels van dit ontwerp (en van "Beste
-    vriendin met definitie") hebben een `maxBreedteMm` — een optioneel
-    vangnet (`regel.maxBreedteMm` in `server/texttile.js`) dat de
+    genummerde lijst, links uitgelijnd, geen hartje). Titel in Bodoni Moda
+    Bold, ondertitel in Bodoni Moda Regular — de genummerde lijst gebruikt,
+    net als bij "Beste vriendin met definitie", **Playfair Display Medium
+    Italic** (niet Bodoni Moda Regular, ook al staat de lijst in het
+    referentiebestand zelf rechtop i.p.v. cursief — een bewuste, praktische
+    afwijking: bij Bodoni Moda Regular gaf de "ff"/"ffi"-combinatie in
+    "Officiele"/"knuffelaar" een zichtbare, ongewenste extra ruimte, zie de
+    "Ligatuur-spatiebug"-toelichting verderop). In het referentiebestand
+    was de genummerde lijst overigens technisch ingebed als het macOS-
+    systeemfont "Khmer MN" (vrijwel zeker een verkeerd-geëxporteerde
+    fallback, geen bewuste keuze). De nummering in het referentiebestand
+    zelf sloeg per ongeluk "2" over (1, 3, 4, 5) — inmiddels rechtgezet naar
+    netjes doorlopend 1, 2, 3, 4. De genummerde lijst-regels van dit ontwerp
+    (en van "Beste vriendin met definitie") hebben een `maxBreedteMm` — een
+    optioneel vangnet (`regel.maxBreedteMm` in `server/texttile.js`) dat de
     lettergrootte in kleine stapjes verkleint als de tekst met het echte
     lettertype toch net iets breder blijkt dan waarmee de positie
     oorspronkelijk is opgemeten (ontdekt doordat regel 3 van "Opa" in het

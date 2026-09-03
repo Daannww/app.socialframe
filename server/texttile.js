@@ -211,25 +211,27 @@ const TEGEL_TEKST_ONTWERPEN = [
     // definitie" direct na "Opa".
     herken: /\bopa\s+met\s+definitie/i,
     // Zelfde woordenboek-stijl als "Beste vriendin met definitie" — titel in
-    // Bodoni Moda Bold, de rest (ondertitel + genummerde lijst) in Bodoni
-    // Moda Regular. LET OP: het referentiebestand had de genummerde lijst
-    // technisch ingebed als "KhmerMN" (een macOS-systeemfont) — de letters
-    // zien er zelf gewoon Bodoni-achtig en rechtop uit (geen Khmer-schrift),
-    // dus dit is vrijwel zeker een verkeerd-geëxporteerde fallback in het
-    // originele bestand, niet een bewuste keuze. Aangenomen dat dit ook
-    // gewoon Bodoni Moda Regular moet zijn (i.p.v. Playfair Display Medium
-    // Italic zoals bij "Beste vriendin" — deze lijst is namelijk rechtop,
-    // niet cursief). Corrigeer dit als dat toch niet klopt.
-    lettertypeBestanden: { bold: 'BodoniModa-Bold.ttf', regular: 'BodoniModa-Regular.ttf' },
-    lettertypeTerugval: { bold: StandardFonts.TimesRomanBold, regular: StandardFonts.TimesRoman },
+    // Bodoni Moda Bold, ondertitel in Bodoni Moda Regular. De genummerde
+    // lijst gebruikt (net als bij "Beste vriendin") Playfair Display Medium
+    // Italic i.p.v. Bodoni Moda Regular: bij Bodoni Moda Regular gaf de
+    // "ff"/"ffi"-combinatie in "Officiele"/"knuffelaar" een zichtbare,
+    // ongewenste extra ruimte (een bekende pdf-lib-ligatuur-bug — een eerdere
+    // poging om dit met een onzichtbaar teken te omzeilen bleek in de
+    // praktijk zelf een zichtbare ruimte te veroorzaken, dus weer
+    // teruggedraaid). Playfair Display Medium Italic vertoont dit probleem
+    // niet. Enige verschil met het referentiebestand: de lijst staat daar
+    // rechtop i.p.v. cursief — een bewuste, praktische afwijking om de bug
+    // te vermijden.
+    lettertypeBestanden: { bold: 'BodoniModa-Bold.ttf', regular: 'BodoniModa-Regular.ttf', italic: 'PlayfairDisplay-MediumItalic.ttf' },
+    lettertypeTerugval: { bold: StandardFonts.TimesRomanBold, regular: StandardFonts.TimesRoman, italic: StandardFonts.TimesRomanItalic },
     regels: [
       { tekst: 'Opa', fontStijl: 'bold', puntgrootteMm: 11.88, topMm: 31.97, xMm: 8.97, accent: false },
       { tekst: "[de; meervoud: opa's]", fontStijl: 'regular', puntgrootteMm: 4.18, topMm: 48.73, xMm: 8.80, accent: false },
-      { tekst: '1. Officiele expert in verhalen die altijd', fontStijl: 'regular', puntgrootteMm: 3.70, topMm: 60.92, xMm: 8.66, maxBreedteMm: 82.68, accent: false },
-      { tekst: 'beginnen met "vroeger..."', fontStijl: 'regular', puntgrootteMm: 3.70, topMm: 65.36, xMm: 8.66, maxBreedteMm: 82.68, accent: false },
-      { tekst: '2. Professioneel knuffelaar met een hart van goud..', fontStijl: 'regular', puntgrootteMm: 3.70, topMm: 69.80, xMm: 8.66, maxBreedteMm: 82.68, accent: false },
-      { tekst: '3. Geheim wapen tegen honger: altijd koekjes in de buurt.', fontStijl: 'regular', puntgrootteMm: 3.70, topMm: 74.24, xMm: 8.66, maxBreedteMm: 82.68, accent: false },
-      { tekst: '4. Combineert wijsheid met een ondeugende glimlach.', fontStijl: 'regular', puntgrootteMm: 3.70, topMm: 78.69, xMm: 8.66, maxBreedteMm: 82.68, accent: false }
+      { tekst: '1. Officiele expert in verhalen die altijd', fontStijl: 'italic', puntgrootteMm: 3.70, topMm: 60.92, xMm: 8.66, maxBreedteMm: 82.68, accent: false },
+      { tekst: 'beginnen met "vroeger..."', fontStijl: 'italic', puntgrootteMm: 3.70, topMm: 65.36, xMm: 8.66, maxBreedteMm: 82.68, accent: false },
+      { tekst: '2. Professioneel knuffelaar met een hart van goud..', fontStijl: 'italic', puntgrootteMm: 3.70, topMm: 69.80, xMm: 8.66, maxBreedteMm: 82.68, accent: false },
+      { tekst: '3. Geheim wapen tegen honger: altijd koekjes in de buurt.', fontStijl: 'italic', puntgrootteMm: 3.70, topMm: 74.24, xMm: 8.66, maxBreedteMm: 82.68, accent: false },
+      { tekst: '4. Combineert wijsheid met een ondeugende glimlach.', fontStijl: 'italic', puntgrootteMm: 3.70, topMm: 78.69, xMm: 8.66, maxBreedteMm: 82.68, accent: false }
     ],
     lijn: { xMm: 8.97, topMm: 44.26, breedteMm: 82.65, hoogteMm: 0.56 }
   }
@@ -347,7 +349,7 @@ async function generateTegelTekstPdf(data) {
   (ontwerp.regels || []).forEach(regel => {
     const font = fonts[regel.fontStijl];
     const kleur = regel.accent ? (regel.accentKleur || (ontwerp.hart && ontwerp.hart.kleur)) : hoofdtekstKleur;
-    const veiligeTekst = voorkomLigatuurGaten(regel.tekst, font); // vangnet tegen een bekende pdf-lib-ligatuur-bug, zie pdf-shared.js
+    const veiligeTekst = voorkomLigatuurGaten(regel.tekst); // huidige no-op, zie pdf-shared.js voor de geschiedenis
     let sizePt = regel.puntgrootteMm * MM;
 
     // Optioneel vangnet tegen tekstoverloop (bv. als het echte lettertype
