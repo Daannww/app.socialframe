@@ -433,6 +433,34 @@ van kan maken, en waarmee je de status van orders kan wijzigen.
     gemeten (simpeler en betrouwbaarder dan de rauwe transform-matrix van
     een `re`-operator handmatig proberen te herleiden). Eindresultaat
     bevestigd pixel-voor-pixel identiek aan het origineel.
+  - **"KAK."** — ook volledig als contouren aangeleverd, net als
+    "Lievelingsleukerd" — maar met 2 NIEUWE extractie-valkuilen die toen
+    nog niet waren tegengekomen (het extractiescript kan nu allebei aan):
+    (1) de rechte onderdelen (de stok van elke "K", en de punt) bleken als
+    PDF-**rechthoek-operator** (`re`) opgeslagen te zijn i.p.v. het
+    gebruikelijke `m`/`l`/`c`-pad — het eerdere script miste die daardoor
+    volledig (zichtbaar als ontbrekende rechte lijnstukken bij een
+    tussentijdse render); en (2) de punt stond NA een `Q` (einde
+    coördinatenblok) zonder een eigen nieuwe `cm`, dus met impliciet
+    identiteit als ankerpunt — gebruikte in het extractiescript daardoor
+    per ongeluk nog het ankerpunt van de laatst-getekende letter, wat de
+    punt op de verkeerde plek zette. Beide gefixt: rechthoek-operators
+    worden nu ook meegenomen (mits ze ook echt GEVULD worden — `f`/`f*` na
+    de `re` — en niet enkel een clip-pad zijn, zoals de paginagrote
+    rechthoek die met `W` afsluit), en het ankerpunt wordt bij elke `Q`
+    teruggezet naar identiteit. Bevestigd pixel-voor-pixel identiek aan het
+    origineel, via de échte productiecode.
+  - **"Hartje"** — ook als contouren aangeleverd, maar verder het simpelste
+    ontwerp tot nu toe: 1 los handgetekend hartje, geen tekst, geen lijntje.
+    **Nieuw kleurgedrag t.o.v. alle eerdere ontwerpen**: dit hartje krijgt
+    ALTIJD dezelfde vaste roze kleur (CMYK 0/0.874/0.176/0, rechtstreeks uit
+    het referentiebestand overgenomen), ongeacht de gekozen tegelkleur —
+    dus expliciet GEEN zwart/wit-kleurwissel-logica. Vereiste geen nieuwe
+    code: het bestaande `decoratie`-systeem ondersteunt al een eigen
+    `kleur`-veld per vorm, dat de gebruikelijke hoofdtekst-kleurwissel
+    overschrijft. Getest op meerdere tegelkleuren (inclusief bewust een
+    donkere tegel als "Zwart") — het hartje blijft overal precies dezelfde
+    roze kleur. Bevestigd pixel-voor-pixel identiek aan het origineel.
   **Belangrijk**: een "Tegeltje met tekst"-order krijgt alleen automatisch
   status "wacht op drukwerkbestand" als het ontwerp herkend wordt — een nog
   onbekende tekst-variant valt terug op het oude gedrag ("wacht op

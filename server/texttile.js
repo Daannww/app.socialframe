@@ -410,6 +410,52 @@ const TEGEL_TEKST_ONTWERPEN = [
       { pad: 'M 0.000,-0.000 L 0.061,-0.379 L 0.996,-0.521 C 1.053,-0.821 1.112,-1.158 1.178,-1.529 C 1.241,-1.900 1.295,-2.221 1.339,-2.489 L 1.431,-3.059 C 1.486,-3.406 1.534,-3.711 1.572,-3.971 C 1.609,-4.232 1.642,-4.489 1.666,-4.742 L 0.694,-4.813 L 0.754,-5.180 L 2.422,-5.749 L 2.570,-5.643 L 2.447,-4.220 C 2.715,-4.694 3.034,-5.071 3.406,-5.353 C 3.780,-5.632 4.137,-5.773 4.477,-5.773 C 4.658,-5.773 4.822,-5.733 4.967,-5.655 C 5.112,-5.576 5.203,-5.477 5.240,-5.358 C 5.162,-4.876 4.921,-4.636 4.519,-4.636 C 4.392,-4.636 4.277,-4.663 4.176,-4.718 C 4.074,-4.773 3.976,-4.849 3.881,-4.943 L 3.757,-5.062 C 3.192,-4.746 2.715,-4.212 2.324,-3.461 L 2.168,-2.489 C 2.124,-2.221 2.074,-1.902 2.020,-1.535 C 1.964,-1.168 1.917,-0.834 1.876,-0.533 L 2.857,-0.379 L 2.797,-0.000 Z', xMm: 51.863, topMm: 51.597 },
       { pad: 'M 0.000,-0.000 C 0.283,-0.000 0.550,-0.060 0.799,-0.178 C 1.047,-0.297 1.315,-0.494 1.605,-0.771 L 2.140,-4.078 C 1.912,-4.331 1.689,-4.509 1.475,-4.612 C 1.257,-4.714 1.034,-4.766 0.805,-4.766 C 0.489,-4.766 0.183,-4.680 -0.113,-4.511 C -0.409,-4.341 -0.668,-4.076 -0.888,-3.716 C -1.107,-3.356 -1.263,-2.896 -1.354,-2.335 C -1.481,-1.545 -1.412,-0.958 -1.146,-0.575 C -0.881,-0.191 -0.498,-0.000 0.000,-0.000 M 1.466,0.533 L 1.555,-0.308 C 1.286,-0.016 0.999,0.206 0.695,0.355 C 0.390,0.506 0.052,0.581 -0.320,0.581 C -0.794,0.581 -1.191,0.458 -1.511,0.214 C -1.830,-0.031 -2.057,-0.372 -2.188,-0.807 C -2.318,-1.240 -2.339,-1.742 -2.247,-2.312 C -2.147,-2.929 -1.949,-3.463 -1.655,-3.917 C -1.360,-4.373 -1.002,-4.724 -0.578,-4.973 C -0.154,-5.222 0.294,-5.346 0.769,-5.346 C 1.045,-5.346 1.308,-5.285 1.557,-5.162 C 1.805,-5.040 2.032,-4.829 2.237,-4.529 L 2.714,-7.480 L 1.696,-7.562 L 1.758,-7.942 L 3.532,-8.369 L 3.684,-8.274 L 3.364,-6.591 L 2.311,-0.071 L 3.334,0.048 L 3.273,0.427 Z', xMm: 54.592, topMm: 51.447 }
     ]
+  },
+  {
+    id: 'kak',
+    // Titel in Shopify: "Tegeltje met Tekst - KAK."
+    herken: /^kak\.?$|\bkak\.\s*$/i,
+    // Net als "Lievelingsleukerd": aangeleverd als contouren (geen tekst/
+    // lettertype), dus rechtstreeks als vectorvormen uit het PDF-bestand
+    // geextraheerd. Bijzonderheid t.o.v. eerdere ontwerpen: de rechte
+    // onderdelen (de stok van elke "K", en de punt) waren als PDF-
+    // rechthoek-operator ("re") opgeslagen i.p.v. als m/l/c-pad — de
+    // extractie moest daarop uitgebreid worden. Ook bleek de punt NA een
+    // "Q" (einde coordinatenblok) te staan, dus zonder eigen "cm"-anker
+    // (gebruikt de paginacoordinaten direct) — de extractie reset het
+    // ankerpunt nu naar identiteit bij elke "Q", anders kreeg de punt per
+    // ongeluk het ankerpunt van de laatste letter ervoor. Bevestigd
+    // pixel-voor-pixel identiek aan het origineel.
+    regels: [],
+    decoratie: [
+      { pad: 'M 0.000,-0.000 L -11.226,-0.000 L -25.258,-41.044 L -25.258,-41.745 L -13.564,-83.958 L -3.274,-83.958 L -15.085,-42.213 Z M -25.843,-0.000 L -37.069,-0.000 L -37.069,-83.958 L -25.843,-83.958 Z', xMm: 24.771, topMm: 86.976 },
+      { pad: 'M 0.000,-0.000 L 0.000,-27.947 C 0.000,-31.222 -1.637,-32.858 -4.911,-32.858 L -7.951,-32.858 C -11.226,-32.858 -12.862,-31.222 -12.862,-27.947 L -12.862,-0.000 Z M -12.862,40.927 L -24.088,40.927 L -24.088,-28.648 C -24.088,-38.237 -19.606,-43.031 -10.641,-43.031 L -2.222,-43.031 C 6.742,-43.031 11.226,-38.237 11.226,-28.648 L 11.226,40.927 L 0.000,40.927 L 0.000,10.173 L -12.862,10.173 Z', xMm: 35.331, topMm: 72.538 },
+      { pad: 'M 0.000,-0.000 L -11.226,-0.000 L -25.258,-41.044 L -25.258,-41.745 L -13.564,-83.958 L -3.274,-83.958 L -15.085,-42.213 Z M -25.843,-0.000 L -37.069,-0.000 L -37.069,-83.958 L -25.843,-83.958 Z', xMm: 55.875, topMm: 86.976 },
+      { pad: 'M 174.990,-36.920 L 163.062,-36.920 L 163.062,-51.186 L 174.990,-51.186 Z', xMm: 0.000, topMm: 100.000 }
+    ]
+  },
+  {
+    id: 'hartje',
+    // Titel in Shopify: "Tegeltje met Tekst - Hartje" (of vergelijkbaar) —
+    // simpel genoeg gehouden om niet per ongeluk andere ontwerpen te raken.
+    herken: /^hartje\.?$|\btegeltje.*hartje\b/i,
+    // Ook als contouren aangeleverd — 1 los handgetekend hartje, verder
+    // niets. BIJZONDERHEID t.o.v. alle eerdere ontwerpen: dit hartje krijgt
+    // ALTIJD dezelfde vaste roze kleur (CMYK 0/0.874/0.176/0, rechtstreeks
+    // uit het referentiebestand overgenomen), ongeacht de gekozen
+    // tegelkleur — dus GEEN hoofdtekstKleur-kleurwissel-logica hier (dat
+    // ondersteunt het bestaande decoratie-systeem al gewoon: een vorm met
+    // een eigen `kleur`-veld overschrijft de standaard-kleurwissel).
+    // Bevestigd pixel-voor-pixel identiek aan het origineel.
+    regels: [],
+    decoratie: [
+      {
+        pad: 'M 0.000,-0.000 C -0.118,-0.421 -1.310,-0.103 -1.435,-0.078 C -10.801,1.823 -15.778,10.500 -19.842,18.283 C -21.550,21.552 -23.076,24.901 -24.436,28.313 C -25.156,23.099 -26.190,17.940 -27.866,12.934 C -29.219,8.895 -31.010,4.102 -35.356,2.470 C -39.139,1.049 -43.345,3.022 -46.324,5.327 C -54.858,11.930 -46.561,22.132 -42.685,28.999 C -39.960,33.827 -37.235,38.656 -34.509,43.485 C -33.096,45.988 -31.683,48.492 -30.270,50.996 C -29.371,52.589 -28.833,54.156 -26.761,54.031 C -26.637,54.023 -26.501,54.006 -26.359,53.983 C -26.298,54.477 -26.223,54.972 -26.125,55.469 C -25.817,57.026 -19.674,52.728 -19.213,52.125 C -13.443,44.575 -8.558,36.391 -4.712,27.698 C -0.895,19.070 2.647,9.463 0.000,-0.000',
+        xMm: 57.469,
+        topMm: 41.227,
+        kleur: cmyk(0, 0.874, 0.176, 0)
+      }
+    ]
   }
 ];
 
