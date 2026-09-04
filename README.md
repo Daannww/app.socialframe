@@ -461,6 +461,20 @@ van kan maken, en waarmee je de status van orders kan wijzigen.
     overschrijft. Getest op meerdere tegelkleuren (inclusief bewust een
     donkere tegel als "Zwart") — het hartje blijft overal precies dezelfde
     roze kleur. Bevestigd pixel-voor-pixel identiek aan het origineel.
+    **Belangrijke bug ontdekt bij dit ontwerp** (bevestigd met een echte
+    order-screenshot): de producttitel bleek "Tegeltje MET HARTJE" te zijn,
+    niet "Tegeltje met TEKST" — en `matchTegelTekstOntwerp()` had een
+    "poort"-check (`if (!/tegeltje met tekst/i.test(titel)) return null;`)
+    die dit soort titels altijd blokkeerde, VOORDAT de individuele
+    ontwerp-regexen (zoals die van "Hartje" hierboven, die op zichzelf prima
+    matchte) ooit gecontroleerd werden — dus leek de losse regex te werken
+    bij een geïsoleerde test, maar faalde de order in de praktijk alsnog.
+    De poort-check accepteert nu zowel "tegeltje met tekst" als "tegeltje
+    met hartje". Bevestigd met de exacte titel uit de order-screenshot
+    ("Tegeltje met hartje – minimalistisch liefdevol ontwerp. – Marineblauw
+    / Geen") dat herkenning, status én de vaste roze kleur nu allemaal
+    correct werken — en met een regressietest dat alle andere 12 ontwerpen
+    nog gewoon correct blijven herkend.
   **Belangrijk**: een "Tegeltje met tekst"-order krijgt alleen automatisch
   status "wacht op drukwerkbestand" als het ontwerp herkend wordt — een nog
   onbekende tekst-variant valt terug op het oude gedrag ("wacht op

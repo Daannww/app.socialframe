@@ -467,7 +467,14 @@ function fromTopMm(topMm) {
 // waar we een ontwerp voor kennen. Geeft het ontwerp terug (of null).
 function matchTegelTekstOntwerp(li) {
   const titel = li.title || '';
-  if (!/tegeltje met tekst/i.test(titel)) return null;
+  // Poort-check: moet in elk geval een "Tegeltje met ..."-product zijn,
+  // voordat de individuele ontwerp-regexen (hieronder) gecontroleerd worden.
+  // Oorspronkelijk alleen "tegeltje met tekst" — uitgebreid met "tegeltje
+  // met hartje" toen bleek dat die productnaam-variant (bv. "Tegeltje met
+  // hartje – minimalistisch liefdevol ontwerp.") hierdoor NOOIT herkend kon
+  // worden, ook al matchte het ontwerp se eigen `herken`-regex prima in
+  // isolatie — deze poort-check zelf blokkeerde het al eerder.
+  if (!/tegeltje met (tekst|hartje)/i.test(titel)) return null;
   return TEGEL_TEKST_ONTWERPEN.find(o => o.herken.test(titel)) || null;
 }
 
