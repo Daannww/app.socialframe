@@ -857,6 +857,29 @@ Wil je meer/andere statussen? Pas de `STATUSES` array bovenaan
 `public/app.js` aan, én de `<option>`s in `public/index.html` (filterknoppen
 en bulk-status dropdown).
 
+### Geschiedenis van statuswijzigingen
+
+Onderaan de "Status wijzigen"-sectie in de order-popup staat een overzicht
+van alle eerdere statuswijzigingen (nieuwste eerst), bv. "wacht op
+drukwerkbestand → wacht op productie" met tijdstip. Elke wijziging — via de
+popup, bulk-acties, of automatisch (bv. zodra een drukwerkbestand succesvol
+gegenereerd is) — loopt uiteindelijk via `updateStatus`/`updateStatusBulk` in
+`server/db.js`, en die loggen zelf 1 regel weg in een nieuwe `status_history`-
+tabel (`order_id`, `old_status`, `new_status`, `changed_at`) — geen aparte
+aanroep nodig bij de plekken die de status al aanpasten. Alleen ECHTE
+wijzigingen worden gelogd (dezelfde status nogmaals zetten geeft geen
+dubbele regel).
+**Let op**: `better-sqlite3` (het database-pakket) bleek in de sandbox-
+testomgeving zelf niet goed te werken (een schijnbaar niet-compatibele,
+eerder gecachete build, en geen toegang tot de npm-registry om een verse
+versie te installeren) — de SQL-schema en -logica zijn daarom apart
+geverifieerd via Python se ingebouwde `sqlite3`-module (exact dezelfde
+tabellen/query's), en de tijdstempel-conversie + HTML-opbouw apart in Node
+getest. De daadwerkelijke `better-sqlite3`-integratie (dus dit precieze
+bestand, in de echte Node-omgeving) is niet end-to-end te testen geweest in
+deze sandbox — laat het weten als er na het deployen iets niet blijkt te
+kloppen.
+
 ## Deployen (live zetten)
 
 Dit project draait als een gewone Node.js server, dus je kan het hosten op

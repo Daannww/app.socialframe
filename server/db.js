@@ -38,6 +38,16 @@ CREATE TABLE IF NOT EXISTS sync_meta (
   value TEXT
 );
 
+CREATE TABLE IF NOT EXISTS status_history (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  order_id INTEGER NOT NULL,
+  old_status TEXT,
+  new_status TEXT NOT NULL,
+  changed_at TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (order_id) REFERENCES orders(id)
+);
+CREATE INDEX IF NOT EXISTS idx_status_history_order ON status_history(order_id);
+
 CREATE TABLE IF NOT EXISTS inventory_items (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT UNIQUE NOT NULL,
@@ -228,6 +238,23 @@ function getOrder(id) {
   return db.prepare('SELECT * FROM orders WHERE id = ?').get(id);
 }
 
+// Legt 1 statuswijziging vast in status_history — alleen als de status
+// daadwerkelijk verandert (geen regel bij bv. per ongeluk 2x dezelfde status
+// zetten), zodat de geschiedenis in de order-popup een zinvol overzicht blijft.
+const insertStatusHistory = db.prepare(
+  `INSERT INTO status_history (order_id, old_status, new_status) VALUES (?, ?, ?)`
+);
+function logStatusChange(orderId, oldStatus, newStatus) {
+  if (oldStatus === newStatus) return;
+  insertStatusHistory.run(orderId, oldStatus, newStatus);
+}
+
+function getStatusHistory(orderId) {
+  return db.prepare(
+    `SELECT old_status, new_status, changed_at FROM status_history WHERE order_id = ? ORDER BY changed_at DESC, id DESC`
+  ).all(orderId);
+}
+
 function updateStatus(id, status) {
   // Alleen de allereerste keer dat een order "verzonden" wordt, verzonden_at
   // vastleggen (niet opnieuw overschrijven als iemand de status per ongeluk
@@ -241,6 +268,7 @@ function updateStatus(id, status) {
   } else {
     db.prepare(`UPDATE orders SET status = ?, updated_at = datetime('now') WHERE id = ?`).run(status, id);
   }
+  logStatusChange(id, current ? current.status : null, status);
   return getOrder(id);
 }
 
@@ -257,11 +285,13 @@ function updateStatusBulk(ids, status) {
       } else {
         withoutTimestamp.run(status, id);
       }
+      logStatusChange(id, current ? current.status : null, status);
     });
   });
   run(ids);
   return ids.length;
 }
+
 
 // Orders ouder dan het opgegeven aantal dagen verwijderen (op basis van de
 // Shopify aanmaakdatum van de order), zodat de lokale database niet
@@ -350,5 +380,5 @@ module.exports = {
   db, getMeta, setMeta, upsertOrder, listOrders, getOrder, updateStatus, updateStatusBulk,
   getAllOrdersRaw, updateLinks, updateDerivedFields, deleteOldOrders,
   getInventory, setInventoryStock, deductInventory, addInventoryItem, deleteInventoryItem,
-  getOrdersReadyForReviewEmail, markReviewEmailSent, setSizeOverride, setNote
+  getOrdersReadyForReviewEmail, markReviewEmailSent, setSizeOverride, setNote, getStatusHistory
 };

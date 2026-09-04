@@ -7,7 +7,7 @@ const path = require('path');
 const fs = require('fs');
 const QRCode = require('qrcode');
 
-const { listOrders, getOrder, updateStatus, updateStatusBulk, getAllOrdersRaw, updateDerivedFields, deleteOldOrders, getInventory, setInventoryStock, addInventoryItem, deleteInventoryItem, getOrdersReadyForReviewEmail, markReviewEmailSent, setSizeOverride, setNote, db } = require('./db');
+const { listOrders, getOrder, updateStatus, updateStatusBulk, getAllOrdersRaw, updateDerivedFields, deleteOldOrders, getInventory, setInventoryStock, addInventoryItem, deleteInventoryItem, getOrdersReadyForReviewEmail, markReviewEmailSent, setSizeOverride, setNote, getStatusHistory, db } = require('./db');
 const { syncOrders, mapOrder, extractFotoTegelPhotoUrls, extractPosterlyPhotoUrls, extractTileItemsFromOrder, extractAutoFrameItemsFromOrder } = require('./shopify');
 const axios = require('axios');
 const archiver = require('archiver');
@@ -169,7 +169,10 @@ app.get('/api/orders/:id', (req, res) => {
     // Sound-Frame-items in deze order (voor de downloadknop in de popup)
     soundframe_items: extractSoundFrameItemsFromOrder({ line_items: lineItems }),
     // Foto-frame-items in deze order (voor de downloadknop in de popup)
-    photoframe_items: extractPhotoFrameItemsFromOrder({ line_items: lineItems })
+    photoframe_items: extractPhotoFrameItemsFromOrder({ line_items: lineItems }),
+    // Geschiedenis van statuswijzigingen (nieuwste eerst) — voor het
+    // overzicht onderaan de status-sectie in de popup.
+    status_history: getStatusHistory(order.id)
   });
 });
 

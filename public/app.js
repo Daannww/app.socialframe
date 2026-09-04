@@ -415,6 +415,23 @@ function renderModal(order) {
     </button>
   `;
 
+  // Geschiedenis van statuswijzigingen (nieuwste eerst) — server-berekend
+  // status_history-veld, zelfde aanpak als de andere *_items-velden.
+  // changed_at komt uit SQLite se datetime('now') — UTC, maar zonder "Z" of
+  // "T"-scheiding — zonder expliciet als UTC te markeren zou fmtDate() dit
+  // per ongeluk als LOKALE tijd interpreteren (browser-afhankelijk), dus
+  // eerst omzetten naar een geldige ISO-vorm.
+  const statusHistoryItems = order.status_history || [];
+  const statusHistoryHtml = statusHistoryItems.length > 0
+    ? `<ul class="status-history-list">${
+        statusHistoryItems.map(entry => {
+          const iso = entry.changed_at ? entry.changed_at.replace(' ', 'T') + 'Z' : null;
+          const van = entry.old_status ? escapeHtml(entry.old_status) : '(nieuwe order)';
+          return `<li><span class="status-history-datum">${fmtDate(iso)}</span> — ${van} → <strong>${escapeHtml(entry.new_status)}</strong></li>`;
+        }).join('')
+      }</ul>`
+    : `<p class="status-history-leeg">Nog geen statuswijzigingen.</p>`;
+
   // Alleen de voornaam gebruiken voor de aanhef (i.p.v. de volledige naam)
   const firstName = (order.customer_name || '').trim().split(' ')[0] || '';
 
@@ -553,6 +570,10 @@ function renderModal(order) {
     <div class="modal-section">
       <h3>Status wijzigen</h3>
       <div class="status-actions">${statusButtons}</div>
+      <div class="status-history">
+        <h4>Geschiedenis</h4>
+        ${statusHistoryHtml}
+      </div>
     </div>
 
     <div class="modal-section">
