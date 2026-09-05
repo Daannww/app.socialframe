@@ -8,7 +8,7 @@ const paths = require('./musicframe-paths');
 const {
   MM, splitTextEmoji, preloadEmojiImages, measureMixedTextWidth, drawMixedText,
   fitFontSizeToWidth, embedPhoto, fitPhotoInSquareZone, getCodeSvg, extractSvgShapes, drawSvgShapesInBox,
-  drawBackground, loadHebrewFont
+  drawBackground, loadHebrewFont, hasPageBackground, nearWhiteCmyk
 } = require('./pdf-shared');
 
 const PAGE_W_MM = 200;
@@ -288,14 +288,25 @@ async function generateMusicFramePdf(data) {
     drawIconPath(page, { ...paths[name], pageTopMm: paths[name].pageTopMm + iconShiftMm }, styleColor);
   });
 
-  // --- QR-code-achtergrond: puur wit (#FFFFFF) — dit is bewust een
-  // uitzondering op de "nooit puur wit"-regel die verder overal in dit
-  // bestand geldt (foto's, achtergrondkleur "Wit"): voor de QR-code-
-  // achtergrond specifiek moet het wél letterlijk #FFFFFF zijn.
-  // (De Spotify-code hieronder heeft GEEN eigen achtergrondvlak meer — die
-  // svg heeft zelf al een witte achtergrond ingebakken, en een extra vlak
-  // erachter oogde als een onnodig "los blokje" op elke plaat-achtergrond.) ---
-  const codeBackgroundColor = rgb(1, 1, 1);
+  // --- QR-code-achtergrond: bij ELKE getekende achtergrond (Wit, Zwart,
+  // Marmerwit, Marmerzwart) mag dit NOOIT puur wit (#FFFFFF) zijn — dat
+  // geeft print-gaten-risico, ook bij de kleine witte puntjes van de QR-code
+  // op een zwarte/marmerzwarte plaat, niet alleen bij een groot wit vlak.
+  // ALLEEN bij "Transparant" (geen getekende achtergrond, dus geen aparte
+  // inktlaag om te verstoren) is puur wit geen probleem — vandaar
+  // hasPageBackground() i.p.v. alleen een wit/marmer-check. Was hier eerder
+  // hardgecodeerd op puur wit; hoort net als de rest van het bestand de
+  // 1%-gele CMYK-truc te gebruiken. LET OP: dit geldt zowel voor het
+  // rechthoek-vlak hieronder ALS voor de "lichte" modules van de QR-code-
+  // afbeelding zelf (die stonden in getCodeSvg ook hardgecodeerd op
+  // #ffffff — zonder die aanpassing zou de QR-afbeelding het rechthoek-vlak
+  // toch weer met puur wit overdekken). (De Spotify-code hieronder heeft
+  // GEEN eigen achtergrondvlak meer — die svg heeft zelf al een witte
+  // achtergrond ingebakken, en een extra vlak erachter oogde als een
+  // onnodig "los blokje" op elke plaat-achtergrond.) ---
+  const codeBgIsNearWhite = hasPageBackground(data.achtergrondKleur);
+  const codeBackgroundColor = codeBgIsNearWhite ? nearWhiteCmyk(cmyk) : rgb(1, 1, 1);
+  const qrLightColorHex = codeBgIsNearWhite ? 'fffffd' : null;
 
   if (hasCode) {
     if (codeType === 'qr') {
@@ -316,7 +327,7 @@ async function generateMusicFramePdf(data) {
         color: codeBackgroundColor
       });
 
-      const codeSvg = await getCodeSvg('qr', data.link, qrBarColorHex);
+      const codeSvg = await getCodeSvg('qr', data.link, qrBarColorHex, qrLightColorHex);
       // Kan null zijn als het ophalen om wat voor reden dan ook mislukte —
       // dan liever de rest van het bestand gewoon compleet, zonder code, dan
       // de hele PDF-generatie te laten crashen.

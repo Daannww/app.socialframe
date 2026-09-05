@@ -597,11 +597,18 @@ async function makeLightPixelsTranslucent(pngBuffer, opacityPercent) {
 }
 
 // Genereert de svg voor een QR-code of Spotify Code.
-async function getCodeSvg(codeType, link, barColorHex) {
+async function getCodeSvg(codeType, link, barColorHex, lightColorHex) {
   if (codeType === 'qr') {
     try {
       const dark = barColorHex ? `#${barColorHex}` : '#000000';
-      return await QRCode.toString(link, { type: 'svg', margin: 1, color: { dark, light: '#ffffff' } });
+      // De "lichte" modules (het overgrote deel van het oppervlak, inclusief
+      // de witruimte rondom) stonden hier altijd hardgecodeerd op letterlijk
+      // #ffffff — dat gaf precies hetzelfde print-gaten-risico als een pure
+      // witte foto/achtergrond elders in dit project. `lightColorHex` laat de
+      // aanroeper (bij een "Wit"- of marmer-achtergrond) een net-niet-wit
+      // tintje meegeven i.p.v. hier zelf iets te verzinnen.
+      const light = lightColorHex ? `#${lightColorHex}` : '#ffffff';
+      return await QRCode.toString(link, { type: 'svg', margin: 1, color: { dark, light } });
     } catch (e) {
       // Zelfde redenering als bij Spotify hieronder: nooit de hele PDF laten
       // crashen enkel omdat 1 QR-code niet gegenereerd kon worden.

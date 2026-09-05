@@ -696,6 +696,44 @@ wordt herkend en getoond in de popup.
 in een ander veld), stuur dat door en dan pas ik `extractSpotifyLinks` in
 `server/shopify.js` aan zodat die op de juiste plek zoekt.
 
+## QR-code-achtergrond puur wit op een gekleurde plaat (print-gaten-bug)
+
+Bij het muziekframe/auto-frame met een QR-code: de QR-code had een letterlijk
+#FFFFFF-vlak erachter — zelfde print-gaten-risico als bij de transparante-
+foto's-bug hieronder. Bleek een regressie: `nearWhiteCmyk()` in
+`server/pdf-shared.js` bestond al specifiek voor dit doel, maar de code in
+`musicframe.js`/`autoframe.js` was op een gegeven moment teruggezet naar een
+hardgecodeerd `rgb(1, 1, 1)`, met een comment die dit zelfs als "bewuste
+uitzondering" omschreef.
+
+**Geldt voor ELKE getekende achtergrond, niet alleen Wit/marmer**: eerst
+alleen gefixt voor "Wit" en marmer-varianten, maar bleek ook nodig bij
+"Zwart" en "Marmerzwart" — de kleine witte puntjes van de QR-code op een
+zwarte/marmerzwarte plaat geven hetzelfde print-gaten-risico als een groot
+wit vlak. Gebruikt daarom de al bestaande `hasPageBackground()` (Wit, Zwart,
+Marmerwit, Marmerzwart -> `true`) i.p.v. een eigen wit/marmer-specifieke
+check. Alleen bij "Transparant" (geen getekende achtergrond, dus geen aparte
+inktlaag om te verstoren) blijft puur wit prima.
+
+**2 plekken die allebei gefixt moesten worden** — het volstond niet om
+alleen het rechthoek-vlak áchter de QR-code aan te passen: de QR-code-
+afbeelding zelf (gegenereerd via `getCodeSvg('qr', ...)` in
+`server/pdf-shared.js`) had de "lichte" modules (het overgrote deel van het
+oppervlak) ook hardgecodeerd op `#ffffff` — dus zelfs met een gefixt
+rechthoek erachter zou de QR-afbeelding dat toch weer met puur wit
+overdekken. `getCodeSvg` heeft nu een 4e, optioneel `lightColorHex`-
+argument; `musicframe.js`/`autoframe.js` geven daar `fffffd` (dezelfde
+1-punt-net-niet-wit-truc als de rest van het project) aan mee zodra
+`hasPageBackground()` `true` teruggeeft.
+
+Getest: `getCodeSvg` se eigen kleurenlogica in isolatie, en de volle
+`generateMusicFramePdf`/`generateAutoFramePdf`-functies over alle 5
+achtergrondkleuren (Wit/Zwart/Marmerwit/Marmerzwart/Transparant) —
+bevestigd dat de eerste 4 allemaal de 1%-gele correctie krijgen (zowel het
+rechthoek-vlak als de QR-afbeelding zelf) en alleen Transparant ongewijzigd
+blijft. Volledige regressietest op alle overige producten (Foto-frame,
+Sound-Frame, alle 13 tegeltjes) bevestigt geen neveneffecten.
+
 ## Transparante foto's ("doorzichtig wordt zwart"-bug)
 
 Ontdekt bij een klant die een transparante PNG (een sticker-achtig logo, met

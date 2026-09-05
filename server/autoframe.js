@@ -6,7 +6,7 @@ const path = require('path');
 const {
   MM, splitTextEmoji, preloadEmojiImages, drawMixedText, fitFontSizeToWidth,
   measureMixedTextWidth, embedPhoto, fitPhotoInSquareZone, getCodeSvg,
-  drawBackground, loadHebrewFont
+  drawBackground, loadHebrewFont, hasPageBackground, nearWhiteCmyk
 } = require('./pdf-shared');
 
 const PAGE_W_MM = 200;
@@ -218,7 +218,14 @@ async function generateAutoFramePdf(data) {
   // --- QR-code (alleen als hasCode) ---
   if (hasCode && data.link) {
     const qrBarColorHex = isWhite ? 'fffffd' : null;
-    const codeSvg = await getCodeSvg('qr', data.link, qrBarColorHex);
+    // Bij ELKE getekende achtergrond (Wit, Zwart, Marmerwit, Marmerzwart)
+    // mag de QR-code-achtergrond NOOIT puur wit zijn — ook de kleine witte
+    // puntjes op een zwarte/marmerzwarte plaat geven print-gaten-risico,
+    // niet alleen een groot wit vlak. Alleen bij "Transparant" (geen
+    // getekende achtergrond) is puur wit geen probleem.
+    const codeBgIsNearWhite = hasPageBackground(data.achtergrondKleur);
+    const qrLightColorHex = codeBgIsNearWhite ? 'fffffd' : null;
+    const codeSvg = await getCodeSvg('qr', data.link, qrBarColorHex, qrLightColorHex);
     // Kan null zijn als het genereren om wat voor reden dan ook mislukte —
     // dan liever de rest van het bestand gewoon compleet, zonder code, dan
     // de hele PDF-generatie te laten crashen.
@@ -230,11 +237,10 @@ async function generateAutoFramePdf(data) {
         .toBuffer();
       const codeImage = await doc.embedPng(codePng);
 
-      // Puur wit (#FFFFFF) — dit is bewust een uitzondering op de "nooit
-      // puur wit"-regel die verder overal in dit bestand geldt (foto's,
-      // achtergrondkleur "Wit"): voor de QR-code-achtergrond specifiek moet
-      // het wél letterlijk #FFFFFF zijn.
-      const codeBackgroundColor = rgb(1, 1, 1);
+      // Bij elke getekende achtergrond de 1%-gele CMYK-truc gebruiken i.p.v.
+      // puur wit (zie de toelichting hierboven bij qrLightColorHex) — alleen
+      // bij "Transparant" blijft puur wit prima.
+      const codeBackgroundColor = codeBgIsNearWhite ? nearWhiteCmyk(cmyk) : rgb(1, 1, 1);
 
       page.drawRectangle({
         x: box.xMm * MM,
