@@ -710,6 +710,15 @@ label "70x50cm" (zowel Ingelijst als Acrylglas) is FYSIEK in werkelijkheid
 70x48cm — een bewuste afwijking van het "ronde" marketingformaat, expliciet
 zo doorgegeven.
 
+**Canvas-oriëntatie volgt de foto** (op verzoek, na een eerste, foute versie
+die altijd een vaste liggende breedte/hoogte gebruikte): elk formaat heeft 2
+zijdematen (bv. 50cm en 40cm) zonder vaste breedte/hoogte-toewijzing —
+de foto wordt EERST opgehaald om zijn eigen beeldverhouding te bepalen, en
+pas dan krijgt het canvas zijn definitieve afmetingen: een staande foto
+krijgt de kleinste zijdemaat als breedte en de grootste als hoogte (dus een
+staand canvas), een liggende foto precies andersom. Bij het vierkante
+formaat (50x50) maakt dit vanzelfsprekend niets uit.
+
 **Foto-plaatsing**: de foto komt nooit beeldvullend tot de rand, maar altijd
 met minimaal 2cm marge rondom (op verzoek). Omdat de foto's eigen
 beeldverhouding zelden precies overeenkomt met de resterende beschikbare
@@ -717,10 +726,17 @@ ruimte, vult meestal maar 1 richting exact de beschikbare ruimte (breedte
 Óf hoogte, wat het eerst de rand raakt) — de andere richting schaalt
 proportioneel mee en laat dus een grotere marge over. De resterende ruimte
 (buiten de foto, binnen het formaat) is witruimte.
-**Bewust een uitzondering op de "nooit puur wit"-anti-gaten-regel** die
-verder in dit hele project geldt: op expliciet verzoek is deze witruimte
-LETTERLIJK #FFFFFF, niet de gebruikelijke 1%-gele CMYK-truc. De foto zelf
-krijgt via `embedPhoto` nog wel gewoon de normale kleurcorrectie.
+
+**Dit product heeft GEEN kleurcorrectie, ook niet op de foto zelf** (op
+verzoek, na een eerste, foute versie die per ongeluk via `embedPhoto` toch
+de gebruikelijke Y+8%-CMYK-anti-gaten-correctie meegaf): "dit product heeft
+geen last van gaten" — dus zowel de witruimte áls de foto zelf gebruiken nu
+een eigen, simpele inbedding (`embedPhotoOngewijzigd`) die alleen EXIF-
+rotatie + verkleinen (nooit vergroten) doet, verder de brondata volledig
+ongemoeid — GEEN kleurcorrectie van welke soort dan ook. Dit is de enige
+foto-gebaseerde product in dit hele project waar dat zo is; alle andere
+producten (muziekframe, auto-frame, Foto-frame, Sound-Frame, autopictura-
+tegeltjes) passen die correctie nog wel gewoon toe.
 
 **Dun lichtgrijs snijlijntje** rondom de volledige buitenrand (CMYK-
 neutrale grijswaarde 0.75, 0.3mm dik) — een zuiver visuele snijhulplijn (op
@@ -729,12 +745,15 @@ ontwerp zelf.
 
 Getest: formaat-herkenning voor alle 4 varianten (inclusief de 70x48cm-
 afwijking), de autopictura-link-extractie met de exacte eigenschappen uit
-een order-screenshot, en de foto-plaatsing in BEIDE richtingen (een brede/
-landschap-foto en een smalle/staande foto) — bevestigd met exacte
-pixel/mm-metingen dat de marge overal minimaal 2cm is, de witruimte
-letterlijk (1,1,1) RGB is, en het snijlijntje de juiste kleur/dikte heeft.
-Volledige regressietest op alle overige producten bevestigt geen
-neveneffecten.
+een order-screenshot, canvas-oriëntatie in BEIDE richtingen (een staande
+foto geeft een staand canvas, een liggende foto een liggend canvas — exact
+geverifieerd via de PDF-paginaposities) plus het vierkante formaat, de
+foto-plaatsing zelf (marge overal minimaal 2cm, exacte pixel/mm-metingen),
+en expliciet bevestigd dat een puur wit (255,255,255) vlak BINNEN de foto
+ook puur wit blijft (geen ~20-punts kleurverschuiving zoals de Y+8%-truc
+elders zou geven) — alleen de verwaarloosbare, normale afrondingsruis van
+JPEG-compressie (1 eenheid) is aanwezig. Volledige regressietest op alle
+overige producten bevestigt geen neveneffecten.
 
 ## Verkeerd-gelabelde productregel ("Als een cadeautje inpakken.") mist een drukwerkbestand
 

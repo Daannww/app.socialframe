@@ -1,6 +1,7 @@
 const { PDFDocument, rgb } = require('pdf-lib');
 const axios = require('axios');
-const { MM, embedPhoto } = require('./pdf-shared');
+const sharp = require('sharp');
+const { MM, heeftEchteTransparantie } = require('./pdf-shared');
 
 // Zelfde patroon als AUTOPICTURA_REGEX in server/shopify.js — hier los
 // gedupliceerd (i.p.v. te exporteren/importeren) om geen onnodige wijziging
@@ -8,13 +9,17 @@ const { MM, embedPhoto } = require('./pdf-shared');
 // product.
 const AUTOPICTURA_REGEX = /(https?:\/\/[^\s"'<>]*autopictura[^\s"'<>]*)/gi;
 
-// De 4 bestelbare formaten — LET OP: "70x50cm" is bij dit product (zowel de
+// De 4 bestelbare formaten — alleen de 2 zijdematen, GEEN vaste breedte/
+// hoogte-toewijzing: welke zijde de breedte wordt en welke de hoogte hangt
+// af van de oriëntatie van de foto zelf (zie generateLijntekeningFramePdf
+// hieronder) — een staande foto krijgt een staand canvas, een liggende foto
+// een liggend canvas. LET OP: "70x50cm" is bij dit product (zowel de
 // ingelijste als de acrylglas-variant) in werkelijkheid 70x48cm fysiek, een
 // bewuste afwijking van het "ronde" marketingformaat op de website.
 const FORMATEN = [
-  { herken: /70\s*x\s*50/i, breedteCm: 70, hoogteCm: 48 },
-  { herken: /50\s*x\s*40/i, breedteCm: 50, hoogteCm: 40 },
-  { herken: /50\s*x\s*50/i, breedteCm: 50, hoogteCm: 50 }
+  { herken: /70\s*x\s*50/i, zijdeACm: 70, zijdeBCm: 48 },
+  { herken: /50\s*x\s*40/i, zijdeACm: 50, zijdeBCm: 40 },
+  { herken: /50\s*x\s*50/i, zijdeACm: 50, zijdeBCm: 50 }
 ];
 
 function isLijntekeningFrameLineItem(li) {
@@ -57,64 +62,93 @@ function extractLijntekeningFrameItemsFromOrder(rawOrder) {
 // formaat (op verzoek: minimaal 2cm rondom).
 const MARGE_MM = 20;
 
+// Simpele foto-inbedding ZONDER de gebruikelijke Y+8%-CMYK-anti-gaten-
+// correctie die embedPhoto/embedPhotoCoverRect elders in dit project altijd
+// toepassen — voor dit specifieke product expliciet niet gewenst ("dit
+// product heeft geen last van gaten"). Alleen EXIF-rotatie + verkleinen
+// (nooit vergroten) + inbedden, verder de kleuren van de bron-afbeelding
+// volledig ongemoeid. Wél nog de bestaande transparantie-detectie
+// hergebruikt (PNG i.p.v. JPEG als de foto echte transparantie bevat), puur
+// om diezelfde (losstaande) verbetering hier ook te laten gelden — dat is
+// geen kleurCORRECTIE, alleen een formaatkeuze.
+async function embedPhotoOngewijzigd(doc, photoUrl, maxZijdeMm) {
+  const imgRes = await axios.get(photoUrl, { responseType: 'arraybuffer' });
+  const rotatedBuffer = await sharp(Buffer.from(imgRes.data)).rotate().toBuffer();
+  const metadata = await sharp(rotatedBuffer).metadata();
+  const aspectRatio = metadata.width / metadata.height;
+
+  const maxZijdePx = Math.ceil((maxZijdeMm / 25.4) * 300);
+  const resizedBuffer = await sharp(rotatedBuffer)
+    .resize({ width: maxZijdePx, height: maxZijdePx, fit: 'inside', withoutEnlargement: true })
+    .toBuffer();
+
+  if (await heeftEchteTransparantie(resizedBuffer)) {
+    const pngBuffer = await sharp(resizedBuffer).png().toBuffer();
+    const image = await doc.embedPng(pngBuffer);
+    return { image, aspectRatio };
+  }
+  const jpegBuffer = await sharp(resizedBuffer).jpeg({ quality: 95 }).toBuffer();
+  const image = await doc.embedJpg(jpegBuffer);
+  return { image, aspectRatio };
+}
+
 async function generateLijntekeningFramePdf(data) {
   if (!data.formaat) {
     throw new Error('Kon het bestelde formaat niet herkennen uit de producttitel/variant.');
   }
-  const pageWMm = data.formaat.breedteCm * 10;
-  const pageHMm = data.formaat.hoogteCm * 10;
+  if (!data.photoUrl) {
+    throw new Error('Geen autopictura-ontwerplink gevonden op deze order.');
+  }
 
+  const { zijdeACm, zijdeBCm } = data.formaat;
+
+  // Foto eerst ophalen (nodig om de eigen oriëntatie te bepalen, VOORDAT we
+  // weten of het canvas straks liggend of staand moet zijn).
+  const targetZoneMm = Math.max(zijdeACm, zijdeBCm) * 10; // ruim voldoende voor de langste zijde
   const doc = await PDFDocument.create();
+  const { image, aspectRatio } = await embedPhotoOngewijzigd(doc, data.photoUrl, targetZoneMm);
+
+  // Canvas-oriëntatie volgt de foto: een staande foto (aspectRatio < 1)
+  // krijgt een staand canvas (de kleinste zijdemaat als breedte, de
+  // grootste als hoogte), een liggende foto (aspectRatio > 1) een liggend
+  // canvas — i.p.v. altijd een vaste breedte/hoogte-toewijzing te gebruiken.
+  // Bij een vierkant formaat (zijdeACm === zijdeBCm) maakt dit toch niets uit.
+  const staand = aspectRatio < 1;
+  const pageWMm = (staand ? Math.min(zijdeACm, zijdeBCm) : Math.max(zijdeACm, zijdeBCm)) * 10;
+  const pageHMm = (staand ? Math.max(zijdeACm, zijdeBCm) : Math.min(zijdeACm, zijdeBCm)) * 10;
+
   const page = doc.addPage([pageWMm * MM, pageHMm * MM]);
 
-  // Achtergrond: bewust LETTERLIJK puur wit (#FFFFFF), op expliciet verzoek
-  // — dit is een uitzondering op de "nooit puur wit"-anti-gaten-regel die
-  // verder in dit project overal geldt (zie de transparante-foto's- en
-  // QR-code-fixes). De foto zelf (hieronder, via embedPhoto) krijgt nog wel
-  // gewoon de gebruikelijke kleurcorrectie mee — dit gaat alleen over het
-  // vlak ERBUITEN.
+  // Achtergrond: bewust LETTERLIJK puur wit (#FFFFFF) — dit product heeft
+  // geen last van print-gaten, dus GEEN 1%-gele CMYK-truc hier (in
+  // tegenstelling tot bijna alle andere producten in dit project). Geldt
+  // zowel voor dit vlak als voor de foto zelf (zie embedPhotoOngewijzigd
+  // hierboven, die bewust GEEN kleurcorrectie toepast).
   page.drawRectangle({ x: 0, y: 0, width: pageWMm * MM, height: pageHMm * MM, color: rgb(1, 1, 1) });
 
-  if (data.photoUrl) {
-    // Beschikbare ruimte voor de foto: het volledige formaat, min de marge
-    // rondom aan ALLE kanten (dus 2x de marge eraf per richting).
-    const beschikbareBreedteMm = pageWMm - 2 * MARGE_MM;
-    const beschikbareHoogteMm = pageHMm - 2 * MARGE_MM;
+  // Beschikbare ruimte voor de foto: het volledige (nu bekende) canvas, min
+  // de marge rondom aan ALLE kanten (dus 2x de marge eraf per richting).
+  const beschikbareBreedteMm = pageWMm - 2 * MARGE_MM;
+  const beschikbareHoogteMm = pageHMm - 2 * MARGE_MM;
+  const beschikbareVerhouding = beschikbareBreedteMm / beschikbareHoogteMm;
 
-    // embedPhoto regelt het ophalen/roteren/kleurcorrigeren en geeft de
-    // eigen beeldverhouding van de foto terug — de uiteindelijke plaatsing
-    // (welke richting precies de volle beschikbare ruimte vult, en de rest
-    // proportioneel meeschaalt) bepalen we hieronder zelf, voor dit
-    // rechthoekige (niet per se vierkante) beschikbare vak.
-    const targetZoneMm = Math.max(beschikbareBreedteMm, beschikbareHoogteMm);
-    const { image, aspectRatio } = await embedPhoto(doc, data.photoUrl, null, targetZoneMm);
-
-    const beschikbareVerhouding = beschikbareBreedteMm / beschikbareHoogteMm;
-    let renderBreedteMm, renderHoogteMm;
-    if (aspectRatio >= beschikbareVerhouding) {
-      // Foto is verhoudingsgewijs breder dan het beschikbare vak -> breedte
-      // vult de volle beschikbare breedte, hoogte schaalt proportioneel mee
-      // (en blijft dus binnen de beschikbare hoogte).
-      renderBreedteMm = beschikbareBreedteMm;
-      renderHoogteMm = beschikbareBreedteMm / aspectRatio;
-    } else {
-      // Foto is verhoudingsgewijs smaller/hoger -> hoogte vult de volle
-      // beschikbare hoogte, breedte schaalt proportioneel mee (en blijft
-      // dus binnen de beschikbare breedte) — bv. het door de gebruiker
-      // genoemde geval van een smallere foto in een brede lijst.
-      renderHoogteMm = beschikbareHoogteMm;
-      renderBreedteMm = beschikbareHoogteMm * aspectRatio;
-    }
-    const renderXMm = (pageWMm - renderBreedteMm) / 2;
-    const renderYMm = (pageHMm - renderHoogteMm) / 2; // PDF-Y vanaf onder — bij verticaal centreren is "vanaf onder" en "vanaf boven" hetzelfde getal
-
-    page.drawImage(image, {
-      x: renderXMm * MM,
-      y: renderYMm * MM,
-      width: renderBreedteMm * MM,
-      height: renderHoogteMm * MM
-    });
+  let renderBreedteMm, renderHoogteMm;
+  if (aspectRatio >= beschikbareVerhouding) {
+    renderBreedteMm = beschikbareBreedteMm;
+    renderHoogteMm = beschikbareBreedteMm / aspectRatio;
+  } else {
+    renderHoogteMm = beschikbareHoogteMm;
+    renderBreedteMm = beschikbareHoogteMm * aspectRatio;
   }
+  const renderXMm = (pageWMm - renderBreedteMm) / 2;
+  const renderYMm = (pageHMm - renderHoogteMm) / 2;
+
+  page.drawImage(image, {
+    x: renderXMm * MM,
+    y: renderYMm * MM,
+    width: renderBreedteMm * MM,
+    height: renderHoogteMm * MM
+  });
 
   // Dun lichtgrijs snijlijntje rondom de volledige buitenrand — puur een
   // visuele snijhulplijn (op verzoek), geen onderdeel van het ontwerp zelf.
