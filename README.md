@@ -696,6 +696,29 @@ wordt herkend en getoond in de popup.
 in een ander veld), stuur dat door en dan pas ik `extractSpotifyLinks` in
 `server/shopify.js` aan zodat die op de juiste plek zoekt.
 
+## Bestelnummer mist het Shopify-voorvoegsel (bv. "1231" vóór het nummer)
+
+Deze winkel heeft in de Shopify-instellingen een aangepaste bestelnummer-
+opmaak (een voorvoegsel, bv. "1231" vóór het eigenlijke volgnummer, samen
+"123152779"). `mapOrder` in `server/shopify.js` gebruikte `order.order_number`
+als eerste keuze — dat Shopify-veld geeft altijd het KALE volgnummer, ZONDER
+een eventueel ingesteld voorvoegsel. Dat voorvoegsel zit wel in `order.name`
+(met een leidend "#", zoals Shopify dat overal toont). Omgedraaid: nu `name`
+(met het "#" eraf gehaald) als voorkeur, `order_number` alleen nog als
+terugval voor het geval `name` om wat voor reden dan ook ontbreekt.
+
+Geldt voor elke plek waar het bestelnummer gebruikt wordt (tabel, popup,
+pakbon, barcode, bestandsnamen van drukwerkbestanden, review-mail-onderwerp)
+— die lezen allemaal hetzelfde, nu gecorrigeerde `order_number`-veld uit de
+database, dus 1 fix op de bron volstaat. **Bestaande, al gesynchroniseerde
+orders herstellen zichzelf vanzelf bij de eerstvolgende sync** —
+`upsertOrder` in `server/db.js` ververst `order_number` toch al bij elke
+sync-run, dus geen aparte migratie/actie nodig.
+
+Getest: 4 scenario's (met voorvoegsel, zonder voorvoegsel/normale winkel,
+`name` ontbreekt helemaal, `name` zonder leidend "#") — bevestigd dat elk
+scenario het juiste, verwachte bestelnummer oplevert.
+
 ## Lijntekening Portret in lijst (server/lijntekeningframe.js)
 
 Autopictura-gebaseerd product (herkend aan de `_autopictura_design_link`-

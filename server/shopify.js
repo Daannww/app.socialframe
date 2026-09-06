@@ -311,7 +311,14 @@ function mapOrder(order) {
 
   return {
     shopify_order_id: String(order.id),
-    order_number: String(order.order_number || order.name || ''),
+    // Shopify se "order_number" is altijd het KALE volgnummer, zonder een
+    // eventueel aangepast bestelnummer-voorvoegsel dat in de Shopify-
+    // instellingen is ingesteld (bv. "1231" vóór het eigenlijke nummer,
+    // zoals "123152779") — dat voorvoegsel zit wél in "order.name" (met
+    // doorgaans een leidend "#", zoals Shopify dat overal toont). Daarom
+    // hier "name" als voorkeur, met "order_number" alleen als terugval als
+    // "name" om wat voor reden dan ook ontbreekt.
+    order_number: String((order.name || '').replace(/^#/, '') || order.order_number || ''),
     customer_name: order.customer ? `${order.customer.first_name || ''} ${order.customer.last_name || ''}`.trim() : (addr.name || ''),
     customer_email: order.email || order.customer?.email || '',
     customer_phone: order.phone || order.customer?.phone || addr.phone || '',
