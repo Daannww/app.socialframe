@@ -18,6 +18,7 @@ const { generateTegelTekstPdf, extractTegelTekstItemsFromOrder } = require('./te
 const { generateSoundFramePdf, extractSoundFrameItemsFromOrder } = require('./soundframe');
 const { generatePhotoFramePdf, extractPhotoFrameItemsFromOrder } = require('./photoframe');
 const { generateLijntekeningFramePdf, extractLijntekeningFrameItemsFromOrder } = require('./lijntekeningframe');
+const { generateTegelIllustratiePdf, extractTegelIllustratieItemsFromOrder } = require('./tegelillustratie');
 const { sendReviewEmail } = require('./reviewEmail');
 const SqliteSessionStore = require('./sqliteSessionStore');
 
@@ -173,6 +174,8 @@ app.get('/api/orders/:id', (req, res) => {
     photoframe_items: extractPhotoFrameItemsFromOrder({ line_items: lineItems }),
     // Lijntekening-Portret-in-lijst-items (voor de downloadknop in de popup)
     lijntekeningframe_items: extractLijntekeningFrameItemsFromOrder({ line_items: lineItems }),
+    // Vaste-illustratie-tegeltjes (bv. "Dat dit huis gevuld mag zijn met liefde...")
+    tegelillustratie_items: extractTegelIllustratieItemsFromOrder({ line_items: lineItems }),
     // Muziekframe/Valentijnframe-items (voor het aantal downloadknoppen in
     // de popup) — was voorheen een LOSSE, eigen (verouderde, puur titel-
     // gebaseerde) regex in app.js zelf, die de eigenschappen-fallback-fix
@@ -593,6 +596,35 @@ app.get('/api/print-files/lijntekeningframe-pdf', requireAdmin, async (req, res)
   }
 });
 
+// --- Eén tegel-illustratie-drukwerkbestand downloaden vanuit de order-popup
+// (vaste, volledig gekleurde illustratie-tegeltjes zoals "Dat dit huis
+// gevuld mag zijn met liefde...", geen kleurwissel-logica, zelfde
+// 10x10/13x13-protocol als de autopictura-tegeltjes) ---
+app.get('/api/print-files/tegelillustratie-pdf', requireAdmin, async (req, res) => {
+  const orderId = parseInt(req.query.orderId, 10);
+  const itemIndex = parseInt(req.query.itemIndex, 10) || 0;
+  if (!orderId) return res.status(400).json({ error: 'orderId is verplicht' });
+
+  try {
+    const order = getOrder(orderId);
+    if (!order) return res.status(404).json({ error: 'Order niet gevonden' });
+
+    const lineItems = JSON.parse(order.line_items_json || '[]');
+    const items = extractTegelIllustratieItemsFromOrder({ line_items: lineItems });
+    const item = items[itemIndex];
+    if (!item) return res.status(404).json({ error: 'Geen tegel-illustratie gevonden op deze order' });
+
+    const pdfBytes = await generateTegelIllustratiePdf(item.data);
+    const baseName = String(order.order_number || order.shopify_order_id).replace(/[\\/:*?"<>|]/g, '-');
+    const suffix = items.length > 1 ? ` ${itemIndex + 1}` : '';
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${baseName}${suffix} tegelillustratie.pdf"`);
+    res.send(Buffer.from(pdfBytes));
+  } catch (e) {
+    res.status(500).json({ error: 'Kon tegelillustratie-bestand niet genereren: ' + e.message });
+  }
+});
+
 // --- Eén Auto-frame-drukwerkbestand downloaden vanuit de order-popup ---
 app.get('/api/print-files/autoframe-pdf', requireAdmin, async (req, res) => {
   const orderId = parseInt(req.query.orderId, 10);
@@ -649,7 +681,8 @@ app.get('/api/print-files/pdf-zip', requireAdmin, async (req, res) => {
       extractTegelTekstItemsFromOrder({ line_items: o.line_items }).length > 0 ||
       extractSoundFrameItemsFromOrder({ line_items: o.line_items }).length > 0 ||
       extractPhotoFrameItemsFromOrder({ line_items: o.line_items }).length > 0 ||
-      extractLijntekeningFrameItemsFromOrder({ line_items: o.line_items }).length > 0
+      extractLijntekeningFrameItemsFromOrder({ line_items: o.line_items }).length > 0 ||
+      extractTegelIllustratieItemsFromOrder({ line_items: o.line_items }).length > 0
     );
 
     if (targets.length === 0) {
@@ -689,6 +722,8 @@ app.get('/api/print-files/pdf-zip', requireAdmin, async (req, res) => {
 //   {datum}/muziekframe/klein/1099 fotoframe klein.pdf
 //   {datum}/soundframe/1099 soundframe.pdf
 //   {datum}/lijntekeningframe/1099 lijntekeningframe.pdf
+//   {datum}/tegels/1099 illustratie.pdf
+//   {datum}/tegels/groot/1099 illustratie groot.pdf
 async function appendPrintFilesToArchive(archive, targets) {
   const dateFolder = getDutchDateString(); // YYYY-MM-DD, Nederlandse tijdzone
 
@@ -912,6 +947,34 @@ async function appendPrintFilesToArchive(archive, targets) {
       }
     }
 
+    // --- Vaste-illustratie-tegeltjes (bv. "Dat dit huis gevuld mag zijn met
+    // liefde..."): zelfde map-conventie als de gewone autopictura-tegeltjes
+    // (13x13 -> submap "groot", 10x10 direct in "tegels/") — het is
+    // immers fysiek exact hetzelfde soort tegeltje. "illustratie" in de
+    // bestandsnaam zelf voorkomt een naam-botsing mocht dezelfde order
+    // toevallig ook een gewone autopictura-tegel bevatten. ---
+    const tegelIllustratieItems = extractTegelIllustratieItemsFromOrder({ line_items: order.line_items });
+    if (tegelIllustratieItems.length > 0) {
+      const multipleIllustraties = tegelIllustratieItems.length > 1;
+      for (let i = 0; i < tegelIllustratieItems.length; i++) {
+        const numberSuffix = multipleIllustraties ? ` ${i + 1}` : '';
+        const item = tegelIllustratieItems[i];
+        const filename = item.data.is13x13
+          ? `${dateFolder}/tegels/groot/${baseName}${numberSuffix} illustratie groot.pdf`
+          : `${dateFolder}/tegels/${baseName}${numberSuffix} illustratie.pdf`;
+        try {
+          const pdfBytes = await generateTegelIllustratiePdf(item.data);
+          archive.append(Buffer.from(pdfBytes), { name: filename });
+          orderSucceeded = true;
+        } catch (e) {
+          archive.append(
+            `Kon het tegelillustratie-bestand voor order ${baseName}${numberSuffix} niet genereren: ${e.message}`,
+            { name: `${dateFolder}/tegels/FOUT-${baseName}${numberSuffix}-illustratie.txt` }
+          );
+        }
+      }
+    }
+
     // Order automatisch naar "wacht op productie" zetten zodra minstens 1 drukwerkbestand is gelukt
     if (orderSucceeded) {
       updateStatus(order.id, 'wacht op productie');
@@ -937,7 +1000,8 @@ async function runScheduledPrintFilesExport() {
     extractTegelTekstItemsFromOrder({ line_items: o.line_items }).length > 0 ||
     extractSoundFrameItemsFromOrder({ line_items: o.line_items }).length > 0 ||
     extractPhotoFrameItemsFromOrder({ line_items: o.line_items }).length > 0 ||
-    extractLijntekeningFrameItemsFromOrder({ line_items: o.line_items }).length > 0
+    extractLijntekeningFrameItemsFromOrder({ line_items: o.line_items }).length > 0 ||
+    extractTegelIllustratieItemsFromOrder({ line_items: o.line_items }).length > 0
   );
 
   if (targets.length === 0) {

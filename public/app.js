@@ -349,6 +349,19 @@ function renderModal(order) {
       }</div>`
     : '';
 
+  // Vaste-illustratie-tegeltjes: zelfde aanpak — server-berekend
+  // tegelillustratie_items-veld gebruiken.
+  const tegelIllustratieItems = order.tegelillustratie_items || [];
+  const tegelIllustratieHtml = tegelIllustratieItems.length > 0
+    ? `<div style="display:flex; flex-direction:column; gap:8px;">${
+        tegelIllustratieItems.map((item, idx) => `
+      <button class="btn btn-primary" onclick="downloadTegelIllustratiePdf(${order.id}, ${idx}, this)">
+        <i class="fa-solid fa-download"></i> Download tegelillustratie-bestand${tegelIllustratieItems.length > 1 ? ` (${idx + 1})` : ''}
+      </button>
+    `).join('')
+      }</div>`
+    : '';
+
   const spotifyHtml = (order.spotify_links || []).map((link, idx) => `
     <div class="spotify-link-row" data-link="${escapeHtml(link)}">
       <a href="${escapeHtml(link)}" target="_blank" rel="noopener" class="copyable" onclick="event.preventDefault(); copyText(this, '${jsEscape(link)}')" title="Klik om te kopiëren">${escapeHtml(link)}</a>
@@ -571,6 +584,13 @@ function renderModal(order) {
     <div class="modal-section">
       <h3>Lijntekening Portret in lijst</h3>
       ${lijntekeningFrameHtml}
+    </div>
+    ` : ''}
+
+    ${tegelIllustratieHtml ? `
+    <div class="modal-section">
+      <h3>Tegel-illustratie</h3>
+      ${tegelIllustratieHtml}
     </div>
     ` : ''}
 
@@ -804,6 +824,33 @@ window.downloadLijntekeningFramePdf = async function (orderId, idx, btn) {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   } catch (e) {
     alert('Kon lijntekeningframe-bestand niet genereren: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalLabel;
+  }
+};
+
+window.downloadTegelIllustratiePdf = async function (orderId, idx, btn) {
+  const originalLabel = btn.innerHTML;
+  btn.disabled = true;
+  btn.textContent = 'Bezig...';
+  try {
+    const res = await fetch(`/api/print-files/tegelillustratie-pdf?orderId=${orderId}&itemIndex=${idx}`);
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || 'Server gaf een fout terug');
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `tegelillustratie-order-${orderId}-${idx + 1}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } catch (e) {
+    alert('Kon tegelillustratie-bestand niet genereren: ' + e.message);
   } finally {
     btn.disabled = false;
     btn.innerHTML = originalLabel;

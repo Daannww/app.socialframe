@@ -1,6 +1,7 @@
 const axios = require('axios');
 const { upsertOrder, getMeta, setMeta } = require('./db');
 const { isTegelTekstLineItem } = require('./texttile');
+const { isTegelIllustratieLineItem } = require('./tegelillustratie');
 
 const STORE = process.env.SHOPIFY_STORE;
 const TOKEN = process.env.SHOPIFY_ACCESS_TOKEN;
@@ -266,13 +267,16 @@ function determineInitialStatus(lineItems, photoLinks, fulfillmentStatus) {
   if (photoLinks && photoLinks.length > 0) return 'wacht op drukwerkbestand';
   const allTextTiles = lineItems.every(li => /tegeltje met tekst/i.test(li.title || ''));
   if (allTextTiles) {
-    // Herkennen we voor ELK van deze tegeltjes een vast ontwerp (zie
-    // texttile.js), dan kan er nu automatisch een drukwerkbestand voor
-    // gegenereerd worden — dus net als de andere producten naar "wacht op
-    // drukwerkbestand". Staat er een tegeltje-met-tekst tussen waar (nog)
-    // geen ontwerp voor bekend is, dan blijft de oude "wacht op productie"-
-    // aanpak gelden (handmatig afhandelen, kan nu eenmaal niet automatisch).
-    const alleOntwerpenBekend = lineItems.every(li => isTegelTekstLineItem(li));
+    // Herkennen we voor ELK van deze tegeltjes een vast ontwerp — via
+    // texttile.js (zwart/wit-lijntekening die per tegelkleur van kleur
+    // wisselt) OF via tegelillustratie.js (vaste, volledig gekleurde
+    // illustratie, geen kleurwissel) — dan kan er nu automatisch een
+    // drukwerkbestand voor gegenereerd worden — dus net als de andere
+    // producten naar "wacht op drukwerkbestand". Staat er een tegeltje-met-
+    // tekst tussen waar (nog) geen ontwerp voor bekend is bij GEEN van
+    // beide systemen, dan blijft de oude "wacht op productie"-aanpak
+    // gelden (handmatig afhandelen, kan nu eenmaal niet automatisch).
+    const alleOntwerpenBekend = lineItems.every(li => isTegelTekstLineItem(li) || isTegelIllustratieLineItem(li));
     return alleOntwerpenBekend ? 'wacht op drukwerkbestand' : 'wacht op productie';
   }
   return 'wacht op drukwerkbestand';

@@ -696,6 +696,56 @@ wordt herkend en getoond in de popup.
 in een ander veld), stuur dat door en dan pas ik `extractSpotifyLinks` in
 `server/shopify.js` aan zodat die op de juiste plek zoekt.
 
+## Vaste-illustratie-tegeltjes (server/tegelillustratie.js)
+
+Nieuwe productfamilie binnen "Tegeltje met tekst", maar FUNDAMENTEEL anders
+dan de 13 ontwerpen in `texttile.js`: dit zijn kant-en-klare, volledig
+gekleurde aquarel-illustraties (bv. "Dat dit huis gevuld mag zijn met
+liefde, vrolijkheid en zonneschijn.") die NIET per tegelkleur van kleur
+wisselen — de illustratie wordt gewoon rechtstreeks als vaste JPEG-
+afbeelding geprint, in de klant se keuze van 10x10 of 13x13cm. Past dus niet
+in het texttile.js-systeem (dat is juist gebouwd rond die kleurwissel-
+logica) — daarom een eigen, aparte module, die het bestaande
+`imageBufferToPrintPdf` uit `server/printfile.js` hergebruikt: exact hetzelfde
+protocol als de bestaande autopictura-tegeltjes ("zelfde als de autopictura
+bestanden", op verzoek) — inclusief GEEN Y+8%-CMYK-correctie (die zit ook
+niet in de gewone autopictura-tegel-generatie).
+
+**Het referentiebestand IS het ontwerp**: in plaats van vectorpaden of tekst
+te extraheren (zoals bij texttile.js), wordt het aangeleverde PDF-bestand
+gewoon op hoge resolutie (400dpi) gerenderd tot een vast JPEG-asset
+(`server/tegel-illustratie-assets/`), dat vervolgens voor elke bestelling
+van dát ontwerp herbruikt wordt — de klant past niets aan, alleen het
+formaat (10x10/13x13) is een keuze.
+
+**Formaat-herkenning**: exact dezelfde "13x13 ergens in titel/variant/
+properties, anders 10x10"-conventie als de bestaande autopictura-tegeltjes
+(`extractTileItemsFromOrder` in `server/shopify.js`) — bewust hergebruikt
+i.p.v. een eigen variant te verzinnen.
+
+**Belangrijke aanvulling nodig in `determineInitialStatus`** (server/shopify.js):
+die functie controleerde tot nu toe alleen `isTegelTekstLineItem` (uit
+texttile.js) om te bepalen of een "Tegeltje met tekst"-order automatisch
+naar "wacht op drukwerkbestand" kan — zonder aanvulling zou dit nieuwe,
+losstaande systeem dus ONTERECHT als "onbekend ontwerp" behandeld worden
+(en op "wacht op productie" blijven staan, ook al kan er allang automatisch
+een bestand voor gegenereerd worden). Nu ook `isTegelIllustratieLineItem`
+meegecontroleerd.
+
+Komt in de bulk-export terecht in dezelfde mapstructuur als de gewone
+autopictura-tegeltjes (`tegels/` resp. `tegels/groot/` voor 13x13) — het is
+immers fysiek exact hetzelfde soort tegeltje — met "illustratie" in de
+bestandsnaam zelf om een naam-botsing te voorkomen mocht dezelfde order
+toevallig ook een gewone autopictura-tegel bevatten.
+
+Getest: herkenning (inclusief geen overlap met de andere 13 "Tegeltje met
+tekst"-ontwerpen), 10x10/13x13-detectie in beide richtingen, de daadwerkelijke
+PDF-generatie op exact 10.0x10.0cm en 13.0x13.0cm (geverifieerd via de PDF-
+paginaresolutie), en de 3 statuslogica-scenario's (dit ontwerp -> automatisch,
+een écht onbekend tegeltje-ontwerp -> nog steeds handmatig, een bestaand
+texttile.js-ontwerp -> ongewijzigd). Volledige regressietest op alle overige
+producten bevestigt geen neveneffecten.
+
 ## Bestelnummer mist het Shopify-voorvoegsel (bv. "1231" vóór het nummer)
 
 Deze winkel heeft in de Shopify-instellingen een aangepaste bestelnummer-
