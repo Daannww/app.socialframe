@@ -270,14 +270,17 @@ function renderModal(order) {
     </div>
   `).join('') || '<p>Geen items gevonden</p>';
 
-  const musicFrameLineItems = (order.line_items || []).filter(li => /muziek[\s-]?frame|music[\s-]?frame|valentijn[\s-]?frame|valentine?s?[\s-]?frame|musik[\s-]?rahmen|valentins?[\s-]?rahmen/i.test(li.title || ''));
-  // Houd rekening met aantal (quantity): 2x hetzelfde besteld = 2 losse knoppen/bestanden
-  const musicFrameCount = musicFrameLineItems.reduce((sum, li) => sum + (li.quantity && li.quantity > 0 ? li.quantity : 1), 0);
-  const musicFrameHtml = musicFrameCount > 0
+  // Muziekframe/Valentijnframe: zelfde aanpak als de andere producten —
+  // server-berekend musicframe_items-veld gebruiken (was voorheen een eigen,
+  // verouderde titel-only regex hier in app.js, die de eigenschappen-
+  // fallback-fix in server/musicframe.js niet meekreeg — zie de toelichting
+  // bij dat veld in server/index.js).
+  const musicFrameItems = order.musicframe_items || [];
+  const musicFrameHtml = musicFrameItems.length > 0
     ? `<div style="display:flex; flex-direction:column; gap:8px;">${
-        Array.from({ length: musicFrameCount }, (_, idx) => `
+        musicFrameItems.map((item, idx) => `
       <button class="btn btn-primary" onclick="downloadMusicFramePdf(${order.id}, ${idx}, this)">
-        <i class="fa-solid fa-download"></i> Download muziekframe-bestand${musicFrameCount > 1 ? ` (${idx + 1})` : ''}
+        <i class="fa-solid fa-download"></i> Download muziekframe-bestand${musicFrameItems.length > 1 ? ` (${idx + 1})` : ''}
       </button>
     `).join('')
       }</div>`

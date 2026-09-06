@@ -782,6 +782,25 @@ foto-filter en een foto-link, te generiek om veilig op te matchen) — mocht
 dit ook daar een keer voorkomen, dan is een andere aanpak nodig (bv. op
 basis van de SKU/prijs, als die stabiel blijkt).
 
+**Vervolgbug, ontdekt via een 2e screenshot**: de bovenstaande fix loste de
+bulk-export/geplande-export op, maar de POPUP toonde bij zo'n order nog
+steeds maar 1 downloadknop i.p.v. 2. Oorzaak: `public/app.js` had voor de
+"Muziekframe/Valentijnframe"-downloadknoppen een eigen, LOSSE kopie van de
+titel-only herkenningsregex (rechtstreeks op `order.line_items` toegepast
+in de browser), i.p.v. het server-berekende (en dus al gefixte)
+`musicframe_items`-veld te gebruiken zoals de andere producten (Foto-frame,
+Sound-Frame, Lijntekening Portret in lijst) al deden. Nu ook omgezet naar
+diezelfde aanpak: `server/index.js` geeft `musicframe_items` mee in de
+order-detail-respons (via `extractMusicFrameItemsFromOrder`, dus met de
+eigenschappen-fallback inbegrepen), en `app.js` leest dat veld nu direct
+uit i.p.v. zelf opnieuw (en incompleet) te filteren. Voorkomt ook toekomstige
+drift tussen popup en bulk-export, aangezien beide nu letterlijk dezelfde
+functie-aanroep gebruiken. Getest: het exacte 2-regels-scenario geeft nu 2
+items in `musicframe_items` (dus 2 knoppen), met de indexering die exact
+aansluit bij wat de download-route zelf ook gebruikt; normale 1-item- en
+0-item-orders en `quantity: 2` blijven ook correct; volledige regressietest
+op alle overige producten bevestigt geen neveneffecten.
+
 ## QR-code-achtergrond puur wit op een gekleurde plaat (print-gaten-bug)
 
 Bij het muziekframe/auto-frame met een QR-code: de QR-code had een letterlijk

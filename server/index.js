@@ -173,6 +173,14 @@ app.get('/api/orders/:id', (req, res) => {
     photoframe_items: extractPhotoFrameItemsFromOrder({ line_items: lineItems }),
     // Lijntekening-Portret-in-lijst-items (voor de downloadknop in de popup)
     lijntekeningframe_items: extractLijntekeningFrameItemsFromOrder({ line_items: lineItems }),
+    // Muziekframe/Valentijnframe-items (voor het aantal downloadknoppen in
+    // de popup) — was voorheen een LOSSE, eigen (verouderde, puur titel-
+    // gebaseerde) regex in app.js zelf, die de eigenschappen-fallback-fix
+    // (zie isMusicFrameLineItem in server/musicframe.js) niet meekreeg —
+    // daardoor toonde de popup soms 1 knop minder dan er drukwerkbestanden
+    // gegenereerd werden bij de bulk-export. Nu net als de andere producten
+    // een server-berekend veld, zodat beide plekken altijd gelijk lopen.
+    musicframe_items: extractMusicFrameItemsFromOrder({ line_items: lineItems }),
     // Geschiedenis van statuswijzigingen (nieuwste eerst) — voor het
     // overzicht onderaan de status-sectie in de popup.
     status_history: getStatusHistory(order.id)
