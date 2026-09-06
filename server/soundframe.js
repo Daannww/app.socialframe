@@ -78,7 +78,25 @@ function drawScaledIcon(page, pathInfo, color) {
 }
 
 function isSoundFrameLineItem(li) {
-  return /sound[\s-]?frame/i.test(li.title || '');
+  if (/sound[\s-]?frame/i.test(li.title || '')) return true;
+  // Zelfde valstrik als bij muziekframe ontdekt: Shopify/de personalisatie-
+  // app kan de aanpasgegevens onder een ander productregel-item hangen
+  // (bv. "Als een cadeautje inpakken.") i.p.v. een eigen "Sound-Frame"-regel.
+  // Sound-Frame heeft geen enkele eigen UNIEKE eigenschap-naam om positief op
+  // te herkennen (het is bijna hetzelfde veldenpakket als muziekframe, alleen
+  // zonder linkvraag en zonder achtergrondkleur-keuze) — dus de herkenning
+  // hier is deels op AFWEZIGHEID gebaseerd: wel "Regel 1" + "kleur van het
+  // hartje" + een tijdlijn-eigenschap, maar GEEN linkvraag (noch muziekframe
+  // se "favoriete nummer"-formulering, noch auto-frame se "foto/filmpje/
+  // qr-code"-formulering) en GEEN "achtergrond kleur"-eigenschap — dat sluit
+  // muziekframe/auto-frame uit zonder ze zelf te hoeven importeren.
+  const props = li.properties || [];
+  const heeftRegel1 = props.some(p => /\bregel\s*1\b/i.test(p.name || ''));
+  const heeftHartjeKleur = props.some(p => /kleur van het hartje/i.test(p.name || ''));
+  const heeftTijdlijn = props.some(p => /begintijd|eindtijd|positie\s*bolletje/i.test(p.name || ''));
+  const heeftLink = props.some(p => /link naar/i.test(p.name || ''));
+  const heeftAchtergrondKleur = props.some(p => /achtergrond\s*kleur/i.test(p.name || ''));
+  return heeftRegel1 && heeftHartjeKleur && heeftTijdlijn && !heeftLink && !heeftAchtergrondKleur;
 }
 
 // Zelfde aanpak als extractMusicFrameData in musicframe.js — matcht op

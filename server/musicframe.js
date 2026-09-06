@@ -29,7 +29,24 @@ const COLOR_HEART_RED = rgb(0.87, 0.15, 0.22);
 // spatie in plaats van een streepje (Shopify-titels zijn hierin niet altijd
 // consistent, bv. "Music frame" i.p.v. "Music-frame").
 function isMusicFrameLineItem(li) {
-  return /muziek[\s-]?frame|music[\s-]?frame|valentijn[\s-]?frame|valentine?s?[\s-]?frame|musik[\s-]?rahmen|valentins?[\s-]?rahmen/i.test(li.title || '');
+  if (/muziek[\s-]?frame|music[\s-]?frame|valentijn[\s-]?frame|valentine?s?[\s-]?frame|musik[\s-]?rahmen|valentins?[\s-]?rahmen/i.test(li.title || '')) {
+    return true;
+  }
+  // Valstrik, ontdekt doordat een order met 2 bestelde platen maar 1
+  // drukwerkbestand opleverde: Shopify/de personalisatie-app hangt de
+  // volledige muziekframe-aanpasgegevens soms onder een ANDER productregel-
+  // item (bv. "Als een cadeautje inpakken.", 2 euro) i.p.v. een eigen
+  // "Muziekframe"-regel. Titel-herkenning alleen mist dit dus. Fallback via
+  // de eigenschappen zelf: de linkvraag-formulering "favoriete nummer" is
+  // uniek voor muziekframe binnen deze hele productfamilie (Sound-Frame
+  // heeft geen linkvraag; Auto-frame se linkvraag noemt "foto"/"filmpje"/
+  // "qr-code", nooit "nummer") — gecombineerd met een vereiste "Regel 1"-
+  // eigenschap, om te voorkomen dat een toevallig ander product met een
+  // vergelijkbare linktekst per ongeluk meegepakt wordt.
+  const props = li.properties || [];
+  const heeftMuziekLink = props.some(p => /link naar.*favoriete nummer|favoriete nummer.*website/i.test(p.name || ''));
+  const heeftRegel1 = props.some(p => /\bregel\s*1\b/i.test(p.name || ''));
+  return heeftMuziekLink && heeftRegel1;
 }
 
 // Herkent de "klein" / "dik" variant van een Muziek-/Valentijn-frame, op basis

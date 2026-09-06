@@ -696,6 +696,92 @@ wordt herkend en getoond in de popup.
 in een ander veld), stuur dat door en dan pas ik `extractSpotifyLinks` in
 `server/shopify.js` aan zodat die op de juiste plek zoekt.
 
+## Lijntekening Portret in lijst (server/lijntekeningframe.js)
+
+Autopictura-gebaseerd product (herkend aan de `_autopictura_design_link`-
+eigenschap, net als de bestaande autopictura-tegeltjes), maar dan ingelijst
+op een groter formaat, met verplichte witruimte rondom (geen beeldvullende
+foto zoals de tegeltjes).
+
+**4 bestelbare formaten** (herkend uit de producttitel/variant, zoals bij
+het muziekframe se "klein"/"dik"): "Ingelijst 70x50cm", "Ingelijst 50x40cm",
+"Ingelijst 50x50cm", "Acrylglas 70x50cm". **Let op**: elke variant met het
+label "70x50cm" (zowel Ingelijst als Acrylglas) is FYSIEK in werkelijkheid
+70x48cm — een bewuste afwijking van het "ronde" marketingformaat, expliciet
+zo doorgegeven.
+
+**Foto-plaatsing**: de foto komt nooit beeldvullend tot de rand, maar altijd
+met minimaal 2cm marge rondom (op verzoek). Omdat de foto's eigen
+beeldverhouding zelden precies overeenkomt met de resterende beschikbare
+ruimte, vult meestal maar 1 richting exact de beschikbare ruimte (breedte
+Óf hoogte, wat het eerst de rand raakt) — de andere richting schaalt
+proportioneel mee en laat dus een grotere marge over. De resterende ruimte
+(buiten de foto, binnen het formaat) is witruimte.
+**Bewust een uitzondering op de "nooit puur wit"-anti-gaten-regel** die
+verder in dit hele project geldt: op expliciet verzoek is deze witruimte
+LETTERLIJK #FFFFFF, niet de gebruikelijke 1%-gele CMYK-truc. De foto zelf
+krijgt via `embedPhoto` nog wel gewoon de normale kleurcorrectie.
+
+**Dun lichtgrijs snijlijntje** rondom de volledige buitenrand (CMYK-
+neutrale grijswaarde 0.75, 0.3mm dik) — een zuiver visuele snijhulplijn (op
+verzoek, als losse vervolgvraag toegevoegd), geen onderdeel van het
+ontwerp zelf.
+
+Getest: formaat-herkenning voor alle 4 varianten (inclusief de 70x48cm-
+afwijking), de autopictura-link-extractie met de exacte eigenschappen uit
+een order-screenshot, en de foto-plaatsing in BEIDE richtingen (een brede/
+landschap-foto en een smalle/staande foto) — bevestigd met exacte
+pixel/mm-metingen dat de marge overal minimaal 2cm is, de witruimte
+letterlijk (1,1,1) RGB is, en het snijlijntje de juiste kleur/dikte heeft.
+Volledige regressietest op alle overige producten bevestigt geen
+neveneffecten.
+
+## Verkeerd-gelabelde productregel ("Als een cadeautje inpakken.") mist een drukwerkbestand
+
+Ontdekt via een order-screenshot: soms hangt Shopify/de personalisatie-app
+(PPLR — zichtbaar aan `_pplr_ref_variant`/`_pplr_preview` in de properties)
+de VOLLEDIGE aanpasgegevens (stijl, link, foto-upload, tekstregels, enz.)
+van een 2e besteld exemplaar onder een ANDER productregel-item, bv. "Als
+een cadeautje inpakken." (2 euro, SKU "-") — i.p.v. een eigen 2e
+"Muziekframe"-regel aan te maken. Titel-gebaseerde herkenning
+(`isMusicFrameLineItem` enzovoort) mist dit soort regels dus volledig: een
+order met 2 bestelde platen leverde daardoor maar 1 drukwerkbestand op.
+
+**Oplossing**: elk van de 3 "Socialframe"-producten (muziekframe/
+valentijnframe, Sound-Frame, auto-frame) herkent een productregel nu ook
+via de EIGENSCHAPPEN zelf, als de titel niet matcht — elk met een eigen,
+betrouwbare marker om verwarring tussen de 3 producten te voorkomen (ze
+delen namelijk bijna hetzelfde veldenpakket: "stijl van jouw Socialframe",
+"kleur van het hartje", "Regel 1"/"Regel 2", tijdlijn-velden):
+- **Muziekframe/valentijnframe** (`isMusicFrameLineItem` in
+  `server/musicframe.js`): een linkvraag-eigenschap met de formulering
+  "favoriete nummer" — uniek voor dit product (Sound-Frame heeft geen
+  linkvraag; auto-frame se linkvraag noemt "foto"/"filmpje"/"qr-code", nooit
+  "nummer") — gecombineerd met een vereiste "Regel 1"-eigenschap.
+- **Sound-Frame** (`isSoundFrameLineItem` in `server/soundframe.js`): dit
+  product heeft geen enkele eigen UNIEKE eigenschap-naam (bijna hetzelfde
+  veldenpakket als muziekframe, maar zonder linkvraag en zonder
+  achtergrondkleur-keuze) — dus deels op AFWEZIGHEID gebaseerd: wel "Regel
+  1" + "kleur van het hartje" + een tijdlijn-eigenschap, maar GEEN linkvraag
+  en GEEN "achtergrond kleur"-eigenschap.
+- **Auto-frame** (`isAutoFrameLineItem` in `server/shopify.js`): de
+  auto-specifieke eigenschappen "Motor"/"PK"/"Snelheid" — komen bij geen van
+  de andere 2 producten voor, dus een veilige, ondubbelzinnige marker.
+
+Getest: het exacte scenario uit de screenshot (2 productregels, waarvan 1
+verkeerd gelabeld) levert nu 2 losse items met elk hun eigen link/foto op
+i.p.v. 1; een volledige kruistest bevestigt dat geen van de 3 producten
+elkaars verkeerd-gelabelde varianten per ongeluk oppikt, en dat normale,
+correct gelabelde titels gewoon blijven werken; en een eind-tot-eind test
+(inclusief daadwerkelijke PDF-generatie) voor het verkeerd-gelabelde
+scenario, plus een volledige regressietest op alle overige producten
+(inclusief alle 13 tegeltjes) — geen neveneffecten.
+**Let op**: dit dekt nog niet Foto-frame, dat heeft geen eigen unieke
+combinatie van eigenschappen om betrouwbaar op te herkennen (alleen een
+foto-filter en een foto-link, te generiek om veilig op te matchen) — mocht
+dit ook daar een keer voorkomen, dan is een andere aanpak nodig (bv. op
+basis van de SKU/prijs, als die stabiel blijkt).
+
 ## QR-code-achtergrond puur wit op een gekleurde plaat (print-gaten-bug)
 
 Bij het muziekframe/auto-frame met een QR-code: de QR-code had een letterlijk

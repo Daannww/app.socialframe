@@ -333,6 +333,19 @@ function renderModal(order) {
       }</div>`
     : '';
 
+  // Lijntekening Portret in lijst: zelfde aanpak — server-berekend
+  // lijntekeningframe_items-veld gebruiken.
+  const lijntekeningFrameItems = order.lijntekeningframe_items || [];
+  const lijntekeningFrameHtml = lijntekeningFrameItems.length > 0
+    ? `<div style="display:flex; flex-direction:column; gap:8px;">${
+        lijntekeningFrameItems.map((item, idx) => `
+      <button class="btn btn-primary" onclick="downloadLijntekeningFramePdf(${order.id}, ${idx}, this)">
+        <i class="fa-solid fa-download"></i> Download lijntekeningframe-bestand${lijntekeningFrameItems.length > 1 ? ` (${idx + 1})` : ''}
+      </button>
+    `).join('')
+      }</div>`
+    : '';
+
   const spotifyHtml = (order.spotify_links || []).map((link, idx) => `
     <div class="spotify-link-row" data-link="${escapeHtml(link)}">
       <a href="${escapeHtml(link)}" target="_blank" rel="noopener" class="copyable" onclick="event.preventDefault(); copyText(this, '${jsEscape(link)}')" title="Klik om te kopiëren">${escapeHtml(link)}</a>
@@ -551,6 +564,13 @@ function renderModal(order) {
     </div>
     ` : ''}
 
+    ${lijntekeningFrameHtml ? `
+    <div class="modal-section">
+      <h3>Lijntekening Portret in lijst</h3>
+      ${lijntekeningFrameHtml}
+    </div>
+    ` : ''}
+
     <div class="modal-section">
       <h3>Notitie</h3>
       <textarea id="noteInput-${order.id}" class="note-textarea" placeholder="Bijzonderheden over deze order... (verschijnt ook op de pakbon, onder het adres)">${escapeHtml(order.note || '')}</textarea>
@@ -754,6 +774,33 @@ window.downloadPhotoFramePdf = async function (orderId, idx, btn) {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   } catch (e) {
     alert('Kon fotoframe-bestand niet genereren: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalLabel;
+  }
+};
+
+window.downloadLijntekeningFramePdf = async function (orderId, idx, btn) {
+  const originalLabel = btn.innerHTML;
+  btn.disabled = true;
+  btn.textContent = 'Bezig...';
+  try {
+    const res = await fetch(`/api/print-files/lijntekeningframe-pdf?orderId=${orderId}&itemIndex=${idx}`);
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || 'Server gaf een fout terug');
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `lijntekeningframe-order-${orderId}-${idx + 1}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } catch (e) {
+    alert('Kon lijntekeningframe-bestand niet genereren: ' + e.message);
   } finally {
     btn.disabled = false;
     btn.innerHTML = originalLabel;

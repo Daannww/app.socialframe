@@ -181,7 +181,19 @@ function extractTileItemsFromOrder(lineItems) {
 // plaats van een streepje (Shopify-titels zijn hierin niet altijd
 // consistent, bv. "Auto frame" i.p.v. "Auto-frame").
 function isAutoFrameLineItem(li) {
-  return /auto[\s-]?frame|auto[\s-]?rahmen/i.test(li.title || '');
+  if (/auto[\s-]?frame|auto[\s-]?rahmen/i.test(li.title || '')) return true;
+  // Zelfde valstrik als bij muziekframe/sound-frame ontdekt: Shopify/de
+  // personalisatie-app kan de aanpasgegevens onder een ander productregel-
+  // item hangen (bv. "Als een cadeautje inpakken.") i.p.v. een eigen
+  // "Auto-frame"-regel. Herkent dit via "Motor"/"PK"/"Snelheid" — auto-
+  // specifieke eigenschap-namen die bij geen van de andere Socialframe-
+  // producten (muziekframe, sound-frame) voorkomen, dus een veilige,
+  // titel-onafhankelijke marker.
+  const props = li.properties || [];
+  const heeftMotor = props.some(p => /\bmotor\b/i.test(p.name || ''));
+  const heeftPk = props.some(p => /\bpk\b|paardenkracht/i.test(p.name || ''));
+  const heeftSnelheid = props.some(p => /snelheid/i.test(p.name || ''));
+  return heeftMotor && heeftPk && heeftSnelheid;
 }
 
 // Herkent de "klein" / "dik" variant, net als bij het muziekframe.

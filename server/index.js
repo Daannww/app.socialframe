@@ -17,6 +17,7 @@ const { generateAutoFramePdf } = require('./autoframe');
 const { generateTegelTekstPdf, extractTegelTekstItemsFromOrder } = require('./texttile');
 const { generateSoundFramePdf, extractSoundFrameItemsFromOrder } = require('./soundframe');
 const { generatePhotoFramePdf, extractPhotoFrameItemsFromOrder } = require('./photoframe');
+const { generateLijntekeningFramePdf, extractLijntekeningFrameItemsFromOrder } = require('./lijntekeningframe');
 const { sendReviewEmail } = require('./reviewEmail');
 const SqliteSessionStore = require('./sqliteSessionStore');
 
@@ -170,6 +171,8 @@ app.get('/api/orders/:id', (req, res) => {
     soundframe_items: extractSoundFrameItemsFromOrder({ line_items: lineItems }),
     // Foto-frame-items in deze order (voor de downloadknop in de popup)
     photoframe_items: extractPhotoFrameItemsFromOrder({ line_items: lineItems }),
+    // Lijntekening-Portret-in-lijst-items (voor de downloadknop in de popup)
+    lijntekeningframe_items: extractLijntekeningFrameItemsFromOrder({ line_items: lineItems }),
     // Geschiedenis van statuswijzigingen (nieuwste eerst) — voor het
     // overzicht onderaan de status-sectie in de popup.
     status_history: getStatusHistory(order.id)
@@ -556,6 +559,32 @@ app.get('/api/print-files/photoframe-pdf', requireAdmin, async (req, res) => {
   }
 });
 
+// --- Eén Lijntekening-Portret-in-lijst-drukwerkbestand downloaden vanuit de order-popup ---
+app.get('/api/print-files/lijntekeningframe-pdf', requireAdmin, async (req, res) => {
+  const orderId = parseInt(req.query.orderId, 10);
+  const itemIndex = parseInt(req.query.itemIndex, 10) || 0;
+  if (!orderId) return res.status(400).json({ error: 'orderId is verplicht' });
+
+  try {
+    const order = getOrder(orderId);
+    if (!order) return res.status(404).json({ error: 'Order niet gevonden' });
+
+    const lineItems = JSON.parse(order.line_items_json || '[]');
+    const items = extractLijntekeningFrameItemsFromOrder({ line_items: lineItems });
+    const item = items[itemIndex];
+    if (!item) return res.status(404).json({ error: 'Geen Lijntekening Portret in lijst gevonden op deze order' });
+
+    const pdfBytes = await generateLijntekeningFramePdf(item.data);
+    const baseName = String(order.order_number || order.shopify_order_id).replace(/[\\/:*?"<>|]/g, '-');
+    const suffix = items.length > 1 ? ` ${itemIndex + 1}` : '';
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${baseName}${suffix} lijntekeningframe.pdf"`);
+    res.send(Buffer.from(pdfBytes));
+  } catch (e) {
+    res.status(500).json({ error: 'Kon lijntekeningframe-bestand niet genereren: ' + e.message });
+  }
+});
+
 // --- Eén Auto-frame-drukwerkbestand downloaden vanuit de order-popup ---
 app.get('/api/print-files/autoframe-pdf', requireAdmin, async (req, res) => {
   const orderId = parseInt(req.query.orderId, 10);
@@ -611,7 +640,8 @@ app.get('/api/print-files/pdf-zip', requireAdmin, async (req, res) => {
       extractAutoFrameItemsFromOrder({ line_items: o.line_items }).length > 0 ||
       extractTegelTekstItemsFromOrder({ line_items: o.line_items }).length > 0 ||
       extractSoundFrameItemsFromOrder({ line_items: o.line_items }).length > 0 ||
-      extractPhotoFrameItemsFromOrder({ line_items: o.line_items }).length > 0
+      extractPhotoFrameItemsFromOrder({ line_items: o.line_items }).length > 0 ||
+      extractLijntekeningFrameItemsFromOrder({ line_items: o.line_items }).length > 0
     );
 
     if (targets.length === 0) {
@@ -650,6 +680,7 @@ app.get('/api/print-files/pdf-zip', requireAdmin, async (req, res) => {
 //   {datum}/muziekframe/1099 fotoframe.pdf               (ook zelfde map, "S"-variant -> klein-submap)
 //   {datum}/muziekframe/klein/1099 fotoframe klein.pdf
 //   {datum}/soundframe/1099 soundframe.pdf
+//   {datum}/lijntekeningframe/1099 lijntekeningframe.pdf
 async function appendPrintFilesToArchive(archive, targets) {
   const dateFolder = getDutchDateString(); // YYYY-MM-DD, Nederlandse tijdzone
 
@@ -848,6 +879,31 @@ async function appendPrintFilesToArchive(archive, targets) {
       }
     }
 
+    // --- Lijntekening Portret in lijst: eigen drukwerkbestand per besteld
+    // exemplaar, in een eigen map "lijntekeningframe" — dit is een heel
+    // ander fysiek formaat (per variant: 70x48/50x40/50x50cm) dan de andere
+    // 200x300mm-producten, dus NIET samen met het muziekframe in dezelfde
+    // map (in tegenstelling tot auto-frame/foto-frame hierboven). ---
+    const lijntekeningItems = extractLijntekeningFrameItemsFromOrder({ line_items: order.line_items });
+    if (lijntekeningItems.length > 0) {
+      const multipleLijntekening = lijntekeningItems.length > 1;
+      for (let i = 0; i < lijntekeningItems.length; i++) {
+        const numberSuffix = multipleLijntekening ? ` ${i + 1}` : '';
+        const item = lijntekeningItems[i];
+        const filename = `${dateFolder}/lijntekeningframe/${baseName}${numberSuffix} lijntekeningframe.pdf`;
+        try {
+          const pdfBytes = await generateLijntekeningFramePdf(item.data);
+          archive.append(Buffer.from(pdfBytes), { name: filename });
+          orderSucceeded = true;
+        } catch (e) {
+          archive.append(
+            `Kon het lijntekeningframe-bestand voor order ${baseName}${numberSuffix} niet genereren: ${e.message}`,
+            { name: `${dateFolder}/lijntekeningframe/FOUT-${baseName}${numberSuffix}.txt` }
+          );
+        }
+      }
+    }
+
     // Order automatisch naar "wacht op productie" zetten zodra minstens 1 drukwerkbestand is gelukt
     if (orderSucceeded) {
       updateStatus(order.id, 'wacht op productie');
@@ -872,7 +928,8 @@ async function runScheduledPrintFilesExport() {
     extractAutoFrameItemsFromOrder({ line_items: o.line_items }).length > 0 ||
     extractTegelTekstItemsFromOrder({ line_items: o.line_items }).length > 0 ||
     extractSoundFrameItemsFromOrder({ line_items: o.line_items }).length > 0 ||
-    extractPhotoFrameItemsFromOrder({ line_items: o.line_items }).length > 0
+    extractPhotoFrameItemsFromOrder({ line_items: o.line_items }).length > 0 ||
+    extractLijntekeningFrameItemsFromOrder({ line_items: o.line_items }).length > 0
   );
 
   if (targets.length === 0) {
