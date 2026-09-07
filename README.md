@@ -696,6 +696,60 @@ wordt herkend en getoond in de popup.
 in een ander veld), stuur dat door en dan pas ik `extractSpotifyLinks` in
 `server/shopify.js` aan zodat die op de juiste plek zoekt.
 
+## Kentekenplaathouder (server/kentekenplaathouder.js)
+
+Nieuw product: een kentekenplaathouder met aangepaste tekst (bv. een
+bedrijfsnaam/website), geen foto — de klant kiest een voertuigtype ("Kies
+hier het voertuig", bv. "Auto") en typt de gewenste tekst.
+
+**Afmetingen + standaard-tekstpositie 1-op-1 gemeten** uit het door de
+gebruiker aangeleverde referentiebestand (voertuig "Auto"): canvas
+526,0 x 132,5mm, met de voorbeeldtekst op 45,35pt (16,00mm) lettergrootte,
+perfect horizontaal gecentreerd (bevestigd: het midden van de tekst valt
+exact op de helft van de paginabreedte). **Let op**: alleen het
+"Auto"-sjabloon is aangeleverd — een ander voertuigtype heeft mogelijk een
+ander fysiek formaat, dat is nu niet bekend/ondersteund (valt terug op het
+"Auto"-formaat).
+
+**Kleur CMYK(0, 0, 0.01, 0)** — dezelfde "1%-gele" anti-gaten-truc als de
+rest van dit project, rechtstreeks overgenomen uit het referentiebestand.
+Bevestigt dat dit product op een DONKER/ZWART fysiek materiaal print (de
+tekst zou anders onzichtbaar zijn) — **let op bij het visueel controleren**:
+deze subtiele tint rondt in `pdftoppm`/veel standaard PDF-renderers af naar
+puur wit (zelfde probleem als eerder bij de QR-code-fix ontdekt), dus de
+tekst lijkt in een gewone preview onzichtbaar — de kleurwaarde zelf, direct
+uit de PDF-data gelezen, klopt wel degelijk.
+
+**Altijd horizontaal gecentreerd** (op verzoek — een eventuele `_align`-
+eigenschap van de klant wordt bewust genegeerd). **Automatisch verkleinen**
+bij langere tekst dan het voorbeeld, met een MINIMALE marge van 1cm aan
+weerszijden (op verzoek) — nooit vergroten, alleen verkleinen indien nodig.
+**Belangrijke technische valkuil, ontdekt tijdens het testen**: de
+centrering en marge-berekening gebruiken de "advance width" van het
+lettertype (de gebruikelijke, correcte manier om tekst te centreren/meten),
+maar de WERKELIJK ZICHTBARE inkt-breedte kan daar per tekst een fractie van
+afwijken, afhankelijk van de exacte letters waarmee de tekst begint/eindigt
+— bij een eerste, kleinere veiligheidsmarge (2mm) zakte de marge bij een
+specifieke tekstcombinatie ("IJSSELSTEIN AUTOBEDRIJF...") tot 7,74mm, ONDER
+de vereiste 1cm. Systematisch gemeten wat de maximale asymmetrie kan zijn
+(tot ~2,6mm bij realistische tekst) en de veiligheidsmarge naar 5mm
+verhoogd. Lettertype: Helvetica-Bold (`StandardFonts.HelveticaBold` uit
+pdf-lib — een ingebouwd PDF-standaardlettertype, dus geen los fontbestand
+nodig, ongeacht wat het referentiebestand zelf toevallig gebruikte).
+
+Dit product valt buiten de speciale "tegeltje met tekst"-status-tak in
+`determineInitialStatus`, en krijgt dus automatisch de gewone standaard
+"wacht op drukwerkbestand" — geen aparte statuslogica-aanpassing nodig.
+
+Getest: herkenning en extractie met de exacte eigenschappen uit een order-
+screenshot (inclusief de typefout "Kier hier het voertuig" i.p.v. "Kies" —
+de matching is daar toch al robuust tegen, want die zoekt alleen op
+"voertuig" als los woord), de daadwerkelijke PDF-generatie vergeleken met de
+exacte referentiepositie, en een brede test met 8 uiteenlopende teksten
+(verschillende start-/eindletters, extreem lang, 1 teken) — bevestigd dat
+de marge in ALLE gevallen minimaal 1cm blijft. Volledige regressietest op
+alle overige producten bevestigt geen neveneffecten.
+
 ## Automatische herpogingen bij een tijdelijke netwerkfout
 
 Ontdekt via een foutmelding bij de bulk-export: "Kon het muziekframe-bestand

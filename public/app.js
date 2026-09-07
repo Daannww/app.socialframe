@@ -362,6 +362,19 @@ function renderModal(order) {
       }</div>`
     : '';
 
+  // Kentekenplaathouder: zelfde aanpak — server-berekend
+  // kentekenplaathouder_items-veld gebruiken.
+  const kentekenplaathouderItems = order.kentekenplaathouder_items || [];
+  const kentekenplaathouderHtml = kentekenplaathouderItems.length > 0
+    ? `<div style="display:flex; flex-direction:column; gap:8px;">${
+        kentekenplaathouderItems.map((item, idx) => `
+      <button class="btn btn-primary" onclick="downloadKentekenplaathouderPdf(${order.id}, ${idx}, this)">
+        <i class="fa-solid fa-download"></i> Download kentekenplaathouder-bestand${kentekenplaathouderItems.length > 1 ? ` (${idx + 1})` : ''}
+      </button>
+    `).join('')
+      }</div>`
+    : '';
+
   const spotifyHtml = (order.spotify_links || []).map((link, idx) => `
     <div class="spotify-link-row" data-link="${escapeHtml(link)}">
       <a href="${escapeHtml(link)}" target="_blank" rel="noopener" class="copyable" onclick="event.preventDefault(); copyText(this, '${jsEscape(link)}')" title="Klik om te kopiëren">${escapeHtml(link)}</a>
@@ -591,6 +604,13 @@ function renderModal(order) {
     <div class="modal-section">
       <h3>Tegel-illustratie</h3>
       ${tegelIllustratieHtml}
+    </div>
+    ` : ''}
+
+    ${kentekenplaathouderHtml ? `
+    <div class="modal-section">
+      <h3>Kentekenplaathouder</h3>
+      ${kentekenplaathouderHtml}
     </div>
     ` : ''}
 
@@ -851,6 +871,33 @@ window.downloadTegelIllustratiePdf = async function (orderId, idx, btn) {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   } catch (e) {
     alert('Kon tegelillustratie-bestand niet genereren: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalLabel;
+  }
+};
+
+window.downloadKentekenplaathouderPdf = async function (orderId, idx, btn) {
+  const originalLabel = btn.innerHTML;
+  btn.disabled = true;
+  btn.textContent = 'Bezig...';
+  try {
+    const res = await fetch(`/api/print-files/kentekenplaathouder-pdf?orderId=${orderId}&itemIndex=${idx}`);
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || 'Server gaf een fout terug');
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `kentekenplaathouder-order-${orderId}-${idx + 1}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } catch (e) {
+    alert('Kon kentekenplaathouder-bestand niet genereren: ' + e.message);
   } finally {
     btn.disabled = false;
     btn.innerHTML = originalLabel;

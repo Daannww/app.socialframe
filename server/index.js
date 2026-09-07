@@ -20,6 +20,7 @@ const { generateSoundFramePdf, extractSoundFrameItemsFromOrder } = require('./so
 const { generatePhotoFramePdf, extractPhotoFrameItemsFromOrder } = require('./photoframe');
 const { generateLijntekeningFramePdf, extractLijntekeningFrameItemsFromOrder } = require('./lijntekeningframe');
 const { generateTegelIllustratiePdf, extractTegelIllustratieItemsFromOrder } = require('./tegelillustratie');
+const { generateKentekenplaathouderPdf, extractKentekenplaathouderItemsFromOrder } = require('./kentekenplaathouder');
 const { sendReviewEmail } = require('./reviewEmail');
 const SqliteSessionStore = require('./sqliteSessionStore');
 
@@ -177,6 +178,8 @@ app.get('/api/orders/:id', (req, res) => {
     lijntekeningframe_items: extractLijntekeningFrameItemsFromOrder({ line_items: lineItems }),
     // Vaste-illustratie-tegeltjes (bv. "Dat dit huis gevuld mag zijn met liefde...")
     tegelillustratie_items: extractTegelIllustratieItemsFromOrder({ line_items: lineItems }),
+    // Kentekenplaathouder-items (voor de downloadknop in de popup)
+    kentekenplaathouder_items: extractKentekenplaathouderItemsFromOrder({ line_items: lineItems }),
     // Muziekframe/Valentijnframe-items (voor het aantal downloadknoppen in
     // de popup) — was voorheen een LOSSE, eigen (verouderde, puur titel-
     // gebaseerde) regex in app.js zelf, die de eigenschappen-fallback-fix
@@ -626,6 +629,32 @@ app.get('/api/print-files/tegelillustratie-pdf', requireAdmin, async (req, res) 
   }
 });
 
+// --- Eén Kentekenplaathouder-drukwerkbestand downloaden vanuit de order-popup ---
+app.get('/api/print-files/kentekenplaathouder-pdf', requireAdmin, async (req, res) => {
+  const orderId = parseInt(req.query.orderId, 10);
+  const itemIndex = parseInt(req.query.itemIndex, 10) || 0;
+  if (!orderId) return res.status(400).json({ error: 'orderId is verplicht' });
+
+  try {
+    const order = getOrder(orderId);
+    if (!order) return res.status(404).json({ error: 'Order niet gevonden' });
+
+    const lineItems = JSON.parse(order.line_items_json || '[]');
+    const items = extractKentekenplaathouderItemsFromOrder({ line_items: lineItems });
+    const item = items[itemIndex];
+    if (!item) return res.status(404).json({ error: 'Geen kentekenplaathouder gevonden op deze order' });
+
+    const pdfBytes = await generateKentekenplaathouderPdf(item.data);
+    const baseName = String(order.order_number || order.shopify_order_id).replace(/[\\/:*?"<>|]/g, '-');
+    const suffix = items.length > 1 ? ` ${itemIndex + 1}` : '';
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${baseName}${suffix} kentekenplaathouder.pdf"`);
+    res.send(Buffer.from(pdfBytes));
+  } catch (e) {
+    res.status(500).json({ error: 'Kon kentekenplaathouder-bestand niet genereren: ' + e.message });
+  }
+});
+
 // --- Eén Auto-frame-drukwerkbestand downloaden vanuit de order-popup ---
 app.get('/api/print-files/autoframe-pdf', requireAdmin, async (req, res) => {
   const orderId = parseInt(req.query.orderId, 10);
@@ -683,7 +712,8 @@ app.get('/api/print-files/pdf-zip', requireAdmin, async (req, res) => {
       extractSoundFrameItemsFromOrder({ line_items: o.line_items }).length > 0 ||
       extractPhotoFrameItemsFromOrder({ line_items: o.line_items }).length > 0 ||
       extractLijntekeningFrameItemsFromOrder({ line_items: o.line_items }).length > 0 ||
-      extractTegelIllustratieItemsFromOrder({ line_items: o.line_items }).length > 0
+      extractTegelIllustratieItemsFromOrder({ line_items: o.line_items }).length > 0 ||
+      extractKentekenplaathouderItemsFromOrder({ line_items: o.line_items }).length > 0
     );
 
     if (targets.length === 0) {
@@ -725,6 +755,7 @@ app.get('/api/print-files/pdf-zip', requireAdmin, async (req, res) => {
 //   {datum}/lijntekeningframe/1099 lijntekeningframe.pdf
 //   {datum}/tegels/1099 illustratie.pdf
 //   {datum}/tegels/groot/1099 illustratie groot.pdf
+//   {datum}/kentekenplaathouder/1099 kentekenplaathouder.pdf
 async function appendPrintFilesToArchive(archive, targets) {
   const dateFolder = getDutchDateString(); // YYYY-MM-DD, Nederlandse tijdzone
 
@@ -976,6 +1007,29 @@ async function appendPrintFilesToArchive(archive, targets) {
       }
     }
 
+    // --- Kentekenplaathouder: eigen drukwerkbestand per besteld exemplaar,
+    // in een eigen map "kentekenplaathouder" — een heel ander fysiek formaat
+    // (52,6x13,25cm) dan alle andere producten. ---
+    const kentekenplaathouderItems = extractKentekenplaathouderItemsFromOrder({ line_items: order.line_items });
+    if (kentekenplaathouderItems.length > 0) {
+      const multipleKentekenplaathouders = kentekenplaathouderItems.length > 1;
+      for (let i = 0; i < kentekenplaathouderItems.length; i++) {
+        const numberSuffix = multipleKentekenplaathouders ? ` ${i + 1}` : '';
+        const item = kentekenplaathouderItems[i];
+        const filename = `${dateFolder}/kentekenplaathouder/${baseName}${numberSuffix} kentekenplaathouder.pdf`;
+        try {
+          const pdfBytes = await generateKentekenplaathouderPdf(item.data);
+          archive.append(Buffer.from(pdfBytes), { name: filename });
+          orderSucceeded = true;
+        } catch (e) {
+          archive.append(
+            `Kon het kentekenplaathouder-bestand voor order ${baseName}${numberSuffix} niet genereren: ${e.message}`,
+            { name: `${dateFolder}/kentekenplaathouder/FOUT-${baseName}${numberSuffix}.txt` }
+          );
+        }
+      }
+    }
+
     // Order automatisch naar "wacht op productie" zetten zodra minstens 1 drukwerkbestand is gelukt
     if (orderSucceeded) {
       updateStatus(order.id, 'wacht op productie');
@@ -1002,7 +1056,8 @@ async function runScheduledPrintFilesExport() {
     extractSoundFrameItemsFromOrder({ line_items: o.line_items }).length > 0 ||
     extractPhotoFrameItemsFromOrder({ line_items: o.line_items }).length > 0 ||
     extractLijntekeningFrameItemsFromOrder({ line_items: o.line_items }).length > 0 ||
-    extractTegelIllustratieItemsFromOrder({ line_items: o.line_items }).length > 0
+    extractTegelIllustratieItemsFromOrder({ line_items: o.line_items }).length > 0 ||
+    extractKentekenplaathouderItemsFromOrder({ line_items: o.line_items }).length > 0
   );
 
   if (targets.length === 0) {
