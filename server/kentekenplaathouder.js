@@ -1,24 +1,61 @@
 const { PDFDocument, StandardFonts, cmyk } = require('pdf-lib');
+const fontkit = require('@pdf-lib/fontkit');
+const fs = require('fs');
+const path = require('path');
 const { MM } = require('./pdf-shared');
 
-// Afmetingen + tekstpositie 1-op-1 gemeten uit het door de gebruiker
-// aangeleverde referentiebestand ("kentekensjabloon.pdf", voertuig "Auto")
-// — bevestigd: de voorbeeldtekst "HIER DE TEKST" staat daar exact
-// horizontaal gecentreerd (x-midden = exact de helft van de paginabreedte)
-// op 45.35pt (16,00mm) lettergrootte, met de top van de tekst op 120,44mm
-// vanaf boven. Kleur in het referentiebestand: CMYK(0, 0, 0.01, 0) — de
-// bekende "1%-gele" anti-gaten-truc die verder in dit hele project wordt
-// gebruikt voor bijna-wit — bevestigt dat dit product op een DONKER/ZWART
-// fysiek materiaal print (de tekst zou anders onzichtbaar zijn).
+// Afmetingen 1-op-1 gemeten uit het door de gebruiker aangeleverde
+// referentiebestand ("kentekensjabloon.pdf", voertuig "Auto"): 526,0 x
+// 132,5mm. Kleur in het referentiebestand: CMYK(0, 0, 0.01, 0) — de bekende
+// "1%-gele" anti-gaten-truc die verder in dit hele project wordt gebruikt
+// voor bijna-wit — bevestigt dat dit product op een DONKER/ZWART fysiek
+// materiaal print (de tekst zou anders onzichtbaar zijn).
 // LET OP: alleen het "Auto"-voertuig-sjabloon is aangeleverd; een ander
 // voertuigtype (zie de "Kies hier het voertuig"-eigenschap) heeft mogelijk
 // een ander formaat — dat is nu niet bekend/ondersteund.
 const VOERTUIG_FORMATEN = {
-  auto: { breedteMm: 526.0, hoogteMm: 132.5, standaardTopMm: 120.44 }
+  auto: { breedteMm: 526.0, hoogteMm: 132.5 }
 };
 const STANDAARD_LETTERGROOTTE_MM = 16.00;
 const MARGE_MM = 10; // 1cm, op verzoek — minimaal vrij te houden aan weerszijden van de tekst
+// Onderkant van de letters (dus de baseline, voor tekens zonder onderlengte
+// zoals hoofdletters/cijfers) op exact 4mm vanaf de onderkant van het
+// canvas — expliciet zo opgegeven. Tekens MET een onderlengte (bv. een "J"
+// in sommige lettertypen) steken vanzelfsprekend een stukje onder deze
+// lijn uit — dat is bekend en geaccepteerd, geen apart geval voor nodig.
+const BASELINE_VANAF_ONDER_MM = 4;
 const TEKST_KLEUR = cmyk(0, 0, 0.01, 0);
+
+// De 6 lettertype-keuzes uit de Shopify-dropdown. LET OP: momenteel zijn
+// alleen "Helvetica-bold" (ingebouwd PDF-standaardlettertype) en
+// "Montserrat" (al aanwezig in het project, zie server/fonts/ — visueel
+// bevestigd volledig en correct) daadwerkelijk beschikbaar.
+// "Muktavaani-bold" leek eerst ook bruikbaar (rechtstreeks uit het
+// referentiebestand geëxtraheerd, en de tekenlijst gaf "geen ontbrekende
+// tekens" aan) — maar bleek bij nader (visueel) onderzoek een KAPOT subset:
+// vrijwel alle letters (C, W, L, ., O, P, N, A, ...) staan wel in de
+// tekenlijst maar hebben 0 bytes aan padgegevens — precies hetzelfde
+// probleem als destijds bij Caveat-Regular. Alleen de letters die
+// toevallig in "HIER DE TEKST" voorkwamen (R, I, S, ...) werken. Dus deze
+// valt voorlopig terug op Helvetica-Bold, tot het volledige (niet-
+// gesubsette) lettertype wordt aangeleverd.
+// "BebasNeue-bold", "Oswald-regular" en "Opensans-bold" zijn inmiddels wél
+// aangeleverd (volledige, geldige lettertypebestanden — grondig
+// gecontroleerd op lege/kapotte tekens, geen enkele gevonden, en visueel
+// bevestigd via een losse render buiten pdf-lib om). LET OP: "Bebas Neue"
+// bestaat niet als aparte bold-variant — het lettertype zelf is van
+// zichzelf al een vet/hoog-contrast weergavelettertype, dus de "bold"-optie
+// in de Shopify-dropdown wijst gewoon naar de gewone (enige) Regular-versie.
+const LETTERTYPE_MAP = {
+  'helvetica-bold': { standaard: StandardFonts.HelveticaBold },
+  'montserratbold': { bestand: 'Montserrat-Bold.ttf' },
+  'montserrat-bold': { bestand: 'Montserrat-Bold.ttf' },
+  'bebasneue-bold': { bestand: 'BebasNeue-Regular.ttf' }, // geen aparte bold-variant, zie hierboven
+  'oswald-regular': { bestand: 'Oswald-Regular.ttf' },
+  'opensans-bold': { bestand: 'OpenSans_Bold.ttf' },
+  // Nog niet (volledig) aangeleverd — valt terug op Helvetica-Bold:
+  'muktavaani-bold': { standaard: StandardFonts.HelveticaBold, ontbreekt: true }
+};
 
 function isKentekenplaathouderLineItem(li) {
   return /kentekenplaathouder/i.test(li.title || '');
@@ -36,7 +73,8 @@ function extractKentekenplaathouderData(li) {
 
   return {
     voertuig,
-    tekst: getProp(/^tekst$/i) || getProp(/\btekst\b/i)
+    tekst: getProp(/^tekst$/i) || getProp(/\btekst\b/i),
+    lettertype: getProp(/lettertype/i)
   };
 }
 
@@ -56,8 +94,21 @@ function extractKentekenplaathouderItemsFromOrder(rawOrder) {
 async function generateKentekenplaathouderPdf(data) {
   const formaat = VOERTUIG_FORMATEN[data.voertuig] || VOERTUIG_FORMATEN.auto;
   const doc = await PDFDocument.create();
+  doc.registerFontkit(fontkit);
   const page = doc.addPage([formaat.breedteMm * MM, formaat.hoogteMm * MM]);
-  const font = await doc.embedFont(StandardFonts.HelveticaBold);
+
+  const lettertypeSleutel = (data.lettertype || '').toLowerCase().replace(/[\s:]+$/, '');
+  const lettertypeInfo = LETTERTYPE_MAP[lettertypeSleutel] || { standaard: StandardFonts.HelveticaBold, onbekend: true };
+  if (lettertypeInfo.ontbreekt || lettertypeInfo.onbekend) {
+    console.warn(`[kentekenplaathouder] Lettertype "${data.lettertype}" is niet beschikbaar, val terug op Helvetica-Bold.`);
+  }
+  let font;
+  if (lettertypeInfo.bestand) {
+    const fontBytes = fs.readFileSync(path.join(__dirname, 'fonts', lettertypeInfo.bestand));
+    font = await doc.embedFont(fontBytes);
+  } else {
+    font = await doc.embedFont(lettertypeInfo.standaard);
+  }
 
   const tekst = data.tekst || '';
   if (tekst) {
@@ -86,11 +137,13 @@ async function generateKentekenplaathouderPdf(data) {
 
     const tekstBreedtePt = font.widthOfTextAtSize(tekst, sizePt);
     const xPt = (formaat.breedteMm * MM - tekstBreedtePt) / 2;
-    // Verticale positie: het referentiebestand se "standaard" top-positie
-    // (in mm vanaf boven) als vaste ankerpositie voor de baseline — dezelfde
-    // top-naar-baseline-omrekening (size * 0.75) als elders in dit project
-    // (zie texttile.js) gebruikt.
-    const yPt = (formaat.hoogteMm - formaat.standaardTopMm) * MM - sizePt * 0.75;
+    // Baseline op exact 4mm vanaf de onderkant van het canvas — pdf-lib se
+    // "y" bij drawText is namelijk al de baseline-positie vanaf onder (PDF-
+    // coördinaten lopen van onder naar boven), dus dit is een rechtstreekse
+    // toewijzing, geen omrekening nodig. Blijft ONGEWIJZIGD ongeacht de
+    // lettergrootte (dus ook bij automatisch verkleinde tekst) — precies
+    // zoals opgegeven.
+    const yPt = BASELINE_VANAF_ONDER_MM * MM;
 
     page.drawText(tekst, { x: xPt, y: yPt, size: sizePt, font, color: TEKST_KLEUR });
   }

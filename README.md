@@ -702,14 +702,36 @@ Nieuw product: een kentekenplaathouder met aangepaste tekst (bv. een
 bedrijfsnaam/website), geen foto — de klant kiest een voertuigtype ("Kies
 hier het voertuig", bv. "Auto") en typt de gewenste tekst.
 
-**Afmetingen + standaard-tekstpositie 1-op-1 gemeten** uit het door de
-gebruiker aangeleverde referentiebestand (voertuig "Auto"): canvas
-526,0 x 132,5mm, met de voorbeeldtekst op 45,35pt (16,00mm) lettergrootte,
-perfect horizontaal gecentreerd (bevestigd: het midden van de tekst valt
-exact op de helft van de paginabreedte). **Let op**: alleen het
-"Auto"-sjabloon is aangeleverd — een ander voertuigtype heeft mogelijk een
-ander fysiek formaat, dat is nu niet bekend/ondersteund (valt terug op het
-"Auto"-formaat).
+**Afmetingen 1-op-1 gemeten** uit het door de gebruiker aangeleverde
+referentiebestand (voertuig "Auto"): canvas 526,0 x 132,5mm, standaard
+lettergrootte 45,35pt (16,00mm), perfect horizontaal gecentreerd. **Let
+op**: alleen het "Auto"-sjabloon is aangeleverd — een ander voertuigtype
+heeft mogelijk een ander fysiek formaat, dat is nu niet bekend/ondersteund
+(valt terug op het "Auto"-formaat).
+
+**Verticale positie, gecorrigeerd na een eerste, foute versie**: eerst
+gebaseerd op de gemeten "top"-positie uit het referentiebestand plus een
+top-naar-baseline-omrekening — dat bleek de tekst veel te laag te
+plaatsen. De gebruiker gaf vervolgens de exacte, eenduidige eis: de
+ONDERKANT van de letters (dus de baseline, voor tekens zonder onderlengte
+zoals hoofdletters/cijfers) moet op precies 4mm vanaf de onderkant van het
+canvas staan — tekens MET een onderlengte (bv. een "j" in sommige
+lettertypen) steken daar vanzelfsprekend een stukje onder uit, en dat is
+prima. Simpeler dan de eerdere aanpak: pdf-lib se `drawText`-"y" is namelijk
+al de baseline-positie vanaf onder (PDF-coördinaten lopen van onder naar
+boven), dus een rechtstreekse toewijzing (`y = 4mm`) volstaat — blijft ook
+ongewijzigd bij automatisch verkleinde tekst.
+**Belangrijke meetvalkuil, tegengekomen tijdens het opnieuw testen**:
+`pdfplumber`'s eigen "top"/"bottom"/"y0"-metingen bleken NIET de
+daadwerkelijke zichtbare inkt van een teken te representeren, maar een
+simplistische "baseline plus lettertype se theoretische onderlengte-ruimte"
+— voor tekens ZONDER onderlengte (zoals deze hoofdletters-tekst) gaf dat
+een misleidende ~3,3mm afwijking t.o.v. de baseline. Uiteindelijk correct
+geverifieerd door de daadwerkelijke ZWARTE PIXELS in een hoge-resolutie
+render te meten (bevestigd: 3,85mm ≈ 4mm, en tekens met een echte
+onderlengte, zoals "jgpqy", steken inderdaad verder uit) — dus een
+directere, betrouwbaardere test dan op de tekst-bounding-box-metingen van
+een PDF-analysetool te vertrouwen.
 
 **Kleur CMYK(0, 0, 0.01, 0)** — dezelfde "1%-gele" anti-gaten-truc als de
 rest van dit project, rechtstreeks overgenomen uit het referentiebestand.
@@ -733,9 +755,34 @@ afwijken, afhankelijk van de exacte letters waarmee de tekst begint/eindigt
 specifieke tekstcombinatie ("IJSSELSTEIN AUTOBEDRIJF...") tot 7,74mm, ONDER
 de vereiste 1cm. Systematisch gemeten wat de maximale asymmetrie kan zijn
 (tot ~2,6mm bij realistische tekst) en de veiligheidsmarge naar 5mm
-verhoogd. Lettertype: Helvetica-Bold (`StandardFonts.HelveticaBold` uit
-pdf-lib — een ingebouwd PDF-standaardlettertype, dus geen los fontbestand
-nodig, ongeacht wat het referentiebestand zelf toevallig gebruikte).
+verhoogd.
+
+**Lettertype-keuze**: de Shopify-dropdown biedt 6 opties (Helvetica-bold,
+Montserratbold, BebasNeue-bold, Oswald-regular, Opensans-bold,
+Muktavaani-bold) — `LETTERTYPE_MAP` in `server/kentekenplaathouder.js`
+koppelt de gekozen naam aan het juiste lettertype, met terugval op
+Helvetica-Bold (met een console-waarschuwing, geen zichtbare aanpassing
+aan het bestand) bij een nog niet beschikbaar of onbekend lettertype.
+**Inmiddels 5 van de 6 daadwerkelijk beschikbaar**: Helvetica-bold
+(`StandardFonts.HelveticaBold` uit pdf-lib, ingebouwd), Montserratbold,
+BebasNeue-bold (aangeleverd als `BebasNeue-Regular.ttf` — Bebas Neue heeft
+namelijk geen aparte bold-variant, het lettertype is van zichzelf al een
+vet/hoog-contrast weergavelettertype), Oswald-regular en Opensans-bold —
+alle 5 grondig gevalideerd (geen enkel benodigd teken heeft lege
+padgegevens) en visueel bevestigd via een losse render buiten pdf-lib om
+(PIL/FreeType). **Muktavaani-bold is de enige nog ontbrekende**: leek eerst
+ook bruikbaar — rechtstreeks uit het referentiebestand geëxtraheerd, en een
+eerste (te oppervlakkige) controle op basis van alleen de tekenlijst (cmap)
+gaf "geen ontbrekende tekens" aan — maar bleek bij een visuele render
+(buiten pdf-lib om) vrijwel volledig LEEG te renderen: op nader onderzoek
+bleek het exact hetzelfde probleem als destijds bij Caveat-Regular
+("You are a limited Edition."-tegeltje) — de meeste letters (C, W, L, .,
+O, P, N, A, ...) staan wel in de cmap-tekenlijst maar hebben 0 bytes aan
+daadwerkelijke padgegevens; alleen de letters die toevallig in het
+voorbeeld ("HIER DE TEKST") voorkwamen (R, I, S, ...) werken echt. Het
+kapotte bestand is weer verwijderd — een VOLLEDIGE (niet-gesubsette) Mukta
+Vaani Bold (ook een gratis Google Font) is nog niet aangeleverd, dus die
+ene optie valt voorlopig terug op Helvetica-Bold.
 
 Dit product valt buiten de speciale "tegeltje met tekst"-status-tak in
 `determineInitialStatus`, en krijgt dus automatisch de gewone standaard
