@@ -784,6 +784,21 @@ kapotte bestand is weer verwijderd — een VOLLEDIGE (niet-gesubsette) Mukta
 Vaani Bold (ook een gratis Google Font) is nog niet aangeleverd, dus die
 ene optie valt voorlopig terug op Helvetica-Bold.
 
+**Emoji-ondersteuning** (bv. 😂), ontdekt na een order waar een emoji in de
+klant se tekst stilzwijgend verdween: een gewoon lettertype heeft simpelweg
+geen glyph voor een emoji, dus `page.drawText()` met de rauwe tekst-string
+liet het teken gewoon wegvallen. Zelfde aanpak als bij muziekframe/
+auto-frame overgenomen: de tekst wordt met `splitTextEmoji` opgesplitst in
+gewone/emoji-delen, de emoji's worden met `preloadEmojiImages` als
+afbeelding vooraf ingeladen, en `measureMixedTextWidth`/`drawMixedText`
+(i.p.v. de kale `font.widthOfTextAtSize()`/`page.drawText()`) meten/tekenen
+de emoji's als kleine afbeeldingen tussen de gewone tekst door — dus ook
+gewoon meegeteld bij het automatisch verkleinen voor de 1cm-marge. Getest
+met de exacte tekst uit de melding (bevestigd: 1 afbeelding op de juiste
+positie in het PDF-bestand) en met een langere tekst mét 3 emoji's
+(bevestigd: marge blijft minimaal 1cm). Regressietest bevestigt dat gewone
+tekst zonder emoji ongewijzigd blijft werken.
+
 Dit product valt buiten de speciale "tegeltje met tekst"-status-tak in
 `determineInitialStatus`, en krijgt dus automatisch de gewone standaard
 "wacht op drukwerkbestand" — geen aparte statuslogica-aanpassing nodig.

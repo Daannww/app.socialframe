@@ -2,7 +2,7 @@ const { PDFDocument, StandardFonts, cmyk } = require('pdf-lib');
 const fontkit = require('@pdf-lib/fontkit');
 const fs = require('fs');
 const path = require('path');
-const { MM } = require('./pdf-shared');
+const { MM, splitTextEmoji, preloadEmojiImages, measureMixedTextWidth, drawMixedText } = require('./pdf-shared');
 
 // Afmetingen 1-op-1 gemeten uit het door de gebruiker aangeleverde
 // referentiebestand ("kentekensjabloon.pdf", voertuig "Auto"): 526,0 x
@@ -112,6 +112,16 @@ async function generateKentekenplaathouderPdf(data) {
 
   const tekst = data.tekst || '';
   if (tekst) {
+    // Emoji's (bv. 😂) kunnen niet met een gewoon lettertype getekend worden
+    // (geen glyph aanwezig) — ontdekt doordat een emoji in de klant se tekst
+    // stilzwijgend verdween. Zelfde aanpak als bij muziekframe/auto-frame:
+    // de tekst opsplitsen in gewone/emoji-delen (splitTextEmoji), de emoji's
+    // als afbeelding vooraf inladen (preloadEmojiImages), en dan de
+    // emoji-bewuste meet-/tekenfuncties gebruiken i.p.v. de kale
+    // font.widthOfTextAtSize()/page.drawText().
+    const delen = splitTextEmoji(tekst);
+    const emojiCache = await preloadEmojiImages(doc, [tekst]);
+
     // Altijd horizontaal gecentreerd (op verzoek — een eventuele "_align"-
     // eigenschap van de klant wordt hier bewust genegeerd, dit product is
     // altijd gecentreerd).
@@ -131,11 +141,11 @@ async function generateKentekenplaathouderPdf(data) {
     let sizePt = STANDAARD_LETTERGROOTTE_MM * MM;
     const veiligheidsmargeMm = 5;
     const maxBreedtePt = (formaat.breedteMm - 2 * (MARGE_MM + veiligheidsmargeMm)) * MM;
-    while (sizePt > 2 * MM && font.widthOfTextAtSize(tekst, sizePt) > maxBreedtePt) {
+    while (sizePt > 2 * MM && measureMixedTextWidth(delen, font, sizePt) > maxBreedtePt) {
       sizePt -= 0.1 * MM;
     }
 
-    const tekstBreedtePt = font.widthOfTextAtSize(tekst, sizePt);
+    const tekstBreedtePt = measureMixedTextWidth(delen, font, sizePt);
     const xPt = (formaat.breedteMm * MM - tekstBreedtePt) / 2;
     // Baseline op exact 4mm vanaf de onderkant van het canvas — pdf-lib se
     // "y" bij drawText is namelijk al de baseline-positie vanaf onder (PDF-
@@ -145,7 +155,7 @@ async function generateKentekenplaathouderPdf(data) {
     // zoals opgegeven.
     const yPt = BASELINE_VANAF_ONDER_MM * MM;
 
-    page.drawText(tekst, { x: xPt, y: yPt, size: sizePt, font, color: TEKST_KLEUR });
+    drawMixedText(page, delen, font, sizePt, xPt, yPt, TEKST_KLEUR, emojiCache);
   }
 
   return doc.save();
