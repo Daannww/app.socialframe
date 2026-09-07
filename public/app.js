@@ -94,7 +94,7 @@ function renderTable() {
   ordersBody.innerHTML = pageOrders.map(o => `
     <tr data-id="${o.id}">
       <td class="no-row-open"><input type="checkbox" class="row-check" data-id="${o.id}" ${selectedIds.has(o.id) ? 'checked' : ''}></td>
-      <td class="no-row-open">#${o.order_number || o.shopify_order_id}</td>
+      <td class="no-row-open copyable" onclick="copyText(this, '${jsEscape(String(o.order_number || o.shopify_order_id))}')" title="Klik om te kopiëren">#${o.order_number || o.shopify_order_id}</td>
       <td><span class="customer-cell">${flagHtml(o.shipping_country_code)}${escapeHtml(o.customer_name || '-')}</span></td>
       <td>${fmtDate(o.shopify_created_at)}</td>
       <td>${o.spotify_links && o.spotify_links.length ? '<span class="spotify-dot">●</span> ' + o.spotify_links.length : '-'}</td>

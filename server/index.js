@@ -721,7 +721,11 @@ app.get('/api/print-files/pdf-zip', requireAdmin, async (req, res) => {
     }
 
     res.setHeader('Content-Type', 'application/zip');
-    res.setHeader('Content-Disposition', 'attachment; filename="tegeltjes.zip"');
+    // Bestandsnaam op de datum van deze bulk-download zelf (niet "tegeltjes",
+    // dat dekte allang niet meer alle producten die hier gebundeld worden) —
+    // dezelfde datumnotatie als de datummap binnenin de zip, voor
+    // consistentie.
+    res.setHeader('Content-Disposition', `attachment; filename="${getDutchDateString()}.zip"`);
 
     const archive = archiver('zip', { zlib: { level: 9 } });
     archive.on('error', (err) => { throw err; });
@@ -741,9 +745,6 @@ app.get('/api/print-files/pdf-zip', requireAdmin, async (req, res) => {
 // "wacht op productie".
 //
 // Mapstructuur in de zip:
-//   {datum}/tegels/1007.pdf
-//   {datum}/tegels/groot/1007 groot.pdf
-//   {datum}/tegels/gekleurd/1099 Marineblauw.pdf
 //   {datum}/muziekframe/1055 muziekframe.pdf
 //   {datum}/muziekframe/klein/1055 klein.pdf
 //   {datum}/muziekframe/Dik/1055 dik.pdf
@@ -751,11 +752,14 @@ app.get('/api/print-files/pdf-zip', requireAdmin, async (req, res) => {
 //   {datum}/muziekframe/klein/1032 autoframe klein.pdf
 //   {datum}/muziekframe/1099 fotoframe.pdf               (ook zelfde map, "S"-variant -> klein-submap)
 //   {datum}/muziekframe/klein/1099 fotoframe klein.pdf
+//   {datum}/kentekenplaathouder/1099 kentekenplaathouder.pdf
+//   {datum}/tegels/1007.pdf
+//   {datum}/tegels/groot/1007 groot.pdf
+//   {datum}/tegels/gekleurd/1099 Marineblauw.pdf
 //   {datum}/soundframe/1099 soundframe.pdf
 //   {datum}/lijntekeningframe/1099 lijntekeningframe.pdf
 //   {datum}/tegels/1099 illustratie.pdf
 //   {datum}/tegels/groot/1099 illustratie groot.pdf
-//   {datum}/kentekenplaathouder/1099 kentekenplaathouder.pdf
 async function appendPrintFilesToArchive(archive, targets) {
   const dateFolder = getDutchDateString(); // YYYY-MM-DD, Nederlandse tijdzone
 
@@ -873,6 +877,31 @@ async function appendPrintFilesToArchive(archive, targets) {
           archive.append(
             `Kon het muziekframe-bestand voor order ${baseName}${numberSuffix} niet genereren: ${e.message}`,
             { name: `${dateFolder}/muziekframe/FOUT-${baseName}${numberSuffix}-muziekframe.txt` }
+          );
+        }
+      }
+    }
+
+    // --- Kentekenplaathouder: eigen drukwerkbestand per besteld exemplaar,
+    // in een eigen map "kentekenplaathouder" — een heel ander fysiek formaat
+    // (52,6x13,25cm) dan alle andere producten. Staat hier vooraan, bij de
+    // andere "Socialframe"-achtige producten (muziekframe/valentijnframe),
+    // i.p.v. achteraan na alle tegel-producten. ---
+    const kentekenplaathouderItems = extractKentekenplaathouderItemsFromOrder({ line_items: order.line_items });
+    if (kentekenplaathouderItems.length > 0) {
+      const multipleKentekenplaathouders = kentekenplaathouderItems.length > 1;
+      for (let i = 0; i < kentekenplaathouderItems.length; i++) {
+        const numberSuffix = multipleKentekenplaathouders ? ` ${i + 1}` : '';
+        const item = kentekenplaathouderItems[i];
+        const filename = `${dateFolder}/kentekenplaathouder/${baseName}${numberSuffix} kentekenplaathouder.pdf`;
+        try {
+          const pdfBytes = await generateKentekenplaathouderPdf(item.data);
+          archive.append(Buffer.from(pdfBytes), { name: filename });
+          orderSucceeded = true;
+        } catch (e) {
+          archive.append(
+            `Kon het kentekenplaathouder-bestand voor order ${baseName}${numberSuffix} niet genereren: ${e.message}`,
+            { name: `${dateFolder}/kentekenplaathouder/FOUT-${baseName}${numberSuffix}.txt` }
           );
         }
       }
@@ -1002,29 +1031,6 @@ async function appendPrintFilesToArchive(archive, targets) {
           archive.append(
             `Kon het tegelillustratie-bestand voor order ${baseName}${numberSuffix} niet genereren: ${e.message}`,
             { name: `${dateFolder}/tegels/FOUT-${baseName}${numberSuffix}-illustratie.txt` }
-          );
-        }
-      }
-    }
-
-    // --- Kentekenplaathouder: eigen drukwerkbestand per besteld exemplaar,
-    // in een eigen map "kentekenplaathouder" — een heel ander fysiek formaat
-    // (52,6x13,25cm) dan alle andere producten. ---
-    const kentekenplaathouderItems = extractKentekenplaathouderItemsFromOrder({ line_items: order.line_items });
-    if (kentekenplaathouderItems.length > 0) {
-      const multipleKentekenplaathouders = kentekenplaathouderItems.length > 1;
-      for (let i = 0; i < kentekenplaathouderItems.length; i++) {
-        const numberSuffix = multipleKentekenplaathouders ? ` ${i + 1}` : '';
-        const item = kentekenplaathouderItems[i];
-        const filename = `${dateFolder}/kentekenplaathouder/${baseName}${numberSuffix} kentekenplaathouder.pdf`;
-        try {
-          const pdfBytes = await generateKentekenplaathouderPdf(item.data);
-          archive.append(Buffer.from(pdfBytes), { name: filename });
-          orderSucceeded = true;
-        } catch (e) {
-          archive.append(
-            `Kon het kentekenplaathouder-bestand voor order ${baseName}${numberSuffix} niet genereren: ${e.message}`,
-            { name: `${dateFolder}/kentekenplaathouder/FOUT-${baseName}${numberSuffix}.txt` }
           );
         }
       }

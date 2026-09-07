@@ -696,6 +696,30 @@ wordt herkend en getoond in de popup.
 in een ander veld), stuur dat door en dan pas ik `extractSpotifyLinks` in
 `server/shopify.js` aan zodat die op de juiste plek zoekt.
 
+## Bestelnummer kopieerbaar in het dashboard, zip-bestandsnaam, mapvolgorde
+
+3 kleine verbeteringen op verzoek:
+- **Bestelnummer kopieerbaar in de hoofdtabel**: dezelfde `copyable`-stijl +
+  `copyText()`-klikfunctie die al overal in de order-popup gebruikt werd
+  (titel, adres, telefoonnummer, enz.), nu ook toegepast op de
+  bestelnummer-kolom in de hoofdtabel (`public/app.js`) — was daar
+  voorheen alleen platte tekst.
+- **Bulk-downloadbestand heet nu de datum, niet "tegeltjes"**: die naam
+  dekte allang niet meer alle producten die er inmiddels in gebundeld
+  worden. Heet nu `{datum}.zip` (zelfde `getDutchDateString()`-functie en
+  -formaat als de datummap binnenin de zip, voor consistentie).
+- **Kentekenplaathouder staat nu vooraan in de zip**, direct na het
+  muziekframe-blok (i.p.v. helemaal achteraan, na alle tegel-producten) —
+  puur een kwestie van de volgorde waarin `archive.append()` wordt
+  aangeroepen in `appendPrintFilesToArchive` in `server/index.js`.
+  De documentatie-comment bovenaan die functie (met voorbeeld-bestandsnamen)
+  is ook bijgewerkt om deze nieuwe volgorde te weerspiegelen.
+
+Getest: de HTML-opbouw voor het kopieerbare bestelnummer, en een volledige
+regressietest op alle producten (geen van deze wijzigingen raakt de
+daadwerkelijke PDF-generatie, dus dit bevestigt vooral dat er niets anders
+is stukgegaan).
+
 ## Kentekenplaathouder (server/kentekenplaathouder.js)
 
 Nieuw product: een kentekenplaathouder met aangepaste tekst (bv. een
