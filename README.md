@@ -696,6 +696,41 @@ wordt herkend en getoond in de popup.
 in een ander veld), stuur dat door en dan pas ik `extractSpotifyLinks` in
 `server/shopify.js` aan zodat die op de juiste plek zoekt.
 
+## Automatische herpogingen bij een tijdelijke netwerkfout
+
+Ontdekt via een foutmelding bij de bulk-export: "Kon het muziekframe-bestand
+... niet genereren: connect ETIMEDOUT 23.227.39.200:443; connect
+ENETUNREACH 2620:127:f00e:ff01::443 - Local (:::0)" — een tijdelijke
+verbindingshapering bij het ophalen van de klant se foto liet meteen de hele
+order mislukken, terwijl een 2e poging een paar seconden later meestal
+gewoon lukt.
+
+**Oplossing**: `fetchMetHerpogingen()` in `server/pdf-shared.js` — een
+vervanger voor rechtstreekse `axios.get()`-aanroepen die tot 3 keer
+opnieuw probeert (met oplopende wachttijd: 1s, 2s) bij een TIJDELIJKE
+netwerkfout (`ETIMEDOUT`, `ENETUNREACH`, `ECONNRESET`, `ECONNREFUSED`,
+`ECONNABORTED`, `EAI_AGAIN`, `EHOSTUNREACH`, `EPIPE`, herkend aan
+`error.code`, de foutmelding-tekst zelf, Of — bij een gecombineerde
+IPv4+IPv6-verbindingspoging zoals in de screenshot — de onderliggende
+deelfouten in `error.errors`). Een ECHTE fout (bv. 404 niet gevonden, een
+ongeldige URL) wordt NIET herhaald — die faalt nog steeds meteen, met
+dezelfde foutmelding als voorheen.
+
+Toegepast op ELKE plek in het project die een externe URL ophaalt: alle
+foto-embedding-functies in `server/pdf-shared.js` (gebruikt door
+muziekframe, auto-frame, Foto-frame, Sound-Frame), `server/
+lijntekeningframe.js`, en de foto-/SVG-ophaal-punten in `server/index.js`
+(bulk-export, losse downloadknoppen). Tegel-illustraties (`server/
+tegelillustratie.js`) hebben dit niet nodig — die gebruiken een vast, lokaal
+JPEG-asset, geen externe foto-ophaal.
+
+Getest: de retry-logica zelf (een simulatie die 2x faalt met precies de
+foutmelding uit de screenshot en de 3e keer lukt — bevestigd geslaagd, met
+de verwachte oplopende wachttijd), en bevestigd dat een ECHTE fout (404)
+nog steeds meteen faalt zonder herpogingen/wachttijd. Volledige
+regressietest op alle producten die foto's ophalen bevestigt geen
+neveneffecten.
+
 ## Vaste-illustratie-tegeltjes (server/tegelillustratie.js)
 
 Nieuwe productfamilie binnen "Tegeltje met tekst", maar FUNDAMENTEEL anders

@@ -6,6 +6,47 @@ const path = require('path');
 
 const MM = 72 / 25.4; // PDF-punten per millimeter
 
+// Netwerk-foutcodes die op een TIJDELIJKE hapering wijzen (verbinding
+// verbroken/traag/onbereikbaar) i.p.v. een ECHTE fout (bv. 404 niet
+// gevonden, of een ongeldige URL) — bij dit soort codes is opnieuw proberen
+// zinvol, bij andere fouten niet.
+const TIJDELIJKE_NETWERK_FOUTCODES = [
+  'ETIMEDOUT', 'ENETUNREACH', 'ECONNRESET', 'ECONNREFUSED', 'ECONNABORTED',
+  'EAI_AGAIN', 'EHOSTUNREACH', 'EPIPE'
+];
+
+// Controleert of een fout (of, bij een gecombineerde IPv4+IPv6-verbindings-
+// poging, een van de onderliggende deelfouten in `error.errors`) een
+// TIJDELIJKE netwerkfout is.
+function isTijdelijkeNetwerkFout(error) {
+  if (!error) return false;
+  if (TIJDELIJKE_NETWERK_FOUTCODES.includes(error.code)) return true;
+  if (Array.isArray(error.errors) && error.errors.some(isTijdelijkeNetwerkFout)) return true;
+  const tekst = String(error.message || '');
+  return TIJDELIJKE_NETWERK_FOUTCODES.some(code => tekst.includes(code));
+}
+
+// Haalt een externe URL op (axios.get) met een paar automatische
+// herpogingen bij TIJDELIJKE netwerkfouten — ontdekt doordat een enkele
+// verbindingshapering (bv. "connect ETIMEDOUT ...; connect ENETUNREACH ...")
+// bij de bulk-export meteen de hele order liet mislukken, terwijl een 2e
+// poging een paar seconden later vaak gewoon lukt. Een ECHTE fout (bv. 404,
+// een ongeldige URL) wordt NIET herhaald — die faalt meteen door, met
+// dezelfde foutmelding als voorheen.
+async function fetchMetHerpogingen(url, opties = {}, pogingen = 3, wachttijdMs = 1000) {
+  let laatsteFout;
+  for (let poging = 1; poging <= pogingen; poging++) {
+    try {
+      return await axios.get(url, opties);
+    } catch (e) {
+      laatsteFout = e;
+      if (!isTijdelijkeNetwerkFout(e) || poging === pogingen) throw e;
+      await new Promise(resolve => setTimeout(resolve, wachttijdMs * poging)); // oplopende wachttijd tussen pogingen
+    }
+  }
+  throw laatsteFout;
+}
+
 // LET OP: eerder stond hier een fix die een onzichtbaar Zero-Width Non-Joiner
 // (U+200C) tussen "ff"/"fi"/"fl"/"ffi"/"ffl"-combinaties invoegde, om een
 // bekende pdf-lib-ligatuur-breedtebug te omzeilen (github.com/Hopding/
@@ -218,7 +259,7 @@ async function fetchEmojiPng(emoji, sizePx) {
   for (const cp of candidates) {
     try {
       const url = `https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/${cp}.svg`;
-      const res = await axios.get(url, { responseType: 'text' });
+      const res = await fetchMetHerpogingen(url, { responseType: 'text' });
       return await sharp(Buffer.from(res.data)).resize(sizePx, sizePx).png().toBuffer();
     } catch (e) {
       // probeer de volgende variant, of geef uiteindelijk niets terug
@@ -351,7 +392,7 @@ async function heeftEchteTransparantie(buffer) {
 }
 
 async function embedPhoto(doc, photoUrl, filterValue, targetZoneSizeMm = 160) {
-  const imgRes = await axios.get(photoUrl, { responseType: 'arraybuffer' });
+  const imgRes = await fetchMetHerpogingen(photoUrl, { responseType: 'arraybuffer' });
   let pipeline = sharp(Buffer.from(imgRes.data)).rotate(); // EXIF-rotatie vast "bakken"
 
   const filter = (filterValue || '').toLowerCase();
@@ -407,7 +448,7 @@ async function embedPhoto(doc, photoUrl, filterValue, targetZoneSizeMm = 160) {
 // Gebruikt voor het Foto-frame-product, waar de foto de hele 200x300mm-
 // plaat beeldvullend moet vullen.
 async function embedPhotoCoverRect(doc, photoUrl, filterValue, targetWidthMm, targetHeightMm) {
-  const imgRes = await axios.get(photoUrl, { responseType: 'arraybuffer' });
+  const imgRes = await fetchMetHerpogingen(photoUrl, { responseType: 'arraybuffer' });
   let pipeline = sharp(Buffer.from(imgRes.data)).rotate(); // EXIF-rotatie vast "bakken"
 
   const filter = (filterValue || '').toLowerCase();
@@ -632,7 +673,7 @@ async function getCodeSvg(codeType, link, barColorHex, lightColorHex) {
     // (altijd geldig, altijd contrast) en kleuren die zelf achteraf om.
     const svgUrl = `https://scannables.scdn.co/uri/plain/svg/ffffff/black/640/${encoded}`;
     try {
-      const res = await axios.get(svgUrl, { responseType: 'text' });
+      const res = await fetchMetHerpogingen(svgUrl, { responseType: 'text' });
       return res.data;
     } catch (e) {
       // Nooit de HELE PDF-generatie laten crashen enkel omdat de Spotify-code
@@ -888,7 +929,7 @@ async function adjustCmykChannelsToPng(imageBuffer, delta) {
 // het Sound-Frame-product, waar de foto altijd als afgerond vierkant kaartje
 // wordt getoond.
 async function embedPhotoRounded(doc, photoUrl, filterValue, targetSizeMm, cornerRadiusMm) {
-  const imgRes = await axios.get(photoUrl, { responseType: 'arraybuffer' });
+  const imgRes = await fetchMetHerpogingen(photoUrl, { responseType: 'arraybuffer' });
   let pipeline = sharp(Buffer.from(imgRes.data)).rotate(); // EXIF-rotatie vast "bakken"
 
   const filter = (filterValue || '').toLowerCase();
@@ -942,6 +983,6 @@ module.exports = {
   embedPhoto, fitPhotoInSquareZone, recolorDarkPixels, recolorLightPixels, getCodeSvg,
   drawBackground, isMarbleBackground, hasPageBackground, nearWhiteCmyk, adjustCmykChannels,
   extractSvgShapes, drawSvgShapesInBox, embedPhotoRounded, voorkomLigatuurGaten,
-  embedPhotoCoverRect, heeftEchteTransparantie,
+  embedPhotoCoverRect, heeftEchteTransparantie, fetchMetHerpogingen,
   splitLigatuurVeilig, widthOfTextLigatuurVeiligAtSize, drawTextLigatuurVeilig
 };

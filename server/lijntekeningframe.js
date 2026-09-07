@@ -1,7 +1,6 @@
 const { PDFDocument, rgb } = require('pdf-lib');
-const axios = require('axios');
 const sharp = require('sharp');
-const { MM, heeftEchteTransparantie } = require('./pdf-shared');
+const { MM, heeftEchteTransparantie, fetchMetHerpogingen } = require('./pdf-shared');
 
 // Zelfde patroon als AUTOPICTURA_REGEX in server/shopify.js — hier los
 // gedupliceerd (i.p.v. te exporteren/importeren) om geen onnodige wijziging
@@ -72,7 +71,7 @@ const MARGE_MM = 20;
 // om diezelfde (losstaande) verbetering hier ook te laten gelden — dat is
 // geen kleurCORRECTIE, alleen een formaatkeuze.
 async function embedPhotoOngewijzigd(doc, photoUrl, maxZijdeMm) {
-  const imgRes = await axios.get(photoUrl, { responseType: 'arraybuffer' });
+  const imgRes = await fetchMetHerpogingen(photoUrl, { responseType: 'arraybuffer' });
   const rotatedBuffer = await sharp(Buffer.from(imgRes.data)).rotate().toBuffer();
   const metadata = await sharp(rotatedBuffer).metadata();
   const aspectRatio = metadata.width / metadata.height;

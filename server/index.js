@@ -10,6 +10,7 @@ const QRCode = require('qrcode');
 const { listOrders, getOrder, updateStatus, updateStatusBulk, getAllOrdersRaw, updateDerivedFields, deleteOldOrders, getInventory, setInventoryStock, addInventoryItem, deleteInventoryItem, getOrdersReadyForReviewEmail, markReviewEmailSent, setSizeOverride, setNote, getStatusHistory, db } = require('./db');
 const { syncOrders, mapOrder, extractFotoTegelPhotoUrls, extractPosterlyPhotoUrls, extractTileItemsFromOrder, extractAutoFrameItemsFromOrder } = require('./shopify');
 const axios = require('axios');
+const { fetchMetHerpogingen } = require('./pdf-shared');
 const archiver = require('archiver');
 const { imageBufferToPrintPdf, cropPosterlyCanvas } = require('./printfile');
 const { generateMusicFramePdf, extractMusicFrameItemsFromOrder } = require('./musicframe');
@@ -314,7 +315,7 @@ app.get('/api/spotify-code-svg', async (req, res) => {
   const svgUrl = `https://scannables.scdn.co/uri/plain/svg/ffffff/black/640/${encoded}`;
 
   try {
-    const response = await axios.get(svgUrl, { responseType: 'text' });
+    const response = await fetchMetHerpogingen(svgUrl, { responseType: 'text' });
     res.setHeader('Content-Type', 'image/svg+xml');
     res.send(response.data);
   } catch (e) {
@@ -403,7 +404,7 @@ app.get('/api/photo-preview', async (req, res) => {
   }
 
   try {
-    const response = await axios.get(url, { responseType: 'arraybuffer' });
+    const response = await fetchMetHerpogingen(url, { responseType: 'arraybuffer' });
     res.setHeader('Content-Type', response.headers['content-type'] || 'image/png');
     res.setHeader('Cache-Control', 'private, max-age=300');
     res.send(response.data);
@@ -417,7 +418,7 @@ app.get('/api/download', async (req, res) => {
   const url = req.query.url;
   if (!url) return res.status(400).json({ error: 'url is verplicht' });
   try {
-    const response = await axios.get(url, { responseType: 'arraybuffer' });
+    const response = await fetchMetHerpogingen(url, { responseType: 'arraybuffer' });
     const contentType = response.headers['content-type'] || 'application/octet-stream';
     const extension = (contentType.split('/')[1] || 'bin').split(';')[0];
     let filename = 'bestand';
@@ -447,7 +448,7 @@ app.get('/api/print-files/single-pdf', requireAdmin, async (req, res) => {
   }
 
   try {
-    const imgRes = await axios.get(link, { responseType: 'arraybuffer' });
+    const imgRes = await fetchMetHerpogingen(link, { responseType: 'arraybuffer' });
     let imageBuffer = Buffer.from(imgRes.data);
     // Posterly-foto's bevatten nog canvas/rand — eerst uit het midden
     // bijknippen naar het exacte gevraagde formaat.
@@ -762,7 +763,7 @@ async function appendPrintFilesToArchive(archive, targets) {
           : `${dateFolder}/tegels/${baseName}${numberSuffix}.pdf`;
 
         try {
-          const imgRes = await axios.get(tileItem.link, { responseType: 'arraybuffer' });
+          const imgRes = await fetchMetHerpogingen(tileItem.link, { responseType: 'arraybuffer' });
           let imageBuffer = Buffer.from(imgRes.data);
           // Posterly-foto's bevatten nog canvas/rand — eerst uit het midden
           // bijknippen naar het exacte gevraagde formaat, vóórdat 'm
