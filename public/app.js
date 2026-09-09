@@ -1284,7 +1284,7 @@ async function printOrders(ids, btn, defaultLabel, autoAdvanceStatus = false) {
           body { margin: 0; }
           table { border-collapse: collapse; width: 100%; }
           th, td { padding: 2px 0; }
-          .order-barcode { display: block; margin: 8px auto 4px; }
+          .order-barcode { display: block; margin: 8px auto 4px; max-width: 100%; height: auto; }
         </style>
       </head>
       <body>
@@ -1302,9 +1302,9 @@ async function printOrders(ids, btn, defaultLabel, autoAdvanceStatus = false) {
           try {
             printWindow.JsBarcode(el, el.dataset.orderNumber, {
               format: 'CODE128',
-              width: 1,
-              height: 24,
-              fontSize: 10,
+              width: 2,
+              height: 48,
+              fontSize: 20,
               margin: 0,
               background: 'transparent'
             });
