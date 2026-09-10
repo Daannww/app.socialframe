@@ -696,6 +696,76 @@ wordt herkend en getoond in de popup.
 in een ander veld), stuur dat door en dan pas ik `extractSpotifyLinks` in
 `server/shopify.js` aan zodat die op de juiste plek zoekt.
 
+## 16e "Tegeltje met tekst"-ontwerp: "Oma met definitie."
+
+Zelfde woordenboek-stijl als "Opa"/"Tante met definitie", maar dit keer —
+in tegenstelling tot die twee — als contouren aangeleverd (geen embedded
+lettertype in het referentiebestand), dus rechtstreeks als 201 losse
+vectorvormen geëxtraheerd, net als "Lievelingsleukerd"/"KAK"/"Ik hou van
+ons". Een geheel NIEUW ontwerp t.o.v. de al bestaande "altijd-fijn-oma"/
+"altijd-fijn-opa-en-oma"-tegeltjes (die een heel andere tekst/stijl hebben)
+— de herkenningsregex is bewust specifiek genoeg (vereist "oma" gevolgd
+door "met definitie") om die niet per ongeluk te raken.
+
+**Zelfde fout als eerder bij KAK/"Ik hou van ons" gemaakt** (opnieuw de hele
+`generateTegelTekstPdf`-functie kwijtgeraakt bij het invoegen) — dit keer
+ook nog een 2e, kleinere fout erbovenop: de concatenatie-logica voor het
+veilig invoegen liet een dubbele sluithaak staan (`}  },`), wat een
+JavaScript-syntaxfout gaf. Beide direct opgemerkt via de gebruikelijke
+syntax-check-stap en hersteld (geen bestandsherstel nodig ditmaal, puur een
+kleine tekstcorrectie).
+
+Getest: herkenning (inclusief geen overlap met de bestaande Oma-tegeltjes),
+pixel-perfecte match via de échte productiecode, kleurwissel op een steek-
+proef van 3 tegelkleuren, statuslogica, en een volledige regressietest op
+de overige 15 ontwerpen — geen neveneffecten.
+
+## 15e "Tegeltje met tekst"-ontwerp: "Ik hou van ons."
+
+Als contouren aangeleverd (handgetekende stijl) — rechtstreeks als vectorvormen
+uit het PDF-bestand geëxtraheerd, net als "Lievelingsleukerd"/"KAK"/"You are
+a limited Edition". Bevat een hartje aan het eind met een VASTE kleur
+(bordeauxrood, CMYK 0.223/0.973/0.602/0.156, rechtstreeks uit het
+referentiebestand) die NIET met de tegelkleur meewisselt — zelfde aanpak
+als bij "Hartje": een eigen `kleur`-veld op die ene vorm overschrijft de
+standaard kleurwissel-logica, de tekst zelf wisselt wel gewoon mee.
+
+**Zelfde fout als eerder bij KAK gemaakt en meteen hersteld**: bij het
+toevoegen via een Python-script raakte opnieuw de hele
+`generateTegelTekstPdf`-functie (en `module.exports`) kwijt — direct
+opgemerkt (nu bekend patroon), hersteld vanuit de laatst gebouwde zip, en
+daarna opnieuw toegevoegd met `str_replace` inclusief een expliciete
+uniciteitscontrole vooraf (`assert inhoud.count(oud) == 1`).
+
+Getest: herkenning met de exacte titel uit de screenshot, pixel-perfecte
+match via de échte productiecode (met tegelkleur "Wit", voor een eerlijke
+zwart-op-wit vergelijking met het origineel), kleurwissel + hartje-kleur-
+vastheid apart geverifieerd op alle 9 tegelkleuren, statuslogica met het
+exacte ordernummer, en een volledige regressietest op de overige 14
+ontwerpen — geen neveneffecten.
+
+## 14e "Tegeltje met tekst"-ontwerp: "Tante met definitie."
+
+Zelfde woordenboek-stijl als "Opa met definitie"/"Beste vriendin met
+definitie" (echte tekst + Bodoni Moda-lettertype, geen contouren) — dus
+geen nieuwe extractietechniek nodig, gewoon de bestaande aanpak toegepast
+met de eigen, opnieuw gemeten posities/groottes uit dit referentiebestand
+(niet zomaar Opa se getallen hergebruikt — de afstand tussen het lijntje
+en de ondertitel bleek net iets groter). "Officiële" bevat dezelfde soort
+"ffi"-lettercombinatie als eerder bij Opa problemen gaf — de al bestaande
+`drawTextLigatuurVeilig`-fix (pdf-shared.js) vangt dat hier automatisch op.
+Bevestigd dat BodoniModa-Regular.ttf de "ë" ook daadwerkelijk ondersteunt
+(niet zomaar aangenomen) voordat de correcte spelling "Officiële" gebruikt
+werd i.p.v. Opa se "Officiele" (zonder ë).
+
+Getest: herkenning met de exacte titel uit de screenshot (inclusief de
+juiste tegelkleur-extractie, "Grijs"), lay-out/tekstinhoud vergeleken met
+het origineel (via het terugval-lettertype, vanwege de bekende `fontkit`-
+sandboxbeperking — Bodoni Moda staat al in het project, dus dat is alleen
+een test-omgeving-beperking, geen echt ontbrekend bestand), kleurwissel op
+alle 9 tegelkleuren, statuslogica, en een volledige regressietest op de
+overige 13 ontwerpen — geen neveneffecten.
+
 ## Barcode op de pakbon (weer teruggezet naar het oude formaat)
 
 Eerst op verzoek verdubbeld (`width: 1→2, height: 24→48, fontSize: 10→20`
