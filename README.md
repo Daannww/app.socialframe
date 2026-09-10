@@ -696,19 +696,15 @@ wordt herkend en getoond in de popup.
 in een ander veld), stuur dat door en dan pas ik `extractSpotifyLinks` in
 `server/shopify.js` aan zodat die op de juiste plek zoekt.
 
-## Barcode op de pakbon vergroot (beter scanbaar)
+## Barcode op de pakbon (weer teruggezet naar het oude formaat)
 
-Op verzoek verdubbeld: `JsBarcode`-instellingen in `public/app.js` gingen
-van `width: 1, height: 24, fontSize: 10` naar `width: 2, height: 48,
-fontSize: 20`. Rekenkundig gecontroleerd of dit binnen de 80mm-breedte van
-de pakbon past (met 4mm padding aan elke kant, dus 72mm beschikbaar): een
-CODE128-streepjescode voor een 9-cijferig ordernummer (zoals de nieuwe,
-langere bestelnummers met het Shopify-voorvoegsel) is bij deze instelling
-ongeveer 47,6mm breed — ruim binnen de beschikbare 72mm. Voor de zekerheid
-ook een `max-width: 100%; height: auto` toegevoegd aan de `.order-barcode`-
-stijl, als vangnet mocht een toekomstig (nog langer) ordernummer toch de
-beschikbare breedte overschrijden — schaalt dan automatisch mee i.p.v. af
-te snijden.
+Eerst op verzoek verdubbeld (`width: 1→2, height: 24→48, fontSize: 10→20`
+in `public/app.js`), maar vrijwel meteen weer teruggedraaid naar het
+oorspronkelijke formaat. De `max-width: 100%; height: auto`-veiligheidsmarge
+op de `.order-barcode`-stijl (toegevoegd tijdens de vergrote versie) is wel
+blijven staan — heeft geen enkel effect op het huidige, kleinere formaat
+(de barcode past toch al ruim binnen de pakbon-breedte) en is puur een
+onschadelijk vangnet voor eventuele toekomstige, langere ordernummers.
 
 ## Bestelnummer kopieerbaar in het dashboard, zip-bestandsnaam, mapvolgorde
 
