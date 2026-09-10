@@ -696,6 +696,42 @@ wordt herkend en getoond in de popup.
 in een ander veld), stuur dat door en dan pas ik `extractSpotifyLinks` in
 `server/shopify.js` aan zodat die op de juiste plek zoekt.
 
+## Anti-gaten-kleurcorrectie gaf een gele waas over de HELE foto (grote bug)
+
+Gemeld als "wazig en geelig" bij Sound-Frame, maar bleek een structurele
+bug in de gedeelde kern-functies (`adjustCmykChannels`/
+`adjustCmykChannelsToPng` in `server/pdf-shared.js`) die door ALLE
+foto-producten gebruikt worden (muziekframe, auto-frame, Foto-frame,
+Sound-Frame) — dus niet iets specifieks aan Sound-Frame, en waarschijnlijk
+al veel langer aanwezig.
+
+**De bug**: de Y+8%-anti-gaten-correctie (bedoeld om alleen puur-witte
+vlakken te vermijden, zie de eerdere "transparante foto's"-fix) werd tot nu
+toe op ELKE pixel van de foto toegepast, ongeacht de kleur. Concreet
+aangetoond: een neutraal grijze testpixel (128,128,128) verschoof naar
+(128,128,118) — dus een merkbare gele tint over de HELE foto, niet alleen
+op de witte plekken waar het voor bedoeld was. Dit verklaart ook de
+gemelde wazigheid: elke pixel ging door een RGB→CMYK→RGB-omzetting (met
+afrondingsruis), zelfs waar dat totaal niet nodig was.
+
+**Fix**: een geleidelijke factor toegevoegd, gebaseerd op hoe dicht een
+pixel al bij puur wit zit (`Math.min(r,g,b)`) — pixels die daar niet in de
+buurt komen (onder 0.85) krijgen nu HELEMAAL GEEN verschuiving meer
+(wiskundig bewezen lossless bij factor 0: de RGB→CMYK→RGB-rondgang komt
+dan exact op de oorspronkelijke waarde uit), alleen pixels die al dicht
+tegen wit aan zitten (0.85 tot 1.00) krijgen een geleidelijk oplopende
+correctie, met de volle 8% pas bij écht puur wit.
+
+Getest: een reeks kleuren van grijs tot puur wit — bevestigd dat neutraal
+grijs, huidskleur-achtige tinten en hemelsblauw nu volledig ongemoeid
+blijven (hooguit 1 eenheid afrondingsruis), terwijl puur wit nog steeds
+exact (255,255,235) geeft — dezelfde, al langer gebruikte anti-gaten-
+waarde. Ook bevestigd via de échte `embedPhotoRounded`-functie (Sound-
+Frame se foto-inbedding) met een grijze en een pure-witte testfoto.
+Volledige regressietest op alle overige foto-producten bevestigt geen
+neveneffecten (en bevestigt dat Lijntekening-Portret-in-lijst, dat deze
+correctie bewust niet gebruikt, ook ongewijzigd blijft).
+
 ## Sound-Frame: tekst/hartje omhoog voor meer ruimte bij het tijdlijn-bolletje
 
 Op verzoek: regel 1, regel 2 en het hartje samen 5mm omhoog verplaatst

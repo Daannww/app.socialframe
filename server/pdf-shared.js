@@ -488,8 +488,31 @@ async function adjustCmykChannels(imageBuffer, delta) {
   const { data, info } = await image.raw().toBuffer({ resolveWithObject: true });
   const dC = delta.c || 0, dM = delta.m || 0, dY = delta.y || 0, dK = delta.k || 0;
 
+  // BELANGRIJKE FIX: deze correctie is ooit bedoeld als anti-gaten-truc voor
+  // NET-NIET-WITTE vlakken (zie de toelichting in embedPhoto) — maar paste
+  // tot nu toe de volledige verschuiving toe op ELKE pixel van de foto,
+  // ongeacht hoe die eruitzag. Bij een neutrale grijze foto (128,128,128)
+  // gaf dat bijvoorbeeld een zichtbare verschuiving naar (128,128,118) — dus
+  // een merkbare gele waas over de HELE foto, gemeld als "wazig en geelig".
+  // Nu een geleidelijke factor: pixels die niet in de buurt van wit komen
+  // (WITHEID_ONDER of lager) krijgen HELEMAAL GEEN verschuiving (factor 0,
+  // dus wiskundig een lossless RGB->CMYK->RGB-rondgang, zie hieronder) —
+  // alleen pixels die al dicht tegen puur wit aan zitten (WITHEID_BOVEN)
+  // krijgen de volle verschuiving, met een vloeiende overgang ertussen om
+  // geen zichtbare rand te geven.
+  const WITHEID_ONDER = 0.85;
+  const WITHEID_BOVEN = 1.00;
+
   for (let i = 0; i < data.length; i += info.channels) {
     const r = data[i] / 255, g = data[i + 1] / 255, b = data[i + 2] / 255;
+
+    // Alleen doorrekenen als de pixel daadwerkelijk richting wit gaat —
+    // scheelt ook onnodige RGB->CMYK->RGB-afrondingsruis op de rest van de
+    // foto (wat bijdroeg aan de gemelde wazigheid).
+    const witheid = Math.min(r, g, b);
+    if (witheid <= WITHEID_ONDER) continue;
+    const factor = Math.min(1, (witheid - WITHEID_ONDER) / (WITHEID_BOVEN - WITHEID_ONDER));
+    if (factor <= 0) continue;
 
     // RGB -> CMYK
     const k = 1 - Math.max(r, g, b);
@@ -502,11 +525,11 @@ async function adjustCmykChannels(imageBuffer, delta) {
       y = (1 - b - k) / (1 - k);
     }
 
-    // Kanalen bijstellen, elk apart tussen 0 en 1 geklemd
-    const c2 = Math.min(1, Math.max(0, c + dC));
-    const m2 = Math.min(1, Math.max(0, m + dM));
-    const y2 = Math.min(1, Math.max(0, y + dY));
-    const k2 = Math.min(1, Math.max(0, k + dK));
+    // Kanalen bijstellen (met de geleidelijke factor), elk apart tussen 0 en 1 geklemd
+    const c2 = Math.min(1, Math.max(0, c + dC * factor));
+    const m2 = Math.min(1, Math.max(0, m + dM * factor));
+    const y2 = Math.min(1, Math.max(0, y + dY * factor));
+    const k2 = Math.min(1, Math.max(0, k + dK * factor));
 
     // CMYK -> RGB
     data[i] = Math.round(255 * (1 - c2) * (1 - k2));
@@ -899,8 +922,22 @@ async function adjustCmykChannelsToPng(imageBuffer, delta) {
   const { data, info } = await image.raw().toBuffer({ resolveWithObject: true });
   const dC = delta.c || 0, dM = delta.m || 0, dY = delta.y || 0, dK = delta.k || 0;
 
+  // Zelfde fix als adjustCmykChannels hierboven — alleen pixels die al
+  // dicht tegen puur wit aan zitten krijgen (geleidelijk oplopend) de
+  // anti-gaten-correctie, de rest van de foto blijft volledig ongemoeid
+  // (was voorheen een verschuiving op ELKE pixel, gemeld als "wazig en
+  // geelig").
+  const WITHEID_ONDER = 0.85;
+  const WITHEID_BOVEN = 1.00;
+
   for (let i = 0; i < data.length; i += info.channels) {
     const r = data[i] / 255, g = data[i + 1] / 255, b = data[i + 2] / 255;
+
+    const witheid = Math.min(r, g, b);
+    if (witheid <= WITHEID_ONDER) continue;
+    const factor = Math.min(1, (witheid - WITHEID_ONDER) / (WITHEID_BOVEN - WITHEID_ONDER));
+    if (factor <= 0) continue;
+
     const k = 1 - Math.max(r, g, b);
     let c, m, y;
     if (k >= 1) {
@@ -910,10 +947,10 @@ async function adjustCmykChannelsToPng(imageBuffer, delta) {
       m = (1 - g - k) / (1 - k);
       y = (1 - b - k) / (1 - k);
     }
-    const c2 = Math.min(1, Math.max(0, c + dC));
-    const m2 = Math.min(1, Math.max(0, m + dM));
-    const y2 = Math.min(1, Math.max(0, y + dY));
-    const k2 = Math.min(1, Math.max(0, k + dK));
+    const c2 = Math.min(1, Math.max(0, c + dC * factor));
+    const m2 = Math.min(1, Math.max(0, m + dM * factor));
+    const y2 = Math.min(1, Math.max(0, y + dY * factor));
+    const k2 = Math.min(1, Math.max(0, k + dK * factor));
     data[i] = Math.round(255 * (1 - c2) * (1 - k2));
     data[i + 1] = Math.round(255 * (1 - m2) * (1 - k2));
     data[i + 2] = Math.round(255 * (1 - y2) * (1 - k2));
