@@ -696,6 +696,33 @@ wordt herkend en getoond in de popup.
 in een ander veld), stuur dat door en dan pas ik `extractSpotifyLinks` in
 `server/shopify.js` aan zodat die op de juiste plek zoekt.
 
+## Sound-Frame: tekst/hartje omhoog voor meer ruimte bij het tijdlijn-bolletje
+
+Op verzoek: regel 1, regel 2 en het hartje samen 5mm omhoog verplaatst
+(`OMHOOG_MM` in `server/soundframe.js`) — het hartje raakte de tijdlijnbalk
+bijna aan (hartje-onderkant op 74,394mm vanaf boven, balk-bovenkant op
+74,2mm — dus zelfs een kleine overlap van 0,194mm), waardoor het bolletje
+op de tijdlijn nauwelijks eigen ruimte had. Rekenkundig geverifieerd: nu
+een ruime 4,8mm afstand tussen hartje-onderkant en tijdlijnbalk. De hele
+groep (regel1/regel2/hartje) schuift als geheel omhoog — hun onderlinge
+afstand tot elkaar blijft exact hetzelfde.
+
+**Foto-verwerking bevestigd** (tweede deel van de vraag): Sound-Frame
+gebruikt via `embedPhotoRounded` in `server/pdf-shared.js` al dezelfde
+Y+8%-anti-gaten-CMYK-correctie (`adjustCmykChannelsToPng`) als het
+muziekframe se `embedPhoto` — dat stond dus al goed, geen wijziging nodig.
+
+**Test-beperking**: Sound-Frame gebruikt (net als muziekframe/auto-frame)
+custom lettertypebestanden (Montserrat) en laadt bovendien altijd een
+Hebreeuws lettertype vooraf (`loadHebrewFont`, ongeacht of Hebreeuwse tekst
+gebruikt wordt) — de complete PDF-generatie kon daardoor niet end-to-end
+getest worden in deze sandbox (de bekende `fontkit`-beperking, aanwezig
+sinds veel eerder in dit project, hier bevestigd met exact hetzelfde
+foutpatroon bij de custom-lettertype-afhankelijke tegeltjes-ontwerpen —
+dus geen nieuwe regressie, puur een sandbox-beperking). De nieuwe
+positie-berekening is wel rekenkundig geverifieerd, en een sanity-check
+bevestigt dat de module correct laadt met alle verwachte functies.
+
 ## 16e "Tegeltje met tekst"-ontwerp: "Oma met definitie."
 
 Zelfde woordenboek-stijl als "Opa"/"Tante met definitie", maar dit keer —

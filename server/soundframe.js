@@ -281,7 +281,13 @@ async function generateSoundFramePdf(data) {
 
   // --- Regel 1 (titel, bold) / Regel 2 (artiest, regular) — mogen nooit
   // onder het hartje doorlopen, dus max-breedte tot een marge ervoor, met
-  // automatisch verkleinen (net als bij het muziekframe) als vangnet. ---
+  // automatisch verkleinen (net als bij het muziekframe) als vangnet.
+  // Tekst + hartje samen 5mm omhoog verplaatst (op verzoek) — het hartje
+  // raakte de tijdlijnbalk bijna aan (hartje-onderkant op 74.394mm, balk-
+  // bovenkant op 74.2mm), waardoor het bolletje op de tijdlijn nauwelijks
+  // ruimte had. Onderlinge afstand tussen regel1/regel2/hartje blijft
+  // ongewijzigd — de hele groep schuift als geheel omhoog. ---
+  const OMHOOG_MM = 5;
   const heartLeftEdgeMm = 78.567;
   const textStartXMm = 10.772;
   const textMaxWidthMm = heartLeftEdgeMm - 4.724 - textStartXMm;
@@ -290,12 +296,12 @@ async function generateSoundFramePdf(data) {
   if (data.regel1) {
     const parts = splitTextEmoji(data.regel1);
     const size = fitFontSizeToWidth(parts, fontBold, 4.614 * MM, textMaxWidthPt, 6, hebrewFontBold);
-    drawMixedText(page, parts, fontBold, size, textStartXMm * MM, fromTopMm(64.488) - size * 0.75, styleColor, emojiCache, hebrewFontBold);
+    drawMixedText(page, parts, fontBold, size, textStartXMm * MM, fromTopMm(64.488 - OMHOOG_MM) - size * 0.75, styleColor, emojiCache, hebrewFontBold);
   }
   if (data.regel2) {
     const parts = splitTextEmoji(data.regel2);
     const size = fitFontSizeToWidth(parts, fontRegular, 3.984 * MM, textMaxWidthPt, 6, hebrewFontRegular);
-    drawMixedText(page, parts, fontRegular, size, textStartXMm * MM, fromTopMm(69.906) - size * 0.75, styleColor, emojiCache, hebrewFontRegular);
+    drawMixedText(page, parts, fontRegular, size, textStartXMm * MM, fromTopMm(69.906 - OMHOOG_MM) - size * 0.75, styleColor, emojiCache, hebrewFontRegular);
   }
 
   // --- Hartje (optioneel — weglaten als "geen" gekozen) — als echte,
@@ -308,7 +314,7 @@ async function generateSoundFramePdf(data) {
     const heartImage = await doc.embedPng(heartPngBuffer);
     page.drawImage(heartImage, {
       x: heartLeftEdgeMm * MM,
-      y: fromTopMm(61.638 + heartSizeMm),
+      y: fromTopMm(61.638 - OMHOOG_MM + heartSizeMm),
       width: heartSizeMm * MM,
       height: heartSizeMm * MM
     });
