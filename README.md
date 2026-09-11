@@ -759,6 +759,56 @@ dus geen nieuwe regressie, puur een sandbox-beperking). De nieuwe
 positie-berekening is wel rekenkundig geverifieerd, en een sanity-check
 bevestigt dat de module correct laadt met alle verwachte functies.
 
+## 18e "Tegeltje met tekst"-ontwerp: "Tot de maan en achter het behang."
+
+Echte tekst (in tegenstelling tot de laatste paar ontwerpen) — gebruikt
+"Dancing Script" (Regular), een cursief gratis Google Font, dat nog niet in
+het project zat. Gebruiker heeft het `.ttf`-bestand aangeleverd; grondig
+gevalideerd op lege/kapotte tekens (geen gevonden, 612 glyphs) en visueel
+bevestigd via een losse render buiten pdf-lib om (PIL/FreeType) vóórdat het
+werd toegevoegd. De 3 tekstregels zijn gewoon gecentreerd (geen `xMm` per
+regel opgegeven — standaardgedrag). Het hartje eronder is wél als contour
+aangeleverd, met een VASTE bordeauxrode kleur — hergebruikt het bestaande
+`hart`-veldpatroon (zelfde kleur en aanpak als bij "altijd-fijn-opa-en-oma"/
+"altijd-fijn-oma").
+
+**Dezelfde concatenatiefout (`}  },`) TWEE KEER na elkaar gemaakt bij het
+invoegen** — eerst met een risicovolle `rindex`-gebaseerde aanpak (die zelfs
+de HELE `generateTegelTekstPdf`-functie deed verdwijnen, opnieuw hersteld
+vanuit de laatste zip), en daarna, ondanks een bewust voorzichtigere
+aanpak met een expliciete uniekheids- én lengte-sanity-check, alsnog
+dezelfde dubbele-sluithaak-fout. Reden: `oud[:-3]` sluit het VORIGE object
+al correct af (eindigt op een kale `}`, zonder komma) — het nieuwe blok mag
+daarom NOOIT beginnen met een eigen `}`, alleen met `,\n  {`. Deze keer met
+die precieze uitleg gecorrigeerd; voor een volgend ontwerp is dit expliciet
+iets om vooraf op te letten.
+
+Getest: herkenning zonder overlap met de bestaande 17 ontwerpen, lay-out/
+tekstinhoud/hartje-positie vergeleken met het origineel (via het terugval-
+lettertype, vanwege de bekende `fontkit`-sandboxbeperking — Dancing Script
+staat al in het project), kleurwissel op de tekst + bevestigd dat het
+hartje in alle gevallen vast bordeauxrood blijft, statuslogica, en een
+volledige regressietest op de overige 17 ontwerpen — geen neveneffecten.
+
+## 17e "Tegeltje met tekst"-ontwerp: "Papa én nog zoveel meer."
+
+Als contouren aangeleverd — rechtstreeks als 44 vectorvormen uit het
+PDF-bestand geëxtraheerd, net als "Lievelingsleukerd"/"KAK"/"Ik hou van
+ons"/"Oma met definitie". Alle vormen (titel, ondertitel, hartje) delen
+dezelfde kleur in het referentiebestand, dus GEEN vaste hartje-kleur nodig
+(in tegenstelling tot "Hartje"/"Ik hou van ons") — alles wisselt hier
+gewoon mee met de tegelkleur.
+
+**Zelfde bekende concatenatiefout weer gemaakt en meteen hersteld**: de
+dubbele-sluithaak-fout (`}  },`) trad opnieuw op bij het invoegen — direct
+opgemerkt via de syntax-check-stap en met dezelfde, inmiddels bekende
+correctie hersteld (geen bestandsherstel nodig).
+
+Getest: herkenning zonder overlap met de bestaande 16 ontwerpen, pixel-
+perfecte match via de échte productiecode, kleurwissel op een steekproef
+van 3 tegelkleuren, statuslogica, en een volledige regressietest op de
+overige 16 ontwerpen — geen neveneffecten.
+
 ## 16e "Tegeltje met tekst"-ontwerp: "Oma met definitie."
 
 Zelfde woordenboek-stijl als "Opa"/"Tante met definitie", maar dit keer —
