@@ -334,7 +334,19 @@ async function generateSoundFramePdf(data) {
   // muziekframe. ---
   const heartRgb = parseHeartColor(data.hartjeKleur);
   if (heartRgb) {
-    const heartSizeMm = 12.756;
+    // Grootte teruggezet naar het oude formaat (op verzoek): de OUDE
+    // raster-hartafbeelding (hart-masker.png) had zelf al de nodige
+    // witruimte binnen zijn eigen 12.756mm-vak — het nieuwe vectorhart
+    // (uit musicframe-paths.js) heeft een veel STRAKKERE eigen omtrek
+    // (nauwelijks marge), en vulde dat vak dus bijna volledig — daardoor
+    // oogde het merkbaar groter dan voorheen, ook al bleef de "declared"
+    // maat 12.756mm ongewijzigd. Precies gemeten (pixel-vergelijking oude
+    // vs nieuwe render): het oude hartje was feitelijk maar ~58,6% van die
+    // 12.756mm groot. Nieuwe hartgrootte hierop gebaseerd, gecentreerd op
+    // exact hetzelfde middelpunt als het oude 12.756mm-vak (zodat de
+    // positie t.o.v. de tekst/tijdlijn ongewijzigd blijft) — verder is er
+    // niets anders aan dit ontwerp veranderd.
+    const heartSizeMm = 7.477;
     // LET OP: drawSvgPath/drawHartVector verwacht de BOVENkant als anker
     // (zelfde conventie als drawIconPath/drawScaledIcon hierboven — de vorm
     // groeit vanaf dit ankerpunt naar ONDEREN), in tegenstelling tot
@@ -343,8 +355,8 @@ async function generateSoundFramePdf(data) {
     // waardoor het hartje te laag kwam te staan en de "3:09"-tekst overlapte.
     drawHartVector(
       page,
-      heartLeftEdgeMm * MM,
-      fromTopMm(61.638 - OMHOOG_MM),
+      81.207 * MM,
+      fromTopMm(59.278),
       heartSizeMm,
       rgb(heartRgb[0] / 255, heartRgb[1] / 255, heartRgb[2] / 255)
     );

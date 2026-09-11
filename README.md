@@ -696,6 +696,34 @@ wordt herkend en getoond in de popup.
 in een ander veld), stuur dat door en dan pas ik `extractSpotifyLinks` in
 `server/shopify.js` aan zodat die op de juiste plek zoekt.
 
+## Sound-Frame: hartgrootte teruggezet naar het oude formaat (vervolg)
+
+Direct na de vector-conversie hierboven gemeld: het nieuwe vector-hartje
+oogde merkbaar groter dan voorheen, terwijl de "declared" maat
+(`heartSizeMm`) niet was aangepast.
+
+**Oorzaak, precies gemeten**: de OUDE raster-hartafbeelding (`hart-
+masker.png`) had zelf al de nodige witruimte binnen zijn eigen 12.756mm-vak
+— het nieuwe vectorhart (uit `musicframe-paths.js`) heeft een veel
+STRAKKERE eigen omtrek (nauwelijks marge), en vulde dat vak dus bijna
+volledig. Via een randartefact-vrije pixelvergelijking tussen de oude en
+nieuwe render precies vastgesteld: het oude hartje was feitelijk maar
+~58,6% van de "declared" 12.756mm groot (7,11 x 6,77mm i.p.v. de volle
+12,756mm).
+
+**Fix, op verzoek "niks meer aan doen" behalve dit**: puur de
+hartgrootte (nu 7,477mm, gebaseerd op die 58,6%-verhouding) en positie
+aangepast — gecentreerd op EXACT hetzelfde middelpunt als het oude
+12,756mm-vak, zodat de plek t.o.v. de tekst/tijdlijn ongewijzigd blijft.
+Verder helemaal niets aan dit ontwerp gewijzigd (foto-techniek, afspeel-
+knop, kleurprofiel — alles zoals in de vorige fix).
+
+Getest: randartefact-vrije pixelmeting bevestigt de nieuwe hartgrootte
+(7,45 x 6,77mm) nu vrijwel exact overeenkomt met het oude referentiehart
+(7,11 x 6,77mm); zij-aan-zij visuele vergelijking bevestigt overeenkomende
+grootte/positie; bevestigd dat de foto nog steeds 1 JPEG met behouden
+kleurprofiel is (dus de rest inderdaad ongewijzigd is gebleven).
+
 ## Sound-Frame: witte vakken rond hartje/afspeelknop bij printen (vervolg)
 
 Direct na de kleurprofiel-fix hierboven gemeld: het hartje en de afspeelknop
@@ -906,6 +934,35 @@ Getest: herkenning zonder overlap met de bestaande 16 ontwerpen, pixel-
 perfecte match via de échte productiecode, kleurwissel op een steekproef
 van 3 tegelkleuren, statuslogica, en een volledige regressietest op de
 overige 16 ontwerpen — geen neveneffecten.
+
+## 19e "Tegeltje met tekst"-ontwerp: "Mindset is everything." + belangrijke extractiefix
+
+Als contouren aangeleverd — rechtstreeks als 18 vectorvormen uit het
+PDF-bestand geëxtraheerd. Geen bijgeleverde order-screenshot bij dit
+ontwerp, dus de herkenningsregex accepteert zowel "is" als "=" na
+"mindset" (`/mindset\s*(is|=)\s*everything/i`), voor het geval de
+werkelijke Shopify-titel het "="-teken uit het ontwerp zelf overneemt
+i.p.v. het woord "is".
+
+**Belangrijke, voor toekomstige ontwerpen herbruikbare extractiefix**: het
+"="-teken bleek uit 2 rechthoek-operators ("re") te bestaan die ELKAAR
+opvolgen vóórdat de daadwerkelijke vulling ("f") komt — dus "re, re, f"
+i.p.v. het eerder aangenomen "re, f"-patroon. De bestaande extractielogica
+controleerde alleen de ALLEREERSTVOLGENDE operator na een "re" om te
+bepalen of het om een echte, gevulde vorm ging (i.p.v. een clip-pad) — bij
+dit patroon werd de EERSTE van de 2 rechthoeken daardoor onterecht
+overgeslagen (zichtbaar als 1 streepje i.p.v. 2 bij het "="-teken).
+Opgelost door bij een "re" niet alleen de eerstvolgende operator te
+bekijken, maar voorbij eventuele ANDERE opeenvolgende "re"-operators heen
+te kijken naar de UITEINDELIJKE operator (pas die bepaalt of het om een
+fill of een clip gaat) — dit is nu de standaardaanpak voor toekomstige
+contouren-extracties in dit project.
+
+Getest: herkenning zonder overlap met de bestaande 18 ontwerpen (beide
+titel-varianten, "is" en "="), pixel-perfecte match via de échte
+productiecode (inclusief het "="-teken met beide streepjes correct), kleur-
+wissel op een steekproef van 3 tegelkleuren, statuslogica, en een volledige
+regressietest op de overige 18 ontwerpen — geen neveneffecten.
 
 ## 16e "Tegeltje met tekst"-ontwerp: "Oma met definitie."
 
