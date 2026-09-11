@@ -82,11 +82,16 @@ async function embedPhotoOngewijzigd(doc, photoUrl, maxZijdeMm) {
     .toBuffer();
 
   if (await heeftEchteTransparantie(resizedBuffer)) {
-    const pngBuffer = await sharp(resizedBuffer).png().toBuffer();
+    const pngBuffer = await sharp(resizedBuffer).withMetadata({ icc: 'srgb' }).png().toBuffer();
     const image = await doc.embedPng(pngBuffer);
     return { image, aspectRatio };
   }
-  const jpegBuffer = await sharp(resizedBuffer).jpeg({ quality: 95 }).toBuffer();
+  // Expliciet sRGB-profiel meegeven (zie de toelichting in pdf-shared.js) —
+  // dit product doet dan weliswaar bewust GEEN kleurcorrectie op de foto
+  // zelf, maar het ontbreken van een kleurprofiel-tag is een LOS probleem
+  // (een print-RIP kan zonder die tag een verkeerde aanname maken over hoe
+  // de kleurwaarden geïnterpreteerd moeten worden), dus ook hier toegepast.
+  const jpegBuffer = await sharp(resizedBuffer).withMetadata({ icc: 'srgb' }).jpeg({ quality: 95 }).toBuffer();
   const image = await doc.embedJpg(jpegBuffer);
   return { image, aspectRatio };
 }

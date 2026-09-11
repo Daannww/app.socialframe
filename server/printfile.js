@@ -49,7 +49,7 @@ async function imageBufferToPrintPdf(inputBuffer, { widthCm = 10, heightCm = 10,
   const page = pdfDoc.addPage([widthPt, heightPt]);
 
   if (await heeftEchteTransparantie(geresized)) {
-    const pngBuffer = await sharp(geresized).png().toBuffer();
+    const pngBuffer = await sharp(geresized).withMetadata({ icc: 'srgb' }).png().toBuffer();
     const pngImage = await pdfDoc.embedPng(pngBuffer);
     page.drawImage(pngImage, { x: 0, y: 0, width: widthPt, height: heightPt });
   } else {
@@ -59,6 +59,11 @@ async function imageBufferToPrintPdf(inputBuffer, { widthCm = 10, heightCm = 10,
       // is zonder dat heeftEchteTransparantie dat als "echte" transparantie ziet.
       .flatten({ background: { r: 255, g: 255, b: 255 } })
       .toColourspace('srgb')
+      // Expliciet sRGB-profiel meegeven (zie de toelichting bij
+      // adjustCmykChannels in pdf-shared.js) — .toColourspace() alleen
+      // rekent de pixelwaarden om, maar tagt het bestand zelf niet met een
+      // profiel dat een print-RIP kan uitlezen.
+      .withMetadata({ icc: 'srgb' })
       .jpeg({ quality: 95, chromaSubsampling: '4:4:4' })
       .toBuffer();
     const jpegImage = await pdfDoc.embedJpg(jpegBuffer);

@@ -5,7 +5,7 @@ const path = require('path');
 const sharp = require('sharp');
 const {
   MM, splitTextEmoji, preloadEmojiImages, measureMixedTextWidth, drawMixedText,
-  fitFontSizeToWidth, embedPhotoRounded, nearWhiteCmyk, loadHebrewFont
+  fitFontSizeToWidth, embedPhotoRounded, drawImageMetAfgerondeHoeken, nearWhiteCmyk, loadHebrewFont
 } = require('./pdf-shared');
 // Hergebruikt de bestaande vector-iconen (shuffle/vorige/afspelen/volgende/
 // herhalen) van het muziekframe — i.p.v. de kant-en-aangeleverde raster-
@@ -213,14 +213,23 @@ async function generateSoundFramePdf(data) {
 
   // --- Foto: vierkant (cover-fit, dus altijd het hele kaartje vullend),
   // afgeronde hoeken, met dezelfde print-kleurbalans-correctie als de andere
-  // producten (voorkomt #FFFFFF-"gaten" bij het printen). ---
+  // producten (voorkomt #FFFFFF-"gaten" bij het printen). Foto zelf is een
+  // gewone, volledig rechthoekige JPEG (met behouden kleurprofiel) — de
+  // afronding gebeurt apart via een vector-knipmasker bij het tekenen (zie
+  // drawImageMetAfgerondeHoeken in pdf-shared.js), niet in de afbeelding
+  // zelf. Ontdekt dat de OUDE aanpak (PNG met een afgerond alfakanaal) het
+  // kleurprofiel van de foto altijd volledig kwijtraakte bij het inbedden —
+  // pdf-lib se embedPng() bouwt de afbeelding intern helemaal opnieuw op,
+  // in tegenstelling tot embedJpg() dat de rauwe JPEG-bytes (incl. een
+  // eventueel kleurprofiel) grotendeels ongewijzigd doorgeeft. ---
   if (data.photoUrl) {
-    const { image } = await embedPhotoRounded(doc, data.photoUrl, data.fotoFilter, KAART_SIZE_MM, KAART_RADIUS_MM);
-    page.drawImage(image, {
+    const { image } = await embedPhotoRounded(doc, data.photoUrl, data.fotoFilter, KAART_SIZE_MM);
+    drawImageMetAfgerondeHoeken(page, image, {
       x: KAART_X_MM * MM,
       y: fromTopMm(KAART_TOP_MM + KAART_SIZE_MM),
       width: KAART_SIZE_MM * MM,
-      height: KAART_SIZE_MM * MM
+      height: KAART_SIZE_MM * MM,
+      radiusPt: KAART_RADIUS_MM * MM
     });
   }
 

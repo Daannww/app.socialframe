@@ -3,6 +3,7 @@ const axios = require('axios');
 const QRCode = require('qrcode');
 const fs = require('fs');
 const path = require('path');
+const pdfLib = require('pdf-lib');
 
 const MM = 72 / 25.4; // PDF-punten per millimeter
 
@@ -547,6 +548,12 @@ async function adjustCmykChannels(imageBuffer, delta) {
     // Ontdekt bij een klant die een transparante PNG (sticker-achtig logo)
     // uploadde voor het muziekframe.
     .flatten({ background: { r: 255, g: 255, b: 255 } })
+    // Expliciet sRGB-profiel meegeven — zonder dit verwijdert sharp alle
+    // kleurprofiel-info bij het wegschrijven, en kan een print-RIP zonder
+    // die info een andere aanname maken over hoe de kleurwaarden
+    // geïnterpreteerd moeten worden (mogelijke oorzaak van een gelige
+    // verschuiving specifiek bij het printen, ontdekt bij Sound-Frame).
+    .withMetadata({ icc: 'srgb' })
     .jpeg({ quality: 92 }).toBuffer();
 
   // JPEG-compressie hierna is LOSSY en kan bij scherpe contrastranden een
@@ -564,7 +571,7 @@ async function adjustCmykChannels(imageBuffer, delta) {
       }
     }
     if (!gecorrigeerd) break;
-    jpegBuffer = await sharp(gecomprimeerd.data, { raw: gecomprimeerd.info }).jpeg({ quality: 92 }).toBuffer();
+    jpegBuffer = await sharp(gecomprimeerd.data, { raw: gecomprimeerd.info }).withMetadata({ icc: 'srgb' }).jpeg({ quality: 92 }).toBuffer();
   }
 
   return jpegBuffer;
@@ -612,7 +619,7 @@ async function recolorDarkPixels(pngBuffer, targetRgb) {
     }
   }
 
-  return sharp(data, { raw: info }).png().toBuffer();
+  return sharp(data, { raw: info }).withMetadata({ icc: 'srgb' }).png().toBuffer();
 }
 
 // Het omgekeerde van recolorDarkPixels: elke LICHTE pixel (de eigen witte
@@ -635,7 +642,7 @@ async function recolorLightPixels(pngBuffer, targetRgb) {
     }
   }
 
-  return sharp(data, { raw: info }).png().toBuffer();
+  return sharp(data, { raw: info }).withMetadata({ icc: 'srgb' }).png().toBuffer();
 }
 
 // Maakt specifiek de LICHTE pixels van een code (bv. de witte achtergrond van
@@ -657,7 +664,7 @@ async function makeLightPixelsTranslucent(pngBuffer, opacityPercent) {
     }
   }
 
-  return sharp(data, { raw: info }).png().toBuffer();
+  return sharp(data, { raw: info }).withMetadata({ icc: 'srgb' }).png().toBuffer();
 }
 
 // Genereert de svg voor een QR-code of Spotify Code.
@@ -956,16 +963,30 @@ async function adjustCmykChannelsToPng(imageBuffer, delta) {
     data[i + 2] = Math.round(255 * (1 - y2) * (1 - k2));
   }
 
-  return sharp(data, { raw: info }).png().toBuffer();
+  return sharp(data, { raw: info }).withMetadata({ icc: 'srgb' }).png().toBuffer();
 }
 
 // Haalt een foto op, snijdt 'm bij tot een VIERKANT (cover-fit — vult altijd
 // het hele vak, i.t.t. embedPhoto's contain-fit dat de eigen beeldverhouding
-// behoudt), past dezelfde print-kleurbalans-correctie toe, en rondt de hoeken
-// af (echte alpha-transparantie in de hoeken, geen wit vlak). Gebruikt voor
+// behoudt), en past dezelfde print-kleurbalans-correctie toe. Gebruikt voor
 // het Sound-Frame-product, waar de foto altijd als afgerond vierkant kaartje
 // wordt getoond.
-async function embedPhotoRounded(doc, photoUrl, filterValue, targetSizeMm, cornerRadiusMm) {
+// LET OP: dit bedt de foto in als GEWONE, VOLLEDIG RECHTHOEKIGE JPEG (dus
+// GEEN afronding in de afbeelding zelf, en geen PNG meer) — de afgeronde
+// hoeken worden bij het TEKENEN aangebracht via een vector-knipmasker op
+// PDF-niveau (zie drawImageMetAfgerondeHoeken hieronder), niet via raster-
+// transparantie. Dit was eerst wél een PNG met alfakanaal-afronding, maar
+// bleek daardoor NOOIT een kleurprofiel te kunnen meedragen naar de
+// printer-RIP: pdf-lib's embedPng() bouwt de afbeelding altijd volledig
+// opnieuw op (rauwe RGB-data) en verliest daarbij ELK kleurprofiel,
+// terwijl embedJpg() de rauwe JPEG-bytes (met een eventueel ICC-profiel
+// erin) grotendeels ongewijzigd doorgeeft — bevestigd met een test die het
+// profiel na het inbedden nog aantrof in de rauwe JPEG-stream binnen de
+// PDF, wat bij PNG nooit het geval was. Een vector-knipmasker geeft
+// bovendien ECHT onbedrukte hoeken (geen inkt), niet een wit ingekleurd
+// vlak — dus hetzelfde eindresultaat als de oude PNG-transparantie-aanpak,
+// maar dan zonder het kleurprofiel te hoeven opofferen.
+async function embedPhotoRounded(doc, photoUrl, filterValue, targetSizeMm) {
   const imgRes = await fetchMetHerpogingen(photoUrl, { responseType: 'arraybuffer' });
   let pipeline = sharp(Buffer.from(imgRes.data)).rotate(); // EXIF-rotatie vast "bakken"
 
@@ -981,19 +1002,39 @@ async function embedPhotoRounded(doc, photoUrl, filterValue, targetSizeMm, corne
     .toBuffer();
 
   // Zelfde Y+8%-correctie als embedPhoto (zie adjustCmykChannels hierboven
-  // voor de uitgebreide toelichting waarom precies 8%).
-  const gecorrigeerdBuffer = await adjustCmykChannelsToPng(vierkantBuffer, { c: 0, m: 0, y: 0.08, k: 0 });
+  // voor de uitgebreide toelichting waarom precies 8%) — nu via de JPEG-
+  // variant i.p.v. de PNG-variant.
+  const jpegBuffer = await adjustCmykChannels(vierkantBuffer, { c: 0, m: 0, y: 0.08, k: 0 });
 
-  const radiusPx = Math.round((cornerRadiusMm / 25.4) * 300);
-  const maskSvg = `<svg width="${targetPx}" height="${targetPx}"><rect x="0" y="0" width="${targetPx}" height="${targetPx}" rx="${radiusPx}" ry="${radiusPx}" fill="white"/></svg>`;
-  const maskBuffer = await sharp(Buffer.from(maskSvg)).png().toBuffer();
-  const afgerondBuffer = await sharp(gecorrigeerdBuffer)
-    .composite([{ input: maskBuffer, blend: 'dest-in' }])
-    .png()
-    .toBuffer();
-
-  const image = await doc.embedPng(afgerondBuffer);
+  const image = await doc.embedJpg(jpegBuffer);
   return { image };
+}
+
+// Tekent een afbeelding met afgeronde hoeken via een vector-knipmasker op
+// PDF-niveau (pushGraphicsState -> knippad -> clip -> drawImage ->
+// popGraphicsState) — i.p.v. de afronding in de afbeelding zelf te bakken
+// (raster-alfakanaal). Alle maten in PDF-punten. `radiusPt` mag 0 zijn
+// (gewoon een rechte hoek, geen afronding).
+function drawImageMetAfgerondeHoeken(page, image, { x, y, width, height, radiusPt }) {
+  const r = Math.min(radiusPt, width / 2, height / 2); // straal kan nooit groter zijn dan de halve zijde
+  const k = 0.5523 * r; // standaard Bezier-benadering van een kwart cirkel
+  page.pushOperators(
+    pdfLib.pushGraphicsState(),
+    pdfLib.moveTo(x + r, y),
+    pdfLib.lineTo(x + width - r, y),
+    pdfLib.appendBezierCurve(x + width - r + k, y, x + width, y + r - k, x + width, y + r),
+    pdfLib.lineTo(x + width, y + height - r),
+    pdfLib.appendBezierCurve(x + width, y + height - r + k, x + width - r + k, y + height, x + width - r, y + height),
+    pdfLib.lineTo(x + r, y + height),
+    pdfLib.appendBezierCurve(x + r - k, y + height, x, y + height - r + k, x, y + height - r),
+    pdfLib.lineTo(x, y + r),
+    pdfLib.appendBezierCurve(x, y + r - k, x + r - k, y, x + r, y),
+    pdfLib.closePath(),
+    pdfLib.clip(),
+    pdfLib.endPath()
+  );
+  page.drawImage(image, { x, y, width, height });
+  page.pushOperators(pdfLib.popGraphicsState());
 }
 
 // Laadt een Hebreeuws lettertype (indien aanwezig) voor gebruik in
@@ -1019,7 +1060,7 @@ module.exports = {
   measureMixedTextWidth, drawMixedText, fitFontSizeToWidth, loadHebrewFont,
   embedPhoto, fitPhotoInSquareZone, recolorDarkPixels, recolorLightPixels, getCodeSvg,
   drawBackground, isMarbleBackground, hasPageBackground, nearWhiteCmyk, adjustCmykChannels,
-  extractSvgShapes, drawSvgShapesInBox, embedPhotoRounded, voorkomLigatuurGaten,
+  extractSvgShapes, drawSvgShapesInBox, embedPhotoRounded, drawImageMetAfgerondeHoeken, voorkomLigatuurGaten,
   embedPhotoCoverRect, heeftEchteTransparantie, fetchMetHerpogingen,
   splitLigatuurVeilig, widthOfTextLigatuurVeiligAtSize, drawTextLigatuurVeilig
 };

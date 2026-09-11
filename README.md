@@ -696,6 +696,54 @@ wordt herkend en getoond in de popup.
 in een ander veld), stuur dat door en dan pas ik `extractSpotifyLinks` in
 `server/shopify.js` aan zodat die op de juiste plek zoekt.
 
+## Sound-Frame se foto verloor het kleurprofiel (echte oorzaak van de gele waas)
+
+Vervolg op de eerdere Y+8%-fix, die het probleem verminderde maar niet
+volledig oploste (gemeld bij een echte order). Op de vraag "kan PNG de
+oorzaak zijn" grondig uitgezocht en bevestigd: **ja**.
+
+**Het probleem**: `pdf-lib` behandelt PNG en JPEG compleet verschillend bij
+het inbedden. `embedJpg()` geeft de rauwe, gecomprimeerde JPEG-bytes
+grotendeels ongewijzigd door aan de PDF (`DCTDecode`) — een eventueel
+ingebed kleurprofiel blijft daarbij intact, bevestigd door het na inbedden
+weer terug te vinden in de rauwe JPEG-stream. `embedPng()` daarentegen
+bouwt de afbeelding altijd volledig opnieuw op als rauwe RGB-data — een
+kleurprofiel gaat daarbij GEGARANDEERD verloren, hoe je de PNG ook
+voorbereidt. Sound-Frame gebruikte tot nu toe altijd PNG (nodig voor de
+afgeronde hoeken, die als raster-alfakanaal-transparantie waren gebakken)
+— dus kon nooit een kleurprofiel meedragen naar de printer-RIP, in
+tegenstelling tot muziekframe/auto-frame (meestal JPEG).
+
+**Oplossing, na een kort overleg over de opties**: i.p.v. de afronding in
+de afbeelding zelf te bakken (raster, vereist PNG), wordt de foto nu als
+gewone, volledig rechthoekige JPEG ingebed (met behouden kleurprofiel via
+`.withMetadata({icc:'srgb'})`), en de afgeronde hoeken worden apart
+aangebracht met een VECTOR-KNIPMASKER op PDF-niveau
+(`drawImageMetAfgerondeHoeken` in `server/pdf-shared.js`, met pdf-lib se
+`pushGraphicsState`/`clip`/`popGraphicsState`-operators) — geeft hetzelfde
+eindresultaat (écht onbedrukte hoeken, geen inkt, geen wit vlak) zonder het
+kleurprofiel te hoeven opofferen. `embedPhotoRounded` is aangepast om nu
+een JPEG i.p.v. PNG terug te geven.
+
+**Ook, voor consistentie en volledigheid**: alle overige `.png()`/`.jpeg()`-
+uitvoerpunten in `pdf-shared.js` (icoon-hertinting-functies,
+`adjustCmykChannels`/`adjustCmykChannelsToPng`), `printfile.js` (autopictura/
+Posterly-tegels) en `lijntekeningframe.js` hebben nu ook expliciet
+`.withMetadata({icc:'srgb'})` — zelfs waar (zoals bij Lijntekening Portret
+in lijst) bewust geen kleurcorrectie wordt toegepast, is het ontbreken van
+een kleurprofiel een LOS probleem dat evengoed opgelost moest worden.
+
+Getest: rechtstreeks bevestigd dat `embedJpg()` een profiel behoudt en
+`embedPng()` dat altijd verliest (met een felgekleurde testfoto, ICC-check
+vóór/na inbedden via `pdfimages -j`); de nieuwe knipmasker-techniek
+bevestigd afgeronde hoeken geeft (`pdftoppm`-render) mét een daadwerkelijk
+onbedrukte hoek (geen wit vlak, gewoon niets getekend) én een behouden
+kleurprofiel in de uiteindelijke PDF; de volledige `generateSoundFramePdf`
+eind-tot-eind (foto + tekst + hartje + tijdlijn + knoppen, alles staat nog
+correct); en een volledige regressietest op alle overige producten
+(muziekframe, auto-frame, Foto-frame, Lijntekening-frame, Kentekenplaathouder,
+Tegel-illustratie, autopictura, alle 18 tegeltjes) — geen neveneffecten.
+
 ## Anti-gaten-kleurcorrectie gaf een gele waas over de HELE foto (grote bug)
 
 Gemeld als "wazig en geelig" bij Sound-Frame, maar bleek een structurele
