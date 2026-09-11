@@ -1,8 +1,11 @@
-const { PDFDocument, rgb, cmyk, StandardFonts } = require('pdf-lib');
+const {
+  PDFDocument, rgb, cmyk, StandardFonts, pushGraphicsState, popGraphicsState,
+  clipEvenOdd, endPath, moveTo, lineTo, appendBezierCurve, closePath,
+  setFillingColor, fill
+} = require('pdf-lib');
 const fontkit = require('@pdf-lib/fontkit');
 const fs = require('fs');
 const path = require('path');
-const sharp = require('sharp');
 const {
   MM, splitTextEmoji, preloadEmojiImages, measureMixedTextWidth, drawMixedText,
   fitFontSizeToWidth, embedPhotoRounded, drawImageMetAfgerondeHoeken, nearWhiteCmyk, loadHebrewFont
@@ -158,50 +161,66 @@ function parsePercent(value, fallback) {
   return match ? Math.max(0, Math.min(100, parseFloat(match[1]))) : fallback;
 }
 
-// Bouwt een ingekleurde versie van het hart-icoon: het opgeslagen alfamasker
-// (de vorm, uit het referentiebestand gehaald als grijswaarden-luminantie-
-// masker — dezelfde techniek als een PDF-SMask) gecombineerd met een egale
-// vlakkleur. LET OP: dit is GEEN normaal alfakanaal, dus we voegen het via
-// joinChannel expliciet als 4e (alfa-)kanaal toe — sharp's composite/dest-in
-// verwacht een al-aanwezig alfakanaal en zou een grijswaardenbeeld anders als
-// volledig ondoorzichtig behandelen (geen enkele maskering).
-async function maakIngekleurdHart(kleurRgb255) {
-  const maskerPad = path.join(__dirname, 'soundframe-assets', 'hart-masker.png');
-  const { width, height } = await sharp(maskerPad).metadata();
-  const vlakRaw = await sharp({
-    create: { width, height, channels: 3, background: kleurRgb255 }
-  }).raw().toBuffer();
-  const maskerRaw = await sharp(maskerPad).greyscale().raw().toBuffer();
-  return sharp(vlakRaw, { raw: { width, height, channels: 3 } })
-    .joinChannel(maskerRaw, { raw: { width, height, channels: 1 } })
-    .png()
-    .toBuffer();
+// Tekent het hart-icoon als PURE VECTORVORM (zelfde pad als musicframe se
+// eigen paths.heart, hergebruikt via iconPaths) — GEEN raster/PNG meer.
+// Ontdekt dat de oude raster-aanpak (een PNG met een grijswaarden-luminantie-
+// masker als alfakanaal) bij het printen witte vlakken rond het hartje gaf —
+// vermoedelijk een print-RIP die een raster-alfakanaal in combinatie met een
+// (voor het kleurprofiel-probleem toegevoegd) ICC-profiel niet correct
+// afhandelt. Muziekframe had dit probleem nooit, want die tekent zijn hartje
+// altijd al als vectorpad — dus nu exact dezelfde techniek hier.
+function drawHartVector(page, xPt, yPt, breedteMm, kleur) {
+  const schaal = breedteMm / iconPaths.heart.widthMm;
+  page.drawSvgPath(iconPaths.heart.d, { x: xPt, y: yPt, scale: schaal, color: kleur });
 }
 
-// Bouwt de play-knop als een gevulde cirkel MET EEN ECHT GAT in de vorm van
-// het driehoekje — dus geen ondoorzichtig driehoekje erbovenop getekend,
-// maar een uitsparing waar de foto (of wat er verder onder zit) gewoon
-// doorheen zichtbaar blijft. Gebruikt SVG se fill-rule="evenodd": een punt
-// dat binnen ZOWEL de cirkel als het (erin geneste) driehoekje valt, telt als
-// "even" aantal overlappende vormen en blijft dus ongevuld — precies het
-// gewenste gat-effect. Sharp/librsvg rendert dat als echte alfa-transparantie
-// in de uitvoer-PNG (dus geen kwestie van "witte" of "zwarte" vulling, maar
-// oprecht doorzichtig).
-async function maakPlayknopMetGat(kleurRgb255, pixelGrootte) {
+// Tekent de afspeelknop als PURE VECTORVORM: een gevulde cirkel MET EEN ECHT
+// GAT in de vorm van het driehoekje, via een even-odd vector-KNIPMASKER
+// (cirkel + driehoek samengevoegd, `clipEvenOdd`) i.p.v. de oude raster-PNG-
+// met-SVG-uitgeknipt-alfakanaal-aanpak. Binnen dat knippad wordt gewoon een
+// rechthoek gevuld — het knippad zelf zorgt dat alleen "cirkel-minus-
+// driehoek" daadwerkelijk inkt krijgt, en de foto er middenin gewoon
+// zichtbaar blijft (geen inkt = geen wijziging t.o.v. wat eronder ligt).
+// Zelfde geometrie (cirkelstraal + driehoek-coördinaten) als voorheen, nu
+// alleen als losse vector-operators i.p.v. via een SVG-naar-PNG-rendering.
+function drawPlayknopVectorMetGat(page, xPt, yPt, diameterPt, kleur) {
   const R = 45.4121; // straal, in dezelfde eenheden als musicframe-paths.js se eigen (punt-gebaseerde) iconen
-  const cirkelPad = `M ${R},0 A ${R},${R} 0 1,1 ${R},${2 * R} A ${R},${R} 0 1,1 ${R},0 Z`;
-  // Driehoekje van musicframe-paths.js se play_triangle, verschoven naar zijn
-  // relatieve positie BINNEN de cirkel (zelfde relatieve plek als in het
-  // muziekframe se eigen 200x300mm-canvas).
-  const driehoekPad = 'M 62.7075,45.408 L 34.27,28.99 L 34.27,61.8298 Z';
-  const [r, g, b] = kleurRgb255;
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${2 * R}" height="${2 * R}" viewBox="0 0 ${2 * R} ${2 * R}">
-    <path fill-rule="evenodd" fill="rgb(${r},${g},${b})" d="${cirkelPad} ${driehoekPad}"/>
-  </svg>`;
-  return sharp(Buffer.from(svg))
-    .resize(pixelGrootte, pixelGrootte)
-    .png()
-    .toBuffer();
+  const schaal = diameterPt / (2 * R);
+  const cx = R, cy = R;
+  const k = 0.5523 * R; // standaard Bezier-benadering van een kwart cirkel
+
+  page.pushOperators(
+    pushGraphicsState(),
+    // Verschuiven + schalen kan pdf-lib niet los als operator, dus reken de
+    // schaal/verschuiving hieronder gewoon zelf door in elke coördinaat.
+  );
+  const t = (px, py) => [xPt + px * schaal, yPt + py * schaal];
+  const [cx0, cy0] = t(cx, cy - R);
+  const [cx1x, cy1x] = t(cx + R, cy);
+  const [cx2x, cy2x] = t(cx, cy + R);
+  const [cx3x, cy3x] = t(cx - R, cy);
+  page.pushOperators(
+    moveTo(cx0, cy0),
+    appendBezierCurve(...t(cx + k, cy - R), ...t(cx + R, cy - k), cx1x, cy1x),
+    appendBezierCurve(...t(cx + R, cy + k), ...t(cx + k, cy + R), cx2x, cy2x),
+    appendBezierCurve(...t(cx - k, cy + R), ...t(cx - R, cy + k), cx3x, cy3x),
+    appendBezierCurve(...t(cx - R, cy - k), ...t(cx - k, cy - R), cx0, cy0),
+    closePath(),
+    moveTo(...t(62.7075, 45.408)),
+    lineTo(...t(34.27, 28.99)),
+    lineTo(...t(34.27, 61.8298)),
+    closePath(),
+    clipEvenOdd(),
+    endPath(),
+    setFillingColor(kleur),
+    moveTo(xPt, yPt),
+    lineTo(xPt + diameterPt, yPt),
+    lineTo(xPt + diameterPt, yPt + diameterPt),
+    lineTo(xPt, yPt + diameterPt),
+    closePath(),
+    fill(),
+    popGraphicsState()
+  );
 }
 
 async function generateSoundFramePdf(data) {
@@ -248,24 +267,21 @@ async function generateSoundFramePdf(data) {
   ['shuffle_1', 'shuffle_2', 'shuffle_3', 'prev', 'next', 'repeat_1', 'repeat_2']
     .forEach(naam => drawScaledIcon(page, iconPaths[naam], styleColor));
 
-  // Play-knop: gevulde cirkel MET EEN ECHT TRANSPARANT GAT voor het
-  // driehoekje (zie maakPlayknopMetGat hierboven) — dus niet een ondoorzichtig
-  // driehoekje erbovenop, maar een uitsparing waar de foto doorheen schijnt.
+  // Play-knop: gevulde cirkel MET EEN ECHT GAT voor het driehoekje (zie
+  // drawPlayknopVectorMetGat hierboven) — pure vector, geen raster meer.
   const playCenterXMm = KAART_X_MM + (0.1015 * KAART_SIZE_MM) +
     (iconPaths.play_circle.pageXMm + iconPaths.play_circle.widthMm / 2 - ICOON_REFERENTIE_X_MM) * ICOON_SCHAAL;
   const playCenterTopMm = ICOON_RIJ_TOP_MM +
     (iconPaths.play_circle.pageTopMm + iconPaths.play_circle.heightMm / 2 - ICOON_REFERENTIE_TOP_MM) * ICOON_SCHAAL;
   const playDiameterMm = iconPaths.play_circle.widthMm * ICOON_SCHAAL;
-  const playPixelGrootte = Math.round((playDiameterMm / 25.4) * 300); // 300dpi
-  const playKnopKleur = isWhite ? RGB255_WHITE : RGB255_BLACK;
-  const playKnopPngBuffer = await maakPlayknopMetGat(playKnopKleur, playPixelGrootte);
-  const playKnopImage = await doc.embedPng(playKnopPngBuffer);
-  page.drawImage(playKnopImage, {
-    x: (playCenterXMm - playDiameterMm / 2) * MM,
-    y: fromTopMm(playCenterTopMm + playDiameterMm / 2),
-    width: playDiameterMm * MM,
-    height: playDiameterMm * MM
-  });
+  const playKnopKleur = isWhite ? COLOR_WHITE : COLOR_BLACK;
+  drawPlayknopVectorMetGat(
+    page,
+    (playCenterXMm - playDiameterMm / 2) * MM,
+    fromTopMm(playCenterTopMm + playDiameterMm / 2),
+    playDiameterMm * MM,
+    playKnopKleur
+  );
 
   // --- Fonts: Montserrat (al aanwezig, zelfde bestanden als muziekframe) ---
   const fontsDir = path.join(__dirname, 'fonts');
@@ -313,20 +329,25 @@ async function generateSoundFramePdf(data) {
     drawMixedText(page, parts, fontRegular, size, textStartXMm * MM, fromTopMm(69.906 - OMHOOG_MM) - size * 0.75, styleColor, emojiCache, hebrewFontRegular);
   }
 
-  // --- Hartje (optioneel — weglaten als "geen" gekozen) — als echte,
-  // ingekleurde hartvorm (uit het referentiebestand gehaald), niet als
-  // benaderende cirkel. ---
+  // --- Hartje (optioneel — weglaten als "geen" gekozen) — als PURE VECTOR-
+  // vorm getekend (zie drawHartVector hierboven), zelfde techniek als het
+  // muziekframe. ---
   const heartRgb = parseHeartColor(data.hartjeKleur);
   if (heartRgb) {
     const heartSizeMm = 12.756;
-    const heartPngBuffer = await maakIngekleurdHart({ r: heartRgb[0], g: heartRgb[1], b: heartRgb[2] });
-    const heartImage = await doc.embedPng(heartPngBuffer);
-    page.drawImage(heartImage, {
-      x: heartLeftEdgeMm * MM,
-      y: fromTopMm(61.638 - OMHOOG_MM + heartSizeMm),
-      width: heartSizeMm * MM,
-      height: heartSizeMm * MM
-    });
+    // LET OP: drawSvgPath/drawHartVector verwacht de BOVENkant als anker
+    // (zelfde conventie als drawIconPath/drawScaledIcon hierboven — de vorm
+    // groeit vanaf dit ankerpunt naar ONDEREN), in tegenstelling tot
+    // drawImage (dat de ONDERkant als anker verwacht) — de eerdere versie
+    // gebruikte per ongeluk nog de drawImage-conventie (topMm + heartSizeMm),
+    // waardoor het hartje te laag kwam te staan en de "3:09"-tekst overlapte.
+    drawHartVector(
+      page,
+      heartLeftEdgeMm * MM,
+      fromTopMm(61.638 - OMHOOG_MM),
+      heartSizeMm,
+      rgb(heartRgb[0] / 255, heartRgb[1] / 255, heartRgb[2] / 255)
+    );
   }
 
   // --- Bolletje op de tijdlijn: ALTIJD zichtbaar, positie 0-100% net als bij

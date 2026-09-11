@@ -696,6 +696,56 @@ wordt herkend en getoond in de popup.
 in een ander veld), stuur dat door en dan pas ik `extractSpotifyLinks` in
 `server/shopify.js` aan zodat die op de juiste plek zoekt.
 
+## Sound-Frame: witte vakken rond hartje/afspeelknop bij printen (vervolg)
+
+Direct na de kleurprofiel-fix hierboven gemeld: het hartje en de afspeelknop
+kregen bij het printen zichtbare witte vakken eromheen — de foto zelf was
+inmiddels wel opgelost, maar deze 2 losse iconen gebruikten nog hun EIGEN,
+aparte raster-PNG-technieken (los van de foto-kleurcorrectie-functies):
+`maakIngekleurdHart` (een grijswaarden-luminantie-masker als alfakanaal,
+gecombineerd met een egale vlakkleur) en `maakPlayknopMetGat` (een via SVG-
+evenodd naar PNG gerenderde cirkel-met-driehoekig-gat). Vermoedelijk
+dezelfde soort print-RIP-onverdraagzaamheid met een raster-alfakanaal als
+bij de foto, nu bij deze 2 kleinere elementen.
+
+**Oplossing, op verzoek "exact dezelfde techniek als het muziekframe"**:
+muziekframe tekent AL zijn iconen (inclusief het eigen hartje en de eigen
+afspeelknop) als pure vectorpaden via `page.drawSvgPath()` — geen raster,
+geen PNG, geen alfakanaal. Sound-Frame se hartje is nu ook zo'n vectorpad
+(hergebruikt muziekframe se eigen hartpad uit `musicframe-paths.js`, exact
+dezelfde techniek als `drawIconPath` in `musicframe.js`). De afspeelknop
+(die een ECHT gat nodig heeft — de foto moet er middenin doorheen blijven
+schijnen) gebruikt nu dezelfde vector-KNIPMASKER-techniek als de afgeronde
+foto-hoeken hierboven, maar dan met `clipEvenOdd` (i.p.v. een gewone
+`clip`) om de cirkel-MINUS-driehoek-vorm te knippen — binnen dat knippad
+wordt gewoon een vlak gevuld, dus alleen "cirkel-minus-driehoek" krijgt
+inkt, en de driehoek zelf blijft ongemoeid (de foto eronder blijft
+zichtbaar, exact hetzelfde eindresultaat als voorheen, nu zonder raster).
+
+**Eigen fout tijdens het hertekenen, direct opgemerkt en gecorrigeerd**: de
+eerste versie van het hartje viel over de "3:09"-tekst heen — bleek de
+verkeerde anker-conventie te gebruiken. `drawSvgPath` (en dus ook
+`drawIconPath`/`drawScaledIcon`) verwacht de BOVENkant van de vorm als
+anker-y (de vorm "groeit" vanaf dat punt naar onderen), terwijl `drawImage`
+juist de ONDERkant als anker verwacht — de eerste versie gebruikte per
+ongeluk nog de `drawImage`-conventie (top + hoogte) voor het nieuwe
+vector-hartje. Rechtgezet door gewoon de top-positie te gebruiken, zonder
+de hoogte erbij op te tellen.
+
+`maakIngekleurdHart`/`maakPlayknopMetGat` zijn volledig verwijderd
+(inclusief de nu ongebruikte `sharp`-import) — `soundframe-assets/hart-
+masker.png` (het oude raster-maskerbestand) is als onschadelijk, ongebruikt
+bestand blijven staan.
+
+Getest: zij-aan-zij visuele vergelijking met de oude (raster) versie
+bevestigt overeenkomende positie/grootte van beide elementen; bevestigd dat
+de afspeelknop-uitsparing daadwerkelijk de fotokleur eronder toont (niet
+zwart, niet wit — dus écht een gat, geen inkt); bevestigd dat er nog maar 1
+ingebedde afbeelding in het bestand zit (de foto zelf); bevestigd dat het
+kleurprofiel nog steeds behouden blijft in het definitieve bestand; alle
+stijl- en hartkleur-varianten (incl. "Geen hartje") getest; en een
+volledige regressietest op alle overige producten — geen neveneffecten.
+
 ## Sound-Frame se foto verloor het kleurprofiel (echte oorzaak van de gele waas)
 
 Vervolg op de eerdere Y+8%-fix, die het probleem verminderde maar niet
