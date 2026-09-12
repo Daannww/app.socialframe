@@ -935,6 +935,95 @@ perfecte match via de échte productiecode, kleurwissel op een steekproef
 van 3 tegelkleuren, statuslogica, en een volledige regressietest op de
 overige 16 ontwerpen — geen neveneffecten.
 
+## "Als een cadeautje inpakken." toont per ongeluk andermans eigenschappen
+
+Gemeld: door een Shopify/PPLR-koppelbug krijgt de regel "Als een cadeautje
+inpakken." soms de gepersonaliseerde eigenschappen van een heel ANDER,
+écht besteld product onder zich (bv. Socialframe-stijl, Spotify-link,
+regel 1/2, enz.) — die eigenschappen worden AL correct herkend en verwerkt
+voor het drukwerkbestand (via de bestaande eigenschap-gebaseerde
+productherkenning), maar hoorden niet ALSNOG zichtbaar te zijn onder deze
+cadeauverpak-regel zelf, in zowel de order-popup als op de pakbon.
+
+Op beide plekken (`renderModal`/de popup, en `buildReceiptHtml`/de pakbon
+in `public/app.js`) een gerichte check toegevoegd: bij een titel die
+"cadeautje inpakken" bevat, worden de eigenschappen nooit getoond — de
+titel zelf blijft gewoon zichtbaar. Puur een weergave-aanpassing: de
+drukwerkbestand-generatie zelf (`server/index.js`/`shopify.js`) is
+volledig ongewijzigd, dus de daadwerkelijke productherkenning/print-
+bestanden blijven gewoon correct werken.
+
+Getest: de regex herkent exact "Als een cadeautje inpakken." en varianten,
+zonder valse positieven op andere producttitels (bv. "Tegeltje met tekst -
+Papa.", "Muziekframe"); bevestigd dat de eigenschappen-HTML voor deze
+titel in beide gevallen leeg blijft, terwijl een normaal product met
+eigenschappen die gewoon normaal blijft tonen.
+
+## 21e "Tegeltje met tekst"-ontwerp: "Vier vaker. Lach veel. Hou vast." + belangrijke extractiebug (letter-dwarsbalk verdween)
+
+Als contouren aangeleverd — rechtstreeks als 28 vectorvormen geëxtraheerd.
+Alle vormen delen dezelfde kleur (geen vaste hartkleur nodig — ook het
+handgetekende hartcontour wisselt hier gewoon mee met de tegelkleur).
+
+**Grote, voor toekomstige contouren-extracties belangrijke bugfix**: de
+"H" van "Hou" rendere aanvankelijk als "II" — de dwarsbalk ontbrak volledig.
+Kostte 3 rondes om de daadwerkelijke oorzaak te vinden:
+1. Eerst bleek een `re` (rechthoek — hier: de H-dwarsbalk) gevolgd te
+   worden door ANDERE pad-opbouw-opdrachten (`m`/`l`/`c`, de tweede
+   verticale balk van de H) vóór de uiteindelijke fill — niet alleen door
+   weer een `re` (het eerder bij "Mindset is everything" gefixte patroon)
+   of meteen een fill. De lookahead-check moest daarom voorbij ÉLKE
+   opeenvolgende `m`/`l`/`c`/`h`/`re`-opdracht heen kijken, niet alleen
+   voorbij andere `re`'s.
+2. Daarna bleek een kale, "lege" `m`-opdracht (een moveto zonder enige
+   tekenopdracht erna, vóór de volgende `m`) de HELE padverwerking van
+   pdf-lib se `drawSvgPath` te corrumperen (bevestigd met een geïsoleerde
+   test: zo'n kale moveto ergens in een pad liet het HELE pad onzichtbaar
+   worden) — dus zulke kale moveto's moeten er automatisch uitgefilterd
+   worden.
+3. Bij het filteren daarvan bleek de aanvankelijke check ("vorige toevoeging
+   begint met 'M '") té breed: die matchte ook een zojuist toegevoegde,
+   complete rechthoek (die immers ook met "M " begint), en verwijderde die
+   dan onterecht weer — dit was de daadwerkelijke, uiteindelijke oorzaak
+   van de verdwenen dwarsbalk. Gefixt met een precieze regex die alleen
+   een ECHTE kale "M getal,getal" (zonder iets erachter) herkent.
+
+Deze 3 fixes zijn nu de standaardaanpak voor alle toekomstige contouren-
+extracties in dit project.
+
+Getest: pixel-voor-pixel identiek aan het origineel (inclusief de
+gecorrigeerde "H"), bevestigd dat de eerdere "Mindset ="-fix door deze
+bredere aanpassing niet is aangetast (nog steeds 18 vormen, beide
+"="-streepjes correct), herkenning zonder overlap met de bestaande 20
+ontwerpen, kleurwissel, statuslogica, en een volledige regressietest op
+alle 20 overige ontwerpen — geen neveneffecten.
+
+## 20e "Tegeltje met tekst"-ontwerp: "Als een knuffel alles kon oplossen..."
+
+Als contouren aangeleverd — rechtstreeks als 57 vectorvormen uit het
+PDF-bestand geëxtraheerd (cursieve tekst, met "knuffel"/"altijd" in vet).
+De handgetekende hartje-krabbel onderaan heeft een VASTE roze kleur (CMYK
+0/0.874/0.176/0 — dezelfde kleur als "Hartje") die niet met de tegelkleur
+meewisselt, de tekst zelf wisselt wel gewoon mee.
+
+Ditmaal in één keer goed ingevoegd zonder de bekende dubbele-sluithaak-fout
+(bewust een kale `,\n` gebruikt na `oud[:-3]` i.p.v. een nieuw blok dat zelf
+weer met `},` begint).
+
+**Kleine valkuil bij het testen, geen echte bug**: een eerste kleurwissel-
+test leek te falen ("Wit"-tegel gaf schijnbaar witte tekst) — bleek een
+verkeerde aanname in de TEST zelf: `pdfplumber` se `page.curves`-volgorde
+komt niet noodzakelijk overeen met de tekenvolgorde in de PDF (de roze
+hartje-vorm bleek als EERSTE curve te worden gerapporteerd, niet als
+laatste). Herzien door op KLEUR te zoeken i.p.v. op array-positie — daarna
+bevestigd dat de daadwerkelijke output wel degelijk correct was.
+
+Getest: herkenning zonder overlap met de bestaande 19 ontwerpen, pixel-
+perfecte match via de échte productiecode (inclusief de exacte tegelkleur
+"Grijs" uit de order-titel), kleurwissel + hartje-kleur-vastheid correct
+bevestigd op 3 tegelkleuren, statuslogica, en een volledige regressietest
+op de overige 19 ontwerpen — geen neveneffecten.
+
 ## 19e "Tegeltje met tekst"-ontwerp: "Mindset is everything." + belangrijke extractiefix
 
 Als contouren aangeleverd — rechtstreeks als 18 vectorvormen uit het

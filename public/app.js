@@ -258,6 +258,18 @@ function openAdjacentOrder(direction) {
 }
 
 function renderModal(order) {
+  // "Als een cadeautje inpakken." is een simpel cadeauverpak-artikel, maar
+  // Shopify/PPLR plaatst daar soms (een bug in hun koppeling) de
+  // gepersonaliseerde eigenschappen van een heel ANDER, écht besteld
+  // product onder (bv. Socialframe-stijl, Spotify-link, regel 1/2, enz. —
+  // zie screenshot van de gebruiker). Die eigenschappen worden AL correct
+  // herkend en verwerkt voor het drukwerkbestand (via de eigenschap-
+  // gebaseerde productherkenning elders in dit project), maar horen niet
+  // ALSNOG onder deze cadeauverpak-regel getoond te worden — dat oogt
+  // verwarrend en dubbelop. Dus voor deze specifieke titel: nooit de
+  // eigenschappen tonen, ongeacht wat erin staat.
+  const isCadeautjeInpakken = (title) => /cadeautje\s*inpakken/i.test(title || '');
+
   const lineItemsHtml = (order.line_items || []).map(li => `
     <div class="line-item">
       <div class="title copyable" onclick="copyText(this, '${jsEscape(li.title + (li.variant_title ? ' – ' + li.variant_title : ''))}')" title="Klik om te kopiëren">${escapeHtml(li.title)} ${li.variant_title ? '– ' + escapeHtml(li.variant_title) : ''}</div>
@@ -266,7 +278,7 @@ function renderModal(order) {
         <span class="copyable" onclick="copyText(this, '${jsEscape('€' + li.price)}')" title="Klik om te kopiëren">€${li.price}</span> &nbsp;•&nbsp;
         <span class="copyable" onclick="copyText(this, '${jsEscape(li.sku || '')}')" title="Klik om te kopiëren">SKU: ${escapeHtml(li.sku || '-')}</span>
       </div>
-      ${li.properties && li.properties.length ? `<div class="props">${li.properties.map(p => `<span class="copyable" onclick="copyText(this, '${jsEscape(p.name + ': ' + p.value)}')" title="Klik om te kopiëren">${escapeHtml(p.name)}: ${escapeHtml(p.value)}</span>`).join('<br>')}</div>` : ''}
+      ${li.properties && li.properties.length && !isCadeautjeInpakken(li.title) ? `<div class="props">${li.properties.map(p => `<span class="copyable" onclick="copyText(this, '${jsEscape(p.name + ': ' + p.value)}')" title="Klik om te kopiëren">${escapeHtml(p.name)}: ${escapeHtml(p.value)}</span>`).join('<br>')}</div>` : ''}
     </div>
   `).join('') || '<p>Geen items gevonden</p>';
 
@@ -1426,7 +1438,13 @@ function buildReceiptHtml(order) {
   };
 
   const itemRows = (order.line_items || []).map(li => {
-    const propsHtml = (li.properties || [])
+    // "Als een cadeautje inpakken." kan (door een Shopify/PPLR-koppelbug)
+    // de gepersonaliseerde eigenschappen van een heel ANDER, écht besteld
+    // product onder zich krijgen — die worden al correct verwerkt voor het
+    // drukwerkbestand, maar horen niet op de pakbon bij deze regel getoond
+    // te worden. Dus voor deze titel: helemaal geen eigenschappen tonen.
+    const isCadeautjeInpakken = /cadeautje\s*inpakken/i.test(li.title || '');
+    const propsHtml = isCadeautjeInpakken ? '' : (li.properties || [])
       .filter(p => !/autopictura/i.test(p.name) && !/autopictura/i.test(p.value)) // alle autopictura-teksten weglaten van het bonnetje
       .map(p => `${escapeHtml(p.name)}: ${escapeHtml(p.value)}`)
       .join('<br>');
