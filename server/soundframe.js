@@ -8,7 +8,8 @@ const fs = require('fs');
 const path = require('path');
 const {
   MM, splitTextEmoji, preloadEmojiImages, measureMixedTextWidth, drawMixedText,
-  fitFontSizeToWidth, embedPhotoRounded, drawImageMetAfgerondeHoeken, nearWhiteCmyk, loadHebrewFont
+  fitFontSizeToWidth, embedPhotoRounded, drawImageMetAfgerondeHoeken, nearWhiteCmyk, loadHebrewFont,
+  isVermoedelijkeDubbeleCadeautjeRegel
 } = require('./pdf-shared');
 // Hergebruikt de bestaande vector-iconen (shuffle/vorige/afspelen/volgende/
 // herhalen) van het muziekframe — i.p.v. de kant-en-aangeleverde raster-
@@ -80,8 +81,10 @@ function drawScaledIcon(page, pathInfo, color) {
   });
 }
 
-function isSoundFrameLineItem(li) {
-  if (/sound[\s-]?frame/i.test(li.title || '')) return true;
+const SOUNDFRAME_TITEL_REGEX = /sound[\s-]?frame/i;
+
+function isSoundFrameLineItem(li, alleLineItems) {
+  if (SOUNDFRAME_TITEL_REGEX.test(li.title || '')) return true;
   // Zelfde valstrik als bij muziekframe ontdekt: Shopify/de personalisatie-
   // app kan de aanpasgegevens onder een ander productregel-item hangen
   // (bv. "Als een cadeautje inpakken.") i.p.v. een eigen "Sound-Frame"-regel.
@@ -99,7 +102,15 @@ function isSoundFrameLineItem(li) {
   const heeftTijdlijn = props.some(p => /begintijd|eindtijd|positie\s*bolletje/i.test(p.name || ''));
   const heeftLink = props.some(p => /link naar/i.test(p.name || ''));
   const heeftAchtergrondKleur = props.some(p => /achtergrond\s*kleur/i.test(p.name || ''));
-  return heeftRegel1 && heeftHartjeKleur && heeftTijdlijn && !heeftLink && !heeftAchtergrondKleur;
+  if (!(heeftRegel1 && heeftHartjeKleur && heeftTijdlijn && !heeftLink && !heeftAchtergrondKleur)) return false;
+
+  // Voorkomt dubbeltelling als deze "cadeautje inpakken."-regel dezelfde
+  // eigenschappen draagt als een AL apart aanwezige, echt getitelde
+  // "Sound-Frame"-regel in dezelfde order — zie isVermoedelijkeDubbeleCadeautjeRegel
+  // in pdf-shared.js voor de volledige toelichting.
+  if (isVermoedelijkeDubbeleCadeautjeRegel(li, alleLineItems, SOUNDFRAME_TITEL_REGEX)) return false;
+
+  return true;
 }
 
 // Zelfde aanpak als extractMusicFrameData in musicframe.js — matcht op
@@ -127,8 +138,9 @@ function extractSoundFrameData(li) {
 
 function extractSoundFrameItemsFromOrder(rawOrder) {
   const items = [];
-  (rawOrder.line_items || []).forEach(li => {
-    if (!isSoundFrameLineItem(li)) return;
+  const alleLineItems = rawOrder.line_items || [];
+  alleLineItems.forEach(li => {
+    if (!isSoundFrameLineItem(li, alleLineItems)) return;
     const data = extractSoundFrameData(li);
     const qty = li.quantity && li.quantity > 0 ? li.quantity : 1;
     for (let i = 0; i < qty; i++) {

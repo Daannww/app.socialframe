@@ -2,6 +2,7 @@ const axios = require('axios');
 const { upsertOrder, getMeta, setMeta } = require('./db');
 const { isTegelTekstLineItem } = require('./texttile');
 const { isTegelIllustratieLineItem } = require('./tegelillustratie');
+const { isVermoedelijkeDubbeleCadeautjeRegel } = require('./pdf-shared');
 
 const STORE = process.env.SHOPIFY_STORE;
 const TOKEN = process.env.SHOPIFY_ACCESS_TOKEN;
@@ -181,8 +182,10 @@ function extractTileItemsFromOrder(lineItems) {
 // en Duits ("Auto-rahmen"), met of zonder streepje, of met een spatie in
 // plaats van een streepje (Shopify-titels zijn hierin niet altijd
 // consistent, bv. "Auto frame" i.p.v. "Auto-frame").
-function isAutoFrameLineItem(li) {
-  if (/auto[\s-]?frame|auto[\s-]?rahmen/i.test(li.title || '')) return true;
+const AUTOFRAME_TITEL_REGEX = /auto[\s-]?frame|auto[\s-]?rahmen/i;
+
+function isAutoFrameLineItem(li, alleLineItems) {
+  if (AUTOFRAME_TITEL_REGEX.test(li.title || '')) return true;
   // Zelfde valstrik als bij muziekframe/sound-frame ontdekt: Shopify/de
   // personalisatie-app kan de aanpasgegevens onder een ander productregel-
   // item hangen (bv. "Als een cadeautje inpakken.") i.p.v. een eigen
@@ -194,7 +197,15 @@ function isAutoFrameLineItem(li) {
   const heeftMotor = props.some(p => /\bmotor\b/i.test(p.name || ''));
   const heeftPk = props.some(p => /\bpk\b|paardenkracht/i.test(p.name || ''));
   const heeftSnelheid = props.some(p => /snelheid/i.test(p.name || ''));
-  return heeftMotor && heeftPk && heeftSnelheid;
+  if (!(heeftMotor && heeftPk && heeftSnelheid)) return false;
+
+  // Voorkomt dubbeltelling als deze "cadeautje inpakken."-regel dezelfde
+  // eigenschappen draagt als een AL apart aanwezige, echt getitelde
+  // "Auto-frame"-regel in dezelfde order — zie isVermoedelijkeDubbeleCadeautjeRegel
+  // in pdf-shared.js voor de volledige toelichting.
+  if (isVermoedelijkeDubbeleCadeautjeRegel(li, alleLineItems, AUTOFRAME_TITEL_REGEX)) return false;
+
+  return true;
 }
 
 // Herkent de "klein" / "dik" variant, net als bij het muziekframe.
@@ -234,8 +245,9 @@ function extractAutoFrameData(li) {
 // en geeft voor elke bestelde stuks (quantity) een los item terug.
 function extractAutoFrameItemsFromOrder(rawOrder) {
   const items = [];
-  (rawOrder.line_items || []).forEach(li => {
-    if (!isAutoFrameLineItem(li)) return;
+  const alleLineItems = rawOrder.line_items || [];
+  alleLineItems.forEach(li => {
+    if (!isAutoFrameLineItem(li, alleLineItems)) return;
     const data = extractAutoFrameData(li);
     const variant = getAutoFrameVariant(li);
     const qty = li.quantity && li.quantity > 0 ? li.quantity : 1;

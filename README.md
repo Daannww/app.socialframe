@@ -935,6 +935,49 @@ perfecte match via de échte productiecode, kleurwissel op een steekproef
 van 3 tegelkleuren, statuslogica, en een volledige regressietest op de
 overige 16 ontwerpen — geen neveneffecten.
 
+## "Als een cadeautje inpakken." leverde soms 2 drukwerkbestanden i.p.v. 1
+
+Vervolg op de weergave-fix hierboven. Gemeld: een order met "Als een
+cadeautje inpakken." (aantal 1) ÉN een apart, correct getitelde
+"Muziek-frame"-regel (ook aantal 1) leverde 2 "Download muziekframe-
+bestand"-knoppen op i.p.v. 1.
+
+**Oorzaak**: de bestaande eigenschap-gebaseerde valstrik-detectie
+(`isMusicFrameLineItem`/`isSoundFrameLineItem`/`isAutoFrameLineItem`) is
+er terecht op gemaakt om een muziekframe/Sound-Frame/Auto-frame-bestelling
+te herkennen ZELFS als de eigenschappen onder een verkeerd getitelde
+"cadeautje inpakken."-regel staan (zie de eerdere sectie hieronder). Maar
+als Shopify (dezelfde onderliggende koppelbug) die eigenschappen per
+ongeluk op ZOWEL de "cadeautje inpakken."-regel ALS de eigen, correct
+getitelde productregel zet, werden dit tot nu toe 2 LOSSE items geteld —
+1 via de titel-herkenning van de echte regel, 1 via de eigenschap-
+herkenning van de cadeautje-regel — dus 2 drukwerkbestanden voor wat
+feitelijk 1 besteld product is.
+
+**Fix**: een gedeelde hulpfunctie `isVermoedelijkeDubbeleCadeautjeRegel` in
+`server/pdf-shared.js` — als een "cadeautje inpakken."-regel alleen via
+eigenschappen (niet via titel) als muziekframe/Sound-Frame/Auto-frame
+herkend wordt, ÉN er staat in dezelfde order OOK al een regel met de
+ECHTE producttitel, dan wordt de cadeautje-regel niet meer apart geteld.
+Toegepast in alle 3 herkenningsfuncties (`musicframe.js`, `soundframe.js`,
+`shopify.js` voor auto-frame).
+
+**Belangrijk behouden**: de OORSPRONKELIJKE valstrik-fix blijft intact —
+als "cadeautje inpakken." de ENIGE drager van de eigenschappen is (geen
+aparte, echt getitelde regel in dezelfde order), wordt die nog steeds
+gewoon als het echte product herkend en krijgt gewoon zijn drukwerk-
+bestand. En als de échte regel zelf een hoger aantal heeft (bv. 2), worden
+gewoon 2 bestanden gegenereerd — de fix kijkt puur naar de dubbeltelling
+tussen 2 REGELS, niet naar het aantal per regel.
+
+Getest: het exacte scenario uit de melding (cadeautje-regel + echte regel,
+beide dezelfde eigenschappen) geeft nu 1 item i.p.v. 2, voor alle 3
+producten; bevestigd dat "alleen cadeautje-regel, geen aparte echte regel"
+nog steeds 1 item geeft (geen regressie op de oorspronkelijke fix);
+bevestigd dat een hoger aantal (2) op de échte regel nog steeds 2 items
+geeft; en een volledige regressietest op de PDF-generatie van alle 3
+producten — geen neveneffecten.
+
 ## "Als een cadeautje inpakken." toont per ongeluk andermans eigenschappen
 
 Gemeld: door een Shopify/PPLR-koppelbug krijgt de regel "Als een cadeautje

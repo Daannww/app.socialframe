@@ -8,7 +8,7 @@ const paths = require('./musicframe-paths');
 const {
   MM, splitTextEmoji, preloadEmojiImages, measureMixedTextWidth, drawMixedText,
   fitFontSizeToWidth, embedPhoto, fitPhotoInSquareZone, getCodeSvg, extractSvgShapes, drawSvgShapesInBox,
-  drawBackground, loadHebrewFont, hasPageBackground, nearWhiteCmyk
+  drawBackground, loadHebrewFont, hasPageBackground, nearWhiteCmyk, isVermoedelijkeDubbeleCadeautjeRegel
 } = require('./pdf-shared');
 
 const PAGE_W_MM = 200;
@@ -28,8 +28,10 @@ const COLOR_HEART_RED = rgb(0.87, 0.15, 0.22);
 // DE ("Musik-rahmen"/"Valentins-rahmen") — met of zonder streepje, of met een
 // spatie in plaats van een streepje (Shopify-titels zijn hierin niet altijd
 // consistent, bv. "Music frame" i.p.v. "Music-frame").
-function isMusicFrameLineItem(li) {
-  if (/muziek[\s-]?frame|music[\s-]?frame|valentijn[\s-]?frame|valentine?s?[\s-]?frame|musik[\s-]?rahmen|valentins?[\s-]?rahmen/i.test(li.title || '')) {
+const MUZIEKFRAME_TITEL_REGEX = /muziek[\s-]?frame|music[\s-]?frame|valentijn[\s-]?frame|valentine?s?[\s-]?frame|musik[\s-]?rahmen|valentins?[\s-]?rahmen/i;
+
+function isMusicFrameLineItem(li, alleLineItems) {
+  if (MUZIEKFRAME_TITEL_REGEX.test(li.title || '')) {
     return true;
   }
   // Valstrik, ontdekt doordat een order met 2 bestelde platen maar 1
@@ -46,7 +48,17 @@ function isMusicFrameLineItem(li) {
   const props = li.properties || [];
   const heeftMuziekLink = props.some(p => /link naar.*favoriete nummer|favoriete nummer.*website/i.test(p.name || ''));
   const heeftRegel1 = props.some(p => /\bregel\s*1\b/i.test(p.name || ''));
-  return heeftMuziekLink && heeftRegel1;
+  if (!(heeftMuziekLink && heeftRegel1)) return false;
+
+  // Omgekeerde valstrik: als deze "cadeautje inpakken."-regel deze
+  // eigenschappen draagt, MAAR er staat in dezelfde order OOK al een regel
+  // met de echte "Muziekframe"-titel, dan heeft Shopify vermoedelijk
+  // dezelfde eigenschappen per ongeluk op BEIDE regels gezet — dit is dan
+  // geen los, 2e product. Zie isVermoedelijkeDubbeleCadeautjeRegel in
+  // pdf-shared.js voor de volledige toelichting.
+  if (isVermoedelijkeDubbeleCadeautjeRegel(li, alleLineItems, MUZIEKFRAME_TITEL_REGEX)) return false;
+
+  return true;
 }
 
 // Herkent de "klein" / "dik" variant van een Muziek-/Valentijn-frame, op basis
@@ -91,8 +103,9 @@ function extractMusicFrameData(li) {
 // 2 losse drukwerkbestanden opleveren.
 function extractMusicFrameItemsFromOrder(rawOrder) {
   const items = [];
-  (rawOrder.line_items || []).forEach(li => {
-    if (!isMusicFrameLineItem(li)) return;
+  const alleLineItems = rawOrder.line_items || [];
+  alleLineItems.forEach(li => {
+    if (!isMusicFrameLineItem(li, alleLineItems)) return;
     const data = extractMusicFrameData(li);
     const variant = getMusicFrameVariant(li);
     const qty = li.quantity && li.quantity > 0 ? li.quantity : 1;

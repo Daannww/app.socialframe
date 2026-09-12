@@ -1054,7 +1054,30 @@ async function loadHebrewFont(doc, gewicht = 'Regular') {
   return doc.embedFont(fs.readFileSync(bestandsPad));
 }
 
+// Voorkomt dubbeltelling bij de "cadeautje inpakken"-valstrik: Shopify/de
+// personalisatie-app hangt de aanpasgegevens van een Socialframe-product
+// (muziekframe/Sound-Frame/auto-frame) soms onder een ANDER, generiek
+// productregel-item (meestal "Als een cadeautje inpakken.", 2 euro) i.p.v.
+// een eigen regel met de juiste producttitel. De eigenschap-gebaseerde
+// herkenning (isMusicFrameLineItem e.d.) vangt dit correct op zodat er
+// ALSNOG een drukwerkbestand voor gegenereerd wordt — MAAR als er in
+// dezelfde order OOK al een regel-item met de ECHTE producttitel staat
+// (dus het product is niet alleen onder "cadeautje inpakken" verstopt,
+// maar staat ook gewoon correct in de bestelling), dan zijn dit
+// waarschijnlijk DEZELFDE eigenschappen die Shopify per ongeluk op BEIDE
+// regels heeft gezet — geen 2 aparte producten. Zonder deze check leverde
+// zo'n order 2 drukwerkbestanden op i.p.v. 1 (ontdekt bij een order met
+// exact deze combinatie: "Als een cadeautje inpakken." + "Muziek-frame",
+// allebei aantal 1, maar 2 download-knoppen).
+function isVermoedelijkeDubbeleCadeautjeRegel(li, alleLineItems, echteTitelRegex) {
+  if (!alleLineItems) return false;
+  const heeftGeneriekeTitel = /cadeautje\s*inpakken/i.test(li.title || '');
+  if (!heeftGeneriekeTitel) return false;
+  return alleLineItems.some(ander => ander !== li && echteTitelRegex.test(ander.title || ''));
+}
+
 module.exports = {
+  isVermoedelijkeDubbeleCadeautjeRegel,
   MM,
   splitTextEmoji, emojiToCodepoints, fetchEmojiPng, preloadEmojiImages,
   measureMixedTextWidth, drawMixedText, fitFontSizeToWidth, loadHebrewFont,
