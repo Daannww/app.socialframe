@@ -6,8 +6,10 @@ const cron = require('node-cron');
 const path = require('path');
 const fs = require('fs');
 const QRCode = require('qrcode');
+const multer = require('multer');
+const sharp = require('sharp');
 
-const { listOrders, getOrder, updateStatus, updateStatusBulk, getAllOrdersRaw, updateDerivedFields, deleteOldOrders, getInventory, setInventoryStock, addInventoryItem, deleteInventoryItem, getOrdersReadyForReviewEmail, markReviewEmailSent, setSizeOverride, setNote, getStatusHistory, db } = require('./db');
+const { listOrders, getOrder, updateStatus, updateStatusBulk, getAllOrdersRaw, updateDerivedFields, deleteOldOrders, getInventory, setInventoryStock, addInventoryItem, deleteInventoryItem, getOrdersReadyForReviewEmail, markReviewEmailSent, setSizeOverride, setNote, getStatusHistory, setLineItemOverride, getLineItemsMetOverrides, db } = require('./db');
 const { syncOrders, mapOrder, extractFotoTegelPhotoUrls, extractPosterlyPhotoUrls, extractTileItemsFromOrder, extractAutoFrameItemsFromOrder } = require('./shopify');
 const axios = require('axios');
 const { fetchMetHerpogingen } = require('./pdf-shared');
@@ -25,8 +27,30 @@ const { sendReviewEmail } = require('./reviewEmail');
 const SqliteSessionStore = require('./sqliteSessionStore');
 
 const app = express();
+// Nodig achter Railway se reverse-proxy (en vergelijkbare hosting): zonder
+// dit rapporteert req.protocol altijd "http", ook als de bezoeker de site
+// via https benadert — waardoor een hieronder opgebouwde volledige URL (zie
+// de foto-override-route) een fout schema zou krijgen.
+app.set('trust proxy', true);
 const PORT = process.env.PORT || 3000;
 const publicDir = path.join(__dirname, '..', 'public');
+
+// Map voor handmatig geüploade vervangfoto's (zie de "Wijzig foto"-knop in de
+// order-popup) — zelfde DATA_DIR-aanpak als orders.db en exports/, zodat de
+// bestanden een permanente Railway-Volume gebruiken i.p.v. de wegwerpbare
+// projectmap (anders ben je ze bij elke nieuwe deploy kwijt).
+const overridesDir = path.join(process.env.DATA_DIR || path.join(__dirname, '..'), 'overrides');
+fs.mkdirSync(overridesDir, { recursive: true });
+app.use('/overrides', express.static(overridesDir));
+
+const overrideUpload = multer({
+  storage: multer.memoryStorage(), // eerst in het geheugen, want we verwerken 'm nog (zie hieronder) vóór opslag
+  limits: { fileSize: 25 * 1024 * 1024 }, // 25MB — ruim genoeg voor een foto rechtstreeks van een telefooncamera
+  fileFilter: (req, file, cb) => {
+    if (!/^image\//.test(file.mimetype)) return cb(new Error('Alleen afbeeldingsbestanden zijn toegestaan'));
+    cb(null, true);
+  }
+});
 
 // Geeft de datum van VANDAAG terug als "YYYY-MM-DD", in de Nederlandse
 // tijdzone (Europe/Amsterdam) — dus NIET zomaar new Date().toISOString(),
@@ -135,7 +159,7 @@ app.get('/api/orders', (req, res) => {
   try {
     const orders = listOrders(req.query.status || null).map(o => ({
       ...o,
-      line_items: JSON.parse(o.line_items_json || '[]'),
+      line_items: getLineItemsMetOverrides(o),
       spotify_links: JSON.parse(o.spotify_links_json || '[]'),
       photo_links: JSON.parse(o.photo_links_json || '[]')
     }));
@@ -148,7 +172,7 @@ app.get('/api/orders', (req, res) => {
 app.get('/api/orders/:id', (req, res) => {
   const order = getOrder(req.params.id);
   if (!order) return res.status(404).json({ error: 'Order niet gevonden' });
-  const lineItems = JSON.parse(order.line_items_json || '[]');
+  const lineItems = getLineItemsMetOverrides(order);
   res.json({
     ...order,
     line_items: lineItems,
@@ -220,6 +244,49 @@ app.post('/api/orders/:id/note', (req, res) => {
   const { note } = req.body;
   const order = setNote(req.params.id, note);
   res.json(order);
+});
+
+// --- Handmatige tekst-overschrijving van 1 eigenschap van 1 regel-item (bv.
+// "Regel 1" aanpassen als de klant achteraf toch een andere tekst wil) —
+// werkt door in zowel de popup als alle drukwerkbestand-generatie, zie
+// getLineItemsMetOverrides in db.js. Lege waarde verwijdert de
+// overschrijving weer (terug naar de originele Shopify-waarde). ---
+app.post('/api/orders/:id/line-item-override', (req, res) => {
+  const { lineItemId, propertyName, value } = req.body;
+  if (!lineItemId || !propertyName) {
+    return res.status(400).json({ error: 'lineItemId en propertyName zijn verplicht' });
+  }
+  const order = setLineItemOverride(req.params.id, lineItemId, propertyName, value);
+  if (!order) return res.status(404).json({ error: 'Order niet gevonden' });
+  res.json(order);
+});
+
+// --- Handmatige foto-vervanging: de klant wil achteraf een andere foto
+// gebruiken. Verwacht een AL VIERKANT UITGESNEDEN afbeelding (het uitsnijden
+// gebeurt in de browser zelf, met de eigen crop-tool in de popup — zie
+// public/app.js) — hier alleen nog opslaan en de eigenschap overschrijven.
+// Comprimeert naar JPEG (kwaliteit 90) om de opslagmap niet nodeloos te
+// laten vollopen met soms zeer grote, rechtstreeks-vanaf-de-telefoon-
+// gefotografeerde bestanden. ---
+app.post('/api/orders/:id/line-item-photo-override', overrideUpload.single('foto'), async (req, res) => {
+  try {
+    const { lineItemId, propertyName } = req.body;
+    if (!lineItemId || !propertyName) {
+      return res.status(400).json({ error: 'lineItemId en propertyName zijn verplicht' });
+    }
+    if (!req.file) return res.status(400).json({ error: 'Geen foto ontvangen' });
+
+    const bestandsnaam = `${req.params.id}-${lineItemId}-${Date.now()}.jpg`;
+    const volledigPad = path.join(overridesDir, bestandsnaam);
+    await sharp(req.file.buffer).jpeg({ quality: 90 }).toFile(volledigPad);
+
+    const nieuweUrl = `${req.protocol}://${req.get('host')}/overrides/${bestandsnaam}`;
+    const order = setLineItemOverride(req.params.id, lineItemId, propertyName, nieuweUrl);
+    if (!order) return res.status(404).json({ error: 'Order niet gevonden' });
+    res.json(order);
+  } catch (e) {
+    res.status(500).json({ error: 'Kon foto niet opslaan: ' + e.message });
+  }
 });
 
 // --- Bulk statuswijziging: meerdere orders tegelijk naar een andere status zetten ---
@@ -477,7 +544,7 @@ app.get('/api/print-files/musicframe-pdf', requireAdmin, async (req, res) => {
     const order = getOrder(orderId);
     if (!order) return res.status(404).json({ error: 'Order niet gevonden' });
 
-    const lineItems = JSON.parse(order.line_items_json || '[]');
+    const lineItems = getLineItemsMetOverrides(order);
     const items = extractMusicFrameItemsFromOrder({ line_items: lineItems });
     const item = items[itemIndex];
     if (!item) return res.status(404).json({ error: 'Geen Muziek-/Valentijnframe gevonden op deze order' });
@@ -504,7 +571,7 @@ app.get('/api/print-files/texttile-pdf', requireAdmin, async (req, res) => {
     const order = getOrder(orderId);
     if (!order) return res.status(404).json({ error: 'Order niet gevonden' });
 
-    const lineItems = JSON.parse(order.line_items_json || '[]');
+    const lineItems = getLineItemsMetOverrides(order);
     const items = extractTegelTekstItemsFromOrder({ line_items: lineItems });
     const item = items[itemIndex];
     if (!item) return res.status(404).json({ error: 'Geen "Tegeltje met tekst" met bekend ontwerp gevonden op deze order' });
@@ -532,7 +599,7 @@ app.get('/api/print-files/soundframe-pdf', requireAdmin, async (req, res) => {
     const order = getOrder(orderId);
     if (!order) return res.status(404).json({ error: 'Order niet gevonden' });
 
-    const lineItems = JSON.parse(order.line_items_json || '[]');
+    const lineItems = getLineItemsMetOverrides(order);
     const items = extractSoundFrameItemsFromOrder({ line_items: lineItems });
     const item = items[itemIndex];
     if (!item) return res.status(404).json({ error: 'Geen Sound-Frame gevonden op deze order' });
@@ -558,7 +625,7 @@ app.get('/api/print-files/photoframe-pdf', requireAdmin, async (req, res) => {
     const order = getOrder(orderId);
     if (!order) return res.status(404).json({ error: 'Order niet gevonden' });
 
-    const lineItems = JSON.parse(order.line_items_json || '[]');
+    const lineItems = getLineItemsMetOverrides(order);
     const items = extractPhotoFrameItemsFromOrder({ line_items: lineItems });
     const item = items[itemIndex];
     if (!item) return res.status(404).json({ error: 'Geen Foto-frame gevonden op deze order' });
@@ -584,7 +651,7 @@ app.get('/api/print-files/lijntekeningframe-pdf', requireAdmin, async (req, res)
     const order = getOrder(orderId);
     if (!order) return res.status(404).json({ error: 'Order niet gevonden' });
 
-    const lineItems = JSON.parse(order.line_items_json || '[]');
+    const lineItems = getLineItemsMetOverrides(order);
     const items = extractLijntekeningFrameItemsFromOrder({ line_items: lineItems });
     const item = items[itemIndex];
     if (!item) return res.status(404).json({ error: 'Geen Lijntekening Portret in lijst gevonden op deze order' });
@@ -613,7 +680,7 @@ app.get('/api/print-files/tegelillustratie-pdf', requireAdmin, async (req, res) 
     const order = getOrder(orderId);
     if (!order) return res.status(404).json({ error: 'Order niet gevonden' });
 
-    const lineItems = JSON.parse(order.line_items_json || '[]');
+    const lineItems = getLineItemsMetOverrides(order);
     const items = extractTegelIllustratieItemsFromOrder({ line_items: lineItems });
     const item = items[itemIndex];
     if (!item) return res.status(404).json({ error: 'Geen tegel-illustratie gevonden op deze order' });
@@ -639,7 +706,7 @@ app.get('/api/print-files/kentekenplaathouder-pdf', requireAdmin, async (req, re
     const order = getOrder(orderId);
     if (!order) return res.status(404).json({ error: 'Order niet gevonden' });
 
-    const lineItems = JSON.parse(order.line_items_json || '[]');
+    const lineItems = getLineItemsMetOverrides(order);
     const items = extractKentekenplaathouderItemsFromOrder({ line_items: lineItems });
     const item = items[itemIndex];
     if (!item) return res.status(404).json({ error: 'Geen kentekenplaathouder gevonden op deze order' });
@@ -665,7 +732,7 @@ app.get('/api/print-files/autoframe-pdf', requireAdmin, async (req, res) => {
     const order = getOrder(orderId);
     if (!order) return res.status(404).json({ error: 'Order niet gevonden' });
 
-    const lineItems = JSON.parse(order.line_items_json || '[]');
+    const lineItems = getLineItemsMetOverrides(order);
     const items = extractAutoFrameItemsFromOrder({ line_items: lineItems });
     const item = items[itemIndex];
     if (!item) return res.status(404).json({ error: 'Geen Auto-frame gevonden op deze order' });
@@ -698,7 +765,7 @@ app.get('/api/print-files/pdf-zip', requireAdmin, async (req, res) => {
       .filter(o => selectedIds.includes(o.id))
       .map(o => ({
         ...o,
-        line_items: JSON.parse(o.line_items_json || '[]'),
+        line_items: getLineItemsMetOverrides(o),
         photo_links: JSON.parse(o.photo_links_json || '[]')
       }));
 
@@ -1049,7 +1116,7 @@ async function appendPrintFilesToArchive(archive, targets) {
 async function runScheduledPrintFilesExport() {
   const allOrders = listOrders('wacht op drukwerkbestand').map(o => ({
     ...o,
-    line_items: JSON.parse(o.line_items_json || '[]'),
+    line_items: getLineItemsMetOverrides(o),
     photo_links: JSON.parse(o.photo_links_json || '[]')
   }));
   const targets = allOrders.filter(o =>

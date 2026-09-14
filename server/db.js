@@ -108,6 +108,20 @@ try {
   // kolom bestaat al, negeren
 }
 
+// Migratie: handmatige overschrijvingen van bestel-eigenschappen per regel-
+// item — bv. als een klant achteraf toch een andere foto of andere tekst
+// wil. Opgeslagen als JSON: { "<shopify-regel-item-id>": { "<eigenschap-
+// naam>": "<nieuwe waarde>", ... }, ... } — de eigenschap-naam moet exact
+// overeenkomen met de bestaande property-naam uit Shopify (zie
+// getLineItemsMetOverrides hieronder), zodat de override bij het ophalen
+// van de order gewoon de bestaande waarde vervangt, zonder dat alle
+// drukwerkbestand-generatiecode zelf hoeft te weten dat er iets overschreven is.
+try {
+  db.exec("ALTER TABLE orders ADD COLUMN line_item_overrides_json TEXT");
+} catch (e) {
+  // kolom bestaat al, negeren
+}
+
 // Migratie: standaard-lagevoorraaddrempel opgehoogd van 20 naar 50 stuks —
 // bestaande artikelen die nog op de OUDE standaardwaarde (20) staan, worden
 // hier EENMALIG bijgewerkt (via een vlag in sync_meta, zodat dit maar 1x
@@ -338,6 +352,53 @@ function setNote(id, note) {
   return getOrder(id);
 }
 
+// Slaat een handmatige overschrijving van 1 eigenschap van 1 regel-item op
+// (bv. een nieuwe foto-URL, of een aangepaste "Regel 1"-tekst). `value`
+// leeg/null verwijdert de overschrijving weer (terug naar de originele
+// Shopify-waarde). `propertyName` moet exact overeenkomen met de bestaande
+// property-naam (zie getLineItemsMetOverrides).
+function setLineItemOverride(orderId, lineItemId, propertyName, value) {
+  const order = getOrder(orderId);
+  if (!order) return null;
+  const overrides = JSON.parse(order.line_item_overrides_json || '{}');
+  const key = String(lineItemId);
+  if (!overrides[key]) overrides[key] = {};
+  const getrimd = (value || '').toString().trim();
+  if (getrimd) {
+    overrides[key][propertyName] = getrimd;
+  } else {
+    delete overrides[key][propertyName];
+    if (Object.keys(overrides[key]).length === 0) delete overrides[key];
+  }
+  db.prepare('UPDATE orders SET line_item_overrides_json = ? WHERE id = ?')
+    .run(JSON.stringify(overrides), orderId);
+  return getOrder(orderId);
+}
+
+// Past de opgeslagen overschrijvingen toe op een lijst regel-items — geeft
+// een NIEUWE array terug (de originele blijft ongewijzigd), met de
+// overschreven eigenschap-waarden erin verwerkt. Wordt gebruikt op ELKE
+// plek waar regel-items uit de databank gelezen worden (zowel de order-
+// popup als alle drukwerkbestand-generatie-routes), zodat een
+// overschrijving overal automatisch doorwerkt zonder dat de generatiecode
+// zelf iets van overschrijvingen hoeft te weten.
+function getLineItemsMetOverrides(order) {
+  const lineItems = JSON.parse(order.line_items_json || '[]');
+  const overrides = JSON.parse(order.line_item_overrides_json || '{}');
+  if (Object.keys(overrides).length === 0) return lineItems;
+  return lineItems.map(li => {
+    const liOverrides = overrides[String(li.id)];
+    if (!liOverrides || Object.keys(liOverrides).length === 0) return li;
+    const properties = (li.properties || []).map(p => ({ ...p }));
+    Object.entries(liOverrides).forEach(([naam, waarde]) => {
+      const bestaand = properties.find(p => p.name === naam);
+      if (bestaand) bestaand.value = waarde;
+      else properties.push({ name: naam, value: waarde });
+    });
+    return { ...li, properties };
+  });
+}
+
 // Alle orders met hun opgeslagen raw_json ophalen — voor het lokaal herberekenen
 // van spotify_links/photo_links zonder opnieuw bij Shopify te hoeven ophalen.
 function getAllOrdersRaw() {
@@ -380,5 +441,6 @@ module.exports = {
   db, getMeta, setMeta, upsertOrder, listOrders, getOrder, updateStatus, updateStatusBulk,
   getAllOrdersRaw, updateLinks, updateDerivedFields, deleteOldOrders,
   getInventory, setInventoryStock, deductInventory, addInventoryItem, deleteInventoryItem,
-  getOrdersReadyForReviewEmail, markReviewEmailSent, setSizeOverride, setNote, getStatusHistory
+  getOrdersReadyForReviewEmail, markReviewEmailSent, setSizeOverride, setNote, getStatusHistory,
+  setLineItemOverride, getLineItemsMetOverrides
 };

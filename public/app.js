@@ -257,6 +257,221 @@ function openAdjacentOrder(direction) {
   openOrder(displayOrders[newIndex].id);
 }
 
+// Wijzig-knoppen zijn (op verzoek) alleen zinvol/gewenst bij muziekframe/
+// valentijnframe/auto-frame — dezelfde titel-herkenning als server-side
+// (isMusicFrameLineItem/isAutoFrameLineItem), hier client-side herhaald
+// puur om te bepalen of de wijzig-knop getoond wordt (geen beveiligings-
+// doel, alleen een UI-filter).
+function magEigenschapWijzigen(titel) {
+  return /muziek[\s-]?frame|music[\s-]?frame|valentijn[\s-]?frame|valentine?s?[\s-]?frame|musik[\s-]?rahmen|valentins?[\s-]?rahmen|auto[\s-]?frame|auto[\s-]?rahmen/i.test(titel || '');
+}
+
+// Bepaalt of een eigenschap een foto-upload-vraag is (dan krijgt de wijzig-
+// knop de vierkante uitsnede-tool) of gewone tekst (dan een simpel tekstveld)
+// — dezelfde soort "foto" in de naam-detectie als elders in dit project
+// (zie bv. extractSoundFrameData in server/soundframe.js).
+function isFotoEigenschap(naam) {
+  return /foto/i.test(naam || '');
+}
+
+// Tekent 1 eigenschapsregel in de order-popup — bij muziekframe/valentijn-
+// frame/auto-frame met een klein potlood-icoon waarmee je 'm kan wijzigen
+// (foto -> vierkante uitsnede-tool, tekst -> simpel tekstveld), bij alle
+// andere producten gewoon platte tekst (zie magEigenschapWijzigen hierboven)
+// — zie openFotoWijzigen/openTekstWijzigen hieronder.
+function renderEigenschapRegel(orderId, lineItemId, prop, lineItemTitel) {
+  if (!magEigenschapWijzigen(lineItemTitel)) {
+    return `<span class="copyable" onclick="copyText(this, '${jsEscape(prop.name + ': ' + prop.value)}')" title="Klik om te kopiëren">${escapeHtml(prop.name)}: ${escapeHtml(prop.value)}</span><br>`;
+  }
+  const isFoto = isFotoEigenschap(prop.name);
+  const wijzigKnop = isFoto
+    ? `<i class="fa-solid fa-pen-to-square eigenschap-wijzig-knop" title="Foto wijzigen" onclick="openFotoWijzigen(${orderId}, '${jsEscape(String(lineItemId))}', '${jsEscape(prop.name)}', '${jsEscape(prop.value)}')"></i>`
+    : `<i class="fa-solid fa-pen-to-square eigenschap-wijzig-knop" title="Tekst wijzigen" onclick="openTekstWijzigen(${orderId}, '${jsEscape(String(lineItemId))}', '${jsEscape(prop.name)}', '${jsEscape(prop.value)}')"></i>`;
+  return `<div class="eigenschap-regel">
+    <span class="copyable" onclick="copyText(this, '${jsEscape(prop.name + ': ' + prop.value)}')" title="Klik om te kopiëren">${escapeHtml(prop.name)}: ${escapeHtml(prop.value)}</span>
+    ${wijzigKnop}
+  </div>`;
+}
+
+// --- "Wijzig tekst" — simpel invoerveld + opslaan/annuleren, voor elke
+// niet-foto-eigenschap (bv. "Regel 1"). ---
+function openTekstWijzigen(orderId, lineItemId, propertyName, huidigeWaarde) {
+  const overlay = document.createElement('div');
+  overlay.className = 'wijzig-overlay';
+  overlay.innerHTML = `
+    <div class="wijzig-paneel">
+      <h3>Tekst wijzigen</h3>
+      <p class="wijzig-eigenschap-naam">${escapeHtml(propertyName)}</p>
+      <textarea id="wijzig-tekst-invoer" rows="3">${escapeHtml(huidigeWaarde)}</textarea>
+      <div class="wijzig-knoppen">
+        <button class="btn" onclick="this.closest('.wijzig-overlay').remove()">Annuleren</button>
+        <button class="btn btn-primary" id="wijzig-tekst-opslaan">Opslaan</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  document.getElementById('wijzig-tekst-opslaan').onclick = async () => {
+    const nieuweWaarde = document.getElementById('wijzig-tekst-invoer').value;
+    const knop = document.getElementById('wijzig-tekst-opslaan');
+    knop.disabled = true;
+    knop.textContent = 'Opslaan...';
+    try {
+      const res = await fetch(`/api/orders/${orderId}/line-item-override`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lineItemId, propertyName, value: nieuweWaarde })
+      });
+      if (!res.ok) throw new Error('Opslaan mislukt');
+      overlay.remove();
+      openOrder(orderId); // popup verversen met de nieuwe waarde
+    } catch (e) {
+      alert('Kon de tekst niet opslaan: ' + e.message);
+      knop.disabled = false;
+      knop.textContent = 'Opslaan';
+    }
+  };
+}
+
+// --- "Wijzig foto" — bestand kiezen, dan in een vierkant kader verslepen/
+// zoomen (CSS transform op de <img>, geen externe bibliotheek nodig), en bij
+// opslaan het zichtbare vierkant met een <canvas> exact zo uitsnijden als
+// getoond, en dat geüploade vierkante resultaat opslaan. ---
+function openFotoWijzigen(orderId, lineItemId, propertyName, huidigeUrl) {
+  const overlay = document.createElement('div');
+  overlay.className = 'wijzig-overlay';
+  overlay.innerHTML = `
+    <div class="wijzig-paneel">
+      <h3>Foto wijzigen</h3>
+      <p class="wijzig-eigenschap-naam">${escapeHtml(propertyName)}</p>
+      <input type="file" id="wijzig-foto-invoer" accept="image/*">
+      <div id="wijzig-foto-kader" class="wijzig-foto-kader" style="display:none;">
+        <img id="wijzig-foto-img" draggable="false">
+      </div>
+      <div id="wijzig-foto-zoom-rij" style="display:none;">
+        <label>Zoom: <input type="range" id="wijzig-foto-zoom" min="1" max="4" step="0.01" value="1"></label>
+      </div>
+      <p class="wijzig-hint" id="wijzig-foto-hint" style="display:none;">Sleep de foto om te verschuiven, gebruik de zoom-schuif om uit te snijden.</p>
+      <div class="wijzig-knoppen">
+        <button class="btn" onclick="this.closest('.wijzig-overlay').remove()">Annuleren</button>
+        <button class="btn btn-primary" id="wijzig-foto-opslaan" disabled>Opslaan</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  const kader = overlay.querySelector('#wijzig-foto-kader');
+  const img = overlay.querySelector('#wijzig-foto-img');
+  const zoomRij = overlay.querySelector('#wijzig-foto-zoom-rij');
+  const zoomSlider = overlay.querySelector('#wijzig-foto-zoom');
+  const hint = overlay.querySelector('#wijzig-foto-hint');
+  const opslaanKnop = overlay.querySelector('#wijzig-foto-opslaan');
+  const KADER_PX = 320; // moet gelijk zijn aan de .wijzig-foto-kader-CSS hieronder
+
+  // Positie/schaal van de foto binnen het kader — bijgehouden in state
+  // i.p.v. steeds uit de DOM te lezen, voorkomt afrondingsdrift bij slepen.
+  let schaal = 1, verschuifX = 0, verschuifY = 0, basisBreedte = 0, basisHoogte = 0;
+
+  function pasTransformToe() {
+    img.style.width = (basisBreedte * schaal) + 'px';
+    img.style.height = (basisHoogte * schaal) + 'px';
+    img.style.left = verschuifX + 'px';
+    img.style.top = verschuifY + 'px';
+  }
+
+  function begrensVerschuiving() {
+    const breedte = basisBreedte * schaal, hoogte = basisHoogte * schaal;
+    verschuifX = Math.min(0, Math.max(KADER_PX - breedte, verschuifX));
+    verschuifY = Math.min(0, Math.max(KADER_PX - hoogte, verschuifY));
+  }
+
+  overlay.querySelector('#wijzig-foto-invoer').onchange = (e) => {
+    const bestand = e.target.files[0];
+    if (!bestand) return;
+    const url = URL.createObjectURL(bestand);
+    img.onload = () => {
+      // Foto op "cover" schalen zodat 'ie het vierkante kader minimaal vult
+      // (net als de uiteindelijke print 'm straks zal bijsnijden), daarna
+      // kan de gebruiker verder inzoomen/verschuiven.
+      const verhouding = img.naturalWidth / img.naturalHeight;
+      if (verhouding > 1) { basisHoogte = KADER_PX; basisBreedte = KADER_PX * verhouding; }
+      else { basisBreedte = KADER_PX; basisHoogte = KADER_PX / verhouding; }
+      schaal = 1;
+      verschuifX = (KADER_PX - basisBreedte) / 2;
+      verschuifY = (KADER_PX - basisHoogte) / 2;
+      pasTransformToe();
+      kader.style.display = 'block';
+      zoomRij.style.display = 'block';
+      hint.style.display = 'block';
+      opslaanKnop.disabled = false;
+      zoomSlider.value = 1;
+    };
+    img.src = url;
+  };
+
+  zoomSlider.oninput = () => {
+    schaal = parseFloat(zoomSlider.value);
+    begrensVerschuiving();
+    pasTransformToe();
+  };
+
+  // Slepen (muis + touch)
+  let sleeptBezig = false, sleepStartX = 0, sleepStartY = 0, startVerschuifX = 0, startVerschuifY = 0;
+  function sleepStart(x, y) {
+    sleeptBezig = true;
+    sleepStartX = x; sleepStartY = y;
+    startVerschuifX = verschuifX; startVerschuifY = verschuifY;
+  }
+  function sleepBeweeg(x, y) {
+    if (!sleeptBezig) return;
+    verschuifX = startVerschuifX + (x - sleepStartX);
+    verschuifY = startVerschuifY + (y - sleepStartY);
+    begrensVerschuiving();
+    pasTransformToe();
+  }
+  function sleepEind() { sleeptBezig = false; }
+  kader.onmousedown = (e) => sleepStart(e.clientX, e.clientY);
+  window.addEventListener('mousemove', (e) => sleepBeweeg(e.clientX, e.clientY));
+  window.addEventListener('mouseup', sleepEind);
+  kader.ontouchstart = (e) => { const t = e.touches[0]; sleepStart(t.clientX, t.clientY); };
+  kader.ontouchmove = (e) => { const t = e.touches[0]; sleepBeweeg(t.clientX, t.clientY); e.preventDefault(); };
+  kader.ontouchend = sleepEind;
+
+  opslaanKnop.onclick = async () => {
+    opslaanKnop.disabled = true;
+    opslaanKnop.textContent = 'Opslaan...';
+    try {
+      // Het zichtbare vierkant exact zo naar een canvas tekenen als het in
+      // het kader te zien is (zelfde positie/schaal), op de volledige
+      // resolutie van de bron-foto (niet slechts 320x320) voor een scherp
+      // drukwerkresultaat.
+      const canvas = document.createElement('canvas');
+      const resolutieSchaal = img.naturalWidth / basisBreedte; // bron-pixels per kader-CSS-pixel (bij schaal 1)
+      canvas.width = KADER_PX * resolutieSchaal;
+      canvas.height = KADER_PX * resolutieSchaal;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(
+        img,
+        -verschuifX * resolutieSchaal / schaal, -verschuifY * resolutieSchaal / schaal,
+        canvas.width / schaal, canvas.height / schaal,
+        0, 0, canvas.width, canvas.height
+      );
+      const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.92));
+      const formData = new FormData();
+      formData.append('lineItemId', lineItemId);
+      formData.append('propertyName', propertyName);
+      formData.append('foto', blob, 'foto.jpg');
+      const res = await fetch(`/api/orders/${orderId}/line-item-photo-override`, { method: 'POST', body: formData });
+      if (!res.ok) throw new Error('Opslaan mislukt');
+      overlay.remove();
+      openOrder(orderId);
+    } catch (e) {
+      alert('Kon de foto niet opslaan: ' + e.message);
+      opslaanKnop.disabled = false;
+      opslaanKnop.textContent = 'Opslaan';
+    }
+  };
+}
+
 function renderModal(order) {
   // "Als een cadeautje inpakken." is een simpel cadeauverpak-artikel, maar
   // Shopify/PPLR plaatst daar soms (een bug in hun koppeling) de
@@ -278,7 +493,7 @@ function renderModal(order) {
         <span class="copyable" onclick="copyText(this, '${jsEscape('€' + li.price)}')" title="Klik om te kopiëren">€${li.price}</span> &nbsp;•&nbsp;
         <span class="copyable" onclick="copyText(this, '${jsEscape(li.sku || '')}')" title="Klik om te kopiëren">SKU: ${escapeHtml(li.sku || '-')}</span>
       </div>
-      ${li.properties && li.properties.length && !isCadeautjeInpakken(li.title) ? `<div class="props">${li.properties.map(p => `<span class="copyable" onclick="copyText(this, '${jsEscape(p.name + ': ' + p.value)}')" title="Klik om te kopiëren">${escapeHtml(p.name)}: ${escapeHtml(p.value)}</span>`).join('<br>')}</div>` : ''}
+      ${li.properties && li.properties.length && !isCadeautjeInpakken(li.title) ? `<div class="props">${li.properties.map(p => renderEigenschapRegel(order.id, li.id, p, li.title)).join('')}</div>` : ''}
     </div>
   `).join('') || '<p>Geen items gevonden</p>';
 

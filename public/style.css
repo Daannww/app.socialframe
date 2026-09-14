@@ -283,6 +283,99 @@ main { padding: 24px; max-width: 1100px; margin: 0 auto; }
   font-weight: 600;
 }
 
+/* Eigenschapsregel met wijzig-knop (order-popup) */
+.eigenschap-regel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: space-between;
+}
+.eigenschap-wijzig-knop {
+  cursor: pointer;
+  color: var(--blue);
+  opacity: 0.6;
+  flex-shrink: 0;
+  padding: 2px 4px;
+}
+.eigenschap-wijzig-knop:hover {
+  opacity: 1;
+}
+
+/* "Wijzig foto"/"Wijzig tekst"-overlay */
+.wijzig-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+.wijzig-paneel {
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  width: 360px;
+  max-width: 92vw;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.wijzig-paneel h3 {
+  margin: 0 0 4px 0;
+}
+.wijzig-eigenschap-naam {
+  color: #6b7280;
+  font-size: 13px;
+  margin: 0 0 12px 0;
+}
+.wijzig-paneel textarea {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: inherit;
+  font-size: 14px;
+  padding: 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  resize: vertical;
+}
+.wijzig-knoppen {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+.wijzig-foto-kader {
+  width: 320px;
+  height: 320px;
+  max-width: 100%;
+  overflow: hidden;
+  position: relative;
+  background: #111827;
+  border-radius: 6px;
+  margin-top: 12px;
+  cursor: move;
+  touch-action: none;
+}
+.wijzig-foto-kader img {
+  position: absolute;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+#wijzig-foto-zoom-rij {
+  margin-top: 10px;
+  font-size: 13px;
+  color: #374151;
+}
+#wijzig-foto-zoom-rij input[type="range"] {
+  width: 100%;
+  vertical-align: middle;
+}
+.wijzig-hint {
+  font-size: 12px;
+  color: #9ca3af;
+  margin: 6px 0 0 0;
+}
+
 .status-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
 .status-history { margin-top: 14px; }

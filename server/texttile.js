@@ -1050,15 +1050,17 @@ function extractTegelTekstItemsFromOrder(rawOrder) {
 // Laadt alle lettertype-stijlen die een ontwerp nodig heeft, met per stijl
 // een terugval op een ingebouwd PDF-lettertype als het echte bestand
 // ontbreekt in server/fonts/.
-async function laadLettertypen(doc, ontwerp) {
+async function laadLettertypen(doc, ontwerp, forceerTerugval) {
   const fonts = {};
   for (const stijl of Object.keys(ontwerp.lettertypeBestanden || {})) {
     const bestandsnaam = ontwerp.lettertypeBestanden[stijl];
     const bestandsPad = path.join(__dirname, 'fonts', bestandsnaam);
-    if (fs.existsSync(bestandsPad)) {
+    if (!forceerTerugval && fs.existsSync(bestandsPad)) {
       fonts[stijl] = await doc.embedFont(fs.readFileSync(bestandsPad));
     } else {
-      console.warn(`[texttile] ${bestandsnaam} niet gevonden in server/fonts/ — val terug op een ingebouwd PDF-lettertype. Zie README voor hoe je het echte lettertypebestand toevoegt.`);
+      if (!forceerTerugval) {
+        console.warn(`[texttile] ${bestandsnaam} niet gevonden in server/fonts/ — val terug op een ingebouwd PDF-lettertype. Zie README voor hoe je het echte lettertypebestand toevoegt.`);
+      }
       fonts[stijl] = await doc.embedFont(ontwerp.lettertypeTerugval[stijl] || StandardFonts.Helvetica);
     }
   }
@@ -1089,7 +1091,30 @@ function drawHart(page, hart) {
   }
 }
 
+// Publieke functie: probeert eerst normaal te genereren (met de eigen
+// lettertypebestanden van het ontwerp, indien aanwezig); mislukt dat —
+// ontdekt bij "Tot de maan en achter het behang.", waar een subtiele
+// structurele afwijking in het aangeleverde lettertypebestand pas bij het
+// daadwerkelijk OPSLAAN van de PDF (de font-subsetting-stap) een fout gaf,
+// niet eerder bij het inbedden/tekenen zelf — dan wordt de HELE generatie
+// eenmalig opnieuw geprobeerd met de ingebouwde terugval-lettertypen, i.p.v.
+// de bulk-export/losse download gewoon te laten mislukken. Dit dekt niet
+// alleen deze ene, inmiddels zelf al gerepareerde font-bug af, maar is ook
+// een algemeen vangnet voor een toekomstig, opnieuw aangeleverd lettertype
+// met eenzelfde soort verborgen structuurfout.
 async function generateTegelTekstPdf(data) {
+  try {
+    return await genereerTegelTekstPdfIntern(data, false);
+  } catch (e) {
+    const heeftEigenLettertype = data.ontwerp && data.ontwerp.lettertypeBestanden &&
+      Object.keys(data.ontwerp.lettertypeBestanden).length > 0;
+    if (!heeftEigenLettertype) throw e; // geen lettertype-gerelateerd vangnet mogelijk, gewoon de oorspronkelijke fout tonen
+    console.warn(`[texttile] Genereren met het eigen lettertype mislukte (${e.message}) — probeer opnieuw met het terugval-lettertype.`);
+    return await genereerTegelTekstPdfIntern(data, true);
+  }
+}
+
+async function genereerTegelTekstPdfIntern(data, forceerTerugvalLettertype) {
   const doc = await PDFDocument.create();
   doc.registerFontkit(fontkit);
   const page = doc.addPage([PAGE_W_MM * MM, PAGE_H_MM * MM]);
@@ -1099,7 +1124,7 @@ async function generateTegelTekstPdf(data) {
     throw new Error('Geen bekend tekst-ontwerp meegegeven aan generateTegelTekstPdf.');
   }
 
-  const fonts = await laadLettertypen(doc, ontwerp);
+  const fonts = await laadLettertypen(doc, ontwerp, forceerTerugvalLettertype);
 
   // --- Hoofdtekst-kleur: zwart bij Wit/Beige, wit bij alle andere tegel-
   // kleuren (bevestigd met de opdrachtgever). Regels met accent:true zijn

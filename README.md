@@ -935,6 +935,81 @@ perfecte match via de échte productiecode, kleurwissel op een steekproef
 van 3 tegelkleuren, statuslogica, en een volledige regressietest op de
 overige 16 ontwerpen — geen neveneffecten.
 
+## Foto/tekst handmatig kunnen wijzigen in de popup (muziekframe/valentijnframe/auto-frame)
+
+Op verzoek: soms wil een klant achteraf toch een andere foto of andere
+tekst. Een klein potlood-icoon bij elke eigenschap in de order-popup, maar
+**alleen bij muziekframe/valentijnframe/auto-frame** (op verzoek expliciet
+beperkt tot deze 3 — bij alle andere producten (Sound-Frame, tegeltjes,
+Foto-frame, enz.) ziet de eigenschappenlijst er precies zo uit als voorheen,
+zonder wijzig-knop).
+
+**Tekst wijzigen**: klik het potlood-icoon bij een niet-foto-eigenschap
+(bv. "Regel 1") → een simpel tekstveld met opslaan/annuleren.
+
+**Foto wijzigen**: klik het potlood-icoon bij een foto-eigenschap (naam
+bevat "foto") → een bestand kiezen, dan in een vierkant kader verslepen
+en/of zoomen (geen externe bibliotheek nodig — een simpele CSS-transform-
+gebaseerde sleep/zoom-tool), zodat je meteen ziet hoe de uitsnede eruit
+komt te zien vóórdat je opslaat. Bij opslaan wordt het zichtbare vierkant
+met een `<canvas>` op volledige bronresolutie uitgesneden en als JPEG
+geüpload.
+
+**Technische opzet**:
+- Nieuwe kolom `line_item_overrides_json` op de orders-tabel (JSON:
+  `{ "<regel-item-id>": { "<eigenschap-naam>": "<nieuwe waarde>" } }`),
+  met `setLineItemOverride`/`getLineItemsMetOverrides` in `server/db.js`.
+- **Alle 12 plekken** in `index.js` die regel-items uit de databank lezen
+  (de popup, alle downloadroutes, bulk-export) lezen nu via
+  `getLineItemsMetOverrides()` i.p.v. rechtstreeks `line_items_json` — een
+  overschrijving werkt dus automatisch door naar zowel de popup als het
+  drukwerkbestand, zonder dat elke productgeneratiefunctie zelf iets van
+  overschrijvingen hoeft te weten.
+- 2 nieuwe routes: `POST /api/orders/:id/line-item-override` (tekst) en
+  `POST /api/orders/:id/line-item-photo-override` (foto-upload via
+  `multer`, opgeslagen als JPEG in een permanente `overrides/`-map — zelfde
+  `DATA_DIR`-aanpak als `orders.db`/`exports/`, dus blijft bewaard bij een
+  nieuwe Railway-deploy). `app.set('trust proxy', true)` toegevoegd zodat
+  de opgeslagen foto-URL het juiste `https://`-schema krijgt achter
+  Railway se reverse-proxy (nodig omdat het drukwerksysteem de foto extern
+  ophaalt via een volledige URL, niet een relatief pad).
+- Client-side scope-filter (`magEigenschapWijzigen` in `public/app.js`)
+  bepaalt puur voor de WEERGAVE of de wijzig-knop verschijnt (dezelfde
+  titel-herkenning als `isMusicFrameLineItem`/`isAutoFrameLineItem`
+  server-side) — de backend-routes zelf zijn generiek gehouden (geen
+  identieke restrictie nodig, aangezien de knop simpelweg niet getoond
+  wordt bij andere producten).
+
+**Zijdelings ontdekte en opgeloste bug tijdens het testen**: deze sandbox
+bleek halverwege écht werkende dependencies te krijgen (`better-sqlite3`,
+`sharp`, `pdf-lib`, `fontkit` i.p.v. de stubs die het hele project tot nu
+toe nodig waren) — wat een tot dan toe onopgemerkte fout in het eerder
+aangeleverde `DancingScript-Regular.ttf`-lettertype aan het licht bracht:
+een subtiele structurele afwijking die alleen bij het daadwerkelijk
+*opslaan* van de PDF (de font-subsetting-stap) een `fontkit`-fout gaf, niet
+eerder bij het inbedden/tekenen — mijn eerdere validatie (fontTools/PIL)
+was daar te soepel voor. Opgelost door het bestand opnieuw op te slaan via
+fontTools (een gangbare, veilige normalisatie-truc, bevestigd géén
+zichtbaar verschil in de letters). **Daarnaast** een algemeen vangnet
+toegevoegd in `generateTegelTekstPdf` (`texttile.js`): als de generatie met
+een ontwerp se eigen lettertypebestand onverhoopt faalt, wordt de HELE
+generatie automatisch eenmaal opnieuw geprobeerd met het terugval-
+lettertype, i.p.v. de download/bulk-export gewoon te laten mislukken — dus
+ook een vangnet voor een eventueel toekomstig, opnieuw kapot aangeleverd
+lettertypebestand.
+
+Getest: een volledige eind-tot-eind-test (tekst- én foto-override opslaan,
+bevestigd dat de popup en het daadwerkelijk gegenereerde, visueel
+gecontroleerde drukwerkbestand de gewijzigde waarden correct gebruiken);
+de crop-wiskunde wiskundig geverifieerd over 6 scenario's (liggend/staand,
+diverse zoomniveaus, uiterste versleping — blijft altijd binnen de grenzen
+van de bronfoto, altijd perfect vierkant); de scope-beperking getest op
+alle producttypes; het lettertype-vangnet getest door het kapotte bestand
+tijdelijk terug te zetten (valt correct terug); en een volledige
+regressietest op alle overige producten (nu met écht werkende
+dependencies, dus grondiger dan ooit in dit project mogelijk was) — geen
+neveneffecten.
+
 ## "Als een cadeautje inpakken." leverde soms 2 drukwerkbestanden i.p.v. 1
 
 Vervolg op de weergave-fix hierboven. Gemeld: een order met "Als een
