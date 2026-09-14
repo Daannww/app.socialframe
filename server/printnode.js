@@ -25,7 +25,12 @@ async function pakBrowser() {
   // 1 gedeelde, langlevende browser-instantie hergebruiken i.p.v. voor elke
   // pakbon een nieuwe Chrome-instantie op te starten (dat kost, zeker bij
   // een bulk-print van meerdere orders tegelijk, onnodig veel tijd/geheugen).
-  if (!gedeeldeBrowser || !gedeeldeBrowser.isConnected()) {
+  // LET OP: dit is een PROPERTY ("connected"), GEEN methode — de eerdere
+  // versie riep 'm per ongeluk aan als browser.isConnected() (een oudere
+  // puppeteer-API die in deze versie niet meer bestaat), wat een "is not a
+  // function"-fout gaf zodra de gedeelde browser-instantie een 2e keer
+  // gebruikt werd (dus feitelijk bij elke print na de allereerste).
+  if (!gedeeldeBrowser || !gedeeldeBrowser.connected) {
     gedeeldeBrowser = await puppeteer.launch({
       headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox'],

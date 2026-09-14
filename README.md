@@ -64,6 +64,25 @@ Grondig geverifieerd: het resultaat is nu geldige base64, en terug-decoderen
 geeft byte-voor-byte exact dezelfde PDF terug (bevestigd begint met de
 `%PDF`-header).
 
+**Vervolgens, een 2e bug (trad pas op bij de 2e print-actie)**:
+"gedeeldeBrowser.isConnected is not a function". De gedeelde, hergebruikte
+puppeteer-browser-instantie werd gecontroleerd met `browser.isConnected()`
+— een OUDERE puppeteer-API die in de gebruikte versie (25.x) niet meer
+bestaat. In deze versie heet het `browser.connected` — een PROPERTY (gewoon
+`true`/`false`), geen methode/functie. Bij de allereerste print viel dit
+niet op (er werd nog geen bestaande browser gecontroleerd, dus die regel
+werd nog niet uitgevoerd) — pas bij elke VOLGENDE print (waar de bestaande,
+gedeelde browser hergebruikt moest worden) sloeg de fout toe. Opgelost door
+`.isConnected()` te vervangen door `.connected`. Getest: 3 print-opdrachten
+achter elkaar (dus ook het hergebruik-pad waar de bug zat) — allemaal
+foutloos, met steeds dezelfde gedeelde browser-instantie hergebruikt.
+
+**Los, praktisch punt**: PrintNode kan alleen daadwerkelijk afdrukken als de
+PrintNode Client-app draait op een computer die met de printer verbonden is
+— staat die computer uit, dan accepteert de PrintNode-API de printopdracht
+mogelijk nog gewoon (die komt dan in de wachtrij te staan totdat de client
+weer online komt), maar komt er niets uit de printer totdat die computer
+weer aanstaat.
 
 
 Getest: de volledige PrintNode-API-aanroep-structuur (endpoint, Basic-Auth-
