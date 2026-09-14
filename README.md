@@ -49,9 +49,22 @@ foutmelding toont nu PrintNode se eigen bericht. Ook een nieuwe diagnose-
 route toegevoegd om de ECHTE printer-ID's van het gekoppelde account te
 controleren: open (ingelogd) `/api/printnode/printers` in de browser — geeft
 een lijst met elke printer se naam, echte numerieke ID en of die online
-staat. Loop je tegen een 400 aan, controleer dan eerst of
-`PRINTNODE_PRINTER_ID` in je `.env` exact overeenkomt met een ID uit die
-lijst.
+staat.
+
+**Vervolgens, de daadwerkelijke oorzaak gevonden**: "(request body).content
+is not valid base64". `page.pdf()` geeft in recente puppeteer-versies (deze
+gebruikt 25.x) een kale `Uint8Array` terug, GEEN Node `Buffer` — het
+verschil lijkt onschuldig, maar `.toString('base64')` op een kale
+`Uint8Array` doet stilzwijgend NIET wat je zou verwachten: i.p.v. een
+base64-tekst geeft dat gewoon een kommagescheiden lijst met bytewaarden
+terug (bv. "37,80,68,70,..." i.p.v. "JVBERi0x..."), wat PrintNode terecht
+afwees. Opgelost door het resultaat expliciet met `Buffer.from(...)` om te
+zetten naar een echte Buffer vóórdat `.toString('base64')` wordt aangeroepen.
+Grondig geverifieerd: het resultaat is nu geldige base64, en terug-decoderen
+geeft byte-voor-byte exact dezelfde PDF terug (bevestigd begint met de
+`%PDF`-header).
+
+
 
 Getest: de volledige PrintNode-API-aanroep-structuur (endpoint, Basic-Auth-
 header, printer-ID als getal, PDF als base64) geverifieerd via een axios-

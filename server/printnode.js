@@ -49,7 +49,13 @@ async function genereerPakbonPdf(orders, serverBasisUrl) {
     const receiptsHtml = orders.map(o => buildReceiptHtml(o, serverBasisUrl)).join('\n');
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body>${receiptsHtml}</body></html>`;
     await page.setContent(html, { waitUntil: 'networkidle0' });
-    const pdfBuffer = await page.pdf({ width: '80mm', printBackground: true });
+    // LET OP: page.pdf() geeft in recente puppeteer-versies een kale
+    // Uint8Array terug, GEEN Node Buffer — .toString('base64') daarop zou
+    // dan stilzwijgend het verkeerde (kommagescheiden bytewaarden i.p.v.
+    // base64) resultaat geven, wat PrintNode terecht afwees met "(request
+    // body).content is not valid base64". Daarom hier expliciet naar een
+    // echte Buffer omzetten.
+    const pdfBuffer = Buffer.from(await page.pdf({ width: '80mm', printBackground: true }));
     return pdfBuffer;
   } finally {
     await page.close();
