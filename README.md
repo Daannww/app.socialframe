@@ -6,6 +6,51 @@ van kan maken, en waarmee je de status van orders kan wijzigen.
 
 ## Functies
 
+## Pakbonnen automatisch printen via PrintNode
+
+Op verzoek: een pakbon kan nu ook direct naar een fysieke printer gestuurd
+worden via [PrintNode](https://www.printnode.com/) — i.p.v. dat de
+gebruiker eerst het browser-printvenster moet openen en zelf op "Print"
+moet klikken. Nieuwe knop **"Print direct via PrintNode"**, zowel in de
+order-popup (1 order) als bij de bulk-selectie (meerdere orders tegelijk,
+1 PDF met 1 pagina per order).
+
+**Instellen**: `PRINTNODE_API_KEY` (uit je PrintNode-account, Account ->
+API Keys) en `PRINTNODE_PRINTER_ID` in je `.env` — voor de "Bonnenprinter"
+is dat `75792954` (al als standaardwaarde in `.env.example` gezet).
+
+**Technische opzet**:
+- `server/printnode.js` rendert de pakbon-HTML via een headless Chrome
+  (puppeteer, draait op de server zelf) naar een PDF, en stuurt die als
+  base64 naar PrintNode se `/printjobs`-endpoint.
+- `server/receiptHtml.js` is een **losse, server-side kopie** van de
+  pakbon-opmaak uit `public/app.js` se bestaande `buildReceiptHtml` — bewust
+  niet hergebruikt/gedeeld, om niets aan de al-werkende browser-printflow te
+  hoeven riskeren. **Let op**: bij een toekomstige wijziging aan de pakbon-
+  inhoud/opmaak moet je dus in principe BEIDE plekken bijwerken.
+- **Belangrijke ontdekking tijdens het bouwen**: de streepjescode werd in de
+  browser-versie via een CDN-script (JsBarcode) gegenereerd — dat gaf
+  binnen puppeteer een 403-fout (CDN's zijn niet overal even betrouwbaar
+  bereikbaar vanaf een server). Om dit robuust te maken is de streepjescode
+  voor de PrintNode-route nu volledig **server-side** gegenereerd (met
+  `bwip-js`, geen internetverbinding nodig op het moment van printen zelf).
+- Puppeteer downloadt tijdens `npm install` normaal gesproken automatisch
+  zijn eigen Chrome — dat hoeft dus niet apart geregeld te worden. Mocht dat
+  onverhoopt niet lukken op je server, dan kun je met de optionele
+  `PUPPETEER_EXECUTABLE_PATH`-omgevingsvariabele naar een handmatig
+  geïnstalleerde Chrome/Chromium wijzen.
+
+Getest: de volledige PrintNode-API-aanroep-structuur (endpoint, Basic-Auth-
+header, printer-ID als getal, PDF als base64) geverifieerd via een axios-
+mock; de complete flow van order tot PrintNode-aanroep end-to-end getest;
+de gegenereerde pakbon-PDF pixel-voor-pixel visueel gecontroleerd (identiek
+aan de browser-versie, inclusief een leesbare streepjescode); de Duitse
+vertaling (logo, "LIEFERSCHEIN", productvertalingen) bevestigd correct op
+een Duitse testorder; bulk-generatie (meerdere orders, 1 PDF) getest; een
+duidelijke foutmelding bij ontbrekende `PRINTNODE_API_KEY`/`PRINTNODE_PRINTER_ID`;
+en een regressietest op de bestaande PDF-generatie van andere producten —
+geen neveneffecten.
+
 - **Automatische sync**: elke 5 minuten worden nieuwe **openstaande** Shopify
   orders opgehaald (afgehandelde/gearchiveerde en geannuleerde orders worden
   niet opgehaald).

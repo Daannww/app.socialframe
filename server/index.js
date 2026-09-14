@@ -10,6 +10,7 @@ const multer = require('multer');
 const sharp = require('sharp');
 
 const { listOrders, getOrder, updateStatus, updateStatusBulk, getAllOrdersRaw, updateDerivedFields, deleteOldOrders, getInventory, setInventoryStock, addInventoryItem, deleteInventoryItem, getOrdersReadyForReviewEmail, markReviewEmailSent, setSizeOverride, setNote, getStatusHistory, setLineItemOverride, getLineItemsMetOverrides, db } = require('./db');
+const { printPakbonnenViaPrintNode } = require('./printnode');
 const { syncOrders, mapOrder, extractFotoTegelPhotoUrls, extractPosterlyPhotoUrls, extractTileItemsFromOrder, extractAutoFrameItemsFromOrder } = require('./shopify');
 const axios = require('axios');
 const { fetchMetHerpogingen } = require('./pdf-shared');
@@ -296,6 +297,34 @@ app.post('/api/orders/bulk-status', (req, res) => {
   if (!status) return res.status(400).json({ error: 'status is verplicht' });
   const updated = updateStatusBulk(ids, status);
   res.json({ updated });
+});
+
+// --- Pakbon(nen) automatisch afdrukken via PrintNode (i.p.v. het browser-
+// printvenster) — zie server/printnode.js voor de volledige toelichting.
+// Verwacht { ids: [orderId, ...] } in de body (ook bruikbaar voor 1 losse
+// order, gewoon met een array van 1 element). ---
+app.post('/api/orders/print-via-printnode', async (req, res) => {
+  try {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ error: 'ids (array) is verplicht' });
+    }
+    const orders = ids
+      .map(id => getOrder(id))
+      .filter(Boolean)
+      .map(o => ({
+        ...o,
+        line_items: getLineItemsMetOverrides(o),
+        photo_links: JSON.parse(o.photo_links_json || '[]')
+      }));
+    if (orders.length === 0) return res.status(404).json({ error: 'Geen van de opgegeven orders gevonden' });
+
+    const serverBasisUrl = `${req.protocol}://${req.get('host')}`;
+    const resultaat = await printPakbonnenViaPrintNode(orders, serverBasisUrl);
+    res.json({ ok: true, printJobId: resultaat, aantalOrders: orders.length });
+  } catch (e) {
+    res.status(500).json({ error: 'Kon niet afdrukken via PrintNode: ' + e.message });
+  }
 });
 
 // --- Handmatige sync trigger ---

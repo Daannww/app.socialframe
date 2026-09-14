@@ -16,6 +16,7 @@ const paginationEl = document.getElementById('pagination');
 const selectAllBox = document.getElementById('selectAllBox');
 const selectionCountEl = document.getElementById('selectionCount');
 const printSelectedBtn = document.getElementById('printSelectedBtn');
+const printSelectedPrintNodeBtn = document.getElementById('printSelectedPrintNodeBtn');
 const printFilesBtn = document.getElementById('printFilesBtn');
 const syncBtn = document.getElementById('syncBtn');
 const searchInput = document.getElementById('searchInput');
@@ -156,6 +157,7 @@ function renderLoadMore() {
 function updateSelectionUI() {
   selectionCountEl.textContent = `${selectedIds.size} geselecteerd`;
   printSelectedBtn.disabled = selectedIds.size === 0;
+  printSelectedPrintNodeBtn.disabled = selectedIds.size === 0;
   printFilesBtn.disabled = selectedIds.size === 0;
   bulkStatusBtn.disabled = selectedIds.size === 0 || !bulkStatusSelect.value;
 
@@ -868,6 +870,7 @@ function renderModal(order) {
 
     <div class="modal-section">
       <button class="btn btn-primary" onclick="printSingleOrder(${order.id})"><i class="fa-solid fa-print"></i> Print pakbon voor deze order</button>
+      <button class="btn" onclick="printViaPrintNode([${order.id}], this)"><i class="fa-solid fa-print"></i> Print direct via PrintNode</button>
     </div>
   `;
 
@@ -1429,9 +1432,33 @@ async function checkLowStock() {
 }
 
 printSelectedBtn.addEventListener('click', () => printOrders(Array.from(selectedIds), printSelectedBtn, '<i class="fa-solid fa-print"></i> Print pakbonnen', true));
+printSelectedPrintNodeBtn.addEventListener('click', () => printViaPrintNode(Array.from(selectedIds), printSelectedPrintNodeBtn));
 
 window.printSingleOrder = function (orderId) {
   printOrders([orderId], null, null, false);
+};
+
+// Stuurt de pakbon(nen) direct naar de fysieke printer via PrintNode i.p.v.
+// het browser-printvenster te openen — zie server/printnode.js.
+window.printViaPrintNode = async function (orderIds, btn) {
+  const origineleTekst = btn ? btn.innerHTML : null;
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Bezig met printen...'; }
+  try {
+    const res = await fetch('/api/orders/print-via-printnode', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: orderIds })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Onbekende fout');
+    if (btn) {
+      btn.innerHTML = '<i class="fa-solid fa-check"></i> Verstuurd naar printer';
+      setTimeout(() => { btn.disabled = false; btn.innerHTML = origineleTekst; }, 2500);
+    }
+  } catch (e) {
+    alert('Kon niet printen via PrintNode: ' + e.message);
+    if (btn) { btn.disabled = false; btn.innerHTML = origineleTekst; }
+  }
 };
 
 bulkStatusSelect.addEventListener('change', () => {
