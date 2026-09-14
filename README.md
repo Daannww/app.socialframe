@@ -40,6 +40,19 @@ is dat `75792954` (al als standaardwaarde in `.env.example` gezet).
   `PUPPETEER_EXECUTABLE_PATH`-omgevingsvariabele naar een handmatig
   geïnstalleerde Chrome/Chromium wijzen.
 
+**Foutmelding "Request failed with status code 400" bij het eerste, echte
+gebruik**: de oorspronkelijke foutafhandeling toonde alleen Axios se eigen,
+kale melding — PrintNode stuurt bij een geweigerd verzoek altijd een
+duidelijkere, specifieke reden mee (bv. een printer-ID die niet bij het
+account hoort) in de response-body, maar dat ging verloren. Opgelost: de
+foutmelding toont nu PrintNode se eigen bericht. Ook een nieuwe diagnose-
+route toegevoegd om de ECHTE printer-ID's van het gekoppelde account te
+controleren: open (ingelogd) `/api/printnode/printers` in de browser — geeft
+een lijst met elke printer se naam, echte numerieke ID en of die online
+staat. Loop je tegen een 400 aan, controleer dan eerst of
+`PRINTNODE_PRINTER_ID` in je `.env` exact overeenkomt met een ID uit die
+lijst.
+
 Getest: de volledige PrintNode-API-aanroep-structuur (endpoint, Basic-Auth-
 header, printer-ID als getal, PDF als base64) geverifieerd via een axios-
 mock; de complete flow van order tot PrintNode-aanroep end-to-end getest;

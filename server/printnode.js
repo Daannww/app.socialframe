@@ -67,16 +67,43 @@ async function stuurNaarPrintNode(pdfBuffer, titel) {
   // PrintNode-authenticatie: HTTP Basic Auth met de API-key als
   // gebruikersnaam en een leeg wachtwoord (zo documenteert PrintNode het zelf).
   const authHeader = 'Basic ' + Buffer.from(PRINTNODE_API_KEY + ':').toString('base64');
-  const response = await axios.post('https://api.printnode.com/printjobs', {
-    printerId: parseInt(PRINTNODE_PRINTER_ID, 10),
-    title: titel || 'Pakbon',
-    contentType: 'pdf_base64',
-    content: pdfBuffer.toString('base64'),
-    source: 'Shopify order dashboard'
-  }, {
-    headers: { Authorization: authHeader, 'Content-Type': 'application/json' }
+  try {
+    const response = await axios.post('https://api.printnode.com/printjobs', {
+      printerId: parseInt(PRINTNODE_PRINTER_ID, 10),
+      title: titel || 'Pakbon',
+      contentType: 'pdf_base64',
+      content: pdfBuffer.toString('base64'),
+      source: 'Shopify order dashboard'
+    }, {
+      headers: { Authorization: authHeader, 'Content-Type': 'application/json' }
+    });
+    return response.data; // PrintNode geeft het nieuwe printjob-ID terug
+  } catch (e) {
+    // PrintNode stuurt bij een 4xx/5xx-fout altijd een JSON-body met een
+    // veel specifiekere reden mee (bv. "Printer ID ... not found") — die
+    // ging tot nu toe verloren, waardoor alleen de kale, nietszeggende
+    // Axios-melding ("Request failed with status code 400") te zien was.
+    if (e.response && e.response.data) {
+      const detail = typeof e.response.data === 'string' ? e.response.data : JSON.stringify(e.response.data);
+      throw new Error(`PrintNode gaf een fout terug (status ${e.response.status}): ${detail}`);
+    }
+    throw e;
+  }
+}
+
+// Haalt de printers op die daadwerkelijk aan dit PrintNode-account hangen
+// (met hun ECHTE, numerieke printer-ID) — handig om te controleren of
+// PRINTNODE_PRINTER_ID wel de juiste is. Zie ook de "/api/printnode/printers"-
+// route in server/index.js.
+async function haalPrintersOp() {
+  if (!PRINTNODE_API_KEY) {
+    throw new Error('PRINTNODE_API_KEY is niet ingesteld in de omgevingsvariabelen (.env) — zie .env.example.');
+  }
+  const authHeader = 'Basic ' + Buffer.from(PRINTNODE_API_KEY + ':').toString('base64');
+  const response = await axios.get('https://api.printnode.com/printers', {
+    headers: { Authorization: authHeader }
   });
-  return response.data; // PrintNode geeft het nieuwe printjob-ID terug
+  return response.data;
 }
 
 // Gemaksfunctie: 1 of meerdere orders direct naar de PrintNode-printer sturen.
@@ -88,4 +115,4 @@ async function printPakbonnenViaPrintNode(orders, serverBasisUrl) {
   return stuurNaarPrintNode(pdfBuffer, titel);
 }
 
-module.exports = { genereerPakbonPdf, stuurNaarPrintNode, printPakbonnenViaPrintNode };
+module.exports = { genereerPakbonPdf, stuurNaarPrintNode, printPakbonnenViaPrintNode, haalPrintersOp };

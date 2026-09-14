@@ -10,7 +10,7 @@ const multer = require('multer');
 const sharp = require('sharp');
 
 const { listOrders, getOrder, updateStatus, updateStatusBulk, getAllOrdersRaw, updateDerivedFields, deleteOldOrders, getInventory, setInventoryStock, addInventoryItem, deleteInventoryItem, getOrdersReadyForReviewEmail, markReviewEmailSent, setSizeOverride, setNote, getStatusHistory, setLineItemOverride, getLineItemsMetOverrides, db } = require('./db');
-const { printPakbonnenViaPrintNode } = require('./printnode');
+const { printPakbonnenViaPrintNode, haalPrintersOp } = require('./printnode');
 const { syncOrders, mapOrder, extractFotoTegelPhotoUrls, extractPosterlyPhotoUrls, extractTileItemsFromOrder, extractAutoFrameItemsFromOrder } = require('./shopify');
 const axios = require('axios');
 const { fetchMetHerpogingen } = require('./pdf-shared');
@@ -324,6 +324,18 @@ app.post('/api/orders/print-via-printnode', async (req, res) => {
     res.json({ ok: true, printJobId: resultaat, aantalOrders: orders.length });
   } catch (e) {
     res.status(500).json({ error: 'Kon niet afdrukken via PrintNode: ' + e.message });
+  }
+});
+
+// --- Diagnostiek: de daadwerkelijke printers (met hun ECHTE, numerieke
+// printer-ID) van het gekoppelde PrintNode-account opvragen — handig om te
+// controleren of PRINTNODE_PRINTER_ID wel de juiste is bij een foutmelding. ---
+app.get('/api/printnode/printers', async (req, res) => {
+  try {
+    const printers = await haalPrintersOp();
+    res.json(printers.map(p => ({ id: p.id, naam: p.name, staatAan: p.state === 'online' })));
+  } catch (e) {
+    res.status(500).json({ error: 'Kon printerlijst niet ophalen: ' + e.message });
   }
 });
 
