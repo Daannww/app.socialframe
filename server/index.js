@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const rateLimit = require('express-rate-limit');
 const session = require('express-session');
 const crypto = require('crypto');
 const cron = require('node-cron');
@@ -88,6 +89,18 @@ app.use(session({
   saveUninitialized: false,
   cookie: {
     httpOnly: true,
+    // 'auto' laat express-session zelf bepalen of de cookie alleen over
+    // HTTPS mag ('secure') — gebaseerd op req.secure, wat dankzij
+    // "trust proxy" hierboven correct de X-Forwarded-Proto-header van
+    // Railway se proxy gebruikt. Zo werkt dit zowel lokaal (http, geen
+    // secure-vlag nodig) als in productie (https, wél secure-vlag) zonder
+    // een aparte NODE_ENV-check.
+    secure: 'auto',
+    // Voorkomt dat de cookie wordt meegestuurd bij verzoeken die vanaf een
+    // ANDERE site komen (bv. een kwaadwillende link/formulier op een
+    // andere website) — 'lax' staat gewoon normaal navigeren (een link
+    // aanklikken) toe, maar blokkeert dat soort cross-site-verzoeken.
+    sameSite: 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000 // 7 dagen ingelogd blijven
   }
 }));
@@ -105,19 +118,50 @@ app.get('/style.css', (req, res) => res.sendFile(path.join(publicDir, 'style.css
   app.get(route, (req, res) => res.sendFile(path.join(publicDir, route.slice(1))));
 });
 
-app.post('/api/login', (req, res) => {
+// Beperkt het aantal inlogpogingen per IP-adres — zonder dit kon iemand
+// onbeperkt wachtwoorden blijven proberen (brute-force). 10 pogingen per
+// 15 minuten is ruim genoeg voor een paar tikfouten, maar maakt
+// wachtwoorden vaststellen door te raden onhaalbaar traag.
+const inlogLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Te veel inlogpogingen. Probeer het over 15 minuten opnieuw.' }
+});
+
+// Vergelijkt 2 strings zonder dat de tijdsduur van de vergelijking iets
+// verraadt over WAAR een fout wachtwoord begint af te wijken (een gewone
+// "===" stopt namelijk bij het eerste verschillende teken, wat in theorie
+// door iemand die de reactietijd heel nauwkeurig meet te misbruiken is om
+// het wachtwoord teken voor teken te achterhalen).
+function tijdsveiligeVergelijking(a, b) {
+  const bufA = Buffer.from(String(a || ''));
+  const bufB = Buffer.from(String(b || ''));
+  // timingSafeEqual vereist buffers van gelijke lengte - bij een
+  // lengteverschil is het sowieso geen match, maar nog steeds via een
+  // vaste-lengte-vergelijking om te voorkomen dat het lengteverschil zelf
+  // al iets verraadt.
+  if (bufA.length !== bufB.length) {
+    crypto.timingSafeEqual(bufA, bufA); // vergelijkbare rekentijd ophouden
+    return false;
+  }
+  return crypto.timingSafeEqual(bufA, bufB);
+}
+
+app.post('/api/login', inlogLimiter, (req, res) => {
   const { username, password } = req.body || {};
   const adminUser = process.env.AUTH_USER || 'admin';
   const adminPass = process.env.AUTH_PASS || 'change-me';
   const pakbonUser = process.env.PAKBON_USER;
   const pakbonPass = process.env.PAKBON_PASS;
 
-  if (username === adminUser && password === adminPass) {
+  if (tijdsveiligeVergelijking(username, adminUser) && tijdsveiligeVergelijking(password, adminPass)) {
     req.session.authenticated = true;
     req.session.role = 'admin';
     return res.json({ ok: true, role: 'admin' });
   }
-  if (pakbonUser && username === pakbonUser && password === pakbonPass) {
+  if (pakbonUser && tijdsveiligeVergelijking(username, pakbonUser) && tijdsveiligeVergelijking(password, pakbonPass)) {
     req.session.authenticated = true;
     req.session.role = 'pakbon';
     return res.json({ ok: true, role: 'pakbon' });

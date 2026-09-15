@@ -6,6 +6,39 @@ van kan maken, en waarmee je de status van orders kan wijzigen.
 
 ## Functies
 
+## Inlogbeveiliging: rate-limiting + veiligere sessie-cookie
+
+Op verzoek beoordeeld hoe veilig de huidige inlog is, en 2 concrete, snel
+door te voeren verbeteringen doorgevoerd (i.p.v. meteen 2-factor-
+authenticatie, wat voor dit interne dashboard met een handjevol
+gebruikers relatief veel bouwwerk is voor het effect — dat kan later
+alsnog, maar dit geeft met minder moeite al een groot deel van de winst):
+
+- **Rate-limiting op het inlogscherm** (`express-rate-limit`): max. 10
+  inlogpogingen per 15 minuten per IP-adres. Voorheen kon iemand onbeperkt
+  wachtwoorden blijven proberen (brute-force); dat is nu praktisch
+  onhaalbaar traag gemaakt.
+- **Veiligere sessie-cookie**: `secure: 'auto'` toegevoegd (dwingt de
+  cookie om alleen over HTTPS te reizen in productie, werkt dankzij de
+  bestaande "trust proxy"-instelling ook correct lokaal over gewoon http)
+  en `sameSite: 'lax'` (voorkomt dat de cookie wordt meegestuurd bij
+  verzoeken vanaf een andere, mogelijk kwaadwillende website).
+- **Bijkomend, kleine verbetering**: de wachtwoordvergelijking gebruikte
+  een gewone `===`, wat in theorie (via zeer nauwkeurige reactietijd-
+  meting) een fractie van extra informatie kan lekken over waar een fout
+  wachtwoord begint af te wijken. Vervangen door een tijdsveilige
+  vergelijking (`crypto.timingSafeEqual`).
+
+Getest: een normale, correcte login (admin-rol correct herkend); een
+foutieve login (nette foutmelding); 12 achtereenvolgende foutieve
+pogingen — vanaf de 9e/10e poging (het venster telt ook een eerdere test-
+poging mee) krijgt de gebruiker terecht een 429-foutmelding
+("Te veel inlogpogingen..."), die de bestaande frontend-foutafhandeling
+gewoon automatisch netjes toont; de cookie-attributen na een lokale login
+gecontroleerd (`HttpOnly` aanwezig, `secure` correct `false` op gewoon
+http, zoals verwacht voor "auto"); en een regressietest op de overige
+productgeneratie — geen neveneffecten.
+
 ## Pakbonnen automatisch printen via PrintNode
 
 Op verzoek: een pakbon kan nu ook direct naar een fysieke printer gestuurd
