@@ -166,7 +166,16 @@ async function stuurNaarPrintNode(pdfBuffer, titel) {
       title: titel || 'Pakbon',
       contentType: 'pdf_base64',
       content: pdfBuffer.toString('base64'),
-      source: 'Shopify order dashboard'
+      source: 'Shopify order dashboard',
+      // BELANGRIJK: zonder dit gaf de printer(driver) alsnog een vaste,
+      // veel langere papierlengte dan de PDF zelf had, met veel witruimte
+      // boven en onder als gevolg (ondanks dat de PDF-pagina zelf al
+      // precies bij de inhoud paste) — PrintNode se eigen "fit_to_page"-
+      // printopdracht-optie staat kennelijk niet standaard op "uit", en
+      // past de PDF dan blijkbaar toch binnen een eigen, driver-bepaalde
+      // paginalengte in. Expliciet op false gezet zodat de PDF se eigen,
+      // precieze afmeting gewoon gerespecteerd wordt.
+      options: { fit_to_page: false, rotate: 0 }
     }, {
       headers: { Authorization: authHeader, 'Content-Type': 'application/json' }
     });

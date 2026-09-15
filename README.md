@@ -1285,6 +1285,37 @@ Papa.", "Muziekframe"); bevestigd dat de eigenschappen-HTML voor deze
 titel in beide gevallen leeg blijft, terwijl een normaal product met
 eigenschappen die gewoon normaal blijft tonen.
 
+## PrintNode: nóg 50mm witruimte over (ondanks precies-passende PDF-hoogte) — "fit_to_page"-instelling ontbrak
+
+Na de vorige marge-fixes bleef er alsnog een grote, vaste hoeveelheid
+witruimte boven- en onderaan over (~50mm) op de daadwerkelijke afdruk —
+ondanks dat de PDF-pagina zelf, gemeten, al precies bij de inhoud paste.
+
+**Gevonden**: PrintNode heeft een eigen printopdracht-optie `fit_to_page`
+(in het `options`-object van de `/printjobs`-aanroep), die kennelijk niet
+standaard op "uit" staat. Zonder deze expliciet op `false` te zetten past
+de printer(driver) de PDF blijkbaar toch binnen een eigen, driver-bepaalde
+paginalengte in (vermoedelijk een vaste "media size"-instelling), wat de
+precies-berekende PDF-hoogte overstemt — vandaar de vaste ~50mm
+witruimte, ongeacht hoe kort de PDF-pagina zelf al was. Dit bleek ook een
+bekend probleem bij andere PrintNode-integraties (gevonden via een
+forumbericht over exact hetzelfde symptoom bij bonnenprinters).
+
+**Fix**: `options: { fit_to_page: false, rotate: 0 }` toegevoegd aan de
+printopdracht-aanroep in `stuurNaarPrintNode` (server/printnode.js).
+
+Getest (met een gemockte PrintNode-API): bevestigd dat `fit_to_page:
+false` daadwerkelijk wordt meegestuurd in de printopdracht, via zowel een
+losse aanroep als de volledige `printPakbonnenViaPrintNode`-pijplijn; en
+een regressietest op de overige productgeneratie — geen neveneffecten.
+
+**Let op**: dit is een instelling die specifiek bedoeld is om het exacte
+PDF-formaat te laten winnen van de printer(driver) se eigen paginagrootte
+— mocht er na deze update nog steeds afwijkende witruimte zijn, dan is dat
+vermoedelijk een instelling op de printer/PrintNode Client zelf (bv. een
+vast ingestelde "media size" in de Windows/macOS-printerinstellingen) die
+buiten wat de API kan afdwingen valt.
+
 ## PrintNode: pakbon nog iets te veel witruimte boven/onder
 
 Na een daadwerkelijk geprinte bon bekeken: de pakbon printte nu wel netjes
