@@ -26,6 +26,7 @@ const { generateLijntekeningFramePdf, extractLijntekeningFrameItemsFromOrder } =
 const { generateTegelIllustratiePdf, extractTegelIllustratieItemsFromOrder } = require('./tegelillustratie');
 const { generateKentekenplaathouderPdf, extractKentekenplaathouderItemsFromOrder } = require('./kentekenplaathouder');
 const { sendReviewEmail } = require('./reviewEmail');
+const { stuurTweeFactorCode, tweeFactorIsGeconfigureerd } = require('./twoFactorEmail');
 const SqliteSessionStore = require('./sqliteSessionStore');
 
 const app = express();
@@ -149,24 +150,79 @@ function tijdsveiligeVergelijking(a, b) {
   return crypto.timingSafeEqual(bufA, bufB);
 }
 
-app.post('/api/login', inlogLimiter, (req, res) => {
+app.post('/api/login', inlogLimiter, async (req, res) => {
   const { username, password } = req.body || {};
   const adminUser = process.env.AUTH_USER || 'admin';
   const adminPass = process.env.AUTH_PASS || 'change-me';
   const pakbonUser = process.env.PAKBON_USER;
   const pakbonPass = process.env.PAKBON_PASS;
 
+  let rol = null;
   if (tijdsveiligeVergelijking(username, adminUser) && tijdsveiligeVergelijking(password, adminPass)) {
-    req.session.authenticated = true;
-    req.session.role = 'admin';
-    return res.json({ ok: true, role: 'admin' });
+    rol = 'admin';
+  } else if (pakbonUser && tijdsveiligeVergelijking(username, pakbonUser) && tijdsveiligeVergelijking(password, pakbonPass)) {
+    rol = 'pakbon';
   }
-  if (pakbonUser && tijdsveiligeVergelijking(username, pakbonUser) && tijdsveiligeVergelijking(password, pakbonPass)) {
-    req.session.authenticated = true;
-    req.session.role = 'pakbon';
-    return res.json({ ok: true, role: 'pakbon' });
+
+  if (!rol) {
+    return res.status(401).json({ error: 'Onjuiste gebruikersnaam of wachtwoord' });
   }
-  res.status(401).json({ error: 'Onjuiste gebruikersnaam of wachtwoord' });
+
+  // Zonder TWO_FACTOR_EMAIL/RESEND_API_KEY ingesteld: gewoon meteen
+  // inloggen, zoals voorheen (geen brekende verandering voor wie dit nog
+  // niet heeft ingesteld).
+  if (!tweeFactorIsGeconfigureerd()) {
+    req.session.authenticated = true;
+    req.session.role = rol;
+    return res.json({ ok: true, role: rol });
+  }
+
+  // 2FA is ingesteld: nog NIET inloggen - eerst een 6-cijferige code
+  // genereren, tijdelijk (10 minuten) in de sessie bewaren, en mailen.
+  // Pas na het correct invoeren van die code (zie /api/verify-2fa) wordt
+  // de sessie daadwerkelijk als ingelogd gemarkeerd.
+  const code = String(crypto.randomInt(0, 1000000)).padStart(6, '0');
+  req.session.tweeFactor = {
+    code,
+    rol,
+    verlooptOp: Date.now() + 10 * 60 * 1000
+  };
+  try {
+    await stuurTweeFactorCode(code);
+  } catch (e) {
+    return res.status(500).json({ error: 'Kon verificatiecode niet versturen: ' + e.message });
+  }
+  res.json({ ok: true, needsCode: true });
+});
+
+// Beperkt ook het aantal pogingen om de 6-cijferige code te raden (1
+// miljoen mogelijke codes, maar zonder limiet zou dat met een script
+// alsnog binnen afzienbare tijd te doen zijn).
+const tweeFactorLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Te veel pogingen. Probeer het over 15 minuten opnieuw.' }
+});
+
+app.post('/api/verify-2fa', tweeFactorLimiter, (req, res) => {
+  const { code } = req.body || {};
+  const openstaand = req.session.tweeFactor;
+  if (!openstaand) {
+    return res.status(400).json({ error: 'Geen openstaande verificatie. Log opnieuw in.' });
+  }
+  if (Date.now() > openstaand.verlooptOp) {
+    delete req.session.tweeFactor;
+    return res.status(400).json({ error: 'Verificatiecode is verlopen. Log opnieuw in.' });
+  }
+  if (!tijdsveiligeVergelijking(code, openstaand.code)) {
+    return res.status(401).json({ error: 'Onjuiste verificatiecode' });
+  }
+  req.session.authenticated = true;
+  req.session.role = openstaand.rol;
+  delete req.session.tweeFactor;
+  res.json({ ok: true, role: req.session.role });
 });
 
 app.post('/api/logout', (req, res) => {

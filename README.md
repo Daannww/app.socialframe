@@ -6,6 +6,37 @@ van kan maken, en waarmee je de status van orders kan wijzigen.
 
 ## Functies
 
+## Inlogverificatie per e-mail (2FA) — klaar, nog niet actief
+
+Op verzoek gebouwd: na het juiste wachtwoord kan er een 6-cijferige
+verificatiecode naar een vast e-mailadres gestuurd worden (via de al
+bestaande Resend-koppeling, dezelfde die de review-mail gebruikt), die je
+dan moet invoeren om echt in te loggen.
+
+**Bewust volledig optioneel gehouden** — precies zoals de review-mail-
+functie nu ook nog niet gebruikt wordt (de e-mailgegevens zijn er nog
+niet): zonder `TWO_FACTOR_EMAIL` + `RESEND_API_KEY` in je `.env` werkt
+inloggen gewoon zoals altijd, met alleen gebruikersnaam + wachtwoord. Pas
+als je beide instelt, vraagt het dashboard om een e-mailcode. Zo kan dit
+alvast klaarstaan zonder dat er nu iets verandert.
+
+**Technisch**: nieuw bestand `server/twoFactorEmail.js` (zelfde opzet als
+`reviewEmail.js`), 2 nieuwe routes (`/api/login` stuurt nu bij 2FA-
+configuratie een code i.p.v. meteen in te loggen; nieuwe route
+`/api/verify-2fa` controleert 'm), een eigen rate-limiter op het aantal
+pogingen om de code te raden, en een 2e stap op het inlogscherm
+(`public/login.html`) voor de code-invoer. De code is 10 minuten geldig,
+per sessie opgeslagen (niet in de database).
+
+Getest: bevestigd dat inloggen zonder de nieuwe omgevingsvariabelen exact
+hetzelfde gedrag geeft als voorheen (direct inloggen, geen code
+gevraagd) — dit is de huidige situatie. Het volledige e-mailcode-pad
+(versturen, invoeren, verlopen, foutieve code, rate-limiting) is nog NIET
+end-to-end getest (dat vereist een echte `RESEND_API_KEY` +
+`TWO_FACTOR_EMAIL`, die er nog niet zijn) — dat volgt zodra die gegevens
+beschikbaar zijn. Wel een regressietest op de rest van het project
+gedaan — geen neveneffecten.
+
 ## Inlogbeveiliging: rate-limiting + veiligere sessie-cookie
 
 Op verzoek beoordeeld hoe veilig de huidige inlog is, en 2 concrete, snel

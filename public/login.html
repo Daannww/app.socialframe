@@ -116,12 +116,22 @@
     </div>
     <button type="submit" class="login-submit" id="loginSubmit">Inloggen</button>
   </form>
+
+  <form id="codeForm" style="display:none;">
+    <div class="login-field">
+      <label for="code">Verificatiecode (per e-mail verstuurd)</label>
+      <input type="text" id="code" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required autofocus>
+    </div>
+    <button type="submit" class="login-submit" id="codeSubmit">Bevestigen</button>
+  </form>
 </div>
 
 <script>
 const form = document.getElementById('loginForm');
+const codeForm = document.getElementById('codeForm');
 const errorEl = document.getElementById('loginError');
 const submitBtn = document.getElementById('loginSubmit');
+const codeSubmitBtn = document.getElementById('codeSubmit');
 
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -140,12 +150,43 @@ form.addEventListener('submit', async (e) => {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Inloggen mislukt');
+    if (data.needsCode) {
+      form.style.display = 'none';
+      codeForm.style.display = 'block';
+      document.getElementById('code').focus();
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Inloggen';
+      return;
+    }
     window.location.href = '/';
   } catch (err) {
     errorEl.textContent = err.message;
     errorEl.classList.add('visible');
     submitBtn.disabled = false;
     submitBtn.textContent = 'Inloggen';
+  }
+});
+
+codeForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  errorEl.classList.remove('visible');
+  codeSubmitBtn.disabled = true;
+  codeSubmitBtn.textContent = 'Bezig...';
+
+  try {
+    const res = await fetch('/api/verify-2fa', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: document.getElementById('code').value })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Verificatie mislukt');
+    window.location.href = '/';
+  } catch (err) {
+    errorEl.textContent = err.message;
+    errorEl.classList.add('visible');
+    codeSubmitBtn.disabled = false;
+    codeSubmitBtn.textContent = 'Bevestigen';
   }
 });
 </script>
