@@ -11,6 +11,7 @@
 const fs = require('fs');
 const path = require('path');
 const bwipjs = require('bwip-js');
+const { fetchMetHerpogingen } = require('./pdf-shared');
 
 const PRODUCT_TRANSLATIONS_NL_DE = [
   [/sepia\s*foto[\s-]?tegeltje/gi, 'Sepia-Fotofliese'],
@@ -92,7 +93,7 @@ function fmtDate(iso) {
 function orderBarcodeSvg(orderNumber) {
   if (!orderNumber) return '';
   try {
-    return bwipjs.toSVG({
+    const ruweSvg = bwipjs.toSVG({
       bcid: 'code128',
       text: String(orderNumber),
       scale: 2,
@@ -100,6 +101,15 @@ function orderBarcodeSvg(orderNumber) {
       includetext: true,
       textxalign: 'center'
     });
+    // BELANGRIJK: bwip-js se toSVG() geeft alleen een "viewBox" mee, GEEN
+    // expliciete width/height-attributen. Een inline <svg> zonder die
+    // attributen valt terug op de browser-standaardgrootte (300x150px) —
+    // wat op een 80mm-brede pakbon veel te groot is (ontdekt doordat de
+    // gebruiker een veel te grote streepjescode op de daadwerkelijk
+    // geprinte bon kreeg). Hier expliciet naar 100% breedte (van de
+    // omliggende, wél op maat gezette container) gezet, met behoud van de
+    // eigen beeldverhouding via "height:auto".
+    return ruweSvg.replace('<svg ', '<svg style="width:100%; height:auto; display:block;" ');
   } catch (e) {
     return ''; // ongeldig ordernummer voor een streepjescode -> gewoon weglaten
   }
@@ -117,11 +127,34 @@ function logoDataUri(isGerman) {
   return 'data:image/svg+xml;base64,' + Buffer.from(svgInhoud).toString('base64');
 }
 
-// serverBasisUrl: bv. "http://localhost:3000" — nodig om de foto-preview-
-// route (/api/photo-preview) als absolute URL te kunnen laden, aangezien
-// puppeteer (in tegenstelling tot een browser die al op de site staat) geen
-// impliciete basis-URL heeft om een relatief pad tegen op te lossen.
-function buildReceiptHtml(order, serverBasisUrl) {
+// Haalt een foto server-side op en zet 'm om naar een base64 data-URI, i.p.v.
+// te verwijzen naar de "/api/photo-preview"-route via een URL. Nodig omdat
+// puppeteer (in tegenstelling tot de browser van een ingelogde gebruiker)
+// GEEN sessie-cookie heeft — een verwijzing naar die route (die achter de
+// inlog-vereiste zit) gaf daardoor altijd "Foto kon niet geladen worden".
+// Geeft null terug bij een fout (dan wordt de foto gewoon weggelaten i.p.v.
+// een kapot/leeg plaatje te tonen).
+async function fotoAlsDataUri(url) {
+  try {
+    // Expliciete timeout (i.t.t. de meeste andere fetchMetHerpogingen-
+    // aanroepen in dit project, waar een langzame-maar-uiteindelijk-lukkende
+    // download best oké is): een pakbon moet snel gegenereerd kunnen worden,
+    // dus een trage/onbereikbare fotolink mag die niet minutenlang ophouden.
+    // Ontdekt tijdens het testen: zonder eigen timeout kon 1 onbereikbare
+    // foto-URL (i.c.m. de 3 ingebouwde herpogingen) de HELE PDF-generatie
+    // laten vastlopen tot puppeteer se eigen 30s-navigatietimeout.
+    const response = await fetchMetHerpogingen(url, { responseType: 'arraybuffer', timeout: 5000 });
+    const contentType = response.headers['content-type'] || 'image/jpeg';
+    return `data:${contentType};base64,${Buffer.from(response.data).toString('base64')}`;
+  } catch (e) {
+    return null;
+  }
+}
+
+// serverBasisUrl: wordt niet meer gebruikt voor de foto's zelf (die worden nu
+// als base64 ingebed, zie fotoAlsDataUri hierboven), alleen nog als parameter
+// aangehouden voor API-consistentie/toekomstig gebruik.
+async function buildReceiptHtml(order, serverBasisUrl) {
   const isGerman = (order.shipping_country_code || '').toUpperCase() === 'DE';
   const t = isGerman ? {
     pakbon: 'LIEFERSCHEIN',
@@ -182,11 +215,20 @@ function buildReceiptHtml(order, serverBasisUrl) {
   const otherPhotos = allPhotoLinks.filter(l => !/autopictura/i.test(l));
   const photosForReceipt = [...autopicturaPhotos, ...(otherPhotos.length ? [otherPhotos[0]] : [])];
 
-  const photoHtml = photosForReceipt.map(link => `
+  // Server-side ophalen en als base64 inbedden (zie fotoAlsDataUri hierboven)
+  // i.p.v. een <img src="..."> die naar de (achter-inlog-zittende) "/api/
+  // photo-preview"-route verwijst — puppeteer heeft geen sessie-cookie, dus
+  // zo'n verwijzing gaf altijd "Foto kon niet geladen worden".
+  const dataUris = await Promise.all(photosForReceipt.map(fotoAlsDataUri));
+  const photoHtml = dataUris.filter(Boolean).map(dataUri => `
     <div style="text-align:center; margin-top:10px;">
-      <img src="${serverBasisUrl}/api/photo-preview?url=${encodeURIComponent(link)}" alt="Foto product" style="width:45mm; max-height:45mm; object-fit:cover; border:1px solid black;" onerror="this.outerHTML='<div style=&quot;font-size:10px; color:#900; text-align:center;&quot;>${t.fotoNietGeladen}</div>'">
+      <img src="${dataUri}" alt="Foto product" style="width:45mm; max-height:45mm; object-fit:cover; border:1px solid black;">
     </div>
   `).join('');
+  const nietGeladenCount = dataUris.filter(u => !u).length;
+  const nietGeladenHtml = nietGeladenCount > 0
+    ? `<div style="font-size:10px; color:#900; text-align:center; margin-top:6px;">${t.fotoNietGeladen}</div>`
+    : '';
 
   const addressLines = (order.shipping_address || '')
     .split(',')
@@ -237,9 +279,10 @@ function buildReceiptHtml(order, serverBasisUrl) {
       </div>
 
       ${photoHtml}
+      ${nietGeladenHtml}
 
       ${order.order_number ? `
-      <div style="text-align:center; margin:8px auto 4px auto; max-width:70mm;">${orderBarcodeSvg(order.order_number)}</div>
+      <div style="text-align:center; margin:8px auto 4px auto;"><div style="display:inline-block; width:60mm;">${orderBarcodeSvg(order.order_number)}</div></div>
       ` : ''}
 
       <div style="margin-top:10px; text-align:center;">${t.contact}</div>

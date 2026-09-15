@@ -48,11 +48,23 @@ async function pakBrowser() {
 // Zet 1 of meerdere orders om naar 1 PDF-bestand (bij meerdere orders: 1
 // pagina per order, zelfde "page-break-after"-aanpak als de browser-versie).
 async function genereerPakbonPdf(orders, serverBasisUrl) {
+  // BELANGRIJK: eerst de VOLLEDIGE HTML opbouwen (incl. het ophalen van
+  // eventuele foto's — kan even duren, zeker bij een trage/onbereikbare
+  // fotolink), en PAS DAARNA een puppeteer-pagina aanmaken/setContent
+  // aanroepen — niet andersom. Ontdekt tijdens het testen: als de pagina
+  // AL bestaat terwijl er nog gewacht wordt op de (paar seconden durende)
+  // HTML-opbouw, loopt de daaropvolgende page.setContent() vrijwel
+  // gegarandeerd vast tot puppeteer se eigen navigatie-timeout (30s) —
+  // ook al is de uiteindelijke HTML zelf prima in orde. Simpelweg de
+  // volgorde omdraaien (pas een pagina aanmaken als de HTML al klaarligt)
+  // loste dit volledig op.
+  const receiptsHtmlArray = await Promise.all(orders.map(o => buildReceiptHtml(o, serverBasisUrl)));
+  const receiptsHtml = receiptsHtmlArray.join('\n');
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body>${receiptsHtml}</body></html>`;
+
   const browser = await pakBrowser();
   const page = await browser.newPage();
   try {
-    const receiptsHtml = orders.map(o => buildReceiptHtml(o, serverBasisUrl)).join('\n');
-    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body>${receiptsHtml}</body></html>`;
     await page.setContent(html, { waitUntil: 'networkidle0' });
     // LET OP: page.pdf() geeft in recente puppeteer-versies een kale
     // Uint8Array terug, GEEN Node Buffer — .toString('base64') daarop zou

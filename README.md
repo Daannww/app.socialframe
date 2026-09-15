@@ -84,6 +84,46 @@ mogelijk nog gewoon (die komt dan in de wachtrij te staan totdat de client
 weer online komt), maar komt er niets uit de printer totdat die computer
 weer aanstaat.
 
+**Na het eerste écht geprinte bonnetje gemeld: streepjescode veel te groot,
+en de productfoto liet "Foto kon niet geladen worden" zien.**
+
+- **Streepjescode te groot**: `bwip-js` se `toSVG()` geeft alleen een
+  `viewBox` mee, GEEN expliciete `width`/`height`-attributen. Een inline
+  `<svg>` zonder die attributen valt terug op de browser-standaardgrootte
+  (300x150px) — op een 80mm-brede bon een groot deel van de breedte.
+  Opgelost door de SVG expliciet `width:100%; height:auto` mee te geven
+  (binnen een omliggende, wél op 60mm vaste container), zodat 'ie netjes
+  meeschaalt i.p.v. op zijn eigen, veel te grote standaardmaat te blijven
+  staan.
+- **Foto niet geladen**: de pakbon-HTML verwees naar de bestaande
+  `/api/photo-preview`-route via een URL — maar die route zit achter de
+  inlog-vereiste van de app, en puppeteer (dat de PDF server-side opbouwt)
+  heeft geen sessie-cookie. Elke foto-aanvraag kreeg dus altijd een 401,
+  wat de "kon niet geladen worden"-melding triggerde. Opgelost door de foto
+  niet meer via een URL-verwijzing te laten laden, maar 'm rechtstreeks
+  server-side op te halen (hergebruikt de bestaande `fetchMetHerpogingen`
+  uit `pdf-shared.js`) en als base64 data-URI in de HTML in te bedden —
+  dezelfde aanpak als het logo al gebruikte.
+- **Bijvangst tijdens het testen van dat laatste**: een onbereikbare
+  fotolink kon de HELE PDF-generatie laten vastlopen tot puppeteer se eigen
+  30-seconden-navigatietimeout. 2 aparte oorzaken, allebei gefixt: (1) de
+  foto-ophaal-aanroep had geen eigen timeout — nu een expliciete 5
+  seconden per poging; en (2), belangrijker, de VOLGORDE van bewerkingen
+  bleek uit te maken: als de puppeteer-pagina al aangemaakt is TERWIJL er
+  nog op de (soms een paar seconden durende) HTML-opbouw gewacht wordt,
+  loopt de daaropvolgende `page.setContent()` zo goed als gegarandeerd
+  vast — ook al is de uiteindelijke HTML zelf prima in orde. Opgelost door
+  eerst de VOLLEDIGE HTML op te bouwen (incl. foto's ophalen) en pas
+  DAARNA een puppeteer-pagina aan te maken. Getest: 3x achter elkaar
+  dezelfde onbereikbare-foto-situatie gaf steeds consistent binnen ~4
+  seconden een geslaagde PDF (voorheen: gegarandeerd een 30s-timeout-fout).
+
+Getest: de daadwerkelijke, gegenereerde pakbon met een succesvol geladen
+testfoto en een normaal-formaat streepjescode visueel bevestigd; het
+"foto niet geladen"-vangnet getest met een écht onbereikbare URL (toont nu
+correct de foutmelding, zonder de hele generatie te laten vastlopen); en
+een regressietest op de bestaande PDF-generatie van andere producten — geen
+neveneffecten.
 
 Getest: de volledige PrintNode-API-aanroep-structuur (endpoint, Basic-Auth-
 header, printer-ID als getal, PDF als base64) geverifieerd via een axios-
