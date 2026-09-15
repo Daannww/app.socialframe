@@ -186,13 +186,27 @@ async function haalPrintersOp() {
   return response.data;
 }
 
-// Gemaksfunctie: 1 of meerdere orders direct naar de PrintNode-printer sturen.
+// Stuurt elke order als een EIGEN, LOSSE printopdracht naar PrintNode —
+// i.p.v. ze samen te voegen tot 1 PDF met meerdere pagina's. Reden: gemeld
+// dat bulk-prints met de samengevoegde-PDF-aanpak op de daadwerkelijke
+// bonnenprinter een veel te lang bonnetje met extra witruimte gaven, en dat
+// niet elk bonnetje afzonderlijk werd afgeknipt — de printer(driver)
+// herkende de paginagrenzen binnen 1 PDF blijkbaar niet betrouwbaar als
+// "hier stopt bon 1, hier begint bon 2". Losse printopdrachten (zoals een
+// kassasysteem dat ook zou doen) laat de printer gewoon na élke opdracht
+// z'n eigen, normale afkap-gedrag toepassen, ongeacht of dat via PDF-
+// paginagrenzen, een ingebouwde inactiviteits-afkap, of iets anders werkt.
 async function printPakbonnenViaPrintNode(orders, serverBasisUrl) {
-  const pdfBuffer = await genereerPakbonPdf(orders, serverBasisUrl);
-  const titel = orders.length === 1
-    ? `Pakbon #${orders[0].order_number || orders[0].shopify_order_id}`
-    : `Pakbonnen (${orders.length} orders)`;
-  return stuurNaarPrintNode(pdfBuffer, titel);
+  const resultaten = [];
+  for (const order of orders) {
+    // Bewust NA elkaar (niet Promise.all) — zelfde reden als bij het
+    // genereren zelf: 1 gedeelde browser-instantie, dus niet onnodig veel
+    // pagina's tegelijk open laten staan bij een grote bulk-print.
+    const pdfBuffer = await genereerEnkelePakbonPdf(order, serverBasisUrl);
+    const titel = `Pakbon #${order.order_number || order.shopify_order_id}`;
+    resultaten.push(await stuurNaarPrintNode(pdfBuffer, titel));
+  }
+  return resultaten;
 }
 
 module.exports = { genereerPakbonPdf, stuurNaarPrintNode, printPakbonnenViaPrintNode, haalPrintersOp };

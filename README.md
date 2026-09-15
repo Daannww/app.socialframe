@@ -188,6 +188,32 @@ is) en met de correcte streepjescode-breedte; de enkele-order-flow
 nogmaals bevestigd (precies 1 pagina); en een regressietest op de overige
 productgeneratie — geen neveneffecten.
 
+**Daarna gemeld: op de daadwerkelijke bonnenprinter kwam een bulk-print (meerdere
+orders tegelijk) er als 1 veel te lang bonnetje met extra witruimte uit, en
+werd niet tussen de losse bonnen afgeknipt.** De hierboven beschreven
+samengevoegde-PDF-met-meerdere-pagina's-aanpak (per order een eigen, precies
+passende pagina, daarna met `pdf-lib` samengevoegd tot 1 PDF) werkte prima
+in eigen tests (pdftoppm/pdfplumber lieten netjes 2 losse, juist-afgemeten
+pagina's zien) — maar de fysieke bonnenprinter(driver) herkende de
+paginagrenzen BINNEN 1 PDF-bestand blijkbaar niet betrouwbaar als "hier
+stopt bon 1, hier begint bon 2", en drukte alles als 1 doorlopend geheel af.
+
+**Fix**: bij een bulk-print stuurt `printPakbonnenViaPrintNode` nu voor
+ELKE order een eigen, LOSSE printopdracht naar PrintNode (dus meerdere
+losse API-aanroepen, elk met een eigen 1-pagina-PDF), i.p.v. 1 opdracht met
+een samengevoegde meerdere-pagina's-PDF — vergelijkbaar met hoe een
+kassasysteem dat ook zou doen. Zo bepaalt de printer z'n eigen, normale
+afkapgedrag gewoon per printopdracht, zonder afhankelijk te zijn van hoe de
+printer(driver) PDF-paginagrenzen binnen 1 bestand interpreteert. De
+`/api/orders/print-via-printnode`-route geeft nu een array van printjob-ID's
+terug (1 per order) i.p.v. 1 los ID.
+
+Getest (met een gemockte PrintNode-API): 2 orders geven nu bevestigd 2
+aparte API-aanroepen, elk met de titel en PDF van precies 1 order; elke
+individuele PDF is nog steeds compact (~132mm i.p.v. de eerdere 279mm) en
+1 pagina; en een regressietest op de overige productgeneratie — geen
+neveneffecten.
+
 - **Automatische sync**: elke 5 minuten worden nieuwe **openstaande** Shopify
   orders opgehaald (afgehandelde/gearchiveerde en geannuleerde orders worden
   niet opgehaald).

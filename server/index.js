@@ -320,8 +320,8 @@ app.post('/api/orders/print-via-printnode', async (req, res) => {
     if (orders.length === 0) return res.status(404).json({ error: 'Geen van de opgegeven orders gevonden' });
 
     const serverBasisUrl = `${req.protocol}://${req.get('host')}`;
-    const resultaat = await printPakbonnenViaPrintNode(orders, serverBasisUrl);
-    res.json({ ok: true, printJobId: resultaat, aantalOrders: orders.length });
+    const resultaten = await printPakbonnenViaPrintNode(orders, serverBasisUrl);
+    res.json({ ok: true, printJobIds: resultaten.map(r => r.id), aantalOrders: orders.length });
   } catch (e) {
     res.status(500).json({ error: 'Kon niet afdrukken via PrintNode: ' + e.message });
   }
