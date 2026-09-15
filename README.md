@@ -1285,6 +1285,37 @@ Papa.", "Muziekframe"); bevestigd dat de eigenschappen-HTML voor deze
 titel in beide gevallen leeg blijft, terwijl een normaal product met
 eigenschappen die gewoon normaal blijft tonen.
 
+## PrintNode: pakbon nog iets te veel witruimte boven/onder
+
+Na een daadwerkelijk geprinte bon bekeken: de pakbon printte nu wel netjes
+per order afgeknipt (zie eerdere fix), maar had boven- en onderaan nog
+meer witruimte dan nodig.
+
+**Gevonden en gefixt**: 2 bronnen van overbodige witruimte onderaan
+(samen ~20mm): de CSS-marge van de pakbon se wrapper-element (10mm) plus
+een aparte "veiligheidsmarge" bovenop de gemeten inhoudshoogte (ook
+10mm). Ook bleek `page.pdf()` geen expliciete `margin: 0` mee te krijgen
+(kan een eigen, verborgen PDF-paginamarge toevoegen).
+
+**Bij het verkleinen ontdekt**: de veiligheidsmarge te agressief
+verkleinen (tot +3mm) liet de contacttekst onderaan opnieuw wegvallen —
+`getBoundingClientRect()` blijkt de werkelijk benodigde ruimte met meer
+dan de eerder aangenomen "een paar mm" te onderschatten. Systematisch
+getest met oplopende marges (3/4/5/6/7/8/10/15/20/25mm): pas vanaf +15mm
+bleef de contacttekst betrouwbaar volledig zichtbaar. Eindresultaat: CSS-
+marge verkleind naar 3mm, veiligheidsmarge ingesteld op het geteste
+minimum van +15mm (i.p.v. de eerdere +10mm, die dus zelf OOK al niet
+volledig veilig bleek) — per saldo nog steeds minder witruimte dan
+voorheen, maar met een bevestigd betrouwbare marge tegen afkappen.
+Expliciete `margin: {top:0,right:0,bottom:0,left:0}` toegevoegd aan
+`page.pdf()`.
+
+Getest: de contacttekst blijft nu bij een reeks marges tussen +15 en
++25mm betrouwbaar volledig zichtbaar; de volledige pijplijn (met en
+zonder foto, en bulk-print met 2 orders) opnieuw bevestigd — compleet,
+geen afkapping; en een regressietest op de overige productgeneratie —
+geen neveneffecten.
+
 ## 22e "Tegeltje met tekst"-ontwerp: "Tussen de sterren, zo helder..." + nieuwe techniek: échte PDF-kleurverlopen
 
 Als contouren aangeleverd. De tekst gebruikt een lettertype dat niet als

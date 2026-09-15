@@ -86,14 +86,23 @@ async function genereerEnkelePakbonPdf(order, serverBasisUrl) {
     // (marge-collapsing-gedrag) — daardoor liep het allerlaatste stukje
     // (de contact-tekst onderaan) af en toe over naar een overbodige 2e
     // pagina. Meet daarom i.p.v. daarvan de ECHTE onderkant (bottom, incl.
-    // marge) van het pakbon-element zelf via getBoundingClientRect(), en
-    // een ruimere veiligheidsmarge (10mm i.p.v. 5mm).
+    // marge) van het pakbon-element zelf via getBoundingClientRect().
+    // Veiligheidsmarge: gemeld dat een daadwerkelijk geprinte bon boven-
+    // en onderaan nog te veel wit overhield, dus eerst verkleind naar
+    // +3mm — bleek daarna de contacttekst onderaan regelmatig af te
+    // knippen. Getest met oplopende waarden (4/5/6/7/8/10/15/20/25mm): pas
+    // vanaf +15mm bleef de contacttekst betrouwbaar volledig zichtbaar (de
+    // onderschatting van getBoundingClientRect() is dus groter dan gedacht
+    // — vermoedelijk mede door hoe puppeteer tekst-regelafbreking net iets
+    // anders meet tijdens de PDF-rendering dan tijdens deze meting). +15mm
+    // gebruikt als veilige ondergrens, i.p.v. de eerdere +10mm (die bij dit
+    // testgeval OOK al niet voldoende bleek) of de te krappe +3mm.
     const inhoudsHoogtePx = await page.evaluate(() => {
       const el = document.body.firstElementChild;
       return el ? el.getBoundingClientRect().bottom : document.body.scrollHeight;
     });
     const PX_NAAR_MM = 25.4 / 96; // CSS-pixels (96dpi) naar mm
-    const paginaHoogteMm = Math.ceil(inhoudsHoogtePx * PX_NAAR_MM) + 10; // ruimere veiligheidsmarge onderaan
+    const paginaHoogteMm = Math.ceil(inhoudsHoogtePx * PX_NAAR_MM) + 15; // veiligheidsmarge onderaan (getest minimum)
     // LET OP: page.pdf() geeft in recente puppeteer-versies een kale
     // Uint8Array terug, GEEN Node Buffer — .toString('base64') daarop zou
     // dan stilzwijgend het verkeerde (kommagescheiden bytewaarden i.p.v.
@@ -103,6 +112,10 @@ async function genereerEnkelePakbonPdf(order, serverBasisUrl) {
     const pdfBuffer = Buffer.from(await page.pdf({
       width: '80mm',
       height: `${paginaHoogteMm}mm`,
+      // Expliciet op 0 gezet — anders kan puppeteer een eigen, standaard
+      // PDF-paginamarge toevoegen (los van de HTML/CSS se eigen marges),
+      // wat bovenaan onnodige witruimte zou geven.
+      margin: { top: 0, right: 0, bottom: 0, left: 0 },
       printBackground: true
     }));
     return pdfBuffer;
