@@ -1285,6 +1285,67 @@ Papa.", "Muziekframe"); bevestigd dat de eigenschappen-HTML voor deze
 titel in beide gevallen leeg blijft, terwijl een normaal product met
 eigenschappen die gewoon normaal blijft tonen.
 
+## PrintNode: fotovoorbeeld op de bon zag er korrelig/onscherp uit
+
+Gemeld dat de foto op de daadwerkelijke bon er slecht uitzag, bij alle
+producten met een foto (niet specifiek de lijntekening-stijl-producten).
+
+**Eerst uitgesloten wat het NIET was**: gecontroleerd of mijn eigen code
+resolutie verloor — bleek niet zo te zijn. Een testfoto van 1200x1200px
+kwam onverkleind (bevestigd in de daadwerkelijke PDF-bestandsstructuur) in
+de PDF terecht; `fotoAlsDataUri` deed voorheen geen enkele compressie.
+Ook de bron-URL (voor foto-producten een "autopictura"-ontwerplink) levert
+elders in dit project, voor het daadwerkelijke drukwerk tot 70cm/300dpi,
+ruim voldoende resolutie.
+
+**Conclusie**: het korrelige uiterlijk komt van de thermische
+bonnenprinter zelf, die elke foto naar grove zwart-wit-stippen omzet
+(dithering) — een vlakke/contrastarme foto geeft daarbij een muddy
+resultaat, ongeacht brondata.
+
+**Verbetering**: zelf vooraf al naar zwart-wit-stippen omzetten bleek geen
+betrouwbare oplossing (risico op een lelijk dubbel-ditheringseffect als de
+printer het resultaat zelf ook weer dithert — getest, en de resultaten
+waren inconsistent over foto-verlopen heen). In plaats daarvan in
+`fotoAlsDataUri` (server/receiptHtml.js) het contrast opgerekt
+(`sharp().normalize()`) en licht verscherpt (`sharpen()`), zodat de
+printer se eigen dithering een veel schoner startpunt heeft (diepere
+zwarttinten, helderdere hooglichten, scherpere randen) — een universeel
+nuttige verbetering, ongeacht wélke dithering de printer precies
+toepast. Ook meteen verkleind naar een voor dit kleine 45mm-voorbeeldje
+ruim voldoende formaat (max 600px, nooit vergroten) — dat scheelt
+bovendien verwerkingstijd, aangezien dit alleen een pakbon-voorbeeldje is
+(niet het drukwerkbestand zelf).
+
+Getest: het contrasteffect visueel bevestigd op een expres vlakke/lage-
+contrast testfoto (duidelijk diepere zwarttinten en helderder hooglicht
+na verwerking); de volledige pijplijn getest (~4 seconden, geen merkbare
+vertraging); het bestaande "foto niet geladen"-vangnet nog steeds correct
+bevestigd; en een regressietest op de overige productgeneratie — geen
+neveneffecten.
+
+## PrintNode: streepjescode nog te breed (6cm i.p.v. de gewenste 3,5cm)
+
+Na de `fit_to_page`-fix bleek de streepjescode nog steeds te breed — 6cm
+i.p.v. de eerder van de browser-printflow bekende, gewenste 3,5cm.
+
+**Oorzaak**: bij het bouwen van de PrintNode-pakbon had ik zelf bewust een
+vaste containerbreedte van 60mm voor de streepjescode gekozen — een eigen
+keuze, niet afgeleid van hoe de al langer bestaande, werkende browser-
+printflow dat doet. Die browser-versie (JsBarcode, `width:1, height:24`,
+géén vaste containerbreedte) komt van nature op ongeveer 3,5cm uit; de
+PrintNode-versie (bwip-js, eigen containerbreedte) week daar met 60mm dus
+fors van af.
+
+**Fix**: containerbreedte van de streepjescode in `server/receiptHtml.js`
+verkleind van 60mm naar 35mm.
+
+Getest: de streepjescode-breedte opnieuw rechtstreeks in de PDF-
+coördinaten gemeten — nu 34,3mm (was 58,8mm), overeenkomstig de gewenste
+~3,5cm; visueel bevestigd (leesbaar, in verhouding met de rest van de
+bon); en een regressietest op de overige productgeneratie — geen
+neveneffecten.
+
 ## PrintNode: nóg 50mm witruimte over (ondanks precies-passende PDF-hoogte) — "fit_to_page"-instelling ontbrak
 
 Na de vorige marge-fixes bleef er alsnog een grote, vaste hoeveelheid

@@ -10,6 +10,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const sharp = require('sharp');
 const bwipjs = require('bwip-js');
 const { fetchMetHerpogingen } = require('./pdf-shared');
 
@@ -144,8 +145,28 @@ async function fotoAlsDataUri(url) {
     // foto-URL (i.c.m. de 3 ingebouwde herpogingen) de HELE PDF-generatie
     // laten vastlopen tot puppeteer se eigen 30s-navigatietimeout.
     const response = await fetchMetHerpogingen(url, { responseType: 'arraybuffer', timeout: 5000 });
-    const contentType = response.headers['content-type'] || 'image/jpeg';
-    return `data:${contentType};base64,${Buffer.from(response.data).toString('base64')}`;
+    // Gemeld: de foto zag er op de daadwerkelijke (thermische) bonnenprinter
+    // erg korrelig/onscherp uit — dit bleek NIET aan resolutieverlies in de
+    // PDF-generatie te liggen (geverifieerd: de volledige brondata komt
+    // onverkleind in de PDF terecht), maar hoogstwaarschijnlijk aan hoe de
+    // printer zelf een foto naar zwart-wit-stippen omzet (dithering) — een
+    // vlakke, contrastarme foto geeft daarbij een muddy resultaat. Zelf
+    // vooraf al naar zwart-wit-stippen omzetten bleek geen betrouwbare
+    // verbetering (kan zelfs een lelijk dubbel-ditheringseffect geven als de
+    // printer het resultaat ZELF ook weer dithert) — in plaats daarvan hier
+    // alleen het contrast opgerekt (normalize) en licht verscherpt, zodat de
+    // printer se eigen dithering een schoner startpunt heeft. Ook meteen
+    // verkleind naar een voor dit kleine 45mm-voorbeeldje ruim voldoende
+    // formaat (nooit vergroten) — dat scheelt bovendien verwerkingstijd,
+    // aangezien dit alleen een pakbon-voorbeeldje is, geen drukwerkbestand.
+    const bewerkt = await sharp(Buffer.from(response.data))
+      .rotate() // EXIF-rotatie toepassen, anders kan de foto op zijn kant staan
+      .resize({ width: 600, height: 600, fit: 'inside', withoutEnlargement: true })
+      .normalize()
+      .sharpen({ sigma: 1.2 })
+      .jpeg({ quality: 85 })
+      .toBuffer();
+    return `data:image/jpeg;base64,${bewerkt.toString('base64')}`;
   } catch (e) {
     return null;
   }
@@ -282,7 +303,7 @@ async function buildReceiptHtml(order, serverBasisUrl) {
       ${nietGeladenHtml}
 
       ${order.order_number ? `
-      <div style="text-align:center; margin:8px auto 4px auto;"><div style="display:inline-block; width:60mm;">${orderBarcodeSvg(order.order_number)}</div></div>
+      <div style="text-align:center; margin:8px auto 4px auto;"><div style="display:inline-block; width:35mm;">${orderBarcodeSvg(order.order_number)}</div></div>
       ` : ''}
 
       <div style="margin-top:10px; text-align:center;">${t.contact}</div>
