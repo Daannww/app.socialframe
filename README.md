@@ -136,6 +136,58 @@ duidelijke foutmelding bij ontbrekende `PRINTNODE_API_KEY`/`PRINTNODE_PRINTER_ID
 en een regressietest op de bestaande PDF-generatie van andere producten —
 geen neveneffecten.
 
+**Na dit alles gemeld: de streepjescode was op de daadwerkelijke afdruk nog
+steeds te groot, en de lettertypes van de bon kwamen niet goed mee.**
+
+- **Streepjescode nog steeds te groot, ook al klopte de breedte IN de PDF
+  al** (58,8mm, precies zoals bedoeld — bevestigd door 'm rechtstreeks in
+  de PDF-coördinaten te meten, niet via een render). De daadwerkelijke
+  oorzaak zat een niveau hoger: de PDF-pagina zelf was 80mm BREED maar (bij
+  gebrek aan een expliciete `height`-optie bij `page.pdf()`) 279mm LANG —
+  de standaard Letter-paginahoogte. Op zo'n ongebruikelijk lange, smalle
+  pagina past een thermische bonnenprinter(driver) vermoedelijk zelf een
+  "fit"-schaling toe, wat alles (inclusief de op zich correct-brede
+  streepjescode) alsnog te groot liet uitvallen op de daadwerkelijke
+  afdruk. Opgelost door de werkelijke inhoudshoogte van de pakbon op te
+  meten en die als paginahoogte te gebruiken — de pagina past nu precies
+  bij de inhoud, net als een echte bonnenprinter dat doet.
+- **Bijkomende complicatie**: bij een bulk-print (meerdere orders in 1 PDF)
+  zou 1 gedeelde, gemeten hoogte niet kloppen voor orders met verschillend
+  veel regel-items. Opgelost door de generatie te herstructureren: elke
+  order krijgt nu zijn EIGEN puppeteer-render met zijn EIGEN, precies
+  passende hoogte, en bij meerdere orders worden die losse PDF's daarna met
+  `pdf-lib` samengevoegd tot 1 bestand.
+- **Bij het testen daarvan eerst een dubbele-pagina's-bug gevonden en
+  gefixt**: de al-bestaande `page-break-after:always`-stijl (een
+  overblijfsel van de oude, gecombineerde-in-1-HTML-aanpak) gaf nu een
+  overbodige, bijna lege 2e pagina PER order — verwijderd, aangezien
+  paginascheiding nu al gebeurt door simpelweg per order een eigen PDF te
+  genereren.
+- **Daarna nog een subtielere hoogtemeting-bug gevonden**: `document.body.
+  scrollHeight` bleek de onderste marge van de pakbon se eigen wrapper-
+  element niet altijd volledig mee te tellen (marge-collapsing-gedrag),
+  waardoor het allerlaatste stukje (de contacttekst onderaan) af en toe
+  over de eigen berekende paginahoogte heen liep, naar een overbodige 2e
+  pagina. Opgelost door i.p.v. daarvan de ECHTE onderkant (incl. marge) van
+  het pakbon-element zelf te meten (`getBoundingClientRect().bottom`), met
+  een ruimere veiligheidsmarge (10mm i.p.v. 5mm).
+- **Lettertypes**: de pakbon-HTML gebruikte `font-family:arial` — maar
+  "Arial" staat als zodanig niet op een doorsnee Linux-server geïnstalleerd
+  (het is een Microsoft-lettertype), dus puppeteer viel terug op wat er
+  toevallig wél beschikbaar was. Uitgebreid naar een bredere, veiligere
+  fallback-reeks: `Arial, 'Liberation Sans', 'DejaVu Sans', sans-serif` —
+  Liberation Sans is een metrisch-compatibel open-source Arial-alternatief
+  dat op de meeste Linux-servers (waaronder deze) wél standaard aanwezig is.
+
+Getest: de streepjescode-breedte opnieuw rechtstreeks in de PDF-coördinaten
+gemeten (nog steeds precies 58,8mm, nu op een 80x132mm-pagina die precies
+bij de inhoud past, i.p.v. de eerdere 80x279mm); bulk-print met 2
+verschillend lange orders getest — precies 2 pagina's (niet 4), allebei
+compleet (bevestigd dat de contacttekst niet meer afgekapt/overgelopen
+is) en met de correcte streepjescode-breedte; de enkele-order-flow
+nogmaals bevestigd (precies 1 pagina); en een regressietest op de overige
+productgeneratie — geen neveneffecten.
+
 - **Automatische sync**: elke 5 minuten worden nieuwe **openstaande** Shopify
   orders opgehaald (afgehandelde/gearchiveerde en geannuleerde orders worden
   niet opgehaald).

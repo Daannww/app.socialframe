@@ -236,7 +236,7 @@ async function buildReceiptHtml(order, serverBasisUrl) {
     .filter(Boolean);
 
   return `
-    <div style="page-break-after:always; font-family:arial; font-size:12px; margin:0 5mm 10mm 5mm;">
+    <div style="font-family:Arial, 'Liberation Sans', 'DejaVu Sans', sans-serif; font-size:12px; margin:0 5mm 10mm 5mm;">
       <div style="text-align:center; margin-top:0; padding:6px 0; border-bottom:1px dotted black; border-top:1px dotted black;">
         <img src="${logoDataUri(isGerman)}" alt="Socialframe" style="height:44px; width:auto;">
       </div>

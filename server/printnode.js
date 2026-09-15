@@ -15,6 +15,7 @@
 //                          dat 75792954)
 const axios = require('axios');
 const puppeteer = require('puppeteer');
+const { PDFDocument } = require('pdf-lib');
 const { buildReceiptHtml } = require('./receiptHtml');
 
 const PRINTNODE_API_KEY = process.env.PRINTNODE_API_KEY;
@@ -45,9 +46,9 @@ async function pakBrowser() {
   return gedeeldeBrowser;
 }
 
-// Zet 1 of meerdere orders om naar 1 PDF-bestand (bij meerdere orders: 1
-// pagina per order, zelfde "page-break-after"-aanpak als de browser-versie).
-async function genereerPakbonPdf(orders, serverBasisUrl) {
+// Genereert de PDF voor PRECIES 1 order, met een paginahoogte die exact bij
+// de inhoud van DIE ene pakbon past.
+async function genereerEnkelePakbonPdf(order, serverBasisUrl) {
   // BELANGRIJK: eerst de VOLLEDIGE HTML opbouwen (incl. het ophalen van
   // eventuele foto's — kan even duren, zeker bij een trage/onbereikbare
   // fotolink), en PAS DAARNA een puppeteer-pagina aanmaken/setContent
@@ -58,25 +59,81 @@ async function genereerPakbonPdf(orders, serverBasisUrl) {
   // ook al is de uiteindelijke HTML zelf prima in orde. Simpelweg de
   // volgorde omdraaien (pas een pagina aanmaken als de HTML al klaarligt)
   // loste dit volledig op.
-  const receiptsHtmlArray = await Promise.all(orders.map(o => buildReceiptHtml(o, serverBasisUrl)));
-  const receiptsHtml = receiptsHtmlArray.join('\n');
-  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body>${receiptsHtml}</body></html>`;
+  const receiptHtml = await buildReceiptHtml(order, serverBasisUrl);
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body>${receiptHtml}</body></html>`;
 
   const browser = await pakBrowser();
   const page = await browser.newPage();
   try {
     await page.setContent(html, { waitUntil: 'networkidle0' });
+    // Voor een thermische bonnenprinter moet de PDF-paginahoogte exact bij
+    // de inhoud passen (geen vaste, veel te lange standaardhoogte) — zonder
+    // expliciete "height"-optie viel page.pdf() terug op de standaard
+    // Letter-hoogte (279mm/11 inch), wat een 80mm-brede maar 279mm-LANGE
+    // pagina gaf. Vermoedelijk paste de printer(driver) toen zelf een
+    // "fit"-schaling toe op die ongebruikelijke, veel-te-lange pagina —
+    // wat de streepjescode (die in de PDF zelf, gemeten, wél gewoon de
+    // juiste ~59mm breedte had) op de daadwerkelijke afdruk alsnog te
+    // groot liet uitvallen. Opgelost door de daadwerkelijke inhoudshoogte
+    // op te meten en die als paginahoogte te gebruiken, met een kleine
+    // marge. Elke order krijgt hierdoor zijn EIGEN, precies passende
+    // hoogte (i.p.v. 1 gedeelde hoogte voor alle orders bij een bulk-print,
+    // wat bij orders met verschillend veel regel-items niet zou kloppen —
+    // zie genereerPakbonPdf hieronder, die de losse PDF's per order
+    // samenvoegt i.p.v. ze allemaal in 1 puppeteer-paginaformaat te proppen).
+    // LET OP: "document.body.scrollHeight" bleek de onderste marge van de
+    // pakbon se eigen wrapper-element NIET altijd volledig mee te tellen
+    // (marge-collapsing-gedrag) — daardoor liep het allerlaatste stukje
+    // (de contact-tekst onderaan) af en toe over naar een overbodige 2e
+    // pagina. Meet daarom i.p.v. daarvan de ECHTE onderkant (bottom, incl.
+    // marge) van het pakbon-element zelf via getBoundingClientRect(), en
+    // een ruimere veiligheidsmarge (10mm i.p.v. 5mm).
+    const inhoudsHoogtePx = await page.evaluate(() => {
+      const el = document.body.firstElementChild;
+      return el ? el.getBoundingClientRect().bottom : document.body.scrollHeight;
+    });
+    const PX_NAAR_MM = 25.4 / 96; // CSS-pixels (96dpi) naar mm
+    const paginaHoogteMm = Math.ceil(inhoudsHoogtePx * PX_NAAR_MM) + 10; // ruimere veiligheidsmarge onderaan
     // LET OP: page.pdf() geeft in recente puppeteer-versies een kale
     // Uint8Array terug, GEEN Node Buffer — .toString('base64') daarop zou
     // dan stilzwijgend het verkeerde (kommagescheiden bytewaarden i.p.v.
     // base64) resultaat geven, wat PrintNode terecht afwees met "(request
     // body).content is not valid base64". Daarom hier expliciet naar een
     // echte Buffer omzetten.
-    const pdfBuffer = Buffer.from(await page.pdf({ width: '80mm', printBackground: true }));
+    const pdfBuffer = Buffer.from(await page.pdf({
+      width: '80mm',
+      height: `${paginaHoogteMm}mm`,
+      printBackground: true
+    }));
     return pdfBuffer;
   } finally {
     await page.close();
   }
+}
+
+// Zet 1 of meerdere orders om naar 1 PDF-bestand. Elke order krijgt zijn
+// eigen, precies op de inhoud afgestemde paginahoogte (zie
+// genereerEnkelePakbonPdf hierboven) — bij meerdere orders worden die losse
+// PDF's daarna samengevoegd tot 1 bestand (i.p.v. alle orders in 1 gedeeld
+// puppeteer-paginaformaat te proppen, wat bij verschillend lange orders niet
+// zou kloppen).
+async function genereerPakbonPdf(orders, serverBasisUrl) {
+  const pdfBuffers = [];
+  for (const order of orders) {
+    // Bewust NA elkaar (niet Promise.all) — de orders delen dezelfde
+    // gedeelde browser-instantie (pakBrowser), dus meerdere pagina's
+    // tegelijk zou onnodig veel geheugen gebruiken bij een grote bulk-print.
+    pdfBuffers.push(await genereerEnkelePakbonPdf(order, serverBasisUrl));
+  }
+  if (pdfBuffers.length === 1) return pdfBuffers[0];
+
+  const samengevoegdDoc = await PDFDocument.create();
+  for (const buf of pdfBuffers) {
+    const bronDoc = await PDFDocument.load(buf);
+    const paginas = await samengevoegdDoc.copyPages(bronDoc, bronDoc.getPageIndices());
+    paginas.forEach(pagina => samengevoegdDoc.addPage(pagina));
+  }
+  return Buffer.from(await samengevoegdDoc.save());
 }
 
 // Stuurt een al-gegenereerde PDF-buffer naar PrintNode om af te drukken.
