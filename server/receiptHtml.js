@@ -303,7 +303,7 @@ async function buildReceiptHtml(order, serverBasisUrl) {
       ${nietGeladenHtml}
 
       ${order.order_number ? `
-      <div style="text-align:center; margin:8px auto 4px auto;"><div style="display:inline-block; width:35mm;">${orderBarcodeSvg(order.order_number)}</div></div>
+      <div style="text-align:center; margin:8px auto 4px auto;"><div style="display:inline-block; width:30mm;">${orderBarcodeSvg(order.order_number)}</div></div>
       ` : ''}
 
       <div style="margin-top:10px; text-align:center;">${t.contact}</div>

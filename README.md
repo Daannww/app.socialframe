@@ -1285,6 +1285,29 @@ Papa.", "Muziekframe"); bevestigd dat de eigenschappen-HTML voor deze
 titel in beide gevallen leeg blijft, terwijl een normaal product met
 eigenschappen die gewoon normaal blijft tonen.
 
+## PrintNode: streepjescode alsnog te groot bevonden, ook al klopte de meting
+
+Ondanks dat de streepjescode-breedte in de PDF bevestigd 34,3mm mat (de
+eerder als referentie genoemde "3,5cm"), en bevestigd was dat dit met de
+laatste, daadwerkelijk gedeployde versie geprint werd, en de papierbreedte
+bevestigd 80mm was — bleef het oordeel: nog steeds te groot.
+
+**Conclusie**: de eerder genoemde "3,5cm" bleek nooit een daadwerkelijk
+gewenste maat te zijn geweest, slechts een vergelijkingspunt tussen 2
+eerdere, allebei-te-grote versies (6cm vs 3,5cm) — niet een bevestiging
+dat 3,5cm zelf goed was. Om een volgende ronde giswerk te voorkomen: deze
+keer een concrete doelmaat gevraagd (~3cm) i.p.v. opnieuw op eigen inzicht
+te verkleinen.
+
+**Fix**: containerbreedte in `server/receiptHtml.js` verkleind van 35mm
+naar 30mm.
+
+Getest: de streepjescode-breedte rechtstreeks in de PDF-coördinaten
+gemeten — nu 29,4mm, exact de gevraagde ~3cm; visueel bevestigd dat de
+streepjescode op dit kleinere formaat nog steeds duidelijk leesbare,
+onderscheidbare strepen heeft (geen samenklontering); en een
+regressietest op de overige productgeneratie — geen neveneffecten.
+
 ## PrintNode: fotovoorbeeld op de bon zag er korrelig/onscherp uit
 
 Gemeld dat de foto op de daadwerkelijke bon er slecht uitzag, bij alle
