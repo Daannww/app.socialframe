@@ -1431,6 +1431,28 @@ zonder foto, en bulk-print met 2 orders) opnieuw bevestigd — compleet,
 geen afkapping; en een regressietest op de overige productgeneratie —
 geen neveneffecten.
 
+## 23e "Tegeltje met tekst"-ontwerp: "Blij met ons"
+
+Als contouren aangeleverd. Sierlijk schrijflettertype, niet als apart
+bestand aangeleverd en ook geen standaard systeemfont, dus (net als
+eerdere ontwerpen zonder passend lettertype) rechtstreeks als 10 vector-
+decoratie-vormen geëxtraheerd i.p.v. via een lettertype getekend.
+
+Bevat een handgetekend hartje met een vaste, eigen bordeaux-kleur (CMYK
+0,223/0,973/0,602/0,156 — dezelfde kleur die al eerder in dit project voor
+een hartje-decoratie gebruikt werd), dat net als bij "Hartje"/"Tussen de
+sterren" niet meewisselt met de gekozen tegelkleur.
+
+Verliep bij deze extractie in één keer goed, zonder de eerder in dit
+project tegengekomen extractiebugs (geen re-na-andere-operatoren-,
+kale-moveto-, of letter-dwarsbalk-problemen).
+
+Getest: pixel-voor-pixel identieke match met het origineel via de échte
+productiecode; herkenning zonder overlap met de bestaande 22 ontwerpen;
+kleurwisseltest (Wit/Zwart/Rose) bevestigt dat het hartje inderdaad een
+vaste kleur blijft; statuslogica; en een volledige regressietest op de
+overige 22 ontwerpen — geen neveneffecten.
+
 ## 22e "Tegeltje met tekst"-ontwerp: "Tussen de sterren, zo helder..." + nieuwe techniek: échte PDF-kleurverlopen
 
 Als contouren aangeleverd. De tekst gebruikt een lettertype dat niet als
