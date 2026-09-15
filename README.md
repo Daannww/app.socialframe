@@ -1285,6 +1285,53 @@ Papa.", "Muziekframe"); bevestigd dat de eigenschappen-HTML voor deze
 titel in beide gevallen leeg blijft, terwijl een normaal product met
 eigenschappen die gewoon normaal blijft tonen.
 
+## 22e "Tegeltje met tekst"-ontwerp: "Tussen de sterren, zo helder..." + nieuwe techniek: échte PDF-kleurverlopen
+
+Als contouren aangeleverd. De tekst gebruikt een lettertype dat niet als
+apart bestand is aangeleverd en ook geen standaard systeemfont is, dus
+(net als bij eerdere ontwerpen zonder passend lettertype, bv. "papa-en-
+nog-zoveel-meer") rechtstreeks als 66 vector-decoratie-vormen geëxtraheerd
+i.p.v. via een lettertype getekend.
+
+**Nieuwe, voor dit hele project unieke ontdekking**: de sterren-decoratie
+onderaan bleek een ECHT PDF-kleurverloop te hebben (axiaal/lineair,
+goud-naar-brons) — geen platte vlakkleur. De gebruikelijke platte-vector-
+extractietechniek (een vaste CMYK-kleur per vorm) kan dat niet namaken.
+
+**Oplossing, een compleet nieuwe techniek voor dit project**: `pdf-lib`
+heeft geen ingebouwde ondersteuning voor kleurverlopen — een nieuwe,
+herbruikbare hulpfunctie `drawGradientShapes` (in `server/pdf-shared.js`)
+bouwt zelf een PDF-shading-object op via pdf-lib se lage-niveau object-
+registratie (`context.obj`/`context.register`), en gebruikt een vector-
+knipmasker (via `clip()`) per vorm om het verloop alleen bínnen die vorm
+te tonen — de vorm zelf blijft ondertussen een normaal, schaalbaar
+vectorpad (geen rasterafbeelding).
+
+**Kostbaar ontdekte positioneringsdetails** (na aanzienlijk puzzelen — dit
+werkte in eerste instantie niet, de sterren stonden ergens compleet
+verkeerd/afgekapt):
+- De padcoördinaten van dit soort verloop-gevulde vormen (i.t.t. bv.
+  hart-paden elders in dit project) staan AL in absolute paginacoördinaten
+  in het brondocument — er is dus GEEN aparte x/y-verschuiving nodig zoals
+  bij `drawSvgPath`, alleen een `scale(1,-1)` om de gebruikelijke
+  '-y'-padconventie weer recht te zetten.
+- De cm-transformatie die in het brondocument vlak vóór de `sh`-operator
+  stond (positioneert/schaalt het verloop zelf) moet, omdat die BINNEN
+  dezelfde `scale(1,-1)`-context wordt toegepast als het knippad, als
+  `[a,0,0,-d,x,-y]` doorgegeven worden (d en y genegeerd) om na die
+  `scale(1,-1)` weer het juiste eindresultaat te geven.
+
+Net als bij "Hartje"/"Ik hou van ons": het kleurverloop is een vaste
+kleur, wisselt niet mee met de tegelkleur.
+
+Getest: pixel-voor-pixel identieke match met het origineel via de échte
+productiecode (inclusief de exacte verloopsrichting in elke ster);
+herkenning zonder overlap met de bestaande 21 ontwerpen (met de exacte
+tegelkleur "Beige" uit de order-titel); bevestigd dat het verloop bij alle
+3 geteste tegelkleuren aanwezig en identiek blijft (vaste kleur);
+statuslogica; en een volledige regressietest op de overige 21 ontwerpen —
+geen neveneffecten.
+
 ## 21e "Tegeltje met tekst"-ontwerp: "Vier vaker. Lach veel. Hou vast." + belangrijke extractiebug (letter-dwarsbalk verdween)
 
 Als contouren aangeleverd — rechtstreeks als 28 vectorvormen geëxtraheerd.

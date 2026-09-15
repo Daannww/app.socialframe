@@ -4,6 +4,7 @@ const QRCode = require('qrcode');
 const fs = require('fs');
 const path = require('path');
 const pdfLib = require('pdf-lib');
+const svgPathModule = require('pdf-lib/cjs/api/svgPath');
 
 const MM = 72 / 25.4; // PDF-punten per millimeter
 
@@ -1076,8 +1077,63 @@ function isVermoedelijkeDubbeleCadeautjeRegel(li, alleLineItems, echteTitelRegex
   return alleLineItems.some(ander => ander !== li && echteTitelRegex.test(ander.title || ''));
 }
 
+// Tekent 1 of meerdere vormen gevuld met een ECHT PDF-kleurverloop (axiaal/
+// lineair, ShadingType 2) i.p.v. een platte vlakkleur — ontdekt bij het
+// "Tussen de sterren"-tegeltje-ontwerp, waar de decoratieve sterren een
+// goud-naar-brons-verloop bleken te hebben (geen vlakke kleur), wat de
+// gebruikelijke platte-vector-extractietechniek niet kan namaken.
+// pdf-lib heeft hier geen ingebouwde ondersteuning voor — dit gebruikt
+// pdf-lib se LAGE-NIVEAU object-registratie (context.obj/register) om
+// zelf een PDF-shading-object op te bouwen, en een vector-knipmasker (per
+// vorm) om het verloop alleen binnen die vorm te laten zien.
+//
+// BELANGRIJKE, kostbaar-ontdekte technische details:
+// - vormen.pad moet dezelfde '-y'-conventie hebben als voor drawSvgPath
+//   (dus met de Y-waarden al genegeerd, "M {x},{-y} ..."). GEEN eigen
+//   x/y-verschuiving nodig — de padcoördinaten staan al in absolute
+//   paginacoördinaten (in tegenstelling tot bv. hart-paden elders in dit
+//   project, die WEL een aparte x/y-verschuiving verwachten). Een `scale(1,-1)`
+//   is wél nodig om die '-y'-conventie weer recht te zetten.
+// - vormen.cmVoorVerloop = [a,b,c,d,x,y] is de ORIGINELE cm-transformatie
+//   die in het brondocument vlak vóór de 'sh'-operator stond (bepaalt de
+//   positie/schaal/richting van het verloop zelf, los van het knippad).
+//   Omdat deze BINNEN dezelfde scale(1,-1)-context wordt toegepast als het
+//   knippad, moet 'ie hier als [a,0,0,-d,x,-y] doorgegeven worden (d en y
+//   genegeerd) om na die scale(1,-1) weer het juiste eindresultaat te geven.
+function drawGradientShapes(doc, page, vormen, gradient) {
+  const context = doc.context;
+  const func = context.obj({
+    FunctionType: 2, Domain: [0, 1],
+    C0: gradient.C0, C1: gradient.C1, N: gradient.N
+  });
+  const shading = context.obj({
+    ShadingType: 2, ColorSpace: pdfLib.PDFName.of('DeviceCMYK'),
+    Coords: [0, 0, 1, 0], Function: func, Extend: [true, true]
+  });
+  const shadingRef = context.register(shading);
+  const resources = page.node.Resources();
+  const shadingDict = context.obj({});
+  resources.set(pdfLib.PDFName.of('Shading'), shadingDict);
+  const shadingNaam = 'Sh' + Math.random().toString(36).slice(2, 8);
+  shadingDict.set(pdfLib.PDFName.of(shadingNaam), shadingRef);
+
+  vormen.forEach(vorm => {
+    const [a, b, c, d, x, y] = vorm.cmVoorVerloop;
+    page.pushOperators(
+      pdfLib.pushGraphicsState(),
+      pdfLib.scale(1, -1),
+      ...svgPathModule.svgPathToOperators(vorm.pad),
+      pdfLib.clip(),
+      pdfLib.endPath()
+    );
+    page.pushOperators(pdfLib.PDFOperator.of('cm', [a, 0, 0, -d, x, -y].map(pdfLib.PDFNumber.of)));
+    page.pushOperators(pdfLib.PDFOperator.of('sh', [pdfLib.PDFName.of(shadingNaam)]));
+    page.pushOperators(pdfLib.popGraphicsState());
+  });
+}
+
 module.exports = {
-  isVermoedelijkeDubbeleCadeautjeRegel,
+  isVermoedelijkeDubbeleCadeautjeRegel, drawGradientShapes,
   MM,
   splitTextEmoji, emojiToCodepoints, fetchEmojiPng, preloadEmojiImages,
   measureMixedTextWidth, drawMixedText, fitFontSizeToWidth, loadHebrewFont,
