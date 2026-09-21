@@ -1,0 +1,77 @@
+const sharp = require('sharp');
+const { PDFDocument } = require('pdf-lib');
+const { heeftEchteTransparantie } = require('./pdf-shared');
+
+const PT_PER_CM = 72 / 2.54; // PostScript/PDF-punten per centimeter
+
+// Posterly levert de foto's aan mét een stuk canvas/rand eromheen — het
+// volledige aangeleverde beeld staat voor 170mm fysiek, en het gevraagde
+// formaat (10x10 of 13x13cm) moet daar precies uit het midden uitgeknipt
+// worden. Werkt proportioneel (percentage van de pixelmaten), dus onafhankelijk
+// van de daadwerkelijke resolutie waarin Posterly de foto aanlevert.
+const POSTERLY_FULL_CANVAS_MM = 170;
+
+async function cropPosterlyCanvas(inputBuffer, targetMm) {
+  // EXIF-rotatie eerst toepassen en "bakken" in een nieuwe buffer, zodat de
+  // daarna opgevraagde afmetingen (en dus de crop-berekening) kloppen.
+  const rotatedBuffer = await sharp(inputBuffer).rotate().toBuffer();
+  const metadata = await sharp(rotatedBuffer).metadata();
+  const fraction = targetMm / POSTERLY_FULL_CANVAS_MM;
+  const cropWidth = Math.round(metadata.width * fraction);
+  const cropHeight = Math.round(metadata.height * fraction);
+  const left = Math.round((metadata.width - cropWidth) / 2);
+  const top = Math.round((metadata.height - cropHeight) / 2);
+  return sharp(rotatedBuffer).extract({ left, top, width: cropWidth, height: cropHeight }).toBuffer();
+}
+
+// Zet een afbeelding (buffer, bv. jpg/png) om naar een print-klaar PDF-bestand op
+// het opgegeven fysieke drukformaat (in centimeters), met de foto er als JPEG
+// (op de opgegeven dpi) volledig beeldvullend in ingebed. PDF is tegenwoordig het
+// meest universeel ondersteunde drukwerkformaat en wordt hier met pdf-lib
+// opgebouwd — een pure JS-library, dus zonder afhankelijkheid van een losse
+// PostScript-renderer om te weten dat de opbouw klopt.
+async function imageBufferToPrintPdf(inputBuffer, { widthCm = 10, heightCm = 10, dpi = 300 } = {}) {
+  const targetPxWidth = Math.round((widthCm / 2.54) * dpi);
+  const targetPxHeight = Math.round((heightCm / 2.54) * dpi);
+
+  const geresized = await sharp(inputBuffer)
+    .rotate() // houd rekening met EXIF orientatie
+    .resize({ width: targetPxWidth, height: targetPxHeight, fit: 'fill' })
+    .toBuffer();
+
+  // Echte transparantie (komt maar af en toe voor) blijft als PNG behouden
+  // i.p.v. tegen een witte achtergrond "geplet" te worden — de meeste
+  // foto's (gewone foto's zonder transparantie) gaan gewoon via de
+  // JPEG-weg hieronder.
+  const widthPt = widthCm * PT_PER_CM;
+  const heightPt = heightCm * PT_PER_CM;
+  const pdfDoc = await PDFDocument.create();
+  const page = pdfDoc.addPage([widthPt, heightPt]);
+
+  if (await heeftEchteTransparantie(geresized)) {
+    const pngBuffer = await sharp(geresized).withMetadata({ icc: 'srgb' }).png().toBuffer();
+    const pngImage = await pdfDoc.embedPng(pngBuffer);
+    page.drawImage(pngImage, { x: 0, y: 0, width: widthPt, height: heightPt });
+  } else {
+    const jpegBuffer = await sharp(geresized)
+      // Voor de zekerheid nog steeds pletten tegen wit (i.p.v. .removeAlpha())
+      // voor het geval er toch een (volledig ondoorzichtig) alfakanaal aanwezig
+      // is zonder dat heeftEchteTransparantie dat als "echte" transparantie ziet.
+      .flatten({ background: { r: 255, g: 255, b: 255 } })
+      .toColourspace('srgb')
+      // Expliciet sRGB-profiel meegeven (zie de toelichting bij
+      // adjustCmykChannels in pdf-shared.js) — .toColourspace() alleen
+      // rekent de pixelwaarden om, maar tagt het bestand zelf niet met een
+      // profiel dat een print-RIP kan uitlezen.
+      .withMetadata({ icc: 'srgb' })
+      .jpeg({ quality: 95, chromaSubsampling: '4:4:4' })
+      .toBuffer();
+    const jpegImage = await pdfDoc.embedJpg(jpegBuffer);
+    page.drawImage(jpegImage, { x: 0, y: 0, width: widthPt, height: heightPt });
+  }
+
+  const pdfBytes = await pdfDoc.save();
+  return Buffer.from(pdfBytes);
+}
+
+module.exports = { imageBufferToPrintPdf, cropPosterlyCanvas, POSTERLY_FULL_CANVAS_MM };

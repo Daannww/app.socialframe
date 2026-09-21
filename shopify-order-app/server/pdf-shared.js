@@ -35,40 +35,11 @@ function isTijdelijkeNetwerkFout(error) {
 // poging een paar seconden later vaak gewoon lukt. Een ECHTE fout (bv. 404,
 // een ongeldige URL) wordt NIET herhaald — die faalt meteen door, met
 // dezelfde foutmelding als voorheen.
-//
-// BELANGRIJK (2026-09-21): axios had hier van zichzelf GEEN timeout (axios'
-// eigen default is 0 = oneindig wachten). Bij een enkel drukwerkbestand
-// downloaden viel dat nauwelijks op, maar bij de bulk-download
-// ("drukwerkbestanden" voor meerdere orders tegelijk, /api/print-files/pdf-zip
-// in index.js) werden de orders na elkaar afgehandeld: zodra ÉÉN
-// foto-bron (autopictura-link, Posterly-foto, etc.) niet reageerde — de
-// verbinding kwam wel tot stand maar er kwam nooit een antwoord — bleef
-// axios.get() daar voor ALTIJD op hangen, zonder ooit een fout te geven
-// waar de bestaande retry-logica op kon reageren. Het hele zip-bestand
-// kwam daardoor nooit verder, de browser kreeg minutenlang geen enkele
-// byte binnen, en uiteindelijk brak de verbinding (Railway's proxy of de
-// browser zelf) de aanvraag af — zichtbaar voor de gebruiker als de
-// generieke `fetch`-foutmelding "Failed to fetch" (een netwerkfout, geen
-// nette foutmelding van de server, want de server had op dat moment nog
-// niets teruggestuurd). Losse downloads van 1 bestand liepen zelden tegen
-// precies deze kapotte/trage bron aan en/of vielen niet op als "hangen",
-// dus bleef dit bij de bulk-download verstopt.
-// Fix: een expliciete timeout per POGING (opties.timeout heeft voorrang als
-// de aanroeper zelf al iets specifieks meegeeft). Loopt een poging vast,
-// dan gooit axios een ECONNABORTED-fout ("timeout of Xms exceeded") — die
-// stond al in TIJDELIJKE_NETWERK_FOUTCODES, dus wordt automatisch herhaald
-// zoals ontworpen, en na de laatste mislukte poging keurig gevangen door de
-// per-item try/catch in appendPrintFilesToArchive (index.js), die dan alleen
-// voor DAT ene item een "FOUT-....txt" in de zip zet — de rest van de
-// bulk-download loopt gewoon door i.p.v. voor altijd te blijven hangen.
-const STANDAARD_FETCH_TIMEOUT_MS = 15000;
-
 async function fetchMetHerpogingen(url, opties = {}, pogingen = 3, wachttijdMs = 1000) {
-  const opgehaaldeOpties = { timeout: STANDAARD_FETCH_TIMEOUT_MS, ...opties };
   let laatsteFout;
   for (let poging = 1; poging <= pogingen; poging++) {
     try {
-      return await axios.get(url, opgehaaldeOpties);
+      return await axios.get(url, opties);
     } catch (e) {
       laatsteFout = e;
       if (!isTijdelijkeNetwerkFout(e) || poging === pogingen) throw e;
@@ -348,64 +319,6 @@ function measureMixedTextWidth(parts, font, sizePt, hebrewFont) {
   }, 0);
 }
 
-// Meet de hoogte (in PDF-punten, bij de gegeven puntgrootte) van de
-// GROOTSTE letter die daadwerkelijk voorkomt in de "tekst"-delen van een
-// gesplitste tekst (dus emoji/Hebreeuws zelf tellen niet mee als "letter") —
-// gebruikt om te voorkomen dat een emoji visueel groter wordt getekend dan
-// de grootste bestelde letter (zie drawMixedText's optionele
-// `opts.maxEmojiSizePt` hieronder). Meet de WERKELIJKE contour van elk
-// teken (dus inclusief bv. een accent op een "É", of de onderlengte van een
-// "j"), niet zomaar een aangenomen capHeight-verhouding — dat is preciezer
-// bij een willekeurige, door de klant zelf getypte tekst dan een vaste
-// aanname.
-//
-// Voor een lettertype dat als los TTF-bestand is ingeladen (fontkit) is de
-// exacte contour van elk teken (glyph.bbox) beschikbaar via het intern door
-// pdf-lib bewaarde fontkit-font-object (`font.embedder.font`) — hetzelfde
-// object dat pdf-lib zelf gebruikt om de tekst te coderen/meten. Voor een
-// ingebouwd PDF-standaardlettertype (bv. de Helvetica-Bold-noodgreep) is
-// zo'n per-teken-contour niet beschikbaar (alleen brede AFM-metrics), dus
-// valt dit terug op de CapHeight van dat lettertype als benadering.
-function meetGrootsteLetterHoogtePt(parts, font, sizePt) {
-  let maxTop = null;
-  let minBottom = null;
-  const embedderFont = font && font.embedder && font.embedder.font;
-  if (!embedderFont) return null;
-
-  const isFontkitFont = typeof embedderFont.glyphForCodePoint === 'function' && embedderFont.unitsPerEm;
-
-  parts.forEach(p => {
-    if (p.type !== 'text') return; // emoji/Hebreeuws tellen niet mee als "letter"
-    for (const ch of p.value) {
-      if (/\s/.test(ch)) continue; // spaties hebben geen zichtbare hoogte
-      try {
-        if (isFontkitFont) {
-          const glyph = embedderFont.glyphForCodePoint(ch.codePointAt(0));
-          if (glyph && glyph.bbox && Number.isFinite(glyph.bbox.maxY) && Number.isFinite(glyph.bbox.minY)) {
-            const top = glyph.bbox.maxY / embedderFont.unitsPerEm;
-            const bottom = glyph.bbox.minY / embedderFont.unitsPerEm;
-            if (maxTop === null || top > maxTop) maxTop = top;
-            if (minBottom === null || bottom < minBottom) minBottom = bottom;
-          }
-        } else if (typeof embedderFont.CapHeight === 'number') {
-          // Standaard PDF-lettertype (AFM): geen losse per-teken-contour
-          // beschikbaar — CapHeight/1000 als redelijke benadering van "de
-          // grootste letter" (gangbare typografische aanname).
-          const top = embedderFont.CapHeight / 1000;
-          if (maxTop === null || top > maxTop) maxTop = top;
-          if (minBottom === null) minBottom = 0;
-        }
-      } catch (e) {
-        // onbekend/niet te meten teken: gewoon overslaan, telt niet mee
-      }
-    }
-  });
-
-  if (maxTop === null || minBottom === null) return null; // geen "letter"-tekens gevonden (bv. tekst bestaat alleen uit emoji)
-  const hoogte = (maxTop - minBottom) * sizePt;
-  return hoogte > 0 ? hoogte : null;
-}
-
 // Tekent een regel tekst+emoji(+Hebreeuws) door elkaar, op de gegeven
 // basislijn (PDF-punten, dus al vanaf de onderkant van de pagina). Hebreeuwse
 // delen zijn door splitRemainderSafely hierboven al in de juiste (omgekeerde)
@@ -413,31 +326,16 @@ function meetGrootsteLetterHoogtePt(parts, font, sizePt) {
 // getekend. Zonder hebrewFont (of bij een onverwacht teken dat zelfs
 // hebrewFont niet kent) wordt dat deel gewoon overgeslagen i.p.v. een crash
 // te riskeren — zie de toelichting bij measureMixedTextWidth hierboven.
-//
-// `opts.maxEmojiSizePt` (optioneel, standaard geen limiet — bestaande
-// producten die dit niet meegeven blijven dus ONGEWIJZIGD werken): een
-// bovengrens (in PDF-punten) voor de getekende emoji-grootte, bedoeld om
-// een emoji nooit groter te laten worden dan de grootste letter van de
-// bestelde tekst (zie meetGrootsteLetterHoogtePt hierboven). De
-// horizontale "advance" (cursorX += sizePt) blijft ONGEWIJZIGD — alleen de
-// getekende/zichtbare grootte en verticale positie van de emoji zelf
-// worden aangepast, zodat de tekst-uitlijning/centrering elders niet
-// verschuift.
-function drawMixedText(page, parts, font, sizePt, xPt, baselineYPt, color, emojiCache, hebrewFont, opts) {
+function drawMixedText(page, parts, font, sizePt, xPt, baselineYPt, color, emojiCache, hebrewFont) {
   let cursorX = xPt;
-  const maxEmojiSizePt = opts && Number.isFinite(opts.maxEmojiSizePt) ? opts.maxEmojiSizePt : null;
   parts.forEach(p => {
     if (p.type === 'emoji') {
       const img = emojiCache.get(p.value);
       if (img) {
-        const size = maxEmojiSizePt !== null ? Math.min(sizePt * 1.15, maxEmojiSizePt) : sizePt * 1.15;
-        // Zelfde relatieve "overhang" onder de basislijn aanhouden als de
-        // oorspronkelijke 0.15/1.15-verhouding, nu geschaald naar de
-        // (mogelijk kleinere) uiteindelijke grootte.
-        const overhang = size * (0.15 / 1.15);
+        const size = sizePt * 1.15;
         page.drawImage(img, {
           x: cursorX,
-          y: baselineYPt - overhang,
+          y: baselineYPt - sizePt * 0.15,
           width: size,
           height: size
         });
@@ -1238,7 +1136,7 @@ module.exports = {
   isVermoedelijkeDubbeleCadeautjeRegel, drawGradientShapes,
   MM,
   splitTextEmoji, emojiToCodepoints, fetchEmojiPng, preloadEmojiImages,
-  measureMixedTextWidth, drawMixedText, fitFontSizeToWidth, loadHebrewFont, meetGrootsteLetterHoogtePt,
+  measureMixedTextWidth, drawMixedText, fitFontSizeToWidth, loadHebrewFont,
   embedPhoto, fitPhotoInSquareZone, recolorDarkPixels, recolorLightPixels, getCodeSvg,
   drawBackground, isMarbleBackground, hasPageBackground, nearWhiteCmyk, adjustCmykChannels,
   extractSvgShapes, drawSvgShapesInBox, embedPhotoRounded, drawImageMetAfgerondeHoeken, voorkomLigatuurGaten,

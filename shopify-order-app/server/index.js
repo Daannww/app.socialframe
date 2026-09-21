@@ -936,38 +936,14 @@ app.get('/api/print-files/pdf-zip', requireAdmin, async (req, res) => {
     res.setHeader('Content-Disposition', `attachment; filename="${getDutchDateString()}.zip"`);
 
     const archive = archiver('zip', { zlib: { level: 9 } });
-    // LET OP (2026-09-21): hier stond eerder `archive.on('error', (err) => {
-    // throw err; })`. Dat lijkt onschuldig (de route heeft immers al een
-    // try/catch), maar archiver's 'error'-event vuurt ASYNCHROON, ver buiten
-    // de call-stack van de try-blok hierboven — een `throw` daarbinnen wordt
-    // dus NIET door die try/catch opgevangen. Zonder een globale
-    // process.on('uncaughtException')-vangnet (die hier niet aanwezig is)
-    // crasht zo'n onopgevangen throw het HELE Node-proces, waardoor niet
-    // alleen deze download maar ALLE actieve verbindingen (ook van andere
-    // gebruikers) abrupt worden afgebroken — precies wat de gebruiker als
-    // een generieke "Failed to fetch" te zien kreeg. Elders in dit bestand
-    // (de geplande zip-export hieronder) wordt hetzelfde archiver-event al
-    // wél veilig afgehandeld (`archive.on('error', reject)` binnen een
-    // Promise); hier nu hetzelfde soort veilige afhandeling: de fout loggen
-    // en de response netjes afbreken/beantwoorden, zonder het proces mee te
-    // slepen.
-    archive.on('error', (err) => {
-      console.error('Fout tijdens het opbouwen van de drukwerkbestanden-zip:', err);
-      if (!res.headersSent) {
-        res.status(500).json({ error: err.message });
-      } else {
-        res.destroy(err);
-      }
-    });
+    archive.on('error', (err) => { throw err; });
     archive.pipe(res);
 
     await appendPrintFilesToArchive(archive, targets);
 
     await archive.finalize();
   } catch (e) {
-    console.error('Fout bij het genereren van drukwerkbestanden:', e);
     if (!res.headersSent) res.status(500).json({ error: e.message });
-    else res.destroy(e);
   }
 });
 

@@ -2,7 +2,7 @@ const { PDFDocument, StandardFonts, cmyk } = require('pdf-lib');
 const fontkit = require('@pdf-lib/fontkit');
 const fs = require('fs');
 const path = require('path');
-const { MM, splitTextEmoji, preloadEmojiImages, measureMixedTextWidth, drawMixedText, meetGrootsteLetterHoogtePt } = require('./pdf-shared');
+const { MM, splitTextEmoji, preloadEmojiImages, measureMixedTextWidth, drawMixedText } = require('./pdf-shared');
 
 // Afmetingen 1-op-1 gemeten uit het door de gebruiker aangeleverde
 // referentiebestand ("kentekensjabloon.pdf", voertuig "Auto"): 526,0 x
@@ -155,19 +155,7 @@ async function generateKentekenplaathouderPdf(data) {
     // zoals opgegeven.
     const yPt = BASELINE_VANAF_ONDER_MM * MM;
 
-    // Emoji's (bv. 😂) werden standaard 15% GROTER dan de puntgrootte
-    // getekend (zie drawMixedText in pdf-shared.js) — bedoeld om een emoji
-    // visueel even zwaar te laten ogen als gewone tekst, maar bij dit
-    // product (vaak korte, volledig hoofdlettertekst) viel dat in de
-    // praktijk op als een emoji die duidelijk GROTER is dan de bestelde
-    // tekst zelf. Op verzoek nu begrensd op de hoogte van de daadwerkelijk
-    // grootste letter uit de bestelde tekst zelf (dus per order opnieuw
-    // gemeten, niet een vaste aanname) — een emoji kan dus nooit meer groter
-    // getekend worden dan die letter, wel nog steeds kleiner als de
-    // standaard 1.15x-grootte daar toevallig al onder zit.
-    const maxEmojiSizePt = meetGrootsteLetterHoogtePt(delen, font, sizePt);
-
-    drawMixedText(page, delen, font, sizePt, xPt, yPt, TEKST_KLEUR, emojiCache, undefined, { maxEmojiSizePt });
+    drawMixedText(page, delen, font, sizePt, xPt, yPt, TEKST_KLEUR, emojiCache);
   }
 
   return doc.save();
