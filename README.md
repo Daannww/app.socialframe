@@ -6,6 +6,34 @@ van kan maken, en waarmee je de status van orders kan wijzigen.
 
 ## Functies
 
+## Nieuw ontwerp: "Tegeltje met tekst - Thuis is waar de liefde woont"
+
+Toegevoegd aan `server/texttile.js`, op dezelfde manier als de vorige
+handschrift-ontwerpen zonder los aangeleverd fontbestand: 25
+vector-decoratie-vormen rechtstreeks uit het aangeleverde referentiebestand
+(`Thuis_is_waar_de_liefde_woont.pdf`) geëxtraheerd — 4 tekstregels ("Thuis"
+/ "Is waar" / "De liefde" / "Woont") plus een handgetekend hartje aan het
+eind in de vaste bordeaux-CMYK-kleur (ongeacht de gekozen tegelkleur).
+
+Kleine bijzonderheid t.o.v. eerdere ontwerpen: het referentiebestand
+gebruikt voor de tekst zelf CMYK(0, 0, 0.01, 1) (de bekende "1%-gele"
+bijna-zwart-truc) i.p.v. zuiver zwart. Bewust NIET als vaste kleur
+overgenomen — de tekst-vormen krijgen hier geen eigen `kleur`, zodat ze
+gewoon de normale zwart/wit-regel volgen (afhankelijk van de gekozen
+tegelkleur), net als alle andere ontwerpen.
+
+Herkenning: `/thuis\s*is\s*waar\s*de\s*liefde\s*woont/i` op de producttitel.
+
+**Getest**: zelfde beproefde methode als bij "Blij met ons"/"Huisje kaasje
+wijntje" — de vormen zijn geëxtraheerd door de PDF-tekenopdrachten
+(content stream) direct te ontleden met `pikepdf` (inclusief de
+transformatiematrices), gerenderd en pixel-voor-pixel vergeleken met een
+render van het origineel (op wat anti-aliasing-ruis na volledig identiek),
+en via de daadwerkelijke `generateTegelTekstPdf`-functie zelf getest.
+Volledige regressietest: alle 25 "Tegeltje met tekst"-ontwerpen succesvol
+opnieuw gegenereerd zonder fouten, alle servermodules syntax-gecontroleerd
+— geen bijwerkingen op de rest van het project.
+
 ## Kentekenplaathouder: emoji nooit groter dan de grootste bestelde letter
 
 Gemeld: emoji's (bv. 😂) werden op de kentekenplaathouders soms te groot
