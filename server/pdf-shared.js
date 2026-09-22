@@ -1202,12 +1202,28 @@ function isVermoedelijkeDubbeleCadeautjeRegel(li, alleLineItems, echteTitelRegex
 //   Omdat deze BINNEN dezelfde scale(1,-1)-context wordt toegepast als het
 //   knippad, moet 'ie hier als [a,0,0,-d,x,-y] doorgegeven worden (d en y
 //   genegeerd) om na die scale(1,-1) weer het juiste eindresultaat te geven.
+// - gradient.omgekeerd (optioneel, standaard false — bestaande ontwerpen die
+//   dit niet meegeven blijven dus ONGEWIJZIGD werken): sommige
+//   referentiebestanden (ontdekt bij "Kerstboom") blijken hun kleurverloop-
+//   functie niet als kale FunctionType 2 te definiëren, maar gewrapt in een
+//   FunctionType 3 ("stitching") met Encode [1, 0] — d.w.z. het verloop
+//   loopt in de PRAKTIJK van C1 naar C0 i.p.v. andersom. Reken dat niet om
+//   naar aangepaste C0/C1-waarden (de exponent N zorgt ervoor dat een kale
+//   C0/C1-swap bij N != 1 een ANDER (fout) verloopprofiel zou geven dan het
+//   origineel) — bouw in plaats daarvan exact dezelfde FunctionType 3/
+//   Encode-structuur na als het brondocument.
 function drawGradientShapes(doc, page, vormen, gradient) {
   const context = doc.context;
-  const func = context.obj({
+  const basisFunc = context.obj({
     FunctionType: 2, Domain: [0, 1],
     C0: gradient.C0, C1: gradient.C1, N: gradient.N
   });
+  const func = gradient.omgekeerd
+    ? context.obj({
+        FunctionType: 3, Domain: [0, 1],
+        Functions: [basisFunc], Bounds: [], Encode: [1, 0]
+      })
+    : basisFunc;
   const shading = context.obj({
     ShadingType: 2, ColorSpace: pdfLib.PDFName.of('DeviceCMYK'),
     Coords: [0, 0, 1, 0], Function: func, Extend: [true, true]

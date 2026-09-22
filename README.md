@@ -6,6 +6,61 @@ van kan maken, en waarmee je de status van orders kan wijzigen.
 
 ## Functies
 
+## Nieuw ontwerp + nieuwe productfamilie: "Tegeltje met figuur - Kerstboom"
+
+**Wat:** eerste ontwerp in een nieuwe productfamilie, "Tegeltje met figuur"
+(i.p.v. "Tegeltje met tekst") — deze bevat geen tekst, alleen een
+illustratie (een kerstboom met een kleine ster erboven).
+
+**Aanpassingen:**
+- `matchTegelTekstOntwerp` (server/texttile.js) herkent nu ook titels met
+  "tegeltje met figuur" (naast de bestaande "tekst" en "hartje"), zodat het
+  bestaande "Tegeltje met tekst"-renderpad (100x100mm canvas,
+  decoratie/verloopvormen) hergebruikt kan worden.
+- Nieuw ontwerp `id: 'kerstboom'` toegevoegd aan `TEGEL_TEKST_ONTWERPEN`
+  (`herken: /kerstboom/i`), zonder tekstregels — alleen `verloopvormen`.
+
+**Technische bijzonderheid — omgekeerd kleurverloop:** het referentiebestand
+gebruikt, net als eerder bij "Tussen de sterren zo helder" (de sterren-
+decoratie), een ECHT PDF-kleurverloop (ShadingType 2, axiaal) voor zowel de
+boom als de ster — geen platte kleur. In tegenstelling tot "Tussen de
+sterren" bleek de kleurverloop-functie in dit bestand een `FunctionType 3`
+(stitching-)wrapper met `Encode: [1, 0]` om de onderliggende
+`FunctionType 2`-functie heen te hebben: de kleurinterpolatie loopt hier van
+C1 naar C0 (omgekeerde richting), terwijl de bestaande `drawGradientShapes`-
+hulpfunctie (server/pdf-shared.js) alleen de niet-omgekeerde richting
+(C0 → C1) kon reproduceren.
+
+Simpelweg C0 en C1 omwisselen zou hier WISKUNDIG NIET hetzelfde opleveren,
+omdat de kleurinterpolatie een exponent N (hier 1.70847) gebruikt:
+`color(t) = C0 + t^N * (C1-C0)` is niet gelijk aan het omwisselen van de
+eindpunten zodra N ≠ 1 — dat zou een andere, onjuiste interpolatiecurve
+geven. Daarom is `drawGradientShapes` uitgebreid met een optionele
+`gradient.omgekeerd`-vlag die, indien gezet, exact dezelfde
+`FunctionType 3`/`Encode: [1, 0]`-structuur opbouwt als het origineel — dit
+reproduceert de brontechniek 1-op-1 i.p.v. een benadering. De vlag staat
+standaard uit: "Tussen de sterren" geeft hem niet mee en blijft dus
+volledig ongewijzigd (bevestigd: de niet-omgekeerde codetak is byte-voor-
+byte dezelfde object-constructie als vóór deze wijziging).
+
+**Getest:**
+- Losse render+pixel-vergelijking van de nieuwe verloopvormen (met
+  `omgekeerd: true`) tegen het origineel: kleuren per hoogte in de boom
+  komen overeen; verschil bleef beperkt tot ~1% van de pixels (allemaal op
+  de vele smalle, gezaagde boomrandjes — subpixel-anti-aliasing, o.a. door
+  een verwaarloosbaar paginaformaat-verschil: 283.605pt vs. het gebruikte
+  283.4646pt voor 100mm).
+- Herkenning: `matchTegelTekstOntwerp` herkent de nieuwe titel ("Tegeltje
+  met figuur - Kerstboom.") correct, én bestaande titels ("tekst"/"hartje")
+  blijven werken.
+- Volledige generatie via `generateTegelTekstPdf` voor Kerstboom: geen
+  fouten, output pixel-voor-pixel identiek (zelfde ~1% randverschil) aan de
+  losse test.
+- Regressietest: `generateTegelTekstPdf` opnieuw gedraaid voor alle 26
+  bekende "Tegeltje met tekst/hartje/figuur"-ontwerpen (incl. "Tussen de
+  sterren", dat de niet-omgekeerde gradient-tak gebruikt) — geen enkele
+  fout.
+
 ## Nieuw ontwerp: "Tegeltje met tekst - Thuis is waar de liefde woont"
 
 Toegevoegd aan `server/texttile.js`, op dezelfde manier als de vorige
