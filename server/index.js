@@ -25,6 +25,7 @@ const { generatePhotoFramePdf, extractPhotoFrameItemsFromOrder } = require('./ph
 const { generateLijntekeningFramePdf, extractLijntekeningFrameItemsFromOrder } = require('./lijntekeningframe');
 const { generateTegelIllustratiePdf, extractTegelIllustratieItemsFromOrder } = require('./tegelillustratie');
 const { generateKentekenplaathouderPdf, extractKentekenplaathouderItemsFromOrder } = require('./kentekenplaathouder');
+const { generateFotoTegel3Pdf, extractFotoTegel3ItemsFromOrder } = require('./fototegel3');
 const { sendReviewEmail } = require('./reviewEmail');
 const { stuurTweeFactorCode, tweeFactorIsGeconfigureerd } = require('./twoFactorEmail');
 const SqliteSessionStore = require('./sqliteSessionStore');
@@ -305,6 +306,8 @@ app.get('/api/orders/:id', (req, res) => {
     tegelillustratie_items: extractTegelIllustratieItemsFromOrder({ line_items: lineItems }),
     // Kentekenplaathouder-items (voor de downloadknop in de popup)
     kentekenplaathouder_items: extractKentekenplaathouderItemsFromOrder({ line_items: lineItems }),
+    // "Foto tegel met 3 foto's"-items (voor de downloadknop in de popup)
+    fototegel3_items: extractFotoTegel3ItemsFromOrder({ line_items: lineItems }),
     // Muziekframe/Valentijnframe-items (voor het aantal downloadknoppen in
     // de popup) — was voorheen een LOSSE, eigen (verouderde, puur titel-
     // gebaseerde) regex in app.js zelf, die de eigenschappen-fallback-fix
@@ -863,6 +866,32 @@ app.get('/api/print-files/kentekenplaathouder-pdf', requireAdmin, async (req, re
   }
 });
 
+// --- Eén "Foto tegel met 3 foto's"-drukwerkbestand downloaden vanuit de order-popup ---
+app.get('/api/print-files/fototegel3-pdf', requireAdmin, async (req, res) => {
+  const orderId = parseInt(req.query.orderId, 10);
+  const itemIndex = parseInt(req.query.itemIndex, 10) || 0;
+  if (!orderId) return res.status(400).json({ error: 'orderId is verplicht' });
+
+  try {
+    const order = getOrder(orderId);
+    if (!order) return res.status(404).json({ error: 'Order niet gevonden' });
+
+    const lineItems = getLineItemsMetOverrides(order);
+    const items = extractFotoTegel3ItemsFromOrder({ line_items: lineItems });
+    const item = items[itemIndex];
+    if (!item) return res.status(404).json({ error: 'Geen "Foto tegel met 3 foto\'s" gevonden op deze order' });
+
+    const pdfBytes = await generateFotoTegel3Pdf(item.data);
+    const baseName = String(order.order_number || order.shopify_order_id).replace(/[\\/:*?"<>|]/g, '-');
+    const suffix = items.length > 1 ? ` ${itemIndex + 1}` : '';
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${baseName}${suffix} foto-tegel-3-fotos.pdf"`);
+    res.send(Buffer.from(pdfBytes));
+  } catch (e) {
+    res.status(500).json({ error: 'Kon "Foto tegel met 3 foto\'s"-bestand niet genereren: ' + e.message });
+  }
+});
+
 // --- Eén Auto-frame-drukwerkbestand downloaden vanuit de order-popup ---
 app.get('/api/print-files/autoframe-pdf', requireAdmin, async (req, res) => {
   const orderId = parseInt(req.query.orderId, 10);
@@ -921,7 +950,8 @@ app.get('/api/print-files/pdf-zip', requireAdmin, async (req, res) => {
       extractPhotoFrameItemsFromOrder({ line_items: o.line_items }).length > 0 ||
       extractLijntekeningFrameItemsFromOrder({ line_items: o.line_items }).length > 0 ||
       extractTegelIllustratieItemsFromOrder({ line_items: o.line_items }).length > 0 ||
-      extractKentekenplaathouderItemsFromOrder({ line_items: o.line_items }).length > 0
+      extractKentekenplaathouderItemsFromOrder({ line_items: o.line_items }).length > 0 ||
+      extractFotoTegel3ItemsFromOrder({ line_items: o.line_items }).length > 0
     );
 
     if (targets.length === 0) {
@@ -1268,6 +1298,33 @@ async function appendPrintFilesToArchive(archive, targets) {
       }
     }
 
+    // --- "Foto tegel met 3 foto's": zelfde map-conventie als de andere
+    // tegeltjes (13x13 -> submap "groot", 10x10 direct in "tegels/") — ook
+    // dit is fysiek een gewoon 10x10/13x13-tegeltje. "3fotos" in de
+    // bestandsnaam zelf voorkomt een naam-botsing met een eventuele andere
+    // tegel in dezelfde order. ---
+    const fotoTegel3Items = extractFotoTegel3ItemsFromOrder({ line_items: order.line_items });
+    if (fotoTegel3Items.length > 0) {
+      const multipleFotoTegel3 = fotoTegel3Items.length > 1;
+      for (let i = 0; i < fotoTegel3Items.length; i++) {
+        const numberSuffix = multipleFotoTegel3 ? ` ${i + 1}` : '';
+        const item = fotoTegel3Items[i];
+        const filename = item.data.is13x13
+          ? `${dateFolder}/tegels/groot/${baseName}${numberSuffix} 3fotos groot.pdf`
+          : `${dateFolder}/tegels/${baseName}${numberSuffix} 3fotos.pdf`;
+        try {
+          const pdfBytes = await generateFotoTegel3Pdf(item.data);
+          archive.append(Buffer.from(pdfBytes), { name: filename });
+          orderSucceeded = true;
+        } catch (e) {
+          archive.append(
+            `Kon het "Foto tegel met 3 foto's"-bestand voor order ${baseName}${numberSuffix} niet genereren: ${e.message}`,
+            { name: `${dateFolder}/tegels/FOUT-${baseName}${numberSuffix}-3fotos.txt` }
+          );
+        }
+      }
+    }
+
     // Order automatisch naar "wacht op productie" zetten zodra minstens 1 drukwerkbestand is gelukt
     if (orderSucceeded) {
       updateStatus(order.id, 'wacht op productie');
@@ -1295,7 +1352,8 @@ async function runScheduledPrintFilesExport() {
     extractPhotoFrameItemsFromOrder({ line_items: o.line_items }).length > 0 ||
     extractLijntekeningFrameItemsFromOrder({ line_items: o.line_items }).length > 0 ||
     extractTegelIllustratieItemsFromOrder({ line_items: o.line_items }).length > 0 ||
-    extractKentekenplaathouderItemsFromOrder({ line_items: o.line_items }).length > 0
+    extractKentekenplaathouderItemsFromOrder({ line_items: o.line_items }).length > 0 ||
+    extractFotoTegel3ItemsFromOrder({ line_items: o.line_items }).length > 0
   );
 
   if (targets.length === 0) {

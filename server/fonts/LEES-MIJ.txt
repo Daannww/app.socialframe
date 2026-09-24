@@ -11,3 +11,16 @@ gewoon nieuwe bestanden neer met exact deze namen:
 Zonder deze bestanden valt het Muziek-/Valentijnframe-drukwerkbestand terug
 op een systeemlettertype (Helvetica) — de tekst komt er dan nog steeds
 netjes op te staan, alleen niet met exact het Montserrat-lettertype.
+
+---
+
+Voor "Foto tegel met 3 foto's" (de 3 onderschriften onder de foto's) wordt
+het schrijflettertype "Sacramento" gebruikt (uit het aangeleverde sjabloon-
+PDF gehaald: FontFamily "Sacramento", regular gewicht). Dit bestand zit hier
+nog NIET in — zet het (een gratis Google Font) hier neer als:
+
+  Sacramento-Regular.ttf
+
+Zonder dit bestand valt het "Foto tegel met 3 foto's"-drukwerkbestand terug
+op Helvetica voor de onderschriften — leesbaar, maar niet het bedoelde
+schrijflettertype.

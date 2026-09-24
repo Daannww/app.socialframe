@@ -581,6 +581,43 @@ async function embedPhotoCoverRect(doc, photoUrl, filterValue, targetWidthMm, ta
   return { image };
 }
 
+// Zelfde cover-fit-gedrag als embedPhotoCoverRect hierboven (foto bijsnijden
+// tot het volledige vak gevuld is), maar ZONDER de anti-gaten-kleurcorrectie
+// (adjustCmykChannels) — gebruikt voor de "Foto tegel met 3 foto's", waar de
+// opdrachtgever expliciet aangaf dat het anti-gaten-protocol hier niet nodig
+// is (elke foto krijgt bovendien zijn eigen afgeronde-hoeken-knipmasker via
+// drawImageMetAfgerondeHoeken, geen edge-to-edge druk zoals bij het
+// Foto-frame-product waar de correctie wel voor bedoeld is).
+async function embedPhotoCoverRectGeenAntiGaten(doc, photoUrl, targetWidthMm, targetHeightMm) {
+  const imgRes = await fetchMetHerpogingen(photoUrl, { responseType: 'arraybuffer' });
+  const rotatedBuffer = await sharp(Buffer.from(imgRes.data)).rotate().toBuffer(); // EXIF-rotatie vast "bakken"
+
+  const targetWidthPx = Math.round((targetWidthMm / 25.4) * 300);
+  const targetHeightPx = Math.round((targetHeightMm / 25.4) * 300);
+  const gevuldeBuffer = await sharp(rotatedBuffer)
+    .resize(targetWidthPx, targetHeightPx, { fit: 'cover', position: 'centre' })
+    .toBuffer();
+
+  // Echte transparantie behouden als PNG (zie heeftEchteTransparantie
+  // hierboven); de meeste foto's gaan gewoon via de JPEG-weg hieronder. In
+  // beide gevallen wel het sRGB-profiel meegeven (zie de toelichting bij
+  // adjustCmykChannels) zodat een print-RIP de kleuren correct interpreteert.
+  if (await heeftEchteTransparantie(gevuldeBuffer)) {
+    const pngBuffer = await sharp(gevuldeBuffer).withMetadata({ icc: 'srgb' }).png().toBuffer();
+    const image = await doc.embedPng(pngBuffer);
+    return { image };
+  }
+
+  const jpegBuffer = await sharp(gevuldeBuffer)
+    .flatten({ background: { r: 255, g: 255, b: 255 } })
+    .toColourspace('srgb')
+    .withMetadata({ icc: 'srgb' })
+    .jpeg({ quality: 95, chromaSubsampling: '4:4:4' })
+    .toBuffer();
+  const image = await doc.embedJpg(jpegBuffer);
+  return { image };
+}
+
 // Past een ECHTE CMYK-kanaalaanpassing toe op een foto (RGB -> CMYK omreke-
 // nen, de kanalen bijstellen, terug naar RGB) — zelfde soort aanpassing als
 // in het "Kleuren wijzigen"-dialoogvenster van Illustrator/Photoshop, i.p.v.
@@ -1258,6 +1295,6 @@ module.exports = {
   embedPhoto, fitPhotoInSquareZone, recolorDarkPixels, recolorLightPixels, getCodeSvg,
   drawBackground, isMarbleBackground, hasPageBackground, nearWhiteCmyk, adjustCmykChannels,
   extractSvgShapes, drawSvgShapesInBox, embedPhotoRounded, drawImageMetAfgerondeHoeken, voorkomLigatuurGaten,
-  embedPhotoCoverRect, heeftEchteTransparantie, fetchMetHerpogingen,
+  embedPhotoCoverRect, embedPhotoCoverRectGeenAntiGaten, heeftEchteTransparantie, fetchMetHerpogingen,
   splitLigatuurVeilig, widthOfTextLigatuurVeiligAtSize, drawTextLigatuurVeilig
 };

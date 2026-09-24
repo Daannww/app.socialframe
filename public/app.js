@@ -604,6 +604,19 @@ function renderModal(order) {
       }</div>`
     : '';
 
+  // "Foto tegel met 3 foto's": zelfde aanpak — server-berekend
+  // fototegel3_items-veld gebruiken.
+  const fotoTegel3Items = order.fototegel3_items || [];
+  const fotoTegel3Html = fotoTegel3Items.length > 0
+    ? `<div style="display:flex; flex-direction:column; gap:8px;">${
+        fotoTegel3Items.map((item, idx) => `
+      <button class="btn btn-primary" onclick="downloadFotoTegel3Pdf(${order.id}, ${idx}, this)">
+        <i class="fa-solid fa-download"></i> Download foto-tegel-3-fotos-bestand${fotoTegel3Items.length > 1 ? ` (${idx + 1})` : ''}
+      </button>
+    `).join('')
+      }</div>`
+    : '';
+
   const spotifyHtml = (order.spotify_links || []).map((link, idx) => `
     <div class="spotify-link-row" data-link="${escapeHtml(link)}">
       <a href="${escapeHtml(link)}" target="_blank" rel="noopener" class="copyable" onclick="event.preventDefault(); copyText(this, '${jsEscape(link)}')" title="Klik om te kopiëren">${escapeHtml(link)}</a>
@@ -840,6 +853,13 @@ function renderModal(order) {
     <div class="modal-section">
       <h3>Kentekenplaathouder</h3>
       ${kentekenplaathouderHtml}
+    </div>
+    ` : ''}
+
+    ${fotoTegel3Html ? `
+    <div class="modal-section">
+      <h3>Foto tegel met 3 foto's</h3>
+      ${fotoTegel3Html}
     </div>
     ` : ''}
 
@@ -1128,6 +1148,33 @@ window.downloadKentekenplaathouderPdf = async function (orderId, idx, btn) {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   } catch (e) {
     alert('Kon kentekenplaathouder-bestand niet genereren: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalLabel;
+  }
+};
+
+window.downloadFotoTegel3Pdf = async function (orderId, idx, btn) {
+  const originalLabel = btn.innerHTML;
+  btn.disabled = true;
+  btn.textContent = 'Bezig...';
+  try {
+    const res = await fetch(`/api/print-files/fototegel3-pdf?orderId=${orderId}&itemIndex=${idx}`);
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || 'Server gaf een fout terug');
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `foto-tegel-3-fotos-order-${orderId}-${idx + 1}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } catch (e) {
+    alert('Kon "Foto tegel met 3 foto\'s"-bestand niet genereren: ' + e.message);
   } finally {
     btn.disabled = false;
     btn.innerHTML = originalLabel;

@@ -6,6 +6,86 @@ van kan maken, en waarmee je de status van orders kan wijzigen.
 
 ## Functies
 
+## Nieuw product: "Foto tegel met 3 foto's"
+
+**Wat:** een nieuw, heel eigen tegelproduct (10x10 of 13x13cm, net als de
+andere tegeltjes) met 3 losse foto's naast elkaar (van links naar rechts) in
+afgeronde vakken, elk met een optioneel onderschrift (klant-gekozen tekst,
+lettergrootte en kleur) en een klein hartje erboven. Nieuw bestand:
+`server/fototegel3.js`.
+
+**Aangeleverd:** een sjabloon-PDF (100x100mm referentiecanvas) met de 3
+afgeronde foto-vakken, 3 tekstplekken (in het schrijflettertype
+"Sacramento") en een klein hartje per kolom. Alle posities/maten zijn
+hieruit gehaald via dezelfde pikepdf-content-stream-extractietechniek als
+elders in dit project (zie de code-comments in `fototegel3.js`) en worden
+voor het echte drukwerkbestand evenredig geschaald naar de gekozen fysieke
+maat (10cm of 13cm) — net als bij de andere fotoproducten (photoframe/
+tegelillustratie/"Gepersonaliseerde foto tegel") is het drukwerkbestand zelf
+op de daadwerkelijke fysieke afmeting (niet een vast 100mm-canvas zoals bij
+de "Tegeltje met tekst"-ontwerpen), zodat de foto's op volle 300dpi
+ingebed worden i.p.v. via een schaalstap achteraf kwaliteit te verliezen.
+
+**Herkenning:**
+- Producttitel: "Foto tegel met 3 foto's" (regex, vangt schrijfvarianten).
+- Het FORMAAT (10x10/13x13) staat bij dit product ongebruikelijk als TWEEDE
+  deel van de varianttitel (bv. "Houten-houder / 13x13", i.p.v. "Kleur /
+  Formaat" bij andere producten) — dus niet zomaar de bestaande
+  10x13-detectie van de andere tegelproducten hergebruikt, maar gewoon de
+  hele titel/variant/properties-tekst doorzocht op "13x13", net als de
+  tegel-illustratie-tegeltjes al deden.
+- Foto's/tekst/lettergrootte komen uit de line-item-properties van de
+  gebruikte personalisatie-app. Die properties hebben per veld een net iets
+  ander afsluitend leesteken (bv. "Tekst 1::" vs. "Kleur tekst:" vs. "Kleur
+  tekst.:" — vermoedelijk om naam-botsingen in de designtool te vermijden).
+  "Foto N"/"Tekst N"/"_font size Tekst N" zijn gelukkig met een cijfer te
+  matchen; voor "Kleur tekst" (geen cijfer, 3x dezelfde naamvorm) wordt
+  aangenomen dat de 3 voorkomens in aanlevervolgorde bij Tekst 1/2/3 horen —
+  geef door als dat een keer niet blijkt te kloppen.
+
+**Geen anti-gaten-correctie:** op uitdrukkelijk verzoek krijgt dit product
+NIET de gebruikelijke Y+8%-anti-gaten-kleurcorrectie (adjustCmykChannels)
+die de andere fotoproducten wel toepassen. Nieuwe hulpfunctie
+`embedPhotoCoverRectGeenAntiGaten` in `pdf-shared.js` (cover-fit bijsnijden,
+net als `embedPhotoCoverRect`, maar zonder de kleurcorrectie). De afgeronde
+hoeken van elk foto-vak gebruiken de al bestaande
+`drawImageMetAfgerondeHoeken`-vector-knipmasker-techniek (geen aparte PNG's
+nodig).
+
+**Tekstkleuren:** de kleuropties (Zwart, Antraciet, Wit, Zacht Blauw,
+Lichtgeel, LichtRoze, Mintgroen, Lavendel, Zacht Perzik, Lichtgrijs,
+Lichtgroen, Beige) zijn 1-op-1 overgenomen van de "Optiewaarden"-lijst van
+het Shopify-optietype "Kleur" voor dit product (screenshot ontvangen van de
+opdrachtgever) — de hexcodes zijn afgelezen uit de kleurstalen in die
+lijst. "Wit" is bewust NIET letterlijk #FFFFFF, maar de bestaande
+1%-gele-CMYK-truc (`nearWhiteCmyk`) — net als overal elders in dit project,
+om te voorkomen dat een printer-RIP het als "geen inkt" (een gat) ziet. Een
+onbekende/lege kleurnaam valt terug op zwart, zodat de tekst nooit
+onzichtbaar wordt.
+
+**Lettertype:** het schrijflettertype uit het sjabloon ("Sacramento") staat
+nog niet in `server/fonts/` — zie de nieuwe toelichting in
+`server/fonts/LEES-MIJ.txt`. Tot het is toegevoegd valt het onderschrift
+terug op Helvetica (nette, leesbare tekst, alleen niet het schrijflettertype).
+
+**Getest:**
+- Herkenning van de producttitel + het 2e-deel-varianttitel-formaat.
+- Extractie van foto's/teksten/lettergroottes/kleuren uit een line item dat
+  exact de eigenschappen-vorm van het voorbeeld-order nabootst (incl. de
+  wisselende leestekens in de property-namen).
+- Volledige PDF-generatie voor zowel 10x10 als 13x13, met 3 lokale
+  test-foto's (via een tijdelijke lokale HTTP-server in de sandbox, i.p.v.
+  een echte Shopify CDN-link) — geen fouten, visuele controle bevestigt: 3
+  afgeronde foto's op de juiste posities/afstanden (exact overeenkomend met
+  het sjabloon), onderschriften gecentreerd in de juiste kleur, hartjes in
+  dezelfde kleur als hun onderschrift.
+- Randgeval: een ontbrekende foto en/of leeg onderschrift voor 1 of meer van
+  de 3 slots — genereert nog steeds probleemloos (dat ene vak blijft gewoon
+  leeg, geen crash).
+- Alle bestaande print-bestand-generatoren opnieuw doorgedraaid (regressie) —
+  geen van de bestaande producten (incl. "Tegeltje met figuur - Kerstboom"
+  van hierboven) is geraakt door deze toevoeging.
+
 ## Nieuw ontwerp + nieuwe productfamilie: "Tegeltje met figuur - Kerstboom"
 
 **Wat:** eerste ontwerp in een nieuwe productfamilie, "Tegeltje met figuur"
