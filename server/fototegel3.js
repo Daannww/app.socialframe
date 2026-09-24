@@ -54,7 +54,14 @@ const TEKST_BASELINE_TOP_MM = 69.9;
 // dus hier: elk hartje volgt de kleur van ZIJN EIGEN onderschrift, en wordt
 // (net als het onderschrift) overgeslagen als er geen tekst is ingevuld voor
 // die foto. ---
-const HART_PAD = 'M 0.000,-0.000 C 0.000,1.074 0.687,2.457 2.866,3.423 C 5.044,2.457 5.731,1.074 5.731,0.000 C 5.731,-0.770 5.078,-1.393 4.271,-1.393 C 3.603,-1.393 3.039,-0.965 2.866,-0.380 C 2.693,-0.965 2.129,-1.393 1.460,-1.393 C 0.654,-1.393 -0.000,-0.770 -0.000,0.000 Z';
+// LET OP: pdf-lib se drawSvgPath flipt bij het tekenen ALLEEN de Y-as (SVG is
+// y-down, PDF is y-up) — de X-as blijft ongewijzigd. De eerste versie van
+// deze pad-string negeerde per ongeluk OOK de X-waarden (i.p.v. alleen Y),
+// waardoor het hartje links-rechts gespiegeld/verschoven werd getekend en
+// dus niet meer gecentreerd onder de foto stond. Hieronder de gecorrigeerde
+// versie: X-waarden exact zoals in het sjabloon (negatief, want de vorm ligt
+// t.o.v. het ankerpunt naar LINKS), alleen Y genegeerd t.o.v. het PDF-bronbestand.
+const HART_PAD = 'M 0.000,0.000 C 0.000,1.074 -0.687,2.457 -2.866,3.423 C -5.044,2.457 -5.731,1.074 -5.731,0.000 C -5.731,-0.770 -5.078,-1.393 -4.271,-1.393 C -3.603,-1.393 -3.039,-0.965 -2.866,-0.380 C -2.693,-0.965 -2.129,-1.393 -1.460,-1.393 C -0.654,-1.393 0.000,-0.770 0.000,0.000 Z';
 const HARTJES = [
   { xMm: 19.986, topMm: 62.247 },
   { xMm: 51.005, topMm: 62.247 },

@@ -6,6 +6,31 @@ van kan maken, en waarmee je de status van orders kan wijzigen.
 
 ## Functies
 
+## Fix: hartje niet gecentreerd + echte Sacramento-lettertype toegevoegd ("Foto tegel met 3 foto's")
+
+**Twee kleine correcties op het hierboven beschreven nieuwe product:**
+
+1. **Hartje stond niet gecentreerd onder de foto.** Oorzaak: pdf-lib se
+   `drawSvgPath` flipt bij het tekenen ALLEEN de Y-as van een pad (SVG is
+   y-down, PDF is y-up) — de X-as blijft ongewijzigd. Bij het extraheren van
+   het hartje uit het sjabloon-PDF werden per abuis OOK de X-coordinaten
+   genegeerd (i.p.v. alleen Y), waardoor het hartje links-rechts gespiegeld/
+   verschoven werd getekend. Gevonden door het hartje geïsoleerd te tekenen
+   in een test-PDF en de daadwerkelijk gerenderde pixel-positie te vergelijken
+   met de bedoelde ankerpositie — dat legde de exacte tekenfout bloot (zie de
+   uitgebreide toelichting bij `HART_PAD` in `server/fototegel3.js`). Na de
+   fix: opnieuw pixel-voor-pixel gecontroleerd dat het hartje nu exact
+   gecentreerd staat onder elke foto, bij zowel 10x10 als 13x13.
+2. **Het echte Sacramento-lettertype is toegevoegd** (`server/fonts/
+   Sacramento-Regular.ttf`, aangeleverd) — de onderschriften gebruiken nu het
+   bedoelde schrijflettertype uit het sjabloon i.p.v. de Helvetica-terugval.
+
+**Getest:** volledige regressie over alle bestaande producten (incl. "Foto
+tegel met 3 foto's" zelf, 10x10 en 13x13, en het randgeval met ontbrekende
+foto/tekst) — allemaal nog steeds zonder fouten, met het lettertype nu
+daadwerkelijk ingebed (geen "val terug op Helvetica"-waarschuwing meer in de
+serverlogs).
+
 ## Nieuw product: "Foto tegel met 3 foto's"
 
 **Wat:** een nieuw, heel eigen tegelproduct (10x10 of 13x13cm, net als de

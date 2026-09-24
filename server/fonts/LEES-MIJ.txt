@@ -14,10 +14,13 @@ netjes op te staan, alleen niet met exact het Montserrat-lettertype.
 
 ---
 
-Voor "Foto tegel met 3 foto's" (de 3 onderschriften onder de foto's) wordt
-het schrijflettertype "Sacramento" gebruikt (uit het aangeleverde sjabloon-
-PDF gehaald: FontFamily "Sacramento", regular gewicht). Dit bestand zit hier
-nog NIET in — zet het (een gratis Google Font) hier neer als:
+Het Sacramento-fontbestand (Sacramento-Regular.ttf, voor de 3 onderschriften
+bij "Foto tegel met 3 foto's") staat hier nu ook al in, en zit voortaan
+gewoon in elke update die je van dit project krijgt — je hoeft hier zelf
+niets meer aan te doen.
+
+Mocht je 'm ooit willen vervangen: zet gewoon een nieuw bestand neer met
+exact deze naam:
 
   Sacramento-Regular.ttf
 
