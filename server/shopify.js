@@ -135,15 +135,22 @@ function extractPosterlyPhotoUrls(lineItems) {
   return urls;
 }
 
-// Verzamelt alle "tegel-achtige" producten (autopictura-tegeltjes,
-// "Gepersonaliseerde foto tegel", Posterly) uit een order, met het formaat
-// (10x10/13x13) PER REGEL apart bepaald. Belangrijk bij orders met meerdere
-// tegels van een verschillend formaat: zonder dit zou 1 regel met "13x13"
-// erin per ongeluk ALLE tegels in de hele order 13x13 maken, ook een andere
-// regel die eigenlijk gewoon 10x10 moest zijn.
+// Verzamelt alle "tegel-achtige" producten (autopictura-tegeltjes, Posterly)
+// uit een order, met het formaat (10x10/13x13) PER REGEL apart bepaald.
+// Belangrijk bij orders met meerdere tegels van een verschillend formaat:
+// zonder dit zou 1 regel met "13x13" erin per ongeluk ALLE tegels in de hele
+// order 13x13 maken, ook een andere regel die eigenlijk gewoon 10x10 moest
+// zijn.
+//
+// LET OP: "Gepersonaliseerde foto tegel" hoort hier BEWUST niet meer bij —
+// dat product heeft een eigen drukwerkbestand-generator gekregen
+// (fototegel-gepersonaliseerd.js/extractFotoTegelGepersonaliseerdItemsFromOrder)
+// die er ook de naam+datum-tekst op zet, i.p.v. hier alleen de kale foto
+// beeldvullend te plaatsen zonder die tekst.
 function extractTileItemsFromOrder(lineItems) {
   const items = [];
   (lineItems || []).forEach(li => {
+    if (isFotoTegelLineItem(li)) return;
     const props = li.properties || [];
     const qty = li.quantity && li.quantity > 0 ? li.quantity : 1;
     const textBlob = [li.title, li.variant_title, ...props.map(p => `${p.name} ${p.value}`)].join(' ');
@@ -157,15 +164,6 @@ function extractTileItemsFromOrder(lineItems) {
     }
     if (autopicturaLink) {
       for (let i = 0; i < qty; i++) items.push({ link: autopicturaLink, is13x13, isPosterly: false, lineItemId: li.id });
-      return;
-    }
-
-    // "Gepersonaliseerde foto tegel"
-    if (isFotoTegelLineItem(li)) {
-      const photoProp = props.find(p => /kies\s*jouw\s*foto/i.test(p.name || ''));
-      if (photoProp && photoProp.value) {
-        for (let i = 0; i < qty; i++) items.push({ link: photoProp.value, is13x13, isPosterly: false, lineItemId: li.id });
-      }
       return;
     }
 

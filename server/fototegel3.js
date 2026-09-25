@@ -263,5 +263,10 @@ async function generateFotoTegel3Pdf(data) {
 module.exports = {
   generateFotoTegel3Pdf, isFotoTegel3LineItem, isFotoTegel3_13x13,
   extractFotoTegel3Data, extractFotoTegel3ItemsFromOrder,
-  KLEUR_TEKST_HEX, FOTOVAKKEN
+  KLEUR_TEKST_HEX, FOTOVAKKEN,
+  // Ook los bruikbaar door andere producten met dezelfde tekstkleur-optie
+  // (bv. "Gepersonaliseerde foto tegel" in fototegel-gepersonaliseerd.js) —
+  // zelfde, met de opdrachtgever bevestigde kleurenlijst, i.p.v. 'm daar
+  // dubbel te onderhouden.
+  normaliseerKleurNaam, hexNaarRgbKleur, kleurNaarPdfKleur
 };

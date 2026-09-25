@@ -45,3 +45,30 @@ exact deze naam:
 Zonder dit bestand valt de ondertitel bij "Peettante" terug op een
 systeemlettertype (schuingezette Helvetica) — leesbaar, maar niet het
 bedoelde lettertype.
+
+---
+
+Het CormorantGaramond-SemiBoldItalic.ttf-fontbestand (voor de naam+datum-
+tekst bij "Gepersonaliseerde foto tegel") staat hier nu ook al in, en zit
+voortaan gewoon in elke update die je van dit project krijgt — je hoeft hier
+zelf niets meer aan te doen.
+
+LET OP: dit bestand is een INGEKORTE versie (subset) van het door jou
+aangeleverde lettertype — het aangeleverde bestand liet de PDF-bibliotheek
+crashen bij het opslaan (een structuurfout ergens in het lettertype, niet in
+onze code), en het inkorten tot alleen de gangbare Latijnse letters/cijfers/
+leestekens (ruim voldoende voor namen met bv. é/ë/ü/ñ) loste dat op. Optisch
+identiek aan het origineel voor alle normale namen/datums.
+
+Mocht je 'm ooit willen vervangen (bv. een andere gewicht/variant): zet
+gewoon een nieuw bestand neer met exact deze naam:
+
+  CormorantGaramond-SemiBoldItalic.ttf
+
+Geeft het nieuwe bestand dezelfde crash bij het genereren van dit
+drukwerkbestand, dan moet het waarschijnlijk weer eerst ingekort worden (met
+bv. `pyftsubset` uit het fonttools-pakket) voordat het hier neergezet wordt.
+
+Zonder dit bestand valt de naam+datum-tekst bij "Gepersonaliseerde foto
+tegel" terug op een systeemlettertype (schuingezette Helvetica) — leesbaar,
+maar niet het bedoelde lettertype.

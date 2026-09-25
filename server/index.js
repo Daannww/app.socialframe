@@ -26,6 +26,7 @@ const { generateLijntekeningFramePdf, extractLijntekeningFrameItemsFromOrder } =
 const { generateTegelIllustratiePdf, extractTegelIllustratieItemsFromOrder } = require('./tegelillustratie');
 const { generateKentekenplaathouderPdf, extractKentekenplaathouderItemsFromOrder } = require('./kentekenplaathouder');
 const { generateFotoTegel3Pdf, extractFotoTegel3ItemsFromOrder } = require('./fototegel3');
+const { generateFotoTegelGepersonaliseerdPdf, extractFotoTegelGepersonaliseerdItemsFromOrder } = require('./fototegel-gepersonaliseerd');
 const { sendReviewEmail } = require('./reviewEmail');
 const { stuurTweeFactorCode, tweeFactorIsGeconfigureerd } = require('./twoFactorEmail');
 const SqliteSessionStore = require('./sqliteSessionStore');
@@ -308,6 +309,9 @@ app.get('/api/orders/:id', (req, res) => {
     kentekenplaathouder_items: extractKentekenplaathouderItemsFromOrder({ line_items: lineItems }),
     // "Foto tegel met 3 foto's"-items (voor de downloadknop in de popup)
     fototegel3_items: extractFotoTegel3ItemsFromOrder({ line_items: lineItems }),
+    // "Gepersonaliseerde foto tegel"-items (foto + naam/datum-tekst, voor de
+    // downloadknop in de popup) — zie fototegel-gepersonaliseerd.js.
+    fototegel_gepersonaliseerd_items: extractFotoTegelGepersonaliseerdItemsFromOrder({ line_items: lineItems }),
     // Muziekframe/Valentijnframe-items (voor het aantal downloadknoppen in
     // de popup) — was voorheen een LOSSE, eigen (verouderde, puur titel-
     // gebaseerde) regex in app.js zelf, die de eigenschappen-fallback-fix
@@ -930,6 +934,32 @@ app.get('/api/print-files/fototegel3-pdf', requireAdmin, async (req, res) => {
   }
 });
 
+// --- Eén "Gepersonaliseerde foto tegel"-drukwerkbestand downloaden vanuit de order-popup ---
+app.get('/api/print-files/fototegel-gepersonaliseerd-pdf', requireAdmin, async (req, res) => {
+  const orderId = parseInt(req.query.orderId, 10);
+  const itemIndex = parseInt(req.query.itemIndex, 10) || 0;
+  if (!orderId) return res.status(400).json({ error: 'orderId is verplicht' });
+
+  try {
+    const order = getOrder(orderId);
+    if (!order) return res.status(404).json({ error: 'Order niet gevonden' });
+
+    const lineItems = getLineItemsMetOverrides(order);
+    const items = extractFotoTegelGepersonaliseerdItemsFromOrder({ line_items: lineItems });
+    const item = items[itemIndex];
+    if (!item) return res.status(404).json({ error: 'Geen "Gepersonaliseerde foto tegel" gevonden op deze order' });
+
+    const pdfBytes = await generateFotoTegelGepersonaliseerdPdf(item.data);
+    const baseName = String(order.order_number || order.shopify_order_id).replace(/[\\/:*?"<>|]/g, '-');
+    const suffix = items.length > 1 ? ` ${itemIndex + 1}` : '';
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${baseName}${suffix} foto-tegel-gepersonaliseerd.pdf"`);
+    res.send(Buffer.from(pdfBytes));
+  } catch (e) {
+    res.status(500).json({ error: 'Kon "Gepersonaliseerde foto tegel"-bestand niet genereren: ' + e.message });
+  }
+});
+
 // --- Eén Auto-frame-drukwerkbestand downloaden vanuit de order-popup ---
 app.get('/api/print-files/autoframe-pdf', requireAdmin, async (req, res) => {
   const orderId = parseInt(req.query.orderId, 10);
@@ -1081,10 +1111,11 @@ async function appendPrintFilesToArchive(archive, targets) {
       return items.filter(item => item.lineItemId != null && reparatieLineItemIds.includes(String(item.lineItemId)));
     }
 
-    // "Tegel-achtige" producten (autopictura, "Gepersonaliseerde foto tegel",
-    // Posterly) met het formaat PER REGEL apart bepaald — belangrijk bij
-    // orders met meerdere tegels van een verschillend formaat (bv. 1x 10x10
-    // + 1x 13x13 in dezelfde order), anders zou de een de ander besmetten.
+    // "Tegel-achtige" producten (autopictura, Posterly) met het formaat PER
+    // REGEL apart bepaald — belangrijk bij orders met meerdere tegels van
+    // een verschillend formaat (bv. 1x 10x10 + 1x 13x13 in dezelfde order),
+    // anders zou de een de ander besmetten. "Gepersonaliseerde foto tegel"
+    // hoort hier NIET meer bij — zie de eigen sectie verderop.
     const tileItems = filterVoorReparatie(extractTileItemsFromOrder(order.line_items));
     const baseName = String(order.order_number || order.shopify_order_id).replace(/[\\/:*?"<>|]/g, '-');
 
@@ -1373,6 +1404,36 @@ async function appendPrintFilesToArchive(archive, targets) {
           archive.append(
             `Kon het "Foto tegel met 3 foto's"-bestand voor order ${baseName}${numberSuffix} niet genereren: ${e.message}`,
             { name: `${dateFolder}/tegels/FOUT-${baseName}${numberSuffix}-3fotos.txt` }
+          );
+        }
+      }
+    }
+
+    // --- "Gepersonaliseerde foto tegel": zelfde map-conventie als de andere
+    // tegeltjes (13x13 -> submap "groot", 10x10 direct in "tegels/") — was
+    // voorheen onderdeel van de generieke tegelfoto-afhandeling hierboven
+    // (kale foto, zonder tekst); heeft nu zijn eigen generator zodat de
+    // naam+datum-tekst er ook op komt te staan (zie
+    // fototegel-gepersonaliseerd.js). "gepersonaliseerd" in de bestandsnaam
+    // voorkomt een naam-botsing met een eventuele andere tegel in dezelfde
+    // order. ---
+    const fotoTegelGepersonaliseerdItems = filterVoorReparatie(extractFotoTegelGepersonaliseerdItemsFromOrder({ line_items: order.line_items }));
+    if (fotoTegelGepersonaliseerdItems.length > 0) {
+      const multipleFotoTegelGepersonaliseerd = fotoTegelGepersonaliseerdItems.length > 1;
+      for (let i = 0; i < fotoTegelGepersonaliseerdItems.length; i++) {
+        const numberSuffix = multipleFotoTegelGepersonaliseerd ? ` ${i + 1}` : '';
+        const item = fotoTegelGepersonaliseerdItems[i];
+        const filename = item.data.is13x13
+          ? `${dateFolder}/tegels/groot/${baseName}${numberSuffix} gepersonaliseerd groot.pdf`
+          : `${dateFolder}/tegels/${baseName}${numberSuffix} gepersonaliseerd.pdf`;
+        try {
+          const pdfBytes = await generateFotoTegelGepersonaliseerdPdf(item.data);
+          archive.append(Buffer.from(pdfBytes), { name: filename });
+          orderSucceeded = true;
+        } catch (e) {
+          archive.append(
+            `Kon het "Gepersonaliseerde foto tegel"-bestand voor order ${baseName}${numberSuffix} niet genereren: ${e.message}`,
+            { name: `${dateFolder}/tegels/FOUT-${baseName}${numberSuffix}-gepersonaliseerd.txt` }
           );
         }
       }

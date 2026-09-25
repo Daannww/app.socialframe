@@ -618,6 +618,23 @@ function renderModal(order) {
       }</div>`
     : '';
 
+  // "Gepersonaliseerde foto tegel" (foto + naam/datum-tekst): zelfde aanpak
+  // als "Foto tegel met 3 foto's" — server-berekend
+  // fototegel_gepersonaliseerd_items-veld gebruiken. Heeft een eigen knop
+  // (i.p.v. het generieke "Download drukwerkbestand"-knopje bij de foto in de
+  // Foto's-lijst hieronder, dat de tekst zou missen) — zie ook
+  // tileLinksInOrder verderop, die dit soort links bewust niet meer meetelt.
+  const fotoTegelGepersonaliseerdItems = order.fototegel_gepersonaliseerd_items || [];
+  const fotoTegelGepersonaliseerdHtml = fotoTegelGepersonaliseerdItems.length > 0
+    ? `<div style="display:flex; flex-direction:column; gap:8px;">${
+        fotoTegelGepersonaliseerdItems.map((item, idx) => `
+      <button class="btn btn-primary" onclick="downloadFotoTegelGepersonaliseerdPdf(${order.id}, ${idx}, this)">
+        <i class="fa-solid fa-download"></i> Download foto-tegel-bestand${fotoTegelGepersonaliseerdItems.length > 1 ? ` (${idx + 1})` : ''}
+      </button>
+    `).join('')
+      }</div>`
+    : '';
+
   // "Reparatie": een checkbox per product-regel in de order, zodat je bij een
   // order met meerdere producten kan aanvinken welke er beschadigd
   // aangekomen is. Gebruikt gewoon de bestaande cart-regels (li.id/li.title)
@@ -671,13 +688,16 @@ function renderModal(order) {
   const baseFilename = String(order.order_number || order.shopify_order_id).replace(/[\\/:*?"<>|]/g, '-');
 
   const autopicturaLinksInOrder = (order.photo_links || []).filter(l => /autopictura/i.test(l));
-  // "Gepersonaliseerde foto tegel"-uploads en Posterly-links tellen mee als
-  // "tegel-link" voor de drukwerkbestand-knop, precies zoals bij autopictura
-  // (zelfde knop, zelfde doorlopende nummering bij meerdere) — zie ook
-  // appendPrintFilesToArchive in index.js, die deze alle drie al samenvoegt.
-  const fotoTegelLinksInOrder = order.foto_tegel_links || [];
+  // Posterly-links tellen mee als "tegel-link" voor de drukwerkbestand-knop,
+  // precies zoals bij autopictura (zelfde knop, zelfde doorlopende
+  // nummering bij meerdere) — zie ook appendPrintFilesToArchive in index.js.
+  // "Gepersonaliseerde foto tegel"-uploads tellen hier BEWUST NIET meer mee:
+  // dat product heeft nu zijn eigen knop (fotoTegelGepersonaliseerdHtml
+  // hierboven) die er ook de naam+datum-tekst op zet — de generieke
+  // "Download drukwerkbestand"-knop hieronder zou alleen de kale foto
+  // plaatsen, zonder die tekst.
   const posterlyLinksInOrder = order.posterly_links || [];
-  const tileLinksInOrder = [...autopicturaLinksInOrder, ...fotoTegelLinksInOrder, ...posterlyLinksInOrder];
+  const tileLinksInOrder = [...autopicturaLinksInOrder, ...posterlyLinksInOrder];
   const multipleAutopictura = tileLinksInOrder.length > 1;
 
   // SVG-bestanden altijd bovenaan tonen in de Foto's-lijst, de rest erna in
@@ -888,6 +908,13 @@ function renderModal(order) {
     <div class="modal-section">
       <h3>Foto tegel met 3 foto's</h3>
       ${fotoTegel3Html}
+    </div>
+    ` : ''}
+
+    ${fotoTegelGepersonaliseerdHtml ? `
+    <div class="modal-section">
+      <h3>Gepersonaliseerde foto tegel</h3>
+      ${fotoTegelGepersonaliseerdHtml}
     </div>
     ` : ''}
 
@@ -1261,6 +1288,33 @@ window.downloadFotoTegel3Pdf = async function (orderId, idx, btn) {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   } catch (e) {
     alert('Kon "Foto tegel met 3 foto\'s"-bestand niet genereren: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalLabel;
+  }
+};
+
+window.downloadFotoTegelGepersonaliseerdPdf = async function (orderId, idx, btn) {
+  const originalLabel = btn.innerHTML;
+  btn.disabled = true;
+  btn.textContent = 'Bezig...';
+  try {
+    const res = await fetch(`/api/print-files/fototegel-gepersonaliseerd-pdf?orderId=${orderId}&itemIndex=${idx}`);
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || 'Server gaf een fout terug');
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `foto-tegel-gepersonaliseerd-order-${orderId}-${idx + 1}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } catch (e) {
+    alert('Kon "Gepersonaliseerde foto tegel"-bestand niet genereren: ' + e.message);
   } finally {
     btn.disabled = false;
     btn.innerHTML = originalLabel;

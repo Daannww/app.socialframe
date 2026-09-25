@@ -6,6 +6,62 @@ van kan maken, en waarmee je de status van orders kan wijzigen.
 
 ## Functies
 
+## Nieuw drukwerkbestand: "Gepersonaliseerde foto tegel" (foto + naam/datum-tekst)
+
+**Wat:** dit product ("jouw foto op keramiek") kreeg tot nu toe alleen de
+KALE, beeldvullende foto als drukwerkbestand — de naam en datum(s) die de
+klant erbij invult (bv. "Winnie Vermeir 19.06.'54 - 19.06.'26", een
+herdenkingstegel) kwamen nergens op te staan. Er is nu een eigen generator
+die exact het aangeleverde voorbeeldbestand (Voorbeeld_foto_tegeltje_.pdf)
+namaakt: de foto bovenin (cover-fit bijgesneden, geen afgeronde hoeken, geen
+achtergrondvlak — de rand blijft onbedrukt, zodat de kleur van de gekozen
+keramische tegel daar vanzelf doorschijnt), en daaronder gecentreerd de naam
++ een aparte datum(bereik)-regel, in het cursieve **Cormorant Garamond
+SemiBold Italic**-lettertype (zoals gevraagd — het aangeleverde
+voorbeeldbestand zelf gebruikte een lichter gewicht, maar de posities/maten
+zijn daar wel exact uit overgenomen, via dezelfde vector-extractietechniek
+als eerder bij "Peettante").
+
+- De "Naam"-invoer komt als 1 vrij tekstveld binnen (bv. "Winnie Vermeir
+  19.06.'54 - 19.06.'26") — wordt hier automatisch gesplitst in een
+  naam-regel en een datum(bereik)-regel, op basis van de datumnotatie aan
+  het eind van de tekst. Werkt met een rechte of kromme apostrof, met of
+  zonder bereik (1 of 2 datums), en met 2- of 4-cijferige jaartallen. Wordt
+  geen datumnotatie herkend, dan komt de hele tekst gewoon op 1 regel te
+  staan (geen mislukte order).
+- De tekstkleur volgt de "Kies hier de tekst kleur"-eigenschap, met dezelfde
+  (met de opdrachtgever bevestigde) kleurenlijst als "Foto tegel met 3
+  foto's" — onbekende/lege kleur valt terug op zwart.
+- Beschikbaar in zowel 10x10 als 13x13 (alles schaalt evenredig mee, zelfde
+  aanpak als de andere tegel-achtige producten).
+- Een te lange naam/datumregel wordt automatisch iets verkleind zodat 'ie
+  binnen de tegel blijft passen (zelfde soort auto-shrink als elders in dit
+  project).
+- Dit product hoort NIET meer bij de generieke "tegel-link"-afhandeling
+  (autopictura/Posterly) — dat zou weer de oude, tekstloze foto opleveren.
+  Heeft nu zijn eigen downloadknop in de order-popup ("Gepersonaliseerde foto
+  tegel") en eigen sectie in het bulk-drukwerkbestand (in dezelfde
+  `tegels/`-map, met "gepersonaliseerd" in de bestandsnaam).
+
+**Lettertypebestand:** het door de opdrachtgever aangeleverde
+CormorantGaramond-SemiBoldItalic.ttf liet pdf-lib crashen bij het opslaan
+(een structuurfout ergens in het lettertype zelf) — opgelost door het
+lettertype eerst in te korten (subsetten) tot de gangbare Latijnse tekens
+(ruim voldoende voor namen met bv. é/ë/ü/ñ) met `pyftsubset`, optisch
+identiek voor alle normale namen. Zie server/fonts/LEES-MIJ.txt.
+
+**Getest:** herkenning van het product + splitsing van de "Naam"-eigenschap
+(inclusief edge-cases: enkele datum i.p.v. bereik, 4-cijferige jaartallen,
+tekst zonder datumpatroon, lege invoer), de daadwerkelijke PDF-generatie in
+zowel 10x10 als 13x13 met een testfoto (visueel gecontroleerd tegen het
+aangeleverde voorbeeldbestand — foto-uitsnede en tekstpositie/-grootte
+komen overeen), een lange naam die inderdaad automatisch verkleint, een
+order zonder datumregel (blijft netjes bij 1 regel), en de fallback op
+Helvetica als het lettertypebestand ooit zou ontbreken. Ook een regressie
+bevestigd dat dit product niet meer dubbel/verouderd via de generieke
+tegel-fotolijst gegenereerd wordt, en dat gewone autopictura-tegels daar
+gewoon via blijven lopen.
+
 ## Vervolgfix: de "alles wordt geselecteerd"-bug bij Reparatie bleef terugkomen na een deploy
 
 **Wat ging er mis:** ook ná de hieronder beschreven `mapOrder`-fix ("Bugfix:
