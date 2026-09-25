@@ -122,6 +122,21 @@ try {
   // kolom bestaat al, negeren
 }
 
+// Migratie: "Reparatie" — als een product beschadigd is aangekomen en de
+// order terug naar "wacht op drukwerkbestand" gezet wordt om het opnieuw te
+// laten drukken, hoeft (bij een order met meerdere producten) alleen het/de
+// aangevinkte beschadigde product(en) opnieuw in het drukwerkbestand-zip te
+// komen — niet de hele order. Opgeslagen als JSON-array van Shopify-regel-
+// item-ID's (als strings), bv. ["123456789"]. NULL/leeg = geen actieve
+// reparatie-selectie (alles wordt gewoon normaal meegenomen). Zie
+// setReparatieLineItems/getReparatieLineItemIds/clearReparatieLineItems
+// hieronder, en de filtering in appendPrintFilesToArchive in index.js.
+try {
+  db.exec("ALTER TABLE orders ADD COLUMN reparatie_line_item_ids_json TEXT");
+} catch (e) {
+  // kolom bestaat al, negeren
+}
+
 // Migratie: standaard-lagevoorraaddrempel opgehoogd van 20 naar 50 stuks —
 // bestaande artikelen die nog op de OUDE standaardwaarde (20) staan, worden
 // hier EENMALIG bijgewerkt (via een vlag in sync_meta, zodat dit maar 1x
@@ -352,6 +367,60 @@ function setNote(id, note) {
   return getOrder(id);
 }
 
+// Markeert 1 of meerdere regel-items van een order als "beschadigd" (Reparatie):
+// - slaat de aangevinkte Shopify-regel-item-ID's op (als reparatie-selectie)
+// - zet de order terug naar 'wacht op drukwerkbestand' (zodat 'ie opnieuw
+//   opgepakt wordt voor het drukwerkbestand)
+// - zet "REPARATIE" vooraan in de notitie (bestaande notitie-inhoud blijft
+//   staan, komt er gewoon onder), zodat dit ook op de pakbon te zien is.
+// `lineItemIds` mag leeg zijn ([]) — dan wordt alleen de reparatie-selectie
+// gewist (bv. als iets per ongeluk aangevinkt werd), zonder status/notitie
+// aan te passen.
+function setReparatieLineItems(id, lineItemIds) {
+  const ids = Array.isArray(lineItemIds) ? lineItemIds.map(String).filter(Boolean) : [];
+  if (ids.length === 0) {
+    db.prepare('UPDATE orders SET reparatie_line_item_ids_json = NULL WHERE id = ?').run(id);
+    return getOrder(id);
+  }
+
+  db.prepare('UPDATE orders SET reparatie_line_item_ids_json = ? WHERE id = ?')
+    .run(JSON.stringify(ids), id);
+
+  // Notitie: "REPARATIE" vooraan zetten, bestaande inhoud (indien aanwezig)
+  // eronder laten staan. Niet dubbel toevoegen als 'ie er al vooraan staat
+  // (bv. bij een 2e keer aanvinken zonder dat de vorige reparatie-notitie
+  // ondertussen weggehaald is).
+  const current = getOrder(id);
+  const bestaandeNotitie = (current && current.note || '').trim();
+  if (!/^REPARATIE\b/.test(bestaandeNotitie)) {
+    const nieuweNotitie = bestaandeNotitie ? `REPARATIE\n${bestaandeNotitie}` : 'REPARATIE';
+    db.prepare('UPDATE orders SET note = ? WHERE id = ?').run(nieuweNotitie, id);
+  }
+
+  return updateStatus(id, 'wacht op drukwerkbestand');
+}
+
+// Geeft de actieve reparatie-selectie van een order terug als array van
+// strings (lege array = geen actieve selectie, dus alles normaal meenemen).
+function getReparatieLineItemIds(order) {
+  if (!order || !order.reparatie_line_item_ids_json) return [];
+  try {
+    const parsed = JSON.parse(order.reparatie_line_item_ids_json);
+    return Array.isArray(parsed) ? parsed.map(String) : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+// Wist de reparatie-selectie weer (bv. zodra het opnieuw gegenereerde
+// drukwerkbestand gelukt is en de order automatisch naar 'wacht op
+// productie' gaat) — zodat een VOLGENDE keer dat de order weer op 'wacht op
+// drukwerkbestand' gezet wordt (bv. een normale, volledige regeneratie) niet
+// per ongeluk nog steeds gefilterd wordt op de oude reparatie-selectie.
+function clearReparatieLineItems(id) {
+  db.prepare('UPDATE orders SET reparatie_line_item_ids_json = NULL WHERE id = ?').run(id);
+}
+
 // Slaat een handmatige overschrijving van 1 eigenschap van 1 regel-item op
 // (bv. een nieuwe foto-URL, of een aangepaste "Regel 1"-tekst). `value`
 // leeg/null verwijdert de overschrijving weer (terug naar de originele
@@ -442,5 +511,6 @@ module.exports = {
   getAllOrdersRaw, updateLinks, updateDerivedFields, deleteOldOrders,
   getInventory, setInventoryStock, deductInventory, addInventoryItem, deleteInventoryItem,
   getOrdersReadyForReviewEmail, markReviewEmailSent, setSizeOverride, setNote, getStatusHistory,
-  setLineItemOverride, getLineItemsMetOverrides
+  setLineItemOverride, getLineItemsMetOverrides,
+  setReparatieLineItems, getReparatieLineItemIds, clearReparatieLineItems
 };

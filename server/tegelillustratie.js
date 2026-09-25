@@ -50,7 +50,7 @@ function extractTegelIllustratieItemsFromOrder(rawOrder) {
     const is13x13 = isTegelIllustratie13x13(li);
     const qty = li.quantity && li.quantity > 0 ? li.quantity : 1;
     for (let i = 0; i < qty; i++) {
-      items.push({ title: li.title, data: { ontwerp, is13x13 } });
+      items.push({ title: li.title, lineItemId: li.id, data: { ontwerp, is13x13 } });
     }
   });
   return items;

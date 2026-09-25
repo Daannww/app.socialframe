@@ -156,7 +156,7 @@ function extractTileItemsFromOrder(lineItems) {
       if (m) { autopicturaLink = m[0]; break; }
     }
     if (autopicturaLink) {
-      for (let i = 0; i < qty; i++) items.push({ link: autopicturaLink, is13x13, isPosterly: false });
+      for (let i = 0; i < qty; i++) items.push({ link: autopicturaLink, is13x13, isPosterly: false, lineItemId: li.id });
       return;
     }
 
@@ -164,7 +164,7 @@ function extractTileItemsFromOrder(lineItems) {
     if (isFotoTegelLineItem(li)) {
       const photoProp = props.find(p => /kies\s*jouw\s*foto/i.test(p.name || ''));
       if (photoProp && photoProp.value) {
-        for (let i = 0; i < qty; i++) items.push({ link: photoProp.value, is13x13, isPosterly: false });
+        for (let i = 0; i < qty; i++) items.push({ link: photoProp.value, is13x13, isPosterly: false, lineItemId: li.id });
       }
       return;
     }
@@ -172,7 +172,7 @@ function extractTileItemsFromOrder(lineItems) {
     // Posterly
     const printFileProp = props.find(p => /print_file/i.test(p.name || '') && /posterlyapp\.io/i.test(p.value || ''));
     if (printFileProp) {
-      for (let i = 0; i < qty; i++) items.push({ link: printFileProp.value, is13x13, isPosterly: true });
+      for (let i = 0; i < qty; i++) items.push({ link: printFileProp.value, is13x13, isPosterly: true, lineItemId: li.id });
     }
   });
   return items;
@@ -252,7 +252,7 @@ function extractAutoFrameItemsFromOrder(rawOrder) {
     const variant = getAutoFrameVariant(li);
     const qty = li.quantity && li.quantity > 0 ? li.quantity : 1;
     for (let i = 0; i < qty; i++) {
-      items.push({ title: li.title, variant, data });
+      items.push({ title: li.title, lineItemId: li.id, variant, data });
     }
   });
   return items;

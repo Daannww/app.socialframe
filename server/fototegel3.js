@@ -175,7 +175,7 @@ function extractFotoTegel3ItemsFromOrder(rawOrder) {
     if (!data.photoUrls.some(Boolean)) return; // geen enkele foto aangeleverd -> niets te genereren
     const qty = li.quantity && li.quantity > 0 ? li.quantity : 1;
     for (let i = 0; i < qty; i++) {
-      items.push({ title: li.title, data });
+      items.push({ title: li.title, lineItemId: li.id, data });
     }
   });
   return items;

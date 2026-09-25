@@ -1294,7 +1294,7 @@ function extractTegelTekstItemsFromOrder(rawOrder) {
     const kleur = extractTegelKleur(li);
     const qty = li.quantity && li.quantity > 0 ? li.quantity : 1;
     for (let i = 0; i < qty; i++) {
-      items.push({ title: li.title, kleur, data: { ontwerp, kleur } });
+      items.push({ title: li.title, lineItemId: li.id, kleur, data: { ontwerp, kleur } });
     }
   });
   return items;

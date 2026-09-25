@@ -110,7 +110,7 @@ function extractMusicFrameItemsFromOrder(rawOrder) {
     const variant = getMusicFrameVariant(li);
     const qty = li.quantity && li.quantity > 0 ? li.quantity : 1;
     for (let i = 0; i < qty; i++) {
-      items.push({ title: li.title, variant, data });
+      items.push({ title: li.title, lineItemId: li.id, variant, data });
     }
   });
   return items;

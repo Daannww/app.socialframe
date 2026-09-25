@@ -10,7 +10,7 @@ const QRCode = require('qrcode');
 const multer = require('multer');
 const sharp = require('sharp');
 
-const { listOrders, getOrder, updateStatus, updateStatusBulk, getAllOrdersRaw, updateDerivedFields, deleteOldOrders, getInventory, setInventoryStock, addInventoryItem, deleteInventoryItem, getOrdersReadyForReviewEmail, markReviewEmailSent, setSizeOverride, setNote, getStatusHistory, setLineItemOverride, getLineItemsMetOverrides, db } = require('./db');
+const { listOrders, getOrder, updateStatus, updateStatusBulk, getAllOrdersRaw, updateDerivedFields, deleteOldOrders, getInventory, setInventoryStock, addInventoryItem, deleteInventoryItem, getOrdersReadyForReviewEmail, markReviewEmailSent, setSizeOverride, setNote, getStatusHistory, setLineItemOverride, getLineItemsMetOverrides, setReparatieLineItems, getReparatieLineItemIds, clearReparatieLineItems, db } = require('./db');
 const { printPakbonnenViaPrintNode, haalPrintersOp } = require('./printnode');
 const { syncOrders, mapOrder, extractFotoTegelPhotoUrls, extractPosterlyPhotoUrls, extractTileItemsFromOrder, extractAutoFrameItemsFromOrder } = require('./shopify');
 const axios = require('axios');
@@ -318,7 +318,11 @@ app.get('/api/orders/:id', (req, res) => {
     musicframe_items: extractMusicFrameItemsFromOrder({ line_items: lineItems }),
     // Geschiedenis van statuswijzigingen (nieuwste eerst) — voor het
     // overzicht onderaan de status-sectie in de popup.
-    status_history: getStatusHistory(order.id)
+    status_history: getStatusHistory(order.id),
+    // Actieve "Reparatie"-selectie (regel-item-ID's die als beschadigd zijn
+    // aangevinkt) — lege array = geen actieve selectie, dus een nieuw
+    // drukwerkbestand neemt gewoon alle producten in de order mee.
+    reparatie_line_item_ids: getReparatieLineItemIds(order)
   });
 });
 
@@ -363,6 +367,28 @@ app.post('/api/orders/:id/line-item-override', (req, res) => {
   const order = setLineItemOverride(req.params.id, lineItemId, propertyName, value);
   if (!order) return res.status(404).json({ error: 'Order niet gevonden' });
   res.json(order);
+});
+
+// --- "Reparatie": een product is beschadigd aangekomen. `lineItemIds` is de
+// array met Shopify-regel-item-ID's van de aangevinkte, beschadigde
+// producten (leeg = selectie weer wissen). Bij een niet-lege selectie wordt
+// de order automatisch terug op "wacht op drukwerkbestand" gezet en komt
+// "REPARATIE" vooraan in de notitie te staan — zie setReparatieLineItems in
+// db.js. Bij de eerstvolgende drukwerkbestand-generatie (handmatige download
+// of de zip-export) wordt dan ALLEEN het/de aangevinkte product(en) in het
+// drukwerkbestand meegenomen, niet de hele order — zie de filtering in
+// appendPrintFilesToArchive hieronder. ---
+app.post('/api/orders/:id/reparatie', (req, res) => {
+  const { lineItemIds } = req.body;
+  if (lineItemIds !== undefined && !Array.isArray(lineItemIds)) {
+    return res.status(400).json({ error: 'lineItemIds moet een array zijn' });
+  }
+  const order = setReparatieLineItems(req.params.id, lineItemIds || []);
+  if (!order) return res.status(404).json({ error: 'Order niet gevonden' });
+  res.json({
+    ...order,
+    reparatie_line_item_ids: getReparatieLineItemIds(order)
+  });
 });
 
 // --- Handmatige foto-vervanging: de klant wil achteraf een andere foto
@@ -1028,11 +1054,26 @@ async function appendPrintFilesToArchive(archive, targets) {
   for (const order of targets) {
     let orderSucceeded = false;
 
+    // --- Reparatie: als deze order een actieve reparatie-selectie heeft
+    // (1 of meerdere producten aangevinkt als "beschadigd"), dan mag het
+    // drukwerkbestand ALLEEN die specifieke product(en) bevatten, niet de
+    // hele order opnieuw — anders zou bv. bij een order met 3 producten
+    // waarvan er 1 beschadigd is, toch alle 3 opnieuw gedrukt worden. Filtert
+    // op `lineItemId` (elke extractor tagt zijn items hiermee, zie de
+    // extract*ItemsFromOrder-functies) — is er geen actieve selectie, dan
+    // verandert er niets en komt gewoon alles mee zoals altijd. ---
+    const reparatieLineItemIds = getReparatieLineItemIds(order);
+    const heeftActieveReparatieSelectie = reparatieLineItemIds.length > 0;
+    function filterVoorReparatie(items) {
+      if (!heeftActieveReparatieSelectie) return items;
+      return items.filter(item => item.lineItemId != null && reparatieLineItemIds.includes(String(item.lineItemId)));
+    }
+
     // "Tegel-achtige" producten (autopictura, "Gepersonaliseerde foto tegel",
     // Posterly) met het formaat PER REGEL apart bepaald — belangrijk bij
     // orders met meerdere tegels van een verschillend formaat (bv. 1x 10x10
     // + 1x 13x13 in dezelfde order), anders zou de een de ander besmetten.
-    const tileItems = extractTileItemsFromOrder(order.line_items);
+    const tileItems = filterVoorReparatie(extractTileItemsFromOrder(order.line_items));
     const baseName = String(order.order_number || order.shopify_order_id).replace(/[\\/:*?"<>|]/g, '-');
 
     if (tileItems.length > 0) {
@@ -1086,7 +1127,7 @@ async function appendPrintFilesToArchive(archive, targets) {
     // "autoframe" in de bestandsnaam zelf, om botsingen te voorkomen als
     // dezelfde order toevallig ZOWEL een muziekframe- als een auto-frame-
     // bestand in dezelfde submap zou krijgen. ---
-    const autoFrameItems = extractAutoFrameItemsFromOrder({ line_items: order.line_items });
+    const autoFrameItems = filterVoorReparatie(extractAutoFrameItemsFromOrder({ line_items: order.line_items }));
     if (autoFrameItems.length > 0) {
       const multipleAutoFrames = autoFrameItems.length > 1;
       for (let i = 0; i < autoFrameItems.length; i++) {
@@ -1117,7 +1158,7 @@ async function appendPrintFilesToArchive(archive, targets) {
     // Zelfde protocol als de tegeltjes (13x13 -> map "groot"): staat er "klein"
     // of "dik" bij de variant, dan komt het bestand in een eigen submap met
     // die naam in de bestandsnaam — verder blijft het formaat gewoon hetzelfde.
-    const musicFrameItems = extractMusicFrameItemsFromOrder({ line_items: order.line_items });
+    const musicFrameItems = filterVoorReparatie(extractMusicFrameItemsFromOrder({ line_items: order.line_items }));
     if (musicFrameItems.length > 0) {
       const multipleFrames = musicFrameItems.length > 1;
       for (let i = 0; i < musicFrameItems.length; i++) {
@@ -1149,7 +1190,7 @@ async function appendPrintFilesToArchive(archive, targets) {
     // (52,6x13,25cm) dan alle andere producten. Staat hier vooraan, bij de
     // andere "Socialframe"-achtige producten (muziekframe/valentijnframe),
     // i.p.v. achteraan na alle tegel-producten. ---
-    const kentekenplaathouderItems = extractKentekenplaathouderItemsFromOrder({ line_items: order.line_items });
+    const kentekenplaathouderItems = filterVoorReparatie(extractKentekenplaathouderItemsFromOrder({ line_items: order.line_items }));
     if (kentekenplaathouderItems.length > 0) {
       const multipleKentekenplaathouders = kentekenplaathouderItems.length > 1;
       for (let i = 0; i < kentekenplaathouderItems.length; i++) {
@@ -1173,7 +1214,7 @@ async function appendPrintFilesToArchive(archive, targets) {
     // met bestelnummer + gekozen tegelkleur in de bestandsnaam. Komt net als
     // de 13x13-foto-tegels ("tegels/groot/") in een eigen submap onder de
     // bestaande "tegels/"-map te staan, i.p.v. een aparte hoofdmap. ---
-    const tegelTekstItems = extractTegelTekstItemsFromOrder({ line_items: order.line_items });
+    const tegelTekstItems = filterVoorReparatie(extractTegelTekstItemsFromOrder({ line_items: order.line_items }));
     if (tegelTekstItems.length > 0) {
       const multipleTegels = tegelTekstItems.length > 1;
       for (let i = 0; i < tegelTekstItems.length; i++) {
@@ -1197,7 +1238,7 @@ async function appendPrintFilesToArchive(archive, targets) {
     // --- Sound-Frame: eigen drukwerkbestand per besteld exemplaar, in een
     // eigen map "soundframe" (net als muziekframe/auto-frame een eigen map
     // hebben) — met bestelnummer + "soundframe" in de bestandsnaam. ---
-    const soundFrameItems = extractSoundFrameItemsFromOrder({ line_items: order.line_items });
+    const soundFrameItems = filterVoorReparatie(extractSoundFrameItemsFromOrder({ line_items: order.line_items }));
     if (soundFrameItems.length > 0) {
       const multipleSoundFrames = soundFrameItems.length > 1;
       for (let i = 0; i < soundFrameItems.length; i++) {
@@ -1223,7 +1264,7 @@ async function appendPrintFilesToArchive(archive, targets) {
     // (bevestigd: dat IS de kleine variant) gaat naar de "klein"-submap,
     // net als bij het muziekframe/auto-frame. Behoudt "fotoframe" in de
     // bestandsnaam zelf om botsingen met de andere producten te voorkomen. ---
-    const photoFrameItems = extractPhotoFrameItemsFromOrder({ line_items: order.line_items });
+    const photoFrameItems = filterVoorReparatie(extractPhotoFrameItemsFromOrder({ line_items: order.line_items }));
     if (photoFrameItems.length > 0) {
       const multiplePhotoFrames = photoFrameItems.length > 1;
       for (let i = 0; i < photoFrameItems.length; i++) {
@@ -1250,7 +1291,7 @@ async function appendPrintFilesToArchive(archive, targets) {
     // ander fysiek formaat (per variant: 70x48/50x40/50x50cm) dan de andere
     // 200x300mm-producten, dus NIET samen met het muziekframe in dezelfde
     // map (in tegenstelling tot auto-frame/foto-frame hierboven). ---
-    const lijntekeningItems = extractLijntekeningFrameItemsFromOrder({ line_items: order.line_items });
+    const lijntekeningItems = filterVoorReparatie(extractLijntekeningFrameItemsFromOrder({ line_items: order.line_items }));
     if (lijntekeningItems.length > 0) {
       const multipleLijntekening = lijntekeningItems.length > 1;
       for (let i = 0; i < lijntekeningItems.length; i++) {
@@ -1276,7 +1317,7 @@ async function appendPrintFilesToArchive(archive, targets) {
     // immers fysiek exact hetzelfde soort tegeltje. "illustratie" in de
     // bestandsnaam zelf voorkomt een naam-botsing mocht dezelfde order
     // toevallig ook een gewone autopictura-tegel bevatten. ---
-    const tegelIllustratieItems = extractTegelIllustratieItemsFromOrder({ line_items: order.line_items });
+    const tegelIllustratieItems = filterVoorReparatie(extractTegelIllustratieItemsFromOrder({ line_items: order.line_items }));
     if (tegelIllustratieItems.length > 0) {
       const multipleIllustraties = tegelIllustratieItems.length > 1;
       for (let i = 0; i < tegelIllustratieItems.length; i++) {
@@ -1303,7 +1344,7 @@ async function appendPrintFilesToArchive(archive, targets) {
     // dit is fysiek een gewoon 10x10/13x13-tegeltje. "3fotos" in de
     // bestandsnaam zelf voorkomt een naam-botsing met een eventuele andere
     // tegel in dezelfde order. ---
-    const fotoTegel3Items = extractFotoTegel3ItemsFromOrder({ line_items: order.line_items });
+    const fotoTegel3Items = filterVoorReparatie(extractFotoTegel3ItemsFromOrder({ line_items: order.line_items }));
     if (fotoTegel3Items.length > 0) {
       const multipleFotoTegel3 = fotoTegel3Items.length > 1;
       for (let i = 0; i < fotoTegel3Items.length; i++) {
@@ -1328,6 +1369,13 @@ async function appendPrintFilesToArchive(archive, targets) {
     // Order automatisch naar "wacht op productie" zetten zodra minstens 1 drukwerkbestand is gelukt
     if (orderSucceeded) {
       updateStatus(order.id, 'wacht op productie');
+      // Reparatie-selectie wissen zodra de gerichte herdruk gelukt is, anders
+      // zou een LATERE, gewone/volledige regeneratie van deze order (bv. na
+      // een normale nieuwe wijziging) nog steeds ten onrechte gefilterd
+      // worden op deze oude, inmiddels afgehandelde reparatie-selectie.
+      if (heeftActieveReparatieSelectie) {
+        clearReparatieLineItems(order.id);
+      }
     }
   }
 }

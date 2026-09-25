@@ -51,7 +51,7 @@ function extractLijntekeningFrameItemsFromOrder(rawOrder) {
     const data = extractLijntekeningFrameData(li);
     const qty = li.quantity && li.quantity > 0 ? li.quantity : 1;
     for (let i = 0; i < qty; i++) {
-      items.push({ title: li.title, data });
+      items.push({ title: li.title, lineItemId: li.id, data });
     }
   });
   return items;

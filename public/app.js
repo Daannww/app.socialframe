@@ -617,6 +617,33 @@ function renderModal(order) {
       }</div>`
     : '';
 
+  // "Reparatie": een checkbox per product-regel in de order, zodat je bij een
+  // order met meerdere producten kan aanvinken welke er beschadigd
+  // aangekomen is. Gebruikt gewoon de bestaande cart-regels (li.id/li.title)
+  // — werkt dus voor elk producttype, ook toekomstige, zonder dat deze lijst
+  // apart bijgehouden hoeft te worden. Bij bevestigen: order terug naar
+  // "wacht op drukwerkbestand", "REPARATIE" in de notitie, en bij de
+  // eerstvolgende drukwerkbestand-generatie komt dan ALLEEN het/de
+  // aangevinkte product(en) in de zip (zie appendPrintFilesToArchive in
+  // server/index.js).
+  const reparatieLineItemIds = (order.reparatie_line_item_ids || []).map(String);
+  const heeftActieveReparatie = reparatieLineItemIds.length > 0;
+  const reparatieItems = (order.line_items || []);
+  const reparatieChecklistHtml = reparatieItems.map(li => `
+    <label class="reparatie-item-row" style="display:flex; align-items:center; gap:8px; padding:4px 0;">
+      <input type="checkbox" class="reparatie-checkbox" data-order-id="${order.id}" value="${escapeHtml(String(li.id))}" ${reparatieLineItemIds.includes(String(li.id)) ? 'checked' : ''}>
+      <span>${escapeHtml(li.title)}${li.variant_title ? ' – ' + escapeHtml(li.variant_title) : ''} <span style="color:var(--muted);">(aantal: ${li.quantity})</span></span>
+    </label>
+  `).join('') || '<p>Geen producten gevonden in deze order</p>';
+  const reparatieHtml = `
+    ${heeftActieveReparatie ? `<p style="color:var(--muted); font-size:13px;">Actieve reparatie-selectie: bij het eerstvolgende drukwerkbestand voor deze order komt ALLEEN het aangevinkte product mee, niet de rest van de order.</p>` : ''}
+    <div id="reparatieChecklist-${order.id}">${reparatieChecklistHtml}</div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+      <button class="btn btn-primary" onclick="saveReparatie(${order.id}, this)"><i class="fa-solid fa-triangle-exclamation"></i> Markeer aangevinkte als beschadigd &amp; zet terug naar wacht op drukwerkbestand</button>
+      ${heeftActieveReparatie ? `<button class="btn btn-secondary" onclick="clearReparatie(${order.id}, this)"><i class="fa-solid fa-xmark"></i> Reparatie-selectie wissen</button>` : ''}
+    </div>
+  `;
+
   const spotifyHtml = (order.spotify_links || []).map((link, idx) => `
     <div class="spotify-link-row" data-link="${escapeHtml(link)}">
       <a href="${escapeHtml(link)}" target="_blank" rel="noopener" class="copyable" onclick="event.preventDefault(); copyText(this, '${jsEscape(link)}')" title="Klik om te kopiëren">${escapeHtml(link)}</a>
@@ -864,6 +891,11 @@ function renderModal(order) {
     ` : ''}
 
     <div class="modal-section">
+      <h3>Reparatie (beschadigd aangekomen)</h3>
+      ${reparatieHtml}
+    </div>
+
+    <div class="modal-section">
       <h3>Notitie</h3>
       <textarea id="noteInput-${order.id}" class="note-textarea" placeholder="Bijzonderheden over deze order... (verschijnt ook op de pakbon, onder het adres)">${escapeHtml(order.note || '')}</textarea>
       <button class="btn btn-secondary" onclick="saveNote(${order.id}, this)"><i class="fa-solid fa-floppy-disk"></i> Notitie opslaan</button>
@@ -935,6 +967,59 @@ window.setSizeOverride = async function (orderId, override) {
     await openOrder(orderId);
   } catch (e) {
     alert('Kon formaat niet aanpassen: ' + e.message);
+  }
+};
+
+window.saveReparatie = async function (orderId, btn) {
+  const checkboxes = document.querySelectorAll(`#reparatieChecklist-${orderId} .reparatie-checkbox:checked`);
+  const lineItemIds = Array.from(checkboxes).map(cb => cb.value);
+  if (lineItemIds.length === 0) {
+    alert('Vink minstens 1 product aan dat beschadigd is aangekomen.');
+    return;
+  }
+  const originalLabel = btn.innerHTML;
+  btn.disabled = true;
+  btn.textContent = 'Bezig...';
+  try {
+    const res = await fetch(`/api/orders/${orderId}/reparatie`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ lineItemIds })
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || 'Server gaf een fout terug');
+    }
+    // Popup herladen zodat de status, notitie en reparatie-selectie meteen
+    // de nieuwe waarde tonen.
+    await openOrder(orderId);
+    await loadOrders();
+  } catch (e) {
+    alert('Kon reparatie-selectie niet opslaan: ' + e.message);
+    btn.innerHTML = originalLabel;
+    btn.disabled = false;
+  }
+};
+
+window.clearReparatie = async function (orderId, btn) {
+  const originalLabel = btn.innerHTML;
+  btn.disabled = true;
+  btn.textContent = 'Bezig...';
+  try {
+    const res = await fetch(`/api/orders/${orderId}/reparatie`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ lineItemIds: [] })
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || 'Server gaf een fout terug');
+    }
+    await openOrder(orderId);
+  } catch (e) {
+    alert('Kon reparatie-selectie niet wissen: ' + e.message);
+    btn.innerHTML = originalLabel;
+    btn.disabled = false;
   }
 };
 

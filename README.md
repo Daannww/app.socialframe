@@ -6,6 +6,71 @@ van kan maken, en waarmee je de status van orders kan wijzigen.
 
 ## Functies
 
+## Nieuw: "Reparatie" — gericht opnieuw drukken van 1 beschadigd product uit een order
+
+**Wat:** soms komt maar 1 product uit een order beschadigd aan bij de klant.
+Voorheen zette je de hele order terug op "wacht op drukwerkbestand", waardoor
+bij een order met meerdere producten ALLES opnieuw in het drukwerkbestand-zip
+terechtkwam — ook de producten die prima aangekomen waren. Nu kan je in de
+order-popup precies aanvinken welk(e) product(en) beschadigd is/zijn; alleen
+die komen dan de volgende keer opnieuw in de zip.
+
+**Hoe het werkt:**
+- Nieuwe sectie "Reparatie (beschadigd aangekomen)" in de order-popup, met
+  een checkbox per product-regel uit de bestelling (gebruikt gewoon de
+  bestaande cart-regels, dus werkt automatisch voor élk producttype).
+- Bij bevestigen ("Markeer aangevinkte als beschadigd..."):
+  - de order gaat automatisch terug naar status "wacht op drukwerkbestand";
+  - "REPARATIE" komt vooraan in de notitie te staan (bestaande notitie-inhoud
+    blijft daaronder gewoon staan) — dat verschijnt dus ook op de pakbon;
+  - de aangevinkte regel-item-ID's worden opgeslagen als de actieve
+    "reparatie-selectie" van de order.
+- Bij de eerstvolgende drukwerkbestand-generatie voor die order (zowel de
+  handmatige zip-download als de automatische export om 12:00) wordt ELK
+  producttype gefilterd op deze selectie: alleen het/de aangevinkte
+  product(en) komen in de zip, de rest van de order wordt overgeslagen.
+  Zodra dat gelukt is (net als altijd) gaat de order automatisch naar "wacht
+  op productie" — en de reparatie-selectie wordt dan meteen weer gewist, zodat
+  een latere, GEWONE volledige regeneratie van deze order niet per ongeluk
+  nog steeds gefilterd blijft op de oude, allang afgehandelde selectie.
+- Een "Reparatie-selectie wissen"-knop verschijnt zodra er een actieve
+  selectie is, voor als er per ongeluk iets aangevinkt is.
+
+**Technisch:**
+- Elke product-extractor (`extract*ItemsFromOrder` in alle producent-
+  bestanden, plus de tegel-achtige producten — autopictura/"Gepersonaliseerde
+  foto tegel"/Posterly — in `shopify.js`) tagt zijn items nu met
+  `lineItemId: li.id` (het Shopify-regel-item-ID), zodat een specifiek
+  product binnen een order met meerdere regels ondubbelzinnig aan te wijzen
+  is.
+- Nieuwe DB-kolom `reparatie_line_item_ids_json` (JSON-array van regel-item-
+  ID's, of NULL = geen actieve selectie) plus
+  `setReparatieLineItems`/`getReparatieLineItemIds`/`clearReparatieLineItems`
+  in `server/db.js`.
+- Nieuwe route `POST /api/orders/:id/reparatie` (body: `{ lineItemIds: [...] }`,
+  lege array = selectie wissen).
+- In `appendPrintFilesToArchive` (server/index.js) filtert een nieuwe
+  `filterVoorReparatie()`-helper elk van de 10 producttype-item-arrays op de
+  actieve selectie, vóórdat de PDF's gegenereerd worden — zonder actieve
+  selectie verandert er niets (dus alle bestaande orders/exports werken
+  precies als voorheen).
+
+**Getest:**
+- Losse test voor de hele DB-laag: notitie-samenvoeging ("REPARATIE" ervoor,
+  bestaande inhoud blijft staan), status-overgangen (naar "wacht op
+  drukwerkbestand" bij aanzetten, terug naar "wacht op productie" + selectie-
+  wissen bij een geslaagde herdruk), en dat een lege selectie ALLEEN de
+  selectie wist (niet de status/notitie aanraakt).
+- Gesimuleerde multi-product-order (kentekenplaathouder + tegel-illustratie in
+  dezelfde order): geverifieerd dat het filteren op de reparatie-selectie
+  precies het aangevinkte product overhoudt en het andere product overslaat,
+  en dat na het wissen van de selectie een volgende regeneratie weer beide
+  producten meeneemt.
+- Volledige regressie over alle bestaande producten (Kerstboom + alle 26
+  "Tegeltje met tekst/hartje/figuur"-ontwerpen, en "Foto tegel met 3 foto's"
+  in 10x10/13x13 + randgeval) opnieuw gedraaid na het toevoegen van
+  `lineItemId` aan alle extractors — geen regressies.
+
 ## Fix: hartje niet gecentreerd + echte Sacramento-lettertype toegevoegd ("Foto tegel met 3 foto's")
 
 **Twee kleine correcties op het hierboven beschreven nieuwe product:**
