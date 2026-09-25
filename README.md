@@ -6,6 +6,73 @@ van kan maken, en waarmee je de status van orders kan wijzigen.
 
 ## Functies
 
+## Nieuw ontwerp: "Tegeltje met tekst - Peettante"
+
+**Wat:** een nieuw vast ontwerp toegevoegd aan de "Tegeltje met tekst"-
+productfamilie, zelfde woordenboek-stijl als "Tante met definitie"/"Opa met
+definitie" (titel + "[de; meervoud: ...]" + genummerde lijst + lijntje), maar
+met EIGEN lettertypen — 1-op-1 herkend uit het aangeleverde referentiebestand
+door een test-render naast een uitgesneden stukje van het origineel te
+leggen:
+- Titel "Peettante": Bodoni Moda Bold (dezelfde hoge-contrast schreefletter
+  als Tante/Opa — bevestigd identiek).
+- Ondertitel "[de; meervoud: peettantes / peettanten]": cursief, maar GEEN
+  Bodoni — dit bleek Montserrat Italic te zijn. Dat bestand zat nog niet in
+  het project; opgehaald via het officiële, gratis @fontsource/montserrat
+  npm-pakket en omgezet van WOFF2 naar TTF (alleen het "latin"-subset, dat
+  bevat de benodigde ë/é en “ ”-tekens).
+- Genummerde lijst: rechtop, herkend als het BESTAANDE Montserrat-Regular.ttf
+  (al in server/fonts/ aanwezig voor het muziekframe) — een losse test-render
+  van een referentiezin bleek letter-voor-letter identiek aan het origineel.
+
+Herkenning: titel bevat gewoon "Peettante" (bevestigd: dit product heeft
+maar 1 vast ontwerp — de "Kleur / Schilders-ezeltje"-variant is enkel
+tegelkleur + houder-type, geen aparte ontwerpkeuze, dus geen speciale
+variant-uitlezing nodig zoals bij een product met meerdere ontwerpen per
+titel).
+
+Alle posities/groottes zijn gemeten uit het eigen referentiebestand (vector-
+contouren voor elke tekstregel, en een PDF-rechthoek-operator voor de lijn
+onder de titel — dus geen aanname, exact de eigen afmetingen) en vervolgens
+gekalibreerd op de EXACTE lettertype-breedte (niet zomaar Tante/Opa se
+lettergroottes hergebruikt, want die gebruiken een ander lettertype voor de
+lijst en zouden hier merkbaar te breed uitvallen).
+
+**Getest:** herkenning (title-only, geen false-positive/-negative met
+Tante/Opa se eigen regex), kleurenlogica (zwarte tekst op een lichte tegel,
+witte tekst op een donkere tegel — bestaande hoofdtekstKleur-logica, niet
+aangepast voor dit ontwerp), en een pixel-vergelijking van de gegenereerde
+PDF tegen het referentiebestand (visueel vrijwel niet te onderscheiden;
+minieme verschillen door een andere PDF-rasterizer/anti-aliasing, geen
+inhoudelijke afwijking). Volledige regressie over alle bestaande "Tegeltje
+met tekst/hartje/figuur"-ontwerpen (inclusief Kerstboom) opnieuw gedraaid —
+geen regressies.
+
+## Fix/aanvulling: bij Reparatie ook de andere producten van de pakbon weglaten
+
+**Wat:** de "Reparatie"-functie hieronder zorgde al dat alleen het aangevinkte
+product opnieuw in het drukwerkbestand komt — maar op de pakbon (`Print pakbon
+voor deze order`/PrintNode) stonden nog steeds ALLE producten uit de order.
+Nu geldt: zodra een order een actieve reparatie-selectie heeft, toont de
+pakbon ook alleen het/de aangevinkte product(en), inclusief de bijbehorende
+foto('s) — de rest van de order (die immers al gewoon goed geleverd is) wordt
+weggelaten. Zonder actieve selectie verandert er niets, dus alle normale
+pakbonnen blijven precies zoals voorheen.
+
+**Technisch:** in `buildReceiptHtml` (public/app.js) wordt de regel-itemlijst
+gefilterd op `order.reparatie_line_item_ids` (dat veld komt al uit
+`/api/orders/:id`, zie de Reparatie-functie hieronder). De foto-previews op de
+pakbon worden op dezelfde manier gefilterd: een foto-link hoort bij een regel
+als die link letterlijk in een van de eigenschappen van die regel voorkomt —
+precies zoals `extractPhotoLinks` in `server/shopify.js` die links er ooit uit
+haalt — zodat er geen foto van een ander (niet aangevinkt) product op de
+reparatie-pakbon verschijnt.
+
+**Getest:** losse test van de filterlogica met een order van 2 producten
+(1 met een foto-eigenschap): reparatie op product A -> alleen product A (en
+géén foto) op de pakbon; reparatie op product B (met foto) -> product B mét
+zijn foto; geen actieve selectie -> alles blijft gewoon staan, zoals altijd.
+
 ## Nieuw: "Reparatie" — gericht opnieuw drukken van 1 beschadigd product uit een order
 
 **Wat:** soms komt maar 1 product uit een order beschadigd aan bij de klant.

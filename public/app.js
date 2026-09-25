@@ -1811,7 +1811,18 @@ function buildReceiptHtml(order) {
     fotoNietGeladen: '[Foto kon niet geladen worden]'
   };
 
-  const itemRows = (order.line_items || []).map(li => {
+  // Reparatie: als er een actieve reparatie-selectie is (1 of meerdere
+  // producten aangevinkt als beschadigd), dan hoort op de pakbon ook alleen
+  // dat/die product(en) te staan — niet de rest van de order, die immers al
+  // eerder gewoon goed geleverd is. Zonder actieve selectie verandert er
+  // niets (dan komen gewoon alle regels erop, zoals altijd).
+  const reparatieLineItemIds = (order.reparatie_line_item_ids || []).map(String);
+  const heeftActieveReparatie = reparatieLineItemIds.length > 0;
+  const receiptLineItems = heeftActieveReparatie
+    ? (order.line_items || []).filter(li => reparatieLineItemIds.includes(String(li.id)))
+    : (order.line_items || []);
+
+  const itemRows = receiptLineItems.map(li => {
     // "Als een cadeautje inpakken." kan (door een Shopify/PPLR-koppelbug)
     // de gepersonaliseerde eigenschappen van een heel ANDER, écht besteld
     // product onder zich krijgen — die worden al correct verwerkt voor het
@@ -1860,7 +1871,19 @@ function buildReceiptHtml(order) {
   // Op de pakbon: alle autopictura-previews tonen, maar van overige
   // (niet-autopictura) bestanden alleen de eerste/bovenste — anders wordt de
   // pakbon onnodig lang als er meerdere design-previews in de order zitten.
-  const allPhotoLinks = order.photo_links || [];
+  // Bij een actieve reparatie-selectie: ook hier alleen de foto('s) van het
+  // aangevinkte product tonen — een link hoort bij een regel als 'ie
+  // letterlijk in een van de eigenschappen van die regel voorkomt (zo worden
+  // deze links ook uit de bestelling gehaald, zie extractPhotoLinks in
+  // server/shopify.js), zodat er geen foto van een NIET aangevinkt (dus prima
+  // geleverd) product op de reparatie-pakbon verschijnt.
+  const allPhotoLinksRaw = order.photo_links || [];
+  const allPhotoLinks = heeftActieveReparatie
+    ? (() => {
+        const eigenschapTeksten = receiptLineItems.flatMap(li => (li.properties || []).map(p => `${p.name}: ${p.value}`));
+        return allPhotoLinksRaw.filter(link => eigenschapTeksten.some(tekst => tekst.includes(link)));
+      })()
+    : allPhotoLinksRaw;
   const autopicturaPhotos = allPhotoLinks.filter(l => /autopictura/i.test(l));
   const otherPhotos = allPhotoLinks.filter(l => !/autopictura/i.test(l));
   const photosForReceipt = [...autopicturaPhotos, ...(otherPhotos.length ? [otherPhotos[0]] : [])];

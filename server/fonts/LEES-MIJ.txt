@@ -27,3 +27,21 @@ exact deze naam:
 Zonder dit bestand valt het "Foto tegel met 3 foto's"-drukwerkbestand terug
 op Helvetica voor de onderschriften — leesbaar, maar niet het bedoelde
 schrijflettertype.
+
+---
+
+Het Montserrat-Italic.ttf-fontbestand (voor de cursieve ondertitel
+"[de; meervoud: ...]" bij "Tegeltje met tekst - Peettante") staat hier nu ook
+al in, en zit voortaan gewoon in elke update die je van dit project krijgt —
+je hoeft hier zelf niets meer aan te doen. Opgehaald uit het officiële,
+gratis @fontsource/montserrat-pakket (dezelfde Montserrat als
+Montserrat-Regular.ttf hierboven, maar dan de cursieve/italic-variant).
+
+Mocht je 'm ooit willen vervangen: zet gewoon een nieuw bestand neer met
+exact deze naam:
+
+  Montserrat-Italic.ttf
+
+Zonder dit bestand valt de ondertitel bij "Peettante" terug op een
+systeemlettertype (schuingezette Helvetica) — leesbaar, maar niet het
+bedoelde lettertype.
