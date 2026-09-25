@@ -6,6 +6,60 @@ van kan maken, en waarmee je de status van orders kan wijzigen.
 
 ## Functies
 
+## Vervolgfix: de "alles wordt geselecteerd"-bug bij Reparatie bleef terugkomen na een deploy
+
+**Wat ging er mis:** ook ná de hieronder beschreven `mapOrder`-fix ("Bugfix:
+Reparatie selecteerde bij bevestigen alle producten...") bleef het probleem
+optreden: 1 product aanvinkten bij Reparatie en bevestigen zorgde er bij het
+opnieuw openen van de order nog steeds voor dat opeens alles aangevinkt
+stond.
+
+**Oorzaak:** de eerdere changelog-tekst hierboven bevatte een onjuiste
+aanname — dat bestaande orders "bij elke synchronisatie (elke 5 minuten)
+sowieso opnieuw weggeschreven worden vanuit een verse `mapOrder()`-aanroep".
+Dat klopt NIET voor orders die al eerder gesynchroniseerd zijn:
+`syncOrders()` in `server/shopify.js` haalt bij elke automatische
+synchronisatie alleen orders op met een HOGER Shopify-order-ID dan het
+laatst geziene (`since_id`) — orders die al in de database staan worden dus
+nooit opnieuw bij Shopify opgevraagd en dus ook nooit opnieuw gemapt. Een
+fix aan de mapping-/detectielogica (zoals de `id`-fix) werkt daardoor alleen
+voor GLASHELDER NIEUWE orders die van dat moment af binnenkomen — alle
+orders die al vóór de fix in de database stonden, bleven voor altijd
+vastzitten met hun oude, kapotte `line_items_json` (zonder regel-item-ID's),
+tenzij ze handmatig herberekend worden. Dat verklaart waarom de bug bleef
+terugkomen: de gebruiker testte op orders die er al stonden vóórdat de fix
+gedeployed werd.
+
+**Fix:**
+- De bestaande (voorheen niet in de UI zichtbare) `/api/reprocess-links`-
+  route herberekent alle afgeleide velden (adres, klantgegevens, producten
+  met hun regel-item-ID's, Spotify-/foto-links) voor ALLE bestaande orders,
+  lokaal vanuit hun al opgeslagen ruwe Shopify-data — dus zonder dat er
+  opnieuw iets bij Shopify wordt opgevraagd, en zonder dat de status van een
+  order verandert.
+- Deze herberekening draait nu **automatisch 1 keer bij het opstarten van de
+  server** (dus bij elke nieuwe deploy) — een fix aan de mapping-/
+  detectielogica geldt daardoor meteen na een deploy voor ALLE bestaande
+  orders, in plaats van pas wanneer een order toevallig opnieuw door de
+  (nooit-terugkijkende) synchronisatie wordt opgepikt.
+- Als extra vangnet is er ook een nieuwe knop **"Links herberekenen"**
+  toegevoegd naast "Nu synchroniseren" bovenin (alleen zichtbaar/bruikbaar
+  voor het admin-account, net als "Drukwerkbestanden (PDF)"), zodat je dit
+  ook altijd zelf met 1 klik opnieuw kan triggeren, mocht dat ooit nodig
+  zijn.
+- De onjuiste bewering in de eerdere changelog-tekst hieronder ("werkt
+  automatisch met terugwerkende kracht... bij elke synchronisatie") is
+  gecorrigeerd door deze tekst.
+
+**Getest:** nieuwe test die een order eerst normaal opslaat en daarna
+handmatig "verouderd" maakt (line-item-ID's eruit gehaald, om de situatie
+van vóór de `mapOrder`-fix na te bootsen) — en bevestigt dat de
+herberekeningslogica de order daarna weer herstelt naar unieke, correcte
+regel-item-ID's, en dat de Reparatie-selectie daarna ook weer maar 1 product
+matcht in plaats van alle producten. Daarnaast opnieuw de volledige
+bestaande testsuite gedraaid (Reparatie, `mapOrder`-ID's, en de volledige
+regressie over alle "Tegeltje met tekst"-ontwerpen) — geen regressies.
+
 ## Bugfix: Reparatie selecteerde bij bevestigen alle producten i.p.v. alleen het aangevinkte
 
 **Wat ging er mis:** bij een order met meerdere producten vinkte je er 1 aan
@@ -28,10 +82,13 @@ gebruikt wordt.
 
 **Fix:** `id: li.id` toegevoegd aan de regel-item-mapping in `mapOrder`. Elk
 product in een order krijgt nu weer zijn eigen, unieke ID door de hele app
-heen. Werkt automatisch met terugwerkende kracht voor orders die al in de
-database stonden: `line_items_json` van bestaande orders wordt bij elke
-synchronisatie (elke 5 minuten) sowieso opnieuw weggeschreven vanuit een
-verse `mapOrder()`-aanroep, dus geen aparte migratie nodig.
+heen.
+
+> **Correctie:** hieronder stond eerder dat dit automatisch met
+> terugwerkende kracht voor bestaande orders zou werken via de periodieke
+> synchronisatie — dat bleek niet te kloppen (zie "Vervolgfix" hierboven).
+> Bestaande orders krijgen deze fix nu in plaats daarvan automatisch bij de
+> eerstvolgende deploy (of via de "Links herberekenen"-knop).
 
 **Getest:** nieuwe test die een order met 2 verschillende producten door
 `mapOrder` haalt en bevestigt dat beide hun eigen, verschillende ID

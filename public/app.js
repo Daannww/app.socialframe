@@ -19,6 +19,7 @@ const printSelectedBtn = document.getElementById('printSelectedBtn');
 const printSelectedPrintNodeBtn = document.getElementById('printSelectedPrintNodeBtn');
 const printFilesBtn = document.getElementById('printFilesBtn');
 const syncBtn = document.getElementById('syncBtn');
+const reprocessLinksBtn = document.getElementById('reprocessLinksBtn');
 const searchInput = document.getElementById('searchInput');
 const bulkStatusSelect = document.getElementById('bulkStatusSelect');
 const bulkStatusBtn = document.getElementById('bulkStatusBtn');
@@ -1363,6 +1364,24 @@ document.getElementById('syncBtn').addEventListener('click', async () => {
   }
 });
 
+reprocessLinksBtn.addEventListener('click', async () => {
+  const original = reprocessLinksBtn.innerHTML;
+  reprocessLinksBtn.disabled = true;
+  reprocessLinksBtn.textContent = 'Bezig...';
+  try {
+    const res = await fetch('/api/reprocess-links', { method: 'POST' });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Server gaf een fout terug');
+    await loadOrders();
+    alert(`Klaar: ${data.updated} order(s) lokaal herberekend${data.skipped ? `, ${data.skipped} overgeslagen` : ''}.`);
+  } catch (e) {
+    alert('Herberekenen mislukt: ' + e.message);
+  } finally {
+    reprocessLinksBtn.disabled = false;
+    reprocessLinksBtn.innerHTML = original;
+  }
+});
+
 document.getElementById('logoutBtn').addEventListener('click', async () => {
   try {
     await fetch('/api/logout', { method: 'POST' });
@@ -1439,6 +1458,7 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
       // Order-gerelateerde knoppen/tekst horen niet thuis op een pure voorraadpagina
       printFilesBtn.classList.add('hidden');
       syncBtn.classList.add('hidden');
+      reprocessLinksBtn.classList.add('hidden');
       lastSyncEl.classList.add('hidden');
       loadInventory();
       return;
@@ -1450,6 +1470,7 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
     inventoryView.classList.add('hidden');
     printFilesBtn.classList.remove('hidden');
     syncBtn.classList.remove('hidden');
+    reprocessLinksBtn.classList.remove('hidden');
     lastSyncEl.classList.remove('hidden');
 
     currentFilter = btn.dataset.status;
@@ -1966,7 +1987,10 @@ async function initSessionAndLoad() {
     const data = await res.json();
     if (data.role) {
       currentUserRole = data.role;
-      if (data.role !== 'admin') printFilesBtn.style.display = 'none';
+      if (data.role !== 'admin') {
+        printFilesBtn.style.display = 'none';
+        reprocessLinksBtn.style.display = 'none';
+      }
     }
   } catch (e) {
     // val terug op currentUserRole = 'admin' (default); server blokkeert sowieso

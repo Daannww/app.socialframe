@@ -478,32 +478,44 @@ app.post('/api/sync', async (req, res) => {
   }
 });
 
-// --- Alle afgeleide velden (adres, klantgegevens, items, Spotify/foto-links)
-// herberekenen voor ALLE bestaande orders, lokaal, zonder opnieuw bij Shopify
-// op te vragen. Handig na een verbetering aan de mapping/detectielogica,
-// zodat oudere orders (die de incrementele sync niet opnieuw ophaalt) alsnog
-// de nieuwste versie krijgen. De status van elke order blijft ongewijzigd. ---
-app.post('/api/reprocess-links', (req, res) => {
+// --- Alle afgeleide velden (adres, klantgegevens, items, Spotify/foto-links,
+// en de Shopify-regel-item-ID's van elk product) herberekenen voor ALLE
+// bestaande orders, lokaal, zonder opnieuw bij Shopify op te vragen. Nodig na
+// een verbetering aan de mapping/detectielogica, zodat oudere orders (die de
+// incrementele sync — zie syncOrders() in shopify.js, die alleen orders MET
+// EEN HOGER ID dan de laatst geziene ophaalt — nooit opnieuw ophaalt) alsnog
+// de nieuwste versie krijgen. De status van elke order blijft ongewijzigd.
+// Wordt (a) automatisch 1x uitgevoerd bij het opstarten van de server (zie
+// app.listen hieronder) zodat een fix in de mapping/detectielogica meteen na
+// een nieuwe deploy voor ALLE bestaande orders geldt, en is (b) ook los
+// oproepbaar via de "Links herberekenen"-knop (alleen zichtbaar/bruikbaar
+// voor het adminaccount) als extra vangnet. ---
+function reprocessAllOrderLinks() {
+  const rows = getAllOrdersRaw();
+  let updated = 0;
+  let skipped = 0;
+
+  rows.forEach(row => {
+    if (!row.raw_json || row.raw_json === '{}') { skipped++; return; } // testorders zonder echte Shopify-data overslaan
+    let order;
+    try {
+      order = JSON.parse(row.raw_json);
+    } catch (e) {
+      skipped++;
+      return;
+    }
+    const mapped = mapOrder(order);
+    updateDerivedFields(row.id, mapped);
+    updated++;
+  });
+
+  return { updated, skipped };
+}
+
+app.post('/api/reprocess-links', requireAdmin, (req, res) => {
   try {
-    const rows = getAllOrdersRaw();
-    let updated = 0;
-    let skipped = 0;
-
-    rows.forEach(row => {
-      if (!row.raw_json || row.raw_json === '{}') { skipped++; return; } // testorders zonder echte Shopify-data overslaan
-      let order;
-      try {
-        order = JSON.parse(row.raw_json);
-      } catch (e) {
-        skipped++;
-        return;
-      }
-      const mapped = mapOrder(order);
-      updateDerivedFields(row.id, mapped);
-      updated++;
-    });
-
-    res.json({ updated, skipped });
+    const result = reprocessAllOrderLinks();
+    res.json(result);
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -1528,6 +1540,21 @@ app.post('/api/cleanup-old-orders', (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Order dashboard draait op http://localhost:${PORT}`);
+
+  // Alle bestaande orders lokaal herberekenen (adres/klantgegevens/items/
+  // regel-item-ID's e.d.) vanuit hun al opgeslagen raw_json — dit kost geen
+  // Shopify-verzoeken en zorgt dat een fix aan de mapping/detectielogica
+  // (zoals eerder de ontbrekende regel-item-ID bij "Reparatie") na een deploy
+  // METEEN voor ALLE bestaande orders geldt, in plaats van pas wanneer die
+  // orders toevallig opnieuw door de incrementele sync worden opgehaald (wat
+  // voor oudere orders vaak nooit meer gebeurt, zie syncOrders() hierboven).
+  try {
+    const { updated, skipped } = reprocessAllOrderLinks();
+    console.log(`[herberekenen] ${updated} order(s) lokaal herberekend, ${skipped} overgeslagen.`);
+  } catch (e) {
+    console.error('[herberekenen] fout tijdens herberekenen bij opstarten:', e.message);
+  }
+
   // Eerste sync direct bij opstarten
   syncOrders()
     .then(r => console.log(`[sync] initiele sync: ${r.totalNew} nieuwe orders, ${r.totalSeen} verwerkt`))
