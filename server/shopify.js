@@ -306,6 +306,21 @@ function mapOrder(order) {
   ].filter(Boolean).join(', ');
 
   const lineItems = (order.line_items || []).map(li => ({
+    // BELANGRIJK: id moet hier expliciet mee — dit is het Shopify-regel-
+    // item-ID dat overal door de rest van de app gebruikt wordt om 1
+    // SPECIFIEK product binnen een order met meerdere regels aan te wijzen
+    // (line-item-overrides, en de "Reparatie"-selectie in reparatie_line_
+    // item_ids_json/lineItemId-tagging in alle extract*ItemsFromOrder-
+    // functies). Ontbrak hier per ongeluk — daardoor werd li.id overal
+    // `undefined`, en omdat ELK regel-item dan hetzelfde `String(undefined)`
+    // ("undefined") opleverde, leek het net of 1 aangevinkt product bij
+    // Reparatie automatisch ALLE producten in de order meenam (ze deelden
+    // allemaal diezelfde "undefined"-sleutel). Bij de eerstvolgende
+    // synchronisatie (elke 5 minuten, zie upsertOrder in db.js) wordt
+    // line_items_json van bestaande orders automatisch herschreven, dus
+    // deze fix werkt met terugwerkende kracht ook voor orders die al in de
+    // database stonden.
+    id: li.id,
     title: li.title,
     variant_title: li.variant_title,
     quantity: li.quantity,

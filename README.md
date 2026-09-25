@@ -6,6 +6,40 @@ van kan maken, en waarmee je de status van orders kan wijzigen.
 
 ## Functies
 
+## Bugfix: Reparatie selecteerde bij bevestigen alle producten i.p.v. alleen het aangevinkte
+
+**Wat ging er mis:** bij een order met meerdere producten vinkte je er 1 aan
+bij "Reparatie" en bevestigde je — maar daarna bleken (bij het opnieuw openen
+van de order) OPEENS alle producten aangevinkt te staan, niet alleen die ene.
+
+**Oorzaak:** `mapOrder` in `server/shopify.js` sloeg per regel-item wél de
+titel/variant/hoeveelheid/prijs/SKU/eigenschappen op, maar NIET het Shopify-
+regel-item-ID (`id`) zelf. Daardoor was `li.id` overal in de app `undefined`
+voor ELK product in een order — en omdat `String(undefined)` voor elk
+product exact dezelfde tekst ("undefined") oplevert, leek het net of alle
+producten "hetzelfde" product waren zodra er ook maar 1 van aangevinkt werd:
+de checkbox-status wordt namelijk bepaald door te kijken of een product se ID
+in de opgeslagen reparatie-selectie voorkomt, en met overal dezelfde
+"undefined"-sleutel matchten ineens ALLE producten mee. Dit trof niet alleen
+Reparatie, maar in theorie ook de al langer bestaande regel-item-
+overschrijvingen (line-item-override) bij orders met meerdere producten —
+dat viel tot nu toe alleen nooit op omdat die vooral bij orders met 1 product
+gebruikt wordt.
+
+**Fix:** `id: li.id` toegevoegd aan de regel-item-mapping in `mapOrder`. Elk
+product in een order krijgt nu weer zijn eigen, unieke ID door de hele app
+heen. Werkt automatisch met terugwerkende kracht voor orders die al in de
+database stonden: `line_items_json` van bestaande orders wordt bij elke
+synchronisatie (elke 5 minuten) sowieso opnieuw weggeschreven vanuit een
+verse `mapOrder()`-aanroep, dus geen aparte migratie nodig.
+
+**Getest:** nieuwe test die een order met 2 verschillende producten door
+`mapOrder` haalt en bevestigt dat beide hun eigen, verschillende ID
+behouden (voorheen zouden beide `undefined` zijn geweest). De bestaande
+Reparatie-tests (notitie, status-overgangen, filteren op de selectie) en de
+volledige regressie over alle "Tegeltje met tekst/hartje/figuur"-ontwerpen
+opnieuw gedraaid — geen regressies.
+
 ## Nieuw ontwerp: "Tegeltje met tekst - Peettante"
 
 **Wat:** een nieuw vast ontwerp toegevoegd aan de "Tegeltje met tekst"-
