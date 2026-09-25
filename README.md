@@ -6,6 +6,36 @@ van kan maken, en waarmee je de status van orders kan wijzigen.
 
 ## Functies
 
+## Aanvulling: "Gepersonaliseerde foto tegel" ondersteunt nu ook een Enter tussen naam/datum én emoji
+
+**Wat:** 2 verbeteringen op de hieronder beschreven nieuwe "Gepersonaliseerde
+foto tegel"-generator, naar aanleiding van feedback:
+
+1. **Een Enter tussen naam en datum.** De klant typt de naam en de datum(s)
+   niet altijd op 1 doorlopende regel (zoals in het eerste voorbeeld) — soms
+   drukt de klant zelf op Enter in het invulveld, waardoor de "Naam"-
+   eigenschap als 2 (of meer) losse regels met een LETTERLIJKE nieuwe-regel
+   erin binnenkomt. Dat wordt nu als EERSTE gecontroleerd (vóór het gokken op
+   een datumpatroon): staat er een Enter in, dan wordt gewoon regel 1 = naam
+   en de rest (samengevoegd) = datumregel, ongeacht of die er als een
+   herkenbare datumnotatie uitziet. Zonder Enter blijft de bestaande
+   datumpatroon-herkenning (zie hieronder) gewoon de terugval-methode.
+2. **(Apple-)emoji's in de tekst.** De tekst wordt nu getekend met dezelfde
+   "gemixte tekst"-aanpak als "Foto tegel met 3 foto's" (die hetzelfde al
+   langer ondersteunt) — een emoji in de naam/tekst (bv. een hartje bij een
+   herdenkingstekst) wordt als plaatje meegerenderd i.p.v. als ontbrekend
+   teken in het lettertype.
+
+**Getest:** nieuwe testgevallen voor de Enter-scheiding (met \n, met \r\n,
+met een datumregel die zelf geen datumpatroon bevat, en met meer dan 2
+regels), en een PDF-generatie met een emoji in de naam (geen crash — de
+daadwerkelijke Twemoji-afbeelding zelf kon in deze test-omgeving niet
+opgehaald worden omdat de sandbox hier geen internettoegang tot toestaat,
+maar dat is exact hetzelfde, al langer bewezen mechanisme als bij "Foto tegel
+met 3 foto's", dus dat werkt op de live server gewoon zoals daar). Bestaande
+tests (splitsing zonder Enter, herkenning, Reparatie, overige tegeltjes)
+opnieuw gedraaid — geen regressies.
+
 ## Nieuw drukwerkbestand: "Gepersonaliseerde foto tegel" (foto + naam/datum-tekst)
 
 **Wat:** dit product ("jouw foto op keramiek") kreeg tot nu toe alleen de

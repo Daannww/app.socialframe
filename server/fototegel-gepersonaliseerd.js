@@ -4,7 +4,7 @@ const { PDFDocument, StandardFonts } = require('pdf-lib');
 const fontkit = require('@pdf-lib/fontkit');
 const {
   MM, embedPhotoCoverRectGeenAntiGaten,
-  widthOfTextLigatuurVeiligAtSize, drawTextLigatuurVeilig
+  splitTextEmoji, preloadEmojiImages, measureMixedTextWidth, drawMixedText, fitFontSizeToWidth
 } = require('./pdf-shared');
 const { isFotoTegelLineItem } = require('./shopify');
 const { kleurNaarPdfKleur } = require('./fototegel3');
@@ -53,23 +53,40 @@ function fromTopMm(topMm, schaal) {
 // Splitst de "Naam"-property (bv. "Winnie Vermeir 19.06.’54 - 19.06.’26") in
 // een naam-regel en een datum(bereik)-regel. De invulapp levert dit als 1
 // vrij tekstveld aan (net als de "Tekst N"-velden bij "Foto tegel met 3
-// foto's" met hun net-iets-andere property-naam-varianten), dus hier de
-// datumnotatie aan het EIND van de tekst herkennen en van de rest scheiden.
-// Ondersteunt zowel een enkele datum als een bereik (2 datums met een
-// streepje ertussen), met een rechte OF kromme apostrof (of HELEMAAL geen
-// apostrof, bv. bij voluit geschreven 4-cijferige jaartallen), en 2- of
-// 4-cijferige jaartallen. Wordt geen datumnotatie gevonden, dan komt de hele tekst op de
+// foto's" met hun net-iets-andere property-naam-varianten).
+//
+// Twee gevallen:
+// 1. De klant heeft zelf op Enter gedrukt in het invulveld -> de waarde komt
+//    dan als 2 (of meer) losse regels binnen, met een LETTERLIJKE newline
+//    ertussen. Dat is de duidelijkste/betrouwbaarste scheiding (i.p.v. gokken
+//    op een datumpatroon) en krijgt daarom voorrang: regel 1 -> naam, de rest
+//    (samengevoegd) -> datumregel.
+// 2. Geen newline (1 doorlopende regel, zoals in het voorbeeld) -> de
+//    datumnotatie aan het EIND van de tekst herkennen en van de rest
+//    scheiden. Ondersteunt zowel een enkele datum als een bereik (2 datums
+//    met een streepje ertussen), met een rechte OF kromme apostrof (of
+//    HELEMAAL geen apostrof, bv. bij voluit geschreven 4-cijferige
+//    jaartallen), en 2- of 4-cijferige jaartallen.
+// Wordt in geval 2 geen datumnotatie gevonden, dan komt de hele tekst op de
 // naam-regel te staan en blijft de datum-regel leeg (in plaats van de order
 // te laten mislukken op een onverwacht format).
 const DATUM_REGEX = /(\d{1,2}\.\d{1,2}\.['’]?\d{2,4}(?:\s*-\s*\d{1,2}\.\d{1,2}\.['’]?\d{2,4})?)\s*$/;
 
 function splitsNaamEnDatum(ruw) {
-  const tekst = String(ruw || '').trim();
-  if (!tekst) return { naam: '', datumregel: '' };
-  const match = DATUM_REGEX.exec(tekst);
-  if (!match) return { naam: tekst, datumregel: '' };
-  const naam = tekst.slice(0, match.index).trim();
-  if (!naam) return { naam: tekst, datumregel: '' }; // de HELE tekst was al een datum -> niet als lege naam-regel tonen
+  const tekst = String(ruw || '');
+  if (!tekst.trim()) return { naam: '', datumregel: '' };
+
+  if (/\r\n|\r|\n/.test(tekst)) {
+    const regels = tekst.split(/\r\n|\r|\n/).map(r => r.trim()).filter(Boolean);
+    if (regels.length === 0) return { naam: '', datumregel: '' };
+    return { naam: regels[0], datumregel: regels.slice(1).join(' ') };
+  }
+
+  const getrimd = tekst.trim();
+  const match = DATUM_REGEX.exec(getrimd);
+  if (!match) return { naam: getrimd, datumregel: '' };
+  const naam = getrimd.slice(0, match.index).trim();
+  if (!naam) return { naam: getrimd, datumregel: '' }; // de HELE tekst was al een datum -> niet als lege naam-regel tonen
   return { naam, datumregel: match[1].trim() };
 }
 
@@ -131,22 +148,23 @@ async function laadFont(doc) {
   return doc.embedFont(StandardFonts.HelveticaOblique);
 }
 
-// Tekent 1 regel gecentreerd op de paginabreedte, en verkleint 'm (in kleine
-// stapjes) als 'ie anders buiten MAX_TEKSTBREEDTE_MM zou vallen — zelfde
-// soort auto-shrink-aanpak als elders in dit project (bv. de "groep"-tekst-
-// regels in texttile.js), hier per regel apart toegepast.
-function tekenGecentreerdeRegel(page, font, tekst, topMm, schaal, kleur) {
+// Tekent 1 regel gecentreerd op de paginabreedte. Gebruikt dezelfde "mixed
+// text"-aanpak als "Foto tegel met 3 foto's" (splitTextEmoji/drawMixedText/
+// fitFontSizeToWidth) i.p.v. gewone tekst-helpers, zodat een klant ook een
+// (Apple-)emoji in de naam/tekst kan zetten — bv. een hartje bij een
+// herdenkingstekst — en dat gewoon als plaatje meegerenderd wordt i.p.v. als
+// ontbrekend lettertype-teken. Verkleint de regel ook automatisch (via
+// fitFontSizeToWidth) als 'ie anders buiten MAX_TEKSTBREEDTE_MM zou vallen.
+function tekenGecentreerdeRegel(page, font, tekst, topMm, schaal, kleur, emojiCache) {
   if (!tekst) return;
-  let sizeMm = PUNTGROOTTE_MM * schaal;
+  const parts = splitTextEmoji(tekst);
+  const gewensteSizePt = PUNTGROOTTE_MM * schaal * MM;
   const maxBreedtePt = MAX_TEKSTBREEDTE_MM * schaal * MM;
-  let breedtePt = widthOfTextLigatuurVeiligAtSize(font, tekst, sizeMm * MM);
-  while (breedtePt > maxBreedtePt && sizeMm > 1) {
-    sizeMm -= 0.05;
-    breedtePt = widthOfTextLigatuurVeiligAtSize(font, tekst, sizeMm * MM);
-  }
+  const sizePt = fitFontSizeToWidth(parts, font, gewensteSizePt, maxBreedtePt, gewensteSizePt * 0.4);
+  const breedtePt = measureMixedTextWidth(parts, font, sizePt);
   const xPt = (REFERENTIE_MM * schaal * MM) / 2 - breedtePt / 2;
-  const yPt = fromTopMm(topMm, schaal) - sizeMm * MM * 0.75; // zelfde empirische basislijn-offset als elders (fromTopMm-conventie)
-  drawTextLigatuurVeilig(page, font, tekst, xPt, yPt, sizeMm * MM, kleur);
+  const yPt = fromTopMm(topMm, schaal) - sizePt * 0.75; // zelfde empirische basislijn-offset als elders (fromTopMm-conventie)
+  drawMixedText(page, parts, font, sizePt, xPt, yPt, kleur, emojiCache);
 }
 
 async function generateFotoTegelGepersonaliseerdPdf(data) {
@@ -174,9 +192,10 @@ async function generateFotoTegelGepersonaliseerdPdf(data) {
   // met 3 foto's" — onbekende/lege kleurnaam valt terug op zwart, zoals in
   // het voorbeeldbestand). ---
   const font = await laadFont(doc);
+  const emojiCache = await preloadEmojiImages(doc, [data.naam || '', data.datumregel || '']);
   const kleur = kleurNaarPdfKleur(data.kleurNaam);
-  tekenGecentreerdeRegel(page, font, data.naam, NAAM_TOP_MM, schaal, kleur);
-  tekenGecentreerdeRegel(page, font, data.datumregel, DATUM_TOP_MM, schaal, kleur);
+  tekenGecentreerdeRegel(page, font, data.naam, NAAM_TOP_MM, schaal, kleur, emojiCache);
+  tekenGecentreerdeRegel(page, font, data.datumregel, DATUM_TOP_MM, schaal, kleur, emojiCache);
 
   const pdfBytes = await doc.save();
   return Buffer.from(pdfBytes);
