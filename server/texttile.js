@@ -34,6 +34,36 @@ const LICHTE_TEGELKLEUREN = ['wit', 'beige'];
 // referentiebestand + voorbeeldbestelling van is.
 const TEGEL_TEKST_ONTWERPEN = [
   {
+    id: 'jij-bent-goud-waard',
+    // Titel in Shopify: "Tegeltje met tekst - Jij bent goud waard."
+    // LET OP: deze regex moet VÓÓR "jij-bent-goud" hieronder staan — die se
+    // eigen regex (/jij\s*bent\s*goud/i) matcht deze titel OOK (bevat
+    // immers ook "jij bent goud"), en TEGEL_TEKST_ONTWERPEN.find() pakt
+    // altijd de EERSTE match in de lijst. Zonder deze volgorde werd deze
+    // order stilzwijgend met het VERKEERDE (kortere) ontwerp gegenereerd —
+    // "Jij / bent / GOUD" zonder het woord "Waard" erbij.
+    herken: /jij\s*bent\s*goud\s*waard/i,
+    lettertypeBestanden: { medium: 'PlayfairDisplay-Medium.ttf', blackItalic: 'PlayfairDisplay-BlackItalic.ttf' },
+    lettertypeTerugval: { medium: StandardFonts.TimesRoman, blackItalic: StandardFonts.TimesRomanBoldItalic },
+    // Opgemeten uit het door de klant aangeleverde referentiebestand
+    // ("Jij_bent_goud_waard_Zwart_zwart_zwart.pdf" — alle tekst daarin staat
+    // als vectorpad i.p.v. live tekst, dus opgemeten via pixel-analyse i.p.v.
+    // rechtstreeks uit de PDF-tekst-operators zoals bij andere ontwerpen).
+    regels: [
+      { tekst: 'Jij bent', fontStijl: 'medium', puntgrootteMm: 8.2, topMm: 28.44, accent: false },
+      { tekst: 'GOUD', fontStijl: 'blackItalic', puntgrootteMm: 18.6, topMm: 39.96, accent: true },
+      { tekst: 'Waard', fontStijl: 'medium', puntgrootteMm: 8.2, topMm: 58.41, accent: false }
+    ],
+    hart: {
+      eenheid: 'genormaliseerd',
+      pad: paths.heart.d,
+      kleur: cmyk(0.2, 0.3, 0.75, 0.05), // altijd goud, ongeacht tegelkleur
+      breedteMm: paths.heart.widthMm,
+      schaal: 0.9587, // opgemeten uit het referentiebestand (flink groter hartje dan bij "jij-bent-goud")
+      topMm: 72.97
+    }
+  },
+  {
     id: 'jij-bent-goud',
     // Titel in Shopify: "Tegeltje met tekst - Jij bent goud."
     herken: /jij\s*bent\s*goud/i,

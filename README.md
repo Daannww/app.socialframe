@@ -6,6 +6,40 @@ van kan maken, en waarmee je de status van orders kan wijzigen.
 
 ## Functies
 
+## Bugfix: "Tegeltje met tekst - Jij bent goud waard." gebruikte het verkeerde (kortere) ontwerp
+
+**Wat:** een order met "Tegeltje met tekst – Jij bent goud waard." kreeg het
+bestaande, kortere ontwerp voor "Tegeltje met tekst - Jij bent goud."
+(zonder het woord "Waard") als drukwerkbestand, omdat de herkenningsregex
+van dat oudere ontwerp (`/jij\s*bent\s*goud/i`) de titel met "waard" erbij
+ook matchte, en er nog geen apart ontwerp voor de "waard"-variant bestond.
+
+**Fix:** een nieuw, eigen ontwerp `jij-bent-goud-waard` toegevoegd
+("Jij bent" / groot "GOUD" / "Waard", met een groter hartje eronder — qua
+opbouw en lettertypes consistent met het bestaande "Jij bent GOUD"-ontwerp),
+met een specifiekere regex (`/jij\s*bent\s*goud\s*waard/i`) die VÓÓR het
+oudere, algemenere ontwerp in de lijst staat — zodat titels met "waard" nu
+het nieuwe ontwerp pakken, en titels zonder "waard" gewoon bij het oude
+ontwerp blijven. Positionering/lettergroottes zijn opgemeten uit het door de
+klant aangeleverde referentiebestand (waarin de tekst als vectorpaden staat
+i.p.v. live tekst, dus via pixel-analyse van een render in plaats van
+rechtstreeks uit de PDF-tekst-operators).
+
+**Getest:**
+- Een titel met "waard" pakt nu het nieuwe ontwerp; een titel zonder
+  "waard" pakt nog steeds het oude, ongewijzigde ontwerp (geen regressie).
+- PDF-generatie voor zowel "Wit" (zwarte hoofdtekst) als "Zwart" (witte
+  hoofdtekst) getest — inclusief een contrast-boost-visualisatie om de
+  witte tekst/hart op de zwarte variant te kunnen controleren.
+- Zij-aan-zij visuele vergelijking met het aangeleverde referentiebestand:
+  volgorde, verhoudingen en positionering van "Jij bent" / "GOUD" / "Waard"
+  / hartje komen goed overeen (het exacte lettertype van het referentie-
+  bestand zelf is niet overgenomen, maar hetzelfde Playfair Display-
+  lettertype als bij het bestaande "Jij bent GOUD"-ontwerp, voor
+  consistentie binnen de reeks).
+- Alle 28 tekst-ontwerpen (inclusief kerstboom, Peettante, en de overige
+  bestaande varianten) opnieuw gegenereerd — geen regressies.
+
 ## Bugfix: kentekenplaathouder-bestand kon niet gegenereerd worden bij lettertype "Bebasneue-bold"
 
 **Wat:** je liep in productie tegen een foutmelding aan bij een order met
