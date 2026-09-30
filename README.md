@@ -6,6 +6,35 @@ van kan maken, en waarmee je de status van orders kan wijzigen.
 
 ## Functies
 
+## Aanvulling: zichtbare waarschuwing bij een ontbrekende QR-/Spotify-code, en dikke platen niet meer in een eigen submap
+
+**Wat 1 — waarschuwing bij ontbrekende code:** een order met een kapotte/
+niet-herkende Spotify-link leverde een muziekframe-bestand op zonder enige
+Spotify Code — het vak bleef gewoon leeg, zonder enige aanwijzing dat er
+iets misgegaan was (in plaats van dat er bewust "Geen code" gekozen was).
+Vanaf nu wordt in zo'n geval een duidelijk zichtbare rode waarschuwing
+("CODE ONTBREEKT — link controleren") in dat vak getekend, zodat dit
+opvalt vóórdat het bestand geprint wordt. Geldt voor zowel een QR-code als
+een Spotify Code, en zowel bij het Muziek-/Valentijnframe als het
+Auto-frame (delen dezelfde onderliggende code-ophaalfunctie).
+
+**Wat 2 — dikke platen niet meer in een eigen submap:** in de bulk-
+drukwerkbestanden-zip kregen "dikke" platen (Muziek-/Valentijnframe en
+Auto-frame) een eigen submap `muziekframe/Dik/`. Op verzoek komen ze nu
+gewoon bij de normale platen in de `muziekframe/`-map terecht — de "dik" in
+de bestandsnaam zelf blijft staan, zodat ze nog steeds te onderscheiden
+zijn.
+
+**Getest:**
+- Een muziekframe met exact de kapotte Spotify-link uit de betreffende
+  order genereert nu een bestand met de rode waarschuwing, duidelijk
+  zichtbaar op de juiste plek (visueel gecontroleerd).
+- Een geldige QR-code en "Geen code" blijven normaal werken, zonder
+  waarschuwing (geen vals-positieve gevallen).
+- Auto-frame met QR-code getest — geen crash, zelfde mechanisme.
+- Bestaande tests (alle tekst-tegelontwerpen, Reparatie, overige
+  drukwerkbestanden) opnieuw gedraaid — geen regressies.
+
 ## Nieuw ontwerp: "Tegeltje met tekst - Mama én nog zoveel meer."
 
 **Wat:** een nieuw tekst-tegelontwerp toegevoegd voor "Mama én nog zoveel

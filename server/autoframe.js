@@ -6,7 +6,7 @@ const path = require('path');
 const {
   MM, splitTextEmoji, preloadEmojiImages, drawMixedText, fitFontSizeToWidth,
   measureMixedTextWidth, embedPhoto, fitPhotoInSquareZone, getCodeSvg,
-  drawBackground, loadHebrewFont, hasPageBackground, nearWhiteCmyk
+  drawBackground, loadHebrewFont, hasPageBackground, nearWhiteCmyk, drawMissingCodeWarning
 } = require('./pdf-shared');
 
 const PAGE_W_MM = 200;
@@ -255,6 +255,12 @@ async function generateAutoFramePdf(data) {
         width: box.sizeMm * MM,
         height: box.sizeMm * MM
       });
+    } else {
+      // Het genereren mislukte (bv. een ongeldige link) — laat dat niet
+      // stilzwijgend als een leeg vakje staan, zie drawMissingCodeWarning in
+      // pdf-shared.js.
+      const box = layout.qrBox;
+      await drawMissingCodeWarning(doc, page, { xMm: box.xMm, topMm: box.topMm, widthMm: box.sizeMm, heightMm: box.sizeMm, fromTopMm, MM });
     }
   }
 

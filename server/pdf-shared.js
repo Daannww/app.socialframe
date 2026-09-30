@@ -1057,6 +1057,48 @@ function drawSvgShapesInBox(page, svgData, boxXMm, boxTopMm, boxWidthMm, boxHeig
   });
 }
 
+// Tekent een duidelijk zichtbare waarschuwing in het vak waar een QR-/
+// Spotify-code had moeten staan, maar niet gegenereerd kon worden (bv. een
+// ongeldige/ontbrekende link, of Spotify's service tijdelijk niet
+// bereikbaar). Zonder deze waarschuwing bleef dat vak gewoon leeg —
+// onopvallend genoeg om te denken dat er bewust "Geen code" gekozen was,
+// in plaats van dat er iets is misgegaan (ontdekt doordat een order met een
+// ongeldige Spotify-link stilzwijgend een bestand zonder code opleverde).
+// Felrode rand + tekst, altijd goed zichtbaar ongeacht de plaatachtergrond —
+// dit hoort NIET zo geprint te worden; het is een signaal voor wie het
+// bestand controleert vóór het printen, om de klant om de juiste link te
+// vragen en het bestand daarna opnieuw te genereren.
+async function drawMissingCodeWarning(doc, page, { xMm, topMm, widthMm, heightMm, fromTopMm, MM }) {
+  const kleur = pdfLib.rgb(1, 0, 0);
+  const font = await doc.embedFont(pdfLib.StandardFonts.HelveticaBold);
+
+  page.drawRectangle({
+    x: xMm * MM,
+    y: fromTopMm(topMm + heightMm),
+    width: widthMm * MM,
+    height: heightMm * MM,
+    borderColor: kleur,
+    borderWidth: 1.5,
+    opacity: 0,
+    borderOpacity: 1
+  });
+
+  const paddingMm = 2;
+  const maxWidthPt = (widthMm - 2 * paddingMm) * MM;
+
+  const regel1 = splitTextEmoji('CODE ONTBREEKT');
+  const size1 = fitFontSizeToWidth(regel1, font, heightMm * 0.4 * MM, maxWidthPt, 4);
+  const breedte1 = measureMixedTextWidth(regel1, font, size1);
+  const midXPt = xMm * MM + (widthMm * MM) / 2;
+  const midYPt = fromTopMm(topMm + heightMm / 2);
+  drawMixedText(page, regel1, font, size1, midXPt - breedte1 / 2, midYPt + size1 * 0.15, kleur, new Map());
+
+  const regel2 = splitTextEmoji('(link controleren)');
+  const size2 = Math.min(size1 * 0.45, fitFontSizeToWidth(regel2, font, heightMm * 0.2 * MM, maxWidthPt, 3));
+  const breedte2 = measureMixedTextWidth(regel2, font, size2);
+  drawMixedText(page, regel2, font, size2, midXPt - breedte2 / 2, midYPt - size1 * 0.85, kleur, new Map());
+}
+
 // Zelfde CMYK-kleurbalans-wiskunde als adjustCmykChannels hierboven, maar dan
 // met PNG als uitvoer i.p.v. JPEG — nodig voor foto's die een alpha-kanaal
 // (transparantie) moeten behouden, zoals bij afgeronde hoeken. PNG is
@@ -1294,7 +1336,7 @@ module.exports = {
   measureMixedTextWidth, drawMixedText, fitFontSizeToWidth, loadHebrewFont, meetGrootsteLetterHoogtePt,
   embedPhoto, fitPhotoInSquareZone, recolorDarkPixels, recolorLightPixels, getCodeSvg,
   drawBackground, isMarbleBackground, hasPageBackground, nearWhiteCmyk, adjustCmykChannels,
-  extractSvgShapes, drawSvgShapesInBox, embedPhotoRounded, drawImageMetAfgerondeHoeken, voorkomLigatuurGaten,
+  extractSvgShapes, drawSvgShapesInBox, drawMissingCodeWarning, embedPhotoRounded, drawImageMetAfgerondeHoeken, voorkomLigatuurGaten,
   embedPhotoCoverRect, embedPhotoCoverRectGeenAntiGaten, heeftEchteTransparantie, fetchMetHerpogingen,
   splitLigatuurVeilig, widthOfTextLigatuurVeiligAtSize, drawTextLigatuurVeilig
 };

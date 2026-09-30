@@ -1077,7 +1077,7 @@ app.get('/api/print-files/pdf-zip', requireAdmin, async (req, res) => {
 // Mapstructuur in de zip:
 //   {datum}/muziekframe/1055 muziekframe.pdf
 //   {datum}/muziekframe/klein/1055 klein.pdf
-//   {datum}/muziekframe/Dik/1055 dik.pdf
+//   {datum}/muziekframe/1055 dik.pdf                     (dikke platen: gewoon in dezelfde map, geen eigen submap meer)
 //   {datum}/muziekframe/1032 autoframe.pdf              (zelfde map als muziekframe, samen te printen)
 //   {datum}/muziekframe/klein/1032 autoframe klein.pdf
 //   {datum}/muziekframe/1099 fotoframe.pdf               (ook zelfde map, "S"-variant -> klein-submap)
@@ -1178,7 +1178,11 @@ async function appendPrintFilesToArchive(archive, targets) {
         const item = autoFrameItems[i];
         let filename;
         if (item.variant === 'dik') {
-          filename = `${dateFolder}/muziekframe/Dik/${baseName}${numberSuffix} autoframe dik.pdf`;
+          // Dikke platen krijgen GEEN eigen submap meer (op verzoek) — ze
+          // komen gewoon bij de normale platen in de muziekframe-map, net
+          // als de normale dikte; alleen de "dik" in de bestandsnaam blijft
+          // staan om ze te kunnen onderscheiden.
+          filename = `${dateFolder}/muziekframe/${baseName}${numberSuffix} autoframe dik.pdf`;
         } else if (item.variant === 'klein') {
           filename = `${dateFolder}/muziekframe/klein/${baseName}${numberSuffix} autoframe klein.pdf`;
         } else {
@@ -1209,7 +1213,11 @@ async function appendPrintFilesToArchive(archive, targets) {
         const item = musicFrameItems[i];
         let filename;
         if (item.variant === 'dik') {
-          filename = `${dateFolder}/muziekframe/Dik/${baseName}${numberSuffix} dik.pdf`;
+          // Dikke platen krijgen GEEN eigen submap meer (op verzoek) — ze
+          // komen gewoon bij de normale platen in de muziekframe-map, net
+          // als de normale dikte; alleen de "dik" in de bestandsnaam blijft
+          // staan om ze te kunnen onderscheiden.
+          filename = `${dateFolder}/muziekframe/${baseName}${numberSuffix} dik.pdf`;
         } else if (item.variant === 'klein') {
           filename = `${dateFolder}/muziekframe/klein/${baseName}${numberSuffix} klein.pdf`;
         } else {

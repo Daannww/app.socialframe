@@ -7,7 +7,7 @@ const path = require('path');
 const paths = require('./musicframe-paths');
 const {
   MM, splitTextEmoji, preloadEmojiImages, measureMixedTextWidth, drawMixedText,
-  fitFontSizeToWidth, embedPhoto, fitPhotoInSquareZone, getCodeSvg, extractSvgShapes, drawSvgShapesInBox,
+  fitFontSizeToWidth, embedPhoto, fitPhotoInSquareZone, getCodeSvg, extractSvgShapes, drawSvgShapesInBox, drawMissingCodeWarning,
   drawBackground, loadHebrewFont, hasPageBackground, nearWhiteCmyk, isVermoedelijkeDubbeleCadeautjeRegel
 } = require('./pdf-shared');
 
@@ -373,6 +373,11 @@ async function generateMusicFramePdf(data) {
           width: CODE_SIZE_MM * MM,
           height: CODE_SIZE_MM * MM
         });
+      } else {
+        // Het genereren mislukte (bv. een ongeldige link) — laat dat niet
+        // stilzwijgend als een leeg vakje staan, zie drawMissingCodeWarning
+        // in pdf-shared.js.
+        await drawMissingCodeWarning(doc, page, { xMm: codeXMm, topMm: codeTopMm, widthMm: CODE_SIZE_MM, heightMm: CODE_SIZE_MM, fromTopMm, MM });
       }
     } else if (codeType === 'spotify') {
       // Exact gemeten vak uit FRAME_spotify_code.pdf: x=43.55mm, top=261.32mm,
@@ -404,6 +409,14 @@ async function generateMusicFramePdf(data) {
         // zouden daar dan juist onzichtbaar worden, in plaats van wit die daar
         // wél goed op contrasteert.
         drawSvgShapesInBox(page, svgData, boxXMm, boxTopMm, boxWidthMm, boxHeightMm, styleColor, fromTopMm, MM);
+      } else {
+        // Het ophalen mislukte (bv. een ongeldige/niet-herkende link, of
+        // Spotify's service tijdelijk niet bereikbaar) — laat dat niet
+        // stilzwijgend als een leeg vak staan, zie drawMissingCodeWarning in
+        // pdf-shared.js. Ontdekt doordat een order met een niet-werkende
+        // Spotify-link een bestand zonder enige aanwijzing opleverde dat er
+        // iets ontbrak.
+        await drawMissingCodeWarning(doc, page, { xMm: boxXMm, topMm: boxTopMm, widthMm: boxWidthMm, heightMm: boxHeightMm, fromTopMm, MM });
       }
     }
   }
