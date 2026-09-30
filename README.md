@@ -6,6 +6,47 @@ van kan maken, en waarmee je de status van orders kan wijzigen.
 
 ## Functies
 
+## Nieuw ontwerp: "Tegeltje met tekst - Mama én nog zoveel meer."
+
+**Wat:** een nieuw tekst-tegelontwerp toegevoegd voor "Mama én nog zoveel
+meer.", naast het al bestaande "Papa én nog zoveel meer." — zelfde stijl
+handgeschreven lettertype, met "Mama" groot bovenaan, "Én nog zoveel meer."
+als onderschrift, en een hartje eronder. Tekst + hartje wisselen (net als
+bij "papa") gewoon mee met de gekozen tegelkleur (geen vaste kleur).
+
+**Hoe gebouwd:** het aangeleverde referentiebestand bevat, net als bij
+"papa", geen live tekst maar losse contouren (vectorvormen) — elke letter
+en het hartje zijn dus rechtstreeks uit de PDF-content-stream van het
+referentiebestand geëxtraheerd (24 vormen: 4 voor "Mama", 16 voor "Én nog
+zoveel meer.", 4 voor het hartje) en als vaste vectorvormen in het ontwerp
+opgenomen.
+
+**Bugfix tijdens het bouwen (nieuw geleerde les, nu in de code
+gedocumenteerd):** de eerste versie van de extractie rendere de hele tekst
+ondersteboven en dooreengeklutst. Oorzaak: de y-coördinaten van elk
+pad-segment moeten GENEGEERD worden t.o.v. de ruwe PDF-content-stream-
+waarden — de tekenfunctie (`drawSvgPath`) verwacht paden in SVG-richting
+(y loopt naar onder), terwijl de content-stream ze in PDF-richting (y
+loopt naar boven) levert. Met die omkering toegepast rendert de tekst
+correct. Deze les is nu als commentaar bij het nieuwe ontwerp vastgelegd,
+voor de volgende keer dat een contouren-only referentiebestand
+geëxtraheerd moet worden.
+
+**Getest:**
+- Herkenning: de titel "Tegeltje met tekst - Mama én nog zoveel meer."
+  pakt het nieuwe ontwerp; de bestaande "Papa"-titel blijft ongewijzigd
+  zijn eigen ontwerp gebruiken (geen regressie).
+- Zij-aan-zij pixelvergelijking met het aangeleverde referentiebestand: de
+  gegenereerde PDF komt vrijwel exact overeen (klein verschil alleen door
+  normale anti-aliasing-ruis tussen 2 apart gerenderde PDF's, geen
+  inhoudelijk verschil).
+- PDF-generatie getest voor zowel een lichte tegelkleur (zwarte
+  hoofdtekst) als een donkere tegelkleur (witte hoofdtekst, gecontroleerd
+  met een contrast-boost-visualisatie).
+- Alle 29 tekst-ontwerpen (inclusief "papa", kerstboom, Peettante, "jij
+  bent goud (waard)" en de overige bestaande varianten) opnieuw
+  gegenereerd — geen regressies.
+
 ## Bugfix: "Tegeltje met tekst - Jij bent goud waard." gebruikte het verkeerde (kortere) ontwerp
 
 **Wat:** een order met "Tegeltje met tekst – Jij bent goud waard." kreeg het
