@@ -6,6 +6,47 @@ van kan maken, en waarmee je de status van orders kan wijzigen.
 
 ## Functies
 
+## Bugfix: kentekenplaathouder-bestand kon niet gegenereerd worden bij lettertype "Bebasneue-bold"
+
+**Wat:** je liep in productie tegen een foutmelding aan bij een order met
+"SF - Kentekenplaathouder" en lettertype "Bebasneue-bold" (tekst "68/21"):
+"Kon kentekenplaathouder-bestand niet genereren: Trying to access beyond
+buffer length".
+
+**Oorzaak:** het lettertypebestand `BebasNeue-Regular.ttf` (gekoppeld aan de
+optie "Bebasneue-bold") bevatte een structuurfout die pas naar boven komt op
+het moment dat de PDF-bibliotheek het lettertype bij het opslaan van de PDF
+probeert in te korten tot alleen de gebruikte letters — dan crasht hij. Dit
+is exact dezelfde soort fout (en dezelfde oplossing) als eerder dit traject
+bij het Cormorant Garamond-lettertype van de "Gepersonaliseerde foto
+tegel", alleen trof deze keer een klant het al in productie.
+
+**Fix:** het lettertypebestand opnieuw ingekort (subset) tot de gangbare
+Latijnse letters/cijfers/leestekens met `pyftsubset`, wat de structuurfout
+wegneemt zonder zichtbaar verschil in het lettertype (cijfers, letters en
+"/" zien er identiek uit). Zie ook `server/fonts/LEES-MIJ.txt`. Naar
+aanleiding hiervan zijn ook alle overige ~20 lettertypebestanden in
+`server/fonts/` gecontroleerd op dezelfde soort fout — dit was de enige die
+crashte.
+
+**Getest:**
+- De crash losstaand gereproduceerd met het oorspronkelijke bestand (bevestigd
+  dat het lettertype zelf de oorzaak was, niet de applicatiecode).
+- Alle ~20 lettertypes in `server/fonts/` gecontroleerd op dezelfde
+  crash — alleen BebasNeue-Regular.ttf was stuk.
+- Na de fix: het inbedden + tekenen + opslaan van een testtekst met het
+  nieuwe bestand crasht niet meer.
+- De daadwerkelijke kentekenplaathouder-generator opnieuw gedraaid met
+  precies dezelfde ordergegevens als in de foutmelding (tekst "68/21",
+  lettertype "Bebasneue-bold", voertuig "Auto") — genereert nu succesvol een
+  PDF.
+- Visueel gecontroleerd (met pixel-analyse, omdat de tekst met opzet in een
+  bijna-wit "anti-gaten"-kleur wordt gedrukt voor het donkere fysieke
+  materiaal en dus normaal onzichtbaar is tegen een witte achtergrond) dat de
+  tekst "68/21" correct gevormd en op de juiste plek staat.
+- Bestaande testsuite (Reparatie, foto tegel-generators, kerstboom,
+  Peettante, link-herberekening) opnieuw gedraaid — geen regressies.
+
 ## Aanvulling: "Gepersonaliseerde foto tegel" ondersteunt nu ook een Enter tussen naam/datum én emoji
 
 **Wat:** 2 verbeteringen op de hieronder beschreven nieuwe "Gepersonaliseerde

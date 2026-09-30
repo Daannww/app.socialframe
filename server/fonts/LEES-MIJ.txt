@@ -72,3 +72,32 @@ bv. `pyftsubset` uit het fonttools-pakket) voordat het hier neergezet wordt.
 Zonder dit bestand valt de naam+datum-tekst bij "Gepersonaliseerde foto
 tegel" terug op een systeemlettertype (schuingezette Helvetica) — leesbaar,
 maar niet het bedoelde lettertype.
+
+---
+
+Het BebasNeue-Regular.ttf-fontbestand (het "Bebasneue-bold"-lettertype bij
+"SF - Kentekenplaathouder") staat hier nu ook al in als INGEKORTE versie
+(subset) van het oorspronkelijke bestand.
+
+LET OP: dit was nodig omdat het oorspronkelijke bestand de PDF-bibliotheek
+liet crashen bij het opslaan — exact dezelfde soort structuurfout als bij
+CormorantGaramond-SemiBoldItalic.ttf hierboven, alleen dit keer trof het
+klanten al in productie ("Kon kentekenplaathouder-bestand niet genereren:
+Trying to access beyond buffer length"). Het inkorten tot de gangbare
+Latijnse letters/cijfers/leestekens loste het op, zonder zichtbaar verschil
+voor dit product (cijfers, letters en "/" — de gebruikelijke kentekentekst).
+
+Mocht je dit lettertype ooit willen vervangen: zet gewoon een nieuw bestand
+neer met exact deze naam:
+
+  BebasNeue-Regular.ttf
+
+Geeft het nieuwe bestand dezelfde crash, dan moet het waarschijnlijk weer
+eerst ingekort worden (met bv. `pyftsubset` uit het fonttools-pakket)
+voordat het hier neergezet wordt. Naar aanleiding van dit incident zijn ook
+alle andere lettertypes in deze map gecontroleerd op dezelfde soort fout —
+dit was de enige die crashte.
+
+Zonder dit bestand valt de kentekenplaathouder-tekst bij "Bebasneue-bold"
+terug op een systeemlettertype (Helvetica) — leesbaar, maar niet het
+bedoelde lettertype.
