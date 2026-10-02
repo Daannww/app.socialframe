@@ -30,6 +30,7 @@ const { generateFotoTegelGepersonaliseerdPdf, extractFotoTegelGepersonaliseerdIt
 const { sendReviewEmail } = require('./reviewEmail');
 const { stuurTweeFactorCode, tweeFactorIsGeconfigureerd } = require('./twoFactorEmail');
 const SqliteSessionStore = require('./sqliteSessionStore');
+const { registreerAgentRoutes, registreerDashboardRoutes } = require('./schrijfmachine');
 
 const app = express();
 // Nodig achter Railway se reverse-proxy (en vergelijkbare hosting): zonder
@@ -253,9 +254,16 @@ function requireAdmin(req, res, next) {
   if (req.session && req.session.role === 'admin') return next();
   res.status(403).json({ error: 'Deze functie is alleen beschikbaar voor het admin-account.' });
 }
+// Schrijfmachine-agent (Mac in de werkplaats) logt in met een token i.p.v.
+// een sessie, dus deze routes moeten vóór requireAuth staan.
+registreerAgentRoutes(app);
+
 app.use(requireAuth);
 
 app.use(express.static(publicDir));
+
+// --- Schrijfmachine: tabblad "Kaartjes" ---
+registreerDashboardRoutes(app);
 
 // --- API: orders ---
 app.get('/api/orders', (req, res) => {

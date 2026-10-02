@@ -1504,6 +1504,24 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
 
+    const kaartjesView = document.getElementById('kaartjesView');
+    if (kaartjesView) kaartjesView.classList.add('hidden');
+    if (window.kaartjesVerlaten) window.kaartjesVerlaten();
+
+    if (btn.dataset.status === '__kaartjes__') {
+      ordersView.classList.add('hidden');
+      searchBarWrap.classList.add('hidden');
+      selectionBarWrap.classList.add('hidden');
+      inventoryView.classList.add('hidden');
+      kaartjesView.classList.remove('hidden');
+      printFilesBtn.classList.add('hidden');
+      syncBtn.classList.add('hidden');
+      reprocessLinksBtn.classList.add('hidden');
+      lastSyncEl.classList.add('hidden');
+      if (window.kaartjesOpenen) window.kaartjesOpenen();
+      return;
+    }
+
     if (btn.dataset.status === '__voorraad__') {
       ordersView.classList.add('hidden');
       searchBarWrap.classList.add('hidden');

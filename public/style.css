@@ -525,3 +525,75 @@ main { padding: 24px; max-width: 1100px; margin: 0 auto; }
   .modal { width: 100vw; max-height: 100vh; height: 100vh; border-radius: 0; padding: 16px; }
   .modal-overlay { padding: 0; }
 }
+
+/* --- Tabblad Kaartjes (schrijfmachine) --- */
+.kaartjes-panel {
+  background: var(--card);
+  border-radius: 10px;
+  padding: 24px 28px;
+  width: 100%;
+}
+.kaartjes-panel h2 { margin: 0 0 6px 0; font-size: 18px; }
+.kaartjes-kop { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+.agent-status { font-size: 13px; font-weight: 600; padding: 6px 12px; border-radius: 999px; white-space: nowrap; }
+.agent-status.online { background: #dcfce7; color: #166534; }
+.agent-status.offline { background: #f3f4f6; color: #4b5563; }
+.agent-status .fa-circle { font-size: 9px; vertical-align: 1px; margin-right: 4px; }
+.kaartjes-grid { display: grid; grid-template-columns: minmax(280px, 1fr) minmax(280px, 1fr); gap: 28px; margin-top: 4px; }
+.kaartjes-form { display: flex; flex-direction: column; gap: 6px; }
+.kaartjes-label { font-size: 13px; font-weight: 600; margin-top: 10px; display: block; }
+.kaartjes-optioneel { font-weight: 400; color: var(--muted); }
+.kaartjes-form input, .kaartjes-form select, .kaartjes-form textarea {
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  font-size: 14px;
+  font-family: inherit;
+  background: var(--card);
+  color: var(--text);
+  box-sizing: border-box;
+}
+.kaartjes-form textarea { resize: vertical; line-height: 1.45; }
+.kaartjes-form input:focus, .kaartjes-form select:focus, .kaartjes-form textarea:focus { outline: none; border-color: var(--blue); }
+.kaartjes-twee { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.kaartjes-tekstkeuze { display: flex; gap: 6px; margin-bottom: 6px; }
+.kaartjes-tekstkeuze select { flex: 1; }
+.kaartjes-tekstkeuze .btn { padding: 8px 12px; }
+.kaartjes-tip { font-size: 12px; color: var(--muted); margin: 4px 0 0 0; line-height: 1.5; }
+.kaartjes-tip code { background: var(--bg); padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+.kaartjes-knoppen { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+.kaartjes-voorbeeld { position: sticky; top: 12px; align-self: start; }
+.kaart-voorbeeld {
+  margin-top: 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 240px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.kaart-voorbeeld svg { width: 100%; max-height: 560px; height: auto; filter: drop-shadow(0 1px 3px rgba(0,0,0,0.08)); }
+.kaartjes-subkop { font-size: 13px; text-transform: uppercase; color: var(--muted); margin: 32px 0 10px 0; letter-spacing: 0.02em; }
+.kaartjes-tabel td { vertical-align: top; }
+.kaartjes-tekstcel { max-width: 340px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); }
+.kaartjes-klein { font-size: 11px; color: var(--muted); font-weight: 400; }
+.kaartjes-fout { font-size: 12px; color: #b91c1c; margin-top: 4px; max-width: 260px; }
+.kaartjes-acties { white-space: nowrap; text-align: right; }
+.kaartjes-acties .btn { margin-left: 4px; }
+.btn-klein { padding: 5px 10px; font-size: 12px; }
+.badge.kaart-bezig { background: #dbeafe; color: #1e40af; }
+.kaart-klaar-balk {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  margin-top: 24px; padding: 12px 16px; border-radius: 10px;
+  background: #fef3c7; color: #92400e; font-size: 14px; font-weight: 600;
+}
+@media (max-width: 900px) {
+  .kaartjes-grid { grid-template-columns: 1fr; }
+  .kaartjes-voorbeeld { position: static; }
+  .kaartjes-panel { padding: 18px 16px; }
+}

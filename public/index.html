@@ -18,7 +18,7 @@
 <!-- LET OP: bij elke wijziging aan style.css/app.js het "?v=" nummer hieronder
      (en in login.html) verhogen — anders kunnen browsers een oude, gecachete
      versie blijven gebruiken i.p.v. de nieuwe. -->
-<link rel="stylesheet" href="style.css?v=3">
+<link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
 
@@ -50,6 +50,7 @@
       <button class="filter-btn" data-status="geannuleerd">Geannuleerd</button>
       <button class="filter-btn" data-status="onjuiste gegevens">Onjuiste gegevens</button>
       <button class="filter-btn" id="voorraadTab" data-status="__voorraad__">Voorraad</button>
+      <button class="filter-btn" id="kaartjesTab" data-status="__kaartjes__"><i class="fa-solid fa-pen-nib"></i> Kaartjes</button>
     </div>
     <div class="search-bar" id="searchBarWrap">
       <input type="text" id="searchInput" placeholder="Zoek op naam, adres of ordernummer...">
@@ -106,6 +107,78 @@
       <button id="addInventoryBtn" class="btn btn-secondary"><i class="fa-solid fa-plus"></i> Artikel toevoegen</button>
     </div>
   </div>
+
+  <div id="kaartjesView" class="kaartjes-panel hidden">
+    <div class="kaartjes-kop">
+      <div>
+        <h2>Kaartjes</h2>
+        <p class="inventory-hint">Handgeschreven kaartjes voor de schrijfmachine. Leg het kaartje in de machine, zet de pen op de linkerbovenhoek van het vak en druk op <strong>Schrijven</strong>.</p>
+      </div>
+      <span id="agentStatus" class="agent-status">Schrijfmachine: …</span>
+    </div>
+
+    <div class="kaartjes-grid">
+      <div class="kaartjes-form">
+        <label class="kaartjes-label" for="kaartOrder">Bestelling <span class="kaartjes-optioneel">(optioneel, vult naam en adres in)</span></label>
+        <input type="text" id="kaartOrder" list="kaartOrderLijst" placeholder="Zoek op ordernummer of naam…" autocomplete="off">
+        <datalist id="kaartOrderLijst"></datalist>
+
+        <label class="kaartjes-label" for="kaartNaam">Naam</label>
+        <input type="text" id="kaartNaam" placeholder="bv. Sanne de Vries">
+
+        <div id="kaartAdresWrap" class="hidden">
+          <label class="kaartjes-label" for="kaartAdres">Adres <span class="kaartjes-optioneel">(één regel per adresregel)</span></label>
+          <textarea id="kaartAdres" rows="3" placeholder="Kerkstraat 12&#10;1234 AB Utrecht"></textarea>
+        </div>
+
+        <div class="kaartjes-twee">
+          <div>
+            <label class="kaartjes-label" for="kaartSjabloon">Sjabloon</label>
+            <select id="kaartSjabloon"></select>
+          </div>
+          <div>
+            <label class="kaartjes-label" for="kaartLettertype">Handschrift</label>
+            <select id="kaartLettertype"></select>
+          </div>
+        </div>
+
+        <label class="kaartjes-label" for="kaartTekstKeuze">Tekst</label>
+        <div class="kaartjes-tekstkeuze">
+          <select id="kaartTekstKeuze"></select>
+          <button type="button" id="kaartTekstOpslaan" class="btn btn-secondary" title="Huidige tekst opslaan om later te hergebruiken"><i class="fa-solid fa-floppy-disk"></i></button>
+          <button type="button" id="kaartTekstVerwijder" class="btn btn-secondary" title="Gekozen opgeslagen tekst verwijderen"><i class="fa-solid fa-trash"></i></button>
+        </div>
+        <textarea id="kaartTekst" rows="8"></textarea>
+        <p class="kaartjes-tip">Gebruik <code>{voornaam}</code> of <code>{naam}</code>, dan wordt de naam van de klant ingevuld.</p>
+
+        <div class="kaartjes-knoppen">
+          <button type="button" id="kaartSchrijf" class="btn btn-primary"><i class="fa-solid fa-pen-nib"></i> Schrijven</button>
+          <button type="button" id="kaartBewaar" class="btn btn-secondary"><i class="fa-regular fa-clock"></i> Bewaar voor later</button>
+        </div>
+      </div>
+
+      <div class="kaartjes-voorbeeld">
+        <div class="kaartjes-label">Voorbeeld <span class="kaartjes-optioneel" id="kaartMaat"></span></div>
+        <div id="kaartVoorbeeld" class="kaart-voorbeeld">Voorbeeld laden…</div>
+        <p class="kaartjes-tip">Op papier krijgt elke letter nog kleine variaties, zodat het er echt handgeschreven uitziet.</p>
+      </div>
+    </div>
+
+    <div id="kaartKlaarBalk" class="kaart-klaar-balk hidden">
+      <span id="kaartKlaarTekst"></span>
+      <button type="button" id="kaartKlaarKnop" class="btn btn-primary"><i class="fa-solid fa-check"></i> Volgende kaartje ligt klaar, schrijven</button>
+    </div>
+
+    <h3 class="kaartjes-subkop">Wachtrij en geschreven</h3>
+    <div class="table-scroll">
+      <table class="orders-table kaartjes-tabel">
+        <thead>
+          <tr><th>Order</th><th>Naam</th><th>Sjabloon</th><th>Tekst</th><th>Status</th><th></th></tr>
+        </thead>
+        <tbody id="kaartJobs"><tr><td colspan="6" class="empty-row">Laden…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
 </main>
 
 <!-- Popup / modal voor orderdetails -->
@@ -116,6 +189,7 @@
   </div>
 </div>
 
-<script src="app.js?v=11"></script>
+<script src="app.js?v=12"></script>
+<script src="kaartjes.js?v=1"></script>
 </body>
 </html>
