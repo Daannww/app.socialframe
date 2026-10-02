@@ -227,7 +227,7 @@ function upsertOrder(order) {
     // voor de Trustpilot-review-mail-timing).
     const initialStatus = order.initial_status || 'wacht op drukwerkbestand';
     const verzondenAt = initialStatus === 'verzonden' ? (order.verzonden_at || new Date().toISOString()) : null;
-    db.prepare(`
+    const insertResult = db.prepare(`
       INSERT INTO orders
       (shopify_order_id, order_number, customer_name, customer_email, customer_phone,
        shipping_address, shipping_country_code, line_items_json, spotify_links_json, photo_links_json, raw_json, shopify_created_at, status, verzonden_at)
@@ -252,7 +252,11 @@ function upsertOrder(order) {
       console.error('[voorraad] kon voorraad niet bijwerken voor nieuwe order:', e.message);
     }
 
-    return { isNew: true };
+    // id van de nieuwe order meegeven (naast isNew) — nodig in shopify.js se
+    // syncOrders() om bij een "Handgeschreven kaartje toevoegen."-regel
+    // meteen een concept-kaartje aan te kunnen maken dat naar DEZE order
+    // verwijst (zie maakConceptJobUitOrder in schrijfmachine.js).
+    return { isNew: true, id: insertResult.lastInsertRowid };
   }
 }
 

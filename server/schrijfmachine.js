@@ -108,6 +108,32 @@ function agentLaatstGezien() {
   return row ? row.value : null;
 }
 
+// Wordt aangeroepen vanuit shopify.js se syncOrders() zodra een NIEUWE order
+// een "Handgeschreven kaartje toevoegen."-regel met een ingevulde boodschap
+// bevat — maakt daar automatisch een concept-kaartje van, zodat de
+// klant-boodschap niet met de hand vanuit Shopify overgetypt hoeft te
+// worden in het tabblad "Kaartjes". Bewust status 'concept' (niet
+// 'wachtrij'): er moet nog even een sjabloon/lettertype gekozen en de tekst
+// kort gecontroleerd worden voordat de schrijfmachine 'm echt schrijft —
+// precies zoals een handmatig aangemaakt kaartje dat ook eerst als concept
+// doet. Sjabloon 'tekstvak' (alleen de boodschap, geen adres) omdat het
+// kaartje gewoon in hetzelfde pakket meegaat — er is geen postadres nodig.
+// Geeft `null` terug (en doet niets) als er al een kaartje voor deze order
+// bestaat, als extra vangnet tegen dubbele kaartjes bij een herhaalde sync
+// (al roept syncOrders() dit toch alleen aan bij isNew-orders).
+function maakConceptJobUitOrder({ order_id, order_number, naam, tekst }) {
+  if (!tekst || !String(tekst).trim()) return null;
+  if (order_id) {
+    const bestaat = db.prepare('SELECT id FROM schrijf_jobs WHERE order_id = ?').get(order_id);
+    if (bestaat) return null;
+  }
+  const lettertype = LETTERTYPES[0];
+  const r = db.prepare(`INSERT INTO schrijf_jobs (order_id, order_number, naam, adres_json, tekst, sjabloon, lettertype, status)
+                        VALUES (?, ?, ?, '[]', ?, 'tekstvak', ?, 'concept')`)
+    .run(order_id || null, order_number || null, naam || null, String(tekst).slice(0, 2000), lettertype);
+  return r.lastInsertRowid;
+}
+
 // --- Routes voor de schrijfagent (GEEN sessie, wel token). Moet vóór
 // app.use(requireAuth) geregistreerd worden. ---
 function registreerAgentRoutes(app) {
@@ -272,4 +298,4 @@ function registreerDashboardRoutes(app) {
   });
 }
 
-module.exports = { registreerAgentRoutes, registreerDashboardRoutes, SJABLONEN, LETTERTYPES };
+module.exports = { registreerAgentRoutes, registreerDashboardRoutes, SJABLONEN, LETTERTYPES, maakConceptJobUitOrder };

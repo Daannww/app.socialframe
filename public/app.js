@@ -1861,6 +1861,7 @@ const PRODUCT_TRANSLATIONS_NL_DE = [
   [/plaquette/gi, 'Plakette'],
   [/cadeaubon/gi, 'Geschenkgutschein'],
   [/cadeauverpakking/gi, 'Geschenkverpackung'],
+  [/handgeschreven\s*kaartje(\s*toevoegen\.?)?/gi, 'Handgeschriebene Karte'],
   [/met tekst/gi, 'mit Text'],
   [/\bmet\b/gi, 'mit'],
   [/\beigen\b/gi, 'eigenen'],
@@ -1922,8 +1923,15 @@ function buildReceiptHtml(order) {
     // drukwerkbestand, maar horen niet op de pakbon bij deze regel getoond
     // te worden. Dus voor deze titel: helemaal geen eigenschappen tonen.
     const isCadeautjeInpakken = /cadeautje\s*inpakken/i.test(li.title || '');
+    // "Handgeschreven kaartje toevoegen." (zie schrijfmachine.js/hw-card-addon
+    // in het thema): de "Boodschap voor kaartje"-property IS hier het
+    // belangrijkste, dus die laten we (in tegenstelling tot cadeautje
+    // inpakken, waarvan de properties juist onderdrukt worden) juist WEL zien
+    // — en prominent, net als bij een gewone order.note.
+    const isHandgeschrevenKaartje = /handgeschreven\s*kaartje/i.test(li.title || '');
     const propsHtml = isCadeautjeInpakken ? '' : (li.properties || [])
       .filter(p => !/autopictura/i.test(p.name) && !/autopictura/i.test(p.value)) // alle autopictura-teksten weglaten van het bonnetje
+      .filter(p => !isHandgeschrevenKaartje)
       .map(p => `${escapeHtml(p.name)}: ${escapeHtml(p.value)}`)
       .join('<br>');
 
@@ -1932,26 +1940,38 @@ function buildReceiptHtml(order) {
     const displayTitle = translateProductText(li.title, isGerman);
     const displayVariant = translateProductText(li.variant_title, isGerman);
 
-    // Cadeauverpakking wordt vaak vergeten bij het inpakken — laat deze regel
-    // in de artikelenlijst zelf opvallen (dikker omrand, groter, vet), i.p.v.
-    // 'm hetzelfde te laten ogen als een gewoon artikel. Herkenning op de
-    // ORIGINELE (Nederlandse) titel, ongeacht of de pakbon zelf in het Duits
-    // wordt weergegeven.
+    // Cadeauverpakking (en nu ook het handgeschreven kaartje) wordt vaak
+    // vergeten bij het inpakken — laat deze regel in de artikelenlijst zelf
+    // opvallen (dikker omrand, groter, vet), i.p.v. 'm hetzelfde te laten
+    // ogen als een gewoon artikel. Herkenning op de ORIGINELE (Nederlandse)
+    // titel, ongeacht of de pakbon zelf in het Duits wordt weergegeven.
     const isGiftWrap = /cadeauverpakking/i.test(li.title || '');
-    const rowStyle = isGiftWrap
+    const isMelding = isGiftWrap || isHandgeschrevenKaartje;
+    const rowStyle = isMelding
       ? 'border:2px solid black; font-weight:800; font-size:14px; padding:6px;'
       : '';
-    const qtyStyle = isGiftWrap
+    const qtyStyle = isMelding
       ? 'text-align:right; vertical-align:top; border:2px solid black; border-left:none; font-weight:800; font-size:14px; padding:6px;'
       : 'text-align:right; vertical-align:top;';
+
+    // De klant se boodschap zelf (indien aanwezig) in een los, dik omlijnd
+    // blokje onder de kaartje-regel — zodat 'ie op de pakbon niet te missen
+    // is voor wie het kaartje gaat schrijven.
+    const kaartjeBoodschap = isHandgeschrevenKaartje
+      ? (li.properties || []).find(p => /boodschap.*kaartje/i.test(p.name || ''))
+      : null;
+    const kaartjeBoodschapHtml = kaartjeBoodschap && String(kaartjeBoodschap.value || '').trim()
+      ? `<tr><td colspan="2" style="padding:6px; border:2px solid black; border-top:none; font-weight:normal; font-size:13px; white-space:pre-wrap;">${escapeHtml(kaartjeBoodschap.value)}</td></tr>`
+      : '';
 
     return `
       <tr>
         <td style="word-break:break-all; ${rowStyle}">
-          ${isGiftWrap ? '🎁 ' : ''}${escapeHtml(displayTitle)}${displayVariant ? ' – ' + escapeHtml(displayVariant) : ''}${propsHtml ? '<br>' + propsHtml : ''}<br>
+          ${isGiftWrap ? '🎁 ' : ''}${isHandgeschrevenKaartje ? '✍️ ' : ''}${escapeHtml(displayTitle)}${displayVariant ? ' – ' + escapeHtml(displayVariant) : ''}${propsHtml ? '<br>' + propsHtml : ''}<br>
         </td>
         <td style="${qtyStyle}">${qty}</td>
       </tr>
+      ${kaartjeBoodschapHtml}
       <tr>
         <td colspan="2" style="border-bottom:1px dotted black;"></td>
       </tr>

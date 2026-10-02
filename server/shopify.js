@@ -3,6 +3,7 @@ const { upsertOrder, getMeta, setMeta } = require('./db');
 const { isTegelTekstLineItem } = require('./texttile');
 const { isTegelIllustratieLineItem } = require('./tegelillustratie');
 const { isVermoedelijkeDubbeleCadeautjeRegel } = require('./pdf-shared');
+const { maakConceptJobUitOrder } = require('./schrijfmachine');
 
 const STORE = process.env.SHOPIFY_STORE;
 const TOKEN = process.env.SHOPIFY_ACCESS_TOKEN;
@@ -256,6 +257,34 @@ function extractAutoFrameItemsFromOrder(rawOrder) {
   return items;
 }
 
+// --- "Handgeschreven kaartje toevoegen." add-on (los Shopify-product,
+// gid://shopify/Product/10776110170459, zelfde opzet als de "Als een
+// cadeautje inpakken."-regel) — de klant se boodschap komt mee als line-
+// item property "Boodschap voor kaartje" (zie de hw-card-addon Liquid/JS
+// in het thema). Bewust een EIGEN, simpele regex i.p.v. hergebruik van
+// isVermoedelijkeDubbeleCadeautjeRegel hierboven: dat mechanisme bestaat om
+// een PRODUCT-regel (muziek-/auto-/sound-frame) niet dubbel te tellen als
+// 'ie ook als generieke "cadeautje inpakken."-regel voorkomt — hier is er
+// geen los "echt" product om dubbel te tellen, dus die check is hier niet
+// van toepassing.
+const HANDGESCHREVEN_KAARTJE_TITEL_REGEX = /handgeschreven\s*kaartje/i;
+
+function isHandgeschrevenKaartjeLineItem(li) {
+  return HANDGESCHREVEN_KAARTJE_TITEL_REGEX.test((li && li.title) || '');
+}
+
+// Geeft de boodschap-tekst terug (of null als er geen "Handgeschreven
+// kaartje toevoegen."-regel is, of de boodschap leeg is). `lineItems` mag
+// zowel de ruwe Shopify-regels zijn (li.properties, array van {name, value})
+// als de al gemapte vorm uit mapOrder hieronder — die heeft dezelfde vorm.
+function extractHandgeschrevenKaartjeBoodschap(lineItems) {
+  const li = (lineItems || []).find(isHandgeschrevenKaartjeLineItem);
+  if (!li) return null;
+  const prop = (li.properties || []).find(p => /boodschap.*kaartje/i.test(p.name || ''));
+  const tekst = prop ? String(prop.value || '').trim() : '';
+  return tekst || null;
+}
+
 // Bepaalt de startstatus van een nieuwe order. Bestaat een order UITSLUITEND
 // uit producten met "Tegeltje met tekst" in de titel EN heeft de order
 // daadwerkelijk geen enkele foto/ontwerp-link (autopictura/upload) — dan
@@ -405,7 +434,29 @@ async function syncOrders() {
     for (const order of orders) {
       const mapped = mapOrder(order);
       const result = upsertOrder(mapped);
-      if (result.isNew) totalNew++;
+      if (result.isNew) {
+        totalNew++;
+        // Nieuwe order met een "Handgeschreven kaartje toevoegen."-regel?
+        // Dan meteen een concept-kaartje aanmaken in de kaartjesmaker (tab
+        // "Kaartjes"), met de boodschap die de klant in het thema heeft
+        // ingevuld — scheelt het overtypen van die boodschap vanuit Shopify.
+        // Bewust als CONCEPT (niet direct in de wachtrij): iemand moet eerst
+        // even het sjabloon/lettertype kiezen en kort meekijken voordat de
+        // schrijfmachine 'm echt gaat schrijven.
+        try {
+          const boodschap = extractHandgeschrevenKaartjeBoodschap(mapped ? JSON.parse(mapped.line_items_json) : []);
+          if (boodschap) {
+            maakConceptJobUitOrder({
+              order_id: result.id,
+              order_number: mapped.order_number,
+              naam: mapped.customer_name,
+              tekst: boodschap
+            });
+          }
+        } catch (e) {
+          console.error('[kaartje] kon geen concept-kaartje aanmaken voor nieuwe order:', e.message);
+        }
+      }
       totalSeen++;
       lastId = order.id;
     }
@@ -422,4 +473,4 @@ async function syncOrders() {
   return { totalNew, totalSeen, syncedAt: new Date().toISOString() };
 }
 
-module.exports = { syncOrders, extractSpotifyLinks, extractPhotoLinks, mapOrder, isFotoTegelLineItem, extractFotoTegelPhotoUrls, extractPosterlyPhotoUrls, extractTileItemsFromOrder, isAutoFrameLineItem, getAutoFrameVariant, extractAutoFrameData, extractAutoFrameItemsFromOrder };
+module.exports = { syncOrders, extractSpotifyLinks, extractPhotoLinks, mapOrder, isFotoTegelLineItem, extractFotoTegelPhotoUrls, extractPosterlyPhotoUrls, extractTileItemsFromOrder, isAutoFrameLineItem, getAutoFrameVariant, extractAutoFrameData, extractAutoFrameItemsFromOrder, isHandgeschrevenKaartjeLineItem, extractHandgeschrevenKaartjeBoodschap };
