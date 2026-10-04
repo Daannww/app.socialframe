@@ -17,6 +17,7 @@
   let voorbeeldTimer = null;
   let geladen = false;
   const fontCache = {};
+  const FONT_VERSIE = 2; // ophogen als de lijn-lettertypes in public/schrijffonts veranderen
 
   // ---------- Lijn-lettertypes (SVG-fonts) ----------
 
@@ -60,7 +61,8 @@
 
   async function laadFont(naam) {
     if (fontCache[naam]) return fontCache[naam];
-    const res = await fetch(`/schrijffonts/${encodeURIComponent(naam)}.svg`);
+    // ?v=… zorgt dat de browser na een update van de lettertypes de nieuwe versie ophaalt
+    const res = await fetch(`/schrijffonts/${encodeURIComponent(naam)}.svg?v=${FONT_VERSIE}`, { cache: 'no-cache' });
     if (!res.ok) throw new Error('Lettertype ' + naam + ' niet gevonden');
     const doc = new DOMParser().parseFromString(await res.text(), 'image/svg+xml');
     const fontEl = doc.querySelector('font');
