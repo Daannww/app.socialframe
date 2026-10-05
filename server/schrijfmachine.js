@@ -59,6 +59,12 @@ CREATE TABLE IF NOT EXISTS schrijf_teksten (
 );
 `);
 
+// Migratie: pauze/stop vanuit het dashboard + voortgang tijdens het schrijven.
+// opdracht: NULL | 'pauze' | 'stop' (de agent leest dit tijdens het schrijven)
+for (const kolom of ['opdracht TEXT', 'voortgang INTEGER', 'gepauzeerd INTEGER']) {
+  try { db.exec(`ALTER TABLE schrijf_jobs ADD COLUMN ${kolom}`); } catch (e) { /* bestaat al */ }
+}
+
 if (db.prepare('SELECT COUNT(*) AS c FROM schrijf_teksten').get().c === 0) {
   db.prepare('INSERT INTO schrijf_teksten (naam, tekst) VALUES (?, ?)').run('Standaard bedankje', STANDAARD_TEKST);
 }
@@ -85,7 +91,10 @@ function jobNaarJson(j) {
     fout: j.fout,
     created_at: j.created_at,
     updated_at: j.updated_at,
-    geschreven_at: j.geschreven_at
+    geschreven_at: j.geschreven_at,
+    opdracht: j.opdracht || null,
+    voortgang: j.voortgang == null ? null : j.voortgang,
+    gepauzeerd: !!j.gepauzeerd
   };
 }
 
@@ -162,7 +171,7 @@ function registreerAgentRoutes(app) {
         if (!job) return { job: null };
         if (!automatisch && !kaartLigtKlaar()) return { job: null, wacht_op_kaart: true };
         zetMeta('schrijf_kaart_klaar', '0');
-        db.prepare("UPDATE schrijf_jobs SET status = 'bezig', fout = NULL, updated_at = datetime('now') WHERE id = ?").run(job.id);
+        db.prepare("UPDATE schrijf_jobs SET status = 'bezig', fout = NULL, opdracht = NULL, voortgang = 0, gepauzeerd = 0, updated_at = datetime('now') WHERE id = ?").run(job.id);
         return { job: db.prepare('SELECT * FROM schrijf_jobs WHERE id = ?').get(job.id) };
       });
       const { job, wacht_op_kaart } = pak();
@@ -174,13 +183,31 @@ function registreerAgentRoutes(app) {
     }
   });
 
+  // Tijdens het schrijven meldt de agent elke seconde de voortgang en krijgt
+  // hij terug of er op Pauze of Stop is gedrukt.
+  app.post('/api/schrijfagent/jobs/:id/voortgang', vereisToken, (req, res) => {
+    try {
+      const { procent, gepauzeerd } = req.body || {};
+      db.prepare(`UPDATE schrijf_jobs SET voortgang = ?, gepauzeerd = ?, updated_at = datetime('now')
+                  WHERE id = ? AND status = 'bezig'`)
+        .run(Math.max(0, Math.min(100, parseInt(procent, 10) || 0)), gepauzeerd ? 1 : 0, req.params.id);
+      db.prepare("INSERT INTO sync_meta (key, value) VALUES ('schrijfagent_last_seen', datetime('now')) " +
+                 'ON CONFLICT(key) DO UPDATE SET value = excluded.value').run();
+      const job = db.prepare('SELECT opdracht FROM schrijf_jobs WHERE id = ?').get(req.params.id);
+      res.json({ opdracht: job ? job.opdracht : 'stop' });
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
   app.post('/api/schrijfagent/jobs/:id', vereisToken, (req, res) => {
     try {
       const { status, fout } = req.body || {};
-      if (!['klaar', 'fout'].includes(status)) return res.status(400).json({ error: "status moet 'klaar' of 'fout' zijn" });
-      db.prepare(`UPDATE schrijf_jobs SET status = ?, fout = ?, updated_at = datetime('now'),
+      if (!['klaar', 'fout', 'gestopt'].includes(status)) return res.status(400).json({ error: "status moet 'klaar', 'fout' of 'gestopt' zijn" });
+      db.prepare(`UPDATE schrijf_jobs SET status = ?, fout = ?, opdracht = NULL, gepauzeerd = 0,
+                  voortgang = CASE WHEN ? = 'klaar' THEN 100 ELSE voortgang END, updated_at = datetime('now'),
                   geschreven_at = CASE WHEN ? = 'klaar' THEN datetime('now') ELSE geschreven_at END
-                  WHERE id = ?`).run(status, status === 'fout' ? String(fout || 'Onbekende fout').slice(0, 500) : null, status, req.params.id);
+                  WHERE id = ?`).run(status, status === 'fout' ? String(fout || 'Onbekende fout').slice(0, 500) : null, status, status, req.params.id);
       res.json({ ok: true });
     } catch (e) {
       res.status(500).json({ error: e.message });
@@ -211,7 +238,7 @@ function registreerDashboardRoutes(app) {
       ruimHangendeJobsOp();
       const jobs = db.prepare(`SELECT * FROM schrijf_jobs
         WHERE status != 'klaar' OR geschreven_at > datetime('now', '-3 days')
-        ORDER BY CASE status WHEN 'bezig' THEN 0 WHEN 'wachtrij' THEN 1 WHEN 'fout' THEN 2 WHEN 'concept' THEN 3 ELSE 4 END,
+        ORDER BY CASE status WHEN 'bezig' THEN 0 WHEN 'wachtrij' THEN 1 WHEN 'fout' THEN 2 WHEN 'gestopt' THEN 2 WHEN 'concept' THEN 3 ELSE 4 END,
                  updated_at DESC LIMIT 200`).all();
       res.json(jobs.map(jobNaarJson));
     } catch (e) {
@@ -247,6 +274,21 @@ function registreerDashboardRoutes(app) {
       if (job.status === 'bezig') return res.status(409).json({ error: 'Dit kaartje wordt nu geschreven' });
       db.prepare("UPDATE schrijf_jobs SET status = ?, fout = NULL, updated_at = datetime('now') WHERE id = ?").run(status, job.id);
       if (status === 'wachtrij') zetMeta('schrijf_kaart_klaar', '1');
+      res.json({ ok: true });
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  // Pauze / verder / stop voor het kaartje dat nu geschreven wordt.
+  app.post('/api/schrijfmachine/jobs/:id/opdracht', (req, res) => {
+    try {
+      const { opdracht } = req.body || {};
+      if (!['pauze', 'hervat', 'stop'].includes(opdracht)) return res.status(400).json({ error: 'Ongeldige opdracht' });
+      const job = db.prepare('SELECT status FROM schrijf_jobs WHERE id = ?').get(req.params.id);
+      if (!job) return res.status(404).json({ error: 'Kaartje niet gevonden' });
+      if (job.status !== 'bezig') return res.status(409).json({ error: 'Dit kaartje wordt niet (meer) geschreven' });
+      db.prepare("UPDATE schrijf_jobs SET opdracht = ? WHERE id = ?").run(opdracht === 'hervat' ? null : opdracht, req.params.id);
       res.json({ ok: true });
     } catch (e) {
       res.status(500).json({ error: e.message });

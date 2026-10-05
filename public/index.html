@@ -18,7 +18,7 @@
 <!-- LET OP: bij elke wijziging aan style.css/app.js het "?v=" nummer hieronder
      (en in login.html) verhogen — anders kunnen browsers een oude, gecachete
      versie blijven gebruiken i.p.v. de nieuwe. -->
-<link rel="stylesheet" href="style.css?v=4">
+<link rel="stylesheet" href="style.css?v=5">
 </head>
 <body>
 
@@ -164,6 +164,17 @@
       </div>
     </div>
 
+    <div id="kaartBezigBalk" class="kaart-bezig-balk hidden">
+      <div class="kaart-bezig-info">
+        <div id="kaartBezigTekst" class="kaart-bezig-titel"></div>
+        <div class="kaart-voortgang"><div id="kaartVoortgang" class="kaart-voortgang-vulling"></div></div>
+      </div>
+      <div class="kaart-bezig-knoppen">
+        <button type="button" id="kaartPauzeKnop" class="btn btn-secondary"><i class="fa-solid fa-pause"></i> Pauze</button>
+        <button type="button" id="kaartStopKnop" class="btn btn-stop"><i class="fa-solid fa-stop"></i> Stop</button>
+      </div>
+    </div>
+
     <div id="kaartKlaarBalk" class="kaart-klaar-balk hidden">
       <span id="kaartKlaarTekst"></span>
       <button type="button" id="kaartKlaarKnop" class="btn btn-primary"><i class="fa-solid fa-check"></i> Volgende kaartje ligt klaar, schrijven</button>
@@ -190,6 +201,6 @@
 </div>
 
 <script src="app.js?v=12"></script>
-<script src="kaartjes.js?v=4"></script>
+<script src="kaartjes.js?v=5"></script>
 </body>
 </html>

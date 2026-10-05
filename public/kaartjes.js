@@ -276,8 +276,10 @@
     wachtrij: ['In wachtrij', 'wacht-op-productie'],
     bezig: ['Wordt geschreven…', 'kaart-bezig'],
     klaar: ['Geschreven', 'verzonden'],
-    fout: ['Mislukt', 'onjuiste-gegevens']
+    fout: ['Mislukt', 'onjuiste-gegevens'],
+    gestopt: ['Gestopt', 'geannuleerd']
   };
+  let bezigJob = null;
 
   async function laadJobs() {
     try {
@@ -289,16 +291,23 @@
       info.wachtrij = nieuweInfo.wachtrij;
       toonAgent();
       toonKaartKlaar();
+      toonBezig(jobs.find(x => x.status === 'bezig') || null);
       const body = $('kaartJobs');
       if (!jobs.length) {
         body.innerHTML = '<tr><td colspan="6" class="empty-row">Nog geen kaartjes.</td></tr>';
         return;
       }
       body.innerHTML = jobs.map(j => {
-        const [label, cls] = STATUS[j.status] || [j.status, 'other'];
+        let [label, cls] = STATUS[j.status] || [j.status, 'other'];
+        if (j.status === 'bezig') {
+          if (j.gepauzeerd) label = 'Gepauzeerd';
+          else if (j.opdracht === 'pauze') label = 'Pauzeert…';
+          else if (j.opdracht === 'stop') label = 'Stopt…';
+          else if (j.voortgang != null) label = `Wordt geschreven… ${j.voortgang}%`;
+        }
         const sj = info.sjablonen[j.sjabloon];
         const acties = [];
-        if (['concept', 'klaar', 'fout'].includes(j.status)) {
+        if (['concept', 'klaar', 'fout', 'gestopt'].includes(j.status)) {
           acties.push(`<button class="btn btn-primary btn-klein" data-actie="schrijf" data-id="${j.id}" title="Leg het kaartje in de machine en schrijf"><i class="fa-solid fa-pen-nib"></i> ${j.status === 'concept' ? 'Schrijven' : 'Nog een keer'}</button>`);
         }
         if (j.status === 'wachtrij') acties.push(`<button class="btn btn-secondary btn-klein" data-actie="pauze" data-id="${j.id}">Uit wachtrij</button>`);
@@ -332,6 +341,41 @@
         (a.laatst_gezien ? ` <span class="kaartjes-klein">(laatst gezien ${esc(new Date(a.laatst_gezien.replace(' ', 'T') + 'Z')
           .toLocaleString('nl-NL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }))})</span>` : '');
     }
+  }
+
+  // Balk voor het kaartje dat nu geschreven wordt: voortgang + Pauze/Verder + Stop
+  function toonBezig(job) {
+    bezigJob = job;
+    $('kaartBezigBalk').classList.toggle('hidden', !job);
+    if (!job) {
+      // niets meer bezig: terug naar rustig verversen
+      if (verversTimer && verversTimer._snel) { clearInterval(verversTimer); verversTimer = setInterval(laadJobs, 4000); }
+      return;
+    }
+    const wie = [job.order_number ? '#' + job.order_number : '', job.naam || ''].filter(Boolean).join(' ') || 'Kaartje';
+    let staat = `wordt geschreven (${job.voortgang || 0}%)`;
+    if (job.gepauzeerd) staat = `gepauzeerd bij ${job.voortgang || 0}% — pen staat omhoog`;
+    else if (job.opdracht === 'pauze') staat = 'pauzeert na deze pennenstreek…';
+    else if (job.opdracht === 'stop') staat = 'stopt na deze pennenstreek en rijdt terug naar de hoek…';
+    $('kaartBezigTekst').textContent = `${wie}: ${staat}`;
+    $('kaartVoortgang').style.width = (job.voortgang || 0) + '%';
+    const pauzeKnop = $('kaartPauzeKnop');
+    const gepauzeerd = job.gepauzeerd || job.opdracht === 'pauze';
+    pauzeKnop.innerHTML = gepauzeerd ? '<i class="fa-solid fa-play"></i> Verder' : '<i class="fa-solid fa-pause"></i> Pauze';
+    pauzeKnop.disabled = job.opdracht === 'stop';
+    $('kaartStopKnop').disabled = job.opdracht === 'stop';
+    // tijdens het schrijven vaker verversen
+    if (verversTimer && verversTimer._snel !== true) {
+      clearInterval(verversTimer); verversTimer = setInterval(laadJobs, 1500); verversTimer._snel = true;
+    }
+  }
+
+  async function geefOpdracht(opdracht) {
+    if (!bezigJob) return;
+    try {
+      await post(`/api/schrijfmachine/jobs/${bezigJob.id}/opdracht`, { opdracht });
+      await laadJobs();
+    } catch (e) { alert(e.message); }
   }
 
   // Banner "volgende kaartje ligt klaar": er staat iets in de wachtrij, maar de
@@ -469,6 +513,14 @@
     $('kaartSchrijf').addEventListener('click', () => maakJob(true));
     $('kaartBewaar').addEventListener('click', () => maakJob(false));
     $('kaartJobs').addEventListener('click', jobActie);
+    $('kaartPauzeKnop').addEventListener('click', () => {
+      if (!bezigJob) return;
+      geefOpdracht(bezigJob.gepauzeerd || bezigJob.opdracht === 'pauze' ? 'hervat' : 'pauze');
+    });
+    $('kaartStopKnop').addEventListener('click', () => {
+      if (!bezigJob) return;
+      if (confirm('Stoppen met dit kaartje? De machine maakt de huidige pennenstreek af, tilt de pen op en rijdt terug naar de hoek.')) geefOpdracht('stop');
+    });
     $('kaartKlaarKnop').addEventListener('click', async () => {
       try { await post('/api/schrijfmachine/kaart-klaar'); await laadJobs(); } catch (e) { alert(e.message); }
     });
