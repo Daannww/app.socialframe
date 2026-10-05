@@ -22,6 +22,7 @@ const { db } = require('./db');
 const SJABLONEN = {
   tekstvak: { naam: 'Tekstvak 110 × 120 mm', type: 'tekstvak', breed: 110, hoog: 120, marge: 3, centreren: true, letterhoogte: 4.0 },
   vierkant: { naam: 'Vierkant 80 × 80 mm', type: 'tekstvak', breed: 80, hoog: 80, marge: 3, centreren: true, letterhoogte: 3.4 },
+  postit: { naam: 'Post-it 90 × 90 mm', type: 'tekstvak', breed: 90, hoog: 90, marge: 4, centreren: true, letterhoogte: 3.6 },
   ansichtkaart: { naam: 'Ansichtkaart A6 met adres', type: 'ansichtkaart', breed: 148, hoog: 105, marge: 8 }
 };
 
