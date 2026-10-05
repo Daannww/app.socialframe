@@ -84,8 +84,31 @@
     return font;
   }
 
+  // Emoji-hartjes worden een met de hand getekend hartje (zelfde vorm als op de
+  // machine, zie hartje() in schrijfmachine/handschrift.py); emoji-hulptekens
+  // (kleurvariant e.d.) tekenen niets.
+  const HARTJES = new Set(['\u2764', '\u2665', '\u2661', '\u2763', '💕', '💖', '💗', '💓', '💞', '💘', '💝', '💟',
+    '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '🩷', '🩵', '🩶', '😍', '🥰']);
+  const ONZICHTBAAR = new Set(['\ufe0f', '\ufe0e', '\u200d']);
+
+  function hartje(xheight) {
+    const s = (xheight * 1.5) / 29;
+    const marge = xheight * 0.15;
+    const pts = [];
+    const n = 48;
+    for (let i = 0; i <= n; i++) {
+      const t = (Math.PI * 2 * i) / n;
+      const x = 16 * Math.pow(Math.sin(t), 3);
+      const y = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
+      pts.push([marge + (x + 16) * s, (y + 17) * s]);
+    }
+    return { adv: 32 * s + 2 * marge, strokes: [pts] };
+  }
+
   function glyph(font, ch) {
     if (font.glyphs[ch]) return font.glyphs[ch];
+    if (ONZICHTBAAR.has(ch)) return { adv: 0, strokes: [] };
+    if (HARTJES.has(ch)) return hartje(font.xheight);
     const basis = ch.normalize('NFKD')[0];
     return font.glyphs[basis] || { adv: font.defaultAdv, strokes: [] };
   }
