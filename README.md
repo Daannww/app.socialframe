@@ -6,6 +6,22 @@ van kan maken, en waarmee je de status van orders kan wijzigen.
 
 ## Functies
 
+## Nieuw ontwerp: 'Tegeltje met tekst - Thuis is waar jij bent.'
+Nieuwe order ("Tegeltje met tekst – Thuis is waar jij bent. – Rose / Geen")
+met een referentiebestand dat nog geen ontwerp had. De hoofdtekst staat in
+het referentiebestand als live PDF-tekst, maar met een ingebed, niet los
+beschikbaar subset-lettertype ("Minion Variable Concept") met een
+custom glyph-encoding — niet herbruikbaar. Vervangen door het qua karakter
+vergelijkbare Bodoni Moda Bold/Bold Italic (zelfde familie als de al
+aanwezige BodoniModa-Bold.ttf elders in dit project; Bold Italic erbij
+gehaald via het @fontsource-pakket, OFL-licentie). Puntgrootte en
+regelposities opgemeten via pixel-analyse van het referentiebestand. De
+regel "waar *jij* bent." mengt rechtop en cursief binnen 1 regel, opgelost
+met 3 los gepositioneerde tekst-stukken die samen als 1 gecentreerde regel
+ogen. Het handgetekende hartje eronder is rechtstreeks als vectorpad uit de
+PDF-content-stream van het referentiebestand gehaald en volgt (net als de
+hoofdtekst) automatisch de zwart/wit-regel op basis van de tegelkleur.
+
 ## Aanvulling: zichtbare waarschuwing bij een ontbrekende QR-/Spotify-code, en dikke platen niet meer in een eigen submap
 
 **Wat 1 — waarschuwing bij ontbrekende code:** een order met een kapotte/
