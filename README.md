@@ -11,11 +11,11 @@ Nieuwe order ("Tegeltje met tekst – Thuis is waar jij bent. – Rose / Geen")
 met een referentiebestand dat nog geen ontwerp had. De hoofdtekst staat in
 het referentiebestand als live PDF-tekst, maar met een ingebed, niet los
 beschikbaar subset-lettertype ("Minion Variable Concept") met een
-custom glyph-encoding — niet herbruikbaar. Vervangen door het qua karakter
-vergelijkbare Bodoni Moda Bold/Bold Italic (zelfde familie als de al
-aanwezige BodoniModa-Bold.ttf elders in dit project; Bold Italic erbij
-gehaald via het @fontsource-pakket, OFL-licentie). Puntgrootte en
-regelposities opgemeten via pixel-analyse van het referentiebestand. De
+custom glyph-encoding — niet herbruikbaar. Vervangen door een lettertype
+dat al in dit project aanwezig is (geen nieuw lettertype-bestand nodig):
+Playfair Display Medium/Medium Italic, zoals ook bij "jij-bent-goud-waard".
+Puntgrootte en regelposities opgemeten/herberekend via pixel-analyse van
+het referentiebestand. De
 regel "waar *jij* bent." mengt rechtop en cursief binnen 1 regel, opgelost
 met 3 los gepositioneerde tekst-stukken die samen als 1 gecentreerde regel
 ogen. Het handgetekende hartje eronder is rechtstreeks als vectorpad uit de
