@@ -1234,6 +1234,59 @@ const TEGEL_TEKST_ONTWERPEN = [
     ]
   },
   {
+    id: 'thuis-is-waar-jij-bent',
+    // Titel in Shopify: "Tegeltje met tekst - Thuis is waar jij bent."
+    // LET OP: deze regex moet VÓÓR "thuis-is-waar-de-liefde-woont" hieronder
+    // staan, voor het geval er ooit titel-overlap ontstaat — zelfde
+    // voorzorgsmaatregel als bij "jij-bent-goud-waard"/"jij-bent-goud".
+    herken: /thuis\s*is\s*waar\s*jij\s*bent/i,
+    // Referentiebestand ("Thuis_is_waar_jij_bent_zwart.pdf") bevat de
+    // hoofdtekst WEL als live PDF-tekst (ingebed subset-lettertype "Minion
+    // Variable Concept" — niet los beschikbaar als bestand, en de glyph-
+    // encoding is custom/niet herbruikbaar). Daarom, net als bij andere
+    // ontwerpen zonder bruikbaar brontekst-lettertype, vervangen door een
+    // vergelijkbaar bold served-lettertype: Bodoni Moda Bold/Bold Italic
+    // (zelfde lettertypefamilie als de al aanwezige BodoniModa-Bold.ttf
+    // elders in dit project, van Google Fonts/@fontsource — OFL-licentie).
+    // Puntgrootte + regelposities opgemeten via pixel-analyse van het
+    // referentiebestand (zelfde methode als "jij-bent-goud-waard").
+    // De 2e regel ("waar jij bent.") mengt 2 stijlen (rechtop + cursief
+    // voor "jij") binnen 1 visuele regel — dat ondersteunt het "regels"-
+    // systeem niet rechtstreeks (1 regel = 1 lettertype), dus opgesplitst in
+    // 3 losse regel-items met elk een eigen xMm (handmatig berekend met
+    // widthOfTextLigatuurVeiligAtSize zodat ze alsnog als 1 gecentreerde
+    // regel ogen).
+    //
+    // LET OP: het bijbehorende lettertypebestand BodoniModa-BoldItalic.ttf
+    // staat NOG NIET in server/fonts/ in dit commit (dat volgt apart) — dat
+    // is geen probleem: generateTegelTekstPdf() in dit bestand heeft al een
+    // ingebouwd vangnet (genereerTegelTekstPdfIntern + lettertypeTerugval)
+    // dat bij een ontbrekend/kapot lettertypebestand automatisch terugvalt
+    // op het ingebouwde PDF-lettertype hieronder (StandardFonts.TimesRomanBold
+    // / TimesRomanBoldItalic) i.p.v. te crashen.
+    lettertypeBestanden: { bold: 'BodoniModa-Bold.ttf', boldItalic: 'BodoniModa-BoldItalic.ttf' },
+    lettertypeTerugval: { bold: StandardFonts.TimesRomanBold, boldItalic: StandardFonts.TimesRomanBoldItalic },
+    regels: [
+      { tekst: 'Thuis is,', fontStijl: 'bold', puntgrootteMm: 7.2, topMm: 40.78, accent: false },
+      { tekst: 'waar ', fontStijl: 'bold', puntgrootteMm: 7.2, topMm: 50.25, xMm: 27.36, accent: false },
+      { tekst: 'jij', fontStijl: 'boldItalic', puntgrootteMm: 7.2, topMm: 50.25, xMm: 46.98, accent: false },
+      { tekst: ' bent.', fontStijl: 'bold', puntgrootteMm: 7.2, topMm: 50.25, xMm: 53.47, accent: false }
+    ],
+    // Los handgetekend hartje (open lijn-vorm, geen vlakke hart-vorm zoals
+    // elders) rechtstreeks als vectorpad uit de PDF-content-stream gehaald
+    // ("pdf-punten": coördinaten staan al in PDF-punten, dus schaal 1). Volgt
+    // de hoofdtekst-kleur (zwart/wit al naar gelang tegelkleur) — in het
+    // referentiebestand heeft het hartje namelijk gewoon dezelfde kleur als
+    // de tekst, geen eigen vaste accentkleur.
+    hart: {
+      eenheid: 'pdf-punten',
+      volgtHoofdtekstkleur: true,
+      pad: 'M 0.000,0.000 C -1.801,1.887 -3.067,3.373 -3.955,5.903 C -4.046,6.162 -4.394,7.638 -4.471,7.690 C -4.861,7.955 -5.125,6.934 -5.176,6.704 C -6.157,2.271 -1.176,-1.930 1.453,-4.922 C 3.663,-7.438 6.261,-10.735 6.478,-14.219 C 6.738,-18.393 2.287,-17.624 -0.206,-16.298 C -2.854,-14.890 -5.700,-11.447 -5.933,-8.377 C -5.952,-8.132 -5.876,-7.387 -5.985,-7.249 C -6.906,-6.867 -6.788,-7.975 -6.973,-8.575 C -7.473,-10.203 -8.960,-12.189 -10.320,-13.203 C -14.288,-16.163 -17.863,-13.374 -16.971,-8.742 C -16.121,-4.326 -11.034,0.110 -7.135,1.978 C -7.079,2.005 -6.527,2.126 -6.720,2.239 C -7.020,2.415 -7.662,2.203 -7.985,2.099 C -12.421,0.659 -18.346,-4.937 -18.733,-9.789 C -19.192,-15.554 -13.285,-17.097 -9.387,-13.687 C -8.206,-12.654 -7.370,-11.392 -6.669,-10.002 C -6.647,-9.958 -6.650,-9.827 -6.553,-9.922 C -6.502,-9.972 -6.164,-11.056 -6.073,-11.268 C -4.555,-14.797 -1.222,-18.489 2.857,-18.740 C 5.549,-18.905 8.229,-17.257 8.550,-14.436 C 9.186,-8.849 3.497,-3.663 0.000,0.000 Z',
+      ankerXMm: 51.815,
+      ankerTopMm: 70.706
+    }
+  },
+  {
     id: 'thuis-is-waar-de-liefde-woont',
     // Titel in Shopify: 'Tegeltje met Tekst - Thuis is waar de liefde woont'
     herken: /thuis\s*is\s*waar\s*de\s*liefde\s*woont/i,
