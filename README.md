@@ -6,6 +6,17 @@ van kan maken, en waarmee je de status van orders kan wijzigen.
 
 ## Functies
 
+## Nieuw ontwerp: 'Tegeltje met tekst - Oom met definitie.'
+Zelfde woordenboek-stijl als de al bestaande "Opa/Tante/Peettante met
+definitie"-ontwerpen (Bodoni Moda Bold titel + Bodoni Moda Regular
+ondertitel/genummerde lijst), nu ook voor "Oom". Posities en lettergrootte
+apart opgemeten uit het eigen referentiebestand — niet zomaar de Opa/Tante-
+waarden hergebruikt, de ondertitel/lijst bleken hier net iets kleiner.
+Referentiebestand gebruikt de gebruikelijke bijna-witte tekstkleur
+(onzichtbaar op wit papier/scherm), dus gemeten door het kleurverschil
+t.o.v. zuiver wit sterk uit te vergroten i.p.v. direct op zwart/wit-
+contrast te filteren.
+
 ## Nieuw ontwerp: 'Tegeltje met tekst - Thuis is waar jij bent.'
 Nieuwe order ("Tegeltje met tekst – Thuis is waar jij bent. – Rose / Geen")
 met een referentiebestand dat nog geen ontwerp had. De hoofdtekst staat in

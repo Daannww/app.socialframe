@@ -515,6 +515,32 @@ const TEGEL_TEKST_ONTWERPEN = [
     lijn: { xMm: 10.81, topMm: 44.26, breedteMm: 78.77, hoogteMm: 0.56 }
   },
   {
+    id: 'oom-met-definitie',
+    // Titel in Shopify: "Tegeltje met Tekst - Oom met definitie."
+    herken: /\boom\s+met\s+definitie/i,
+    // Zelfde woordenboek-stijl als "Opa/Tante/Peettante met definitie" —
+    // titel in Bodoni Moda Bold, ondertitel + genummerde lijst in Bodoni
+    // Moda Regular. Posities/groottes 1-op-1 gemeten uit het eigen
+    // referentiebestand ("Oom_woordenboekstijl.pdf") — net als bij Tante
+    // niet zomaar Opa se getallen hergebruikt, de ondertitel/lijst bleken
+    // hier zelfs nog iets kleiner dan bij Opa/Tante. Referentiebestand
+    // gebruikt de gebruikelijke bijna-witte (1%-geel) CMYK-tekstkleur, dus
+    // onzichtbaar op een gewoon wit canvas — gemeten door het blauwkanaal-
+    // tekort t.o.v. zuiver wit sterk uit te vergroten i.p.v. direct op
+    // zwart/wit-contrast te filteren.
+    lettertypeBestanden: { bold: 'BodoniModa-Bold.ttf', regular: 'BodoniModa-Regular.ttf' },
+    lettertypeTerugval: { bold: StandardFonts.TimesRomanBold, regular: StandardFonts.TimesRoman },
+    regels: [
+      { tekst: 'Oom', fontStijl: 'bold', puntgrootteMm: 11.76, topMm: 30.96, xMm: 11.34, accent: false },
+      { tekst: '[de; meervoud: ooms]', fontStijl: 'regular', puntgrootteMm: 3.64, topMm: 48.73, xMm: 11.00, accent: false },
+      { tekst: '1. De man die altijd net iets te harde grapjes maakt.', fontStijl: 'regular', puntgrootteMm: 3.07, topMm: 58.38, xMm: 11.17, maxBreedteMm: 78.60, groep: 'lijst', accent: false },
+      { tekst: '2. Specialist in “nog een snoepje dan”.', fontStijl: 'regular', puntgrootteMm: 3.07, topMm: 62.86, xMm: 10.75, maxBreedteMm: 78.60, groep: 'lijst', accent: false },
+      { tekst: '3. Onverwachte held op verjaardagen, vooral bij chaos.', fontStijl: 'regular', puntgrootteMm: 3.07, topMm: 67.26, xMm: 10.75, maxBreedteMm: 78.60, groep: 'lijst', accent: false },
+      { tekst: '4. Combineert wijsheid met onnodige sterke verhalen.', fontStijl: 'regular', puntgrootteMm: 3.07, topMm: 71.74, xMm: 10.66, maxBreedteMm: 78.60, groep: 'lijst', accent: false }
+    ],
+    lijn: { xMm: 10.83, topMm: 44.25, breedteMm: 78.60, hoogteMm: 0.42 }
+  },
+  {
     id: 'ik-hou-van-ons',
     // Titel in Shopify: "Tegeltje met tekst - Ik hou van ons."
     herken: /ik\s*hou\s*van\s*ons/i,
