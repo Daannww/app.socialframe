@@ -3,3 +3,4 @@ node_modules/
 orders.db
 orders.db-*
 exports/
+.env.example
