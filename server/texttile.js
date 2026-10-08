@@ -1271,42 +1271,17 @@ const TEGEL_TEKST_ONTWERPEN = [
     // Variable Concept" — niet los beschikbaar als bestand, en de glyph-
     // encoding is custom/niet herbruikbaar). Daarom, net als bij andere
     // ontwerpen zonder bruikbaar brontekst-lettertype, vervangen door een
-<<<<<<< Updated upstream
-    // vergelijkbaar bold served-lettertype: Bodoni Moda Bold/Bold Italic
-    // (zelfde lettertypefamilie als de al aanwezige BodoniModa-Bold.ttf
-    // elders in dit project, van Google Fonts/@fontsource — OFL-licentie).
-    // Puntgrootte + regelposities opgemeten via pixel-analyse van het
-    // referentiebestand (zelfde methode als "jij-bent-goud-waard").
-=======
     // lettertype dat al in dit project aanwezig is (geen nieuw lettertype-
     // bestand nodig): Playfair Display Medium/Medium Italic — wordt elders
     // (bv. "jij-bent-goud-waard") ook al gebruikt.
     // Puntgrootte + regelposities opgemeten/herberekend via pixel-analyse
     // van het referentiebestand (zelfde methode als "jij-bent-goud-waard").
->>>>>>> Stashed changes
     // De 2e regel ("waar jij bent.") mengt 2 stijlen (rechtop + cursief
     // voor "jij") binnen 1 visuele regel — dat ondersteunt het "regels"-
     // systeem niet rechtstreeks (1 regel = 1 lettertype), dus opgesplitst in
     // 3 losse regel-items met elk een eigen xMm (handmatig berekend met
     // widthOfTextLigatuurVeiligAtSize zodat ze alsnog als 1 gecentreerde
     // regel ogen).
-<<<<<<< Updated upstream
-    //
-    // LET OP: het bijbehorende lettertypebestand BodoniModa-BoldItalic.ttf
-    // staat NOG NIET in server/fonts/ in dit commit (dat volgt apart) — dat
-    // is geen probleem: generateTegelTekstPdf() in dit bestand heeft al een
-    // ingebouwd vangnet (genereerTegelTekstPdfIntern + lettertypeTerugval)
-    // dat bij een ontbrekend/kapot lettertypebestand automatisch terugvalt
-    // op het ingebouwde PDF-lettertype hieronder (StandardFonts.TimesRomanBold
-    // / TimesRomanBoldItalic) i.p.v. te crashen.
-    lettertypeBestanden: { bold: 'BodoniModa-Bold.ttf', boldItalic: 'BodoniModa-BoldItalic.ttf' },
-    lettertypeTerugval: { bold: StandardFonts.TimesRomanBold, boldItalic: StandardFonts.TimesRomanBoldItalic },
-    regels: [
-      { tekst: 'Thuis is,', fontStijl: 'bold', puntgrootteMm: 7.2, topMm: 40.78, accent: false },
-      { tekst: 'waar ', fontStijl: 'bold', puntgrootteMm: 7.2, topMm: 50.25, xMm: 27.36, accent: false },
-      { tekst: 'jij', fontStijl: 'boldItalic', puntgrootteMm: 7.2, topMm: 50.25, xMm: 46.98, accent: false },
-      { tekst: ' bent.', fontStijl: 'bold', puntgrootteMm: 7.2, topMm: 50.25, xMm: 53.47, accent: false }
-=======
     lettertypeBestanden: { bold: 'PlayfairDisplay-Medium.ttf', boldItalic: 'PlayfairDisplay-MediumItalic.ttf' },
     lettertypeTerugval: { bold: StandardFonts.TimesRomanBold, boldItalic: StandardFonts.TimesRomanBoldItalic },
     regels: [
@@ -1314,7 +1289,6 @@ const TEGEL_TEKST_ONTWERPEN = [
       { tekst: 'waar ', fontStijl: 'bold', puntgrootteMm: 7.6, topMm: 50.25, xMm: 27.61, accent: false },
       { tekst: 'jij', fontStijl: 'boldItalic', puntgrootteMm: 7.6, topMm: 50.25, xMm: 46.47, accent: false },
       { tekst: ' bent.', fontStijl: 'bold', puntgrootteMm: 7.6, topMm: 50.25, xMm: 53.14, accent: false }
->>>>>>> Stashed changes
     ],
     // Los handgetekend hartje (open lijn-vorm, geen vlakke hart-vorm zoals
     // elders) rechtstreeks als vectorpad uit de PDF-content-stream gehaald
