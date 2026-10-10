@@ -487,8 +487,24 @@ function renderModal(order) {
   // verwarrend en dubbelop. Dus voor deze specifieke titel: nooit de
   // eigenschappen tonen, ongeacht wat erin staat.
   const isCadeautjeInpakken = (title) => /cadeautje\s*inpakken/i.test(title || '');
+  // "Handgeschreven kaartje toevoegen." heeft dezelfde Shopify/PPLR-
+  // koppelbug: krijgt vaak de eigenschappen van een ANDER, écht besteld
+  // product onder zich (zie screenshot van de gebruiker, 10 okt — Kleur
+  // tegeltje/Naam/Preview/foto-links van de buurtegel i.p.v. de eigen
+  // boodschap). Net als bij de pakbon-weergave verderop in dit bestand
+  // (receiptLineItems/isHandgeschrevenKaartje aldaar): de eigen
+  // "Boodschap voor kaartje"-property is het enige dat hier relevant is,
+  // de rest (hoort bij een ander artikel) onderdrukken we net als bij
+  // cadeautje inpakken.
+  const isHandgeschrevenKaartje = (title) => /handgeschreven\s*kaartje/i.test(title || '');
+  const vindKaartjeBoodschap = (li) => (li.properties || []).find(p => /boodschap.*kaartje/i.test(p.name || ''));
 
-  const lineItemsHtml = (order.line_items || []).map(li => `
+  const lineItemsHtml = (order.line_items || []).map(li => {
+    const kaartje = isHandgeschrevenKaartje(li.title);
+    const boodschap = kaartje ? vindKaartjeBoodschap(li) : null;
+    const boodschapTekst = boodschap ? String(boodschap.value || '').trim() : '';
+    const toonProps = li.properties && li.properties.length && !isCadeautjeInpakken(li.title) && !kaartje;
+    return `
     <div class="line-item">
       <div class="title copyable" onclick="copyText(this, '${jsEscape(li.title + (li.variant_title ? ' – ' + li.variant_title : ''))}')" title="Klik om te kopiëren">${escapeHtml(li.title)} ${li.variant_title ? '– ' + escapeHtml(li.variant_title) : ''}</div>
       <div class="meta">
@@ -496,9 +512,11 @@ function renderModal(order) {
         <span class="copyable" onclick="copyText(this, '${jsEscape('€' + li.price)}')" title="Klik om te kopiëren">€${li.price}</span> &nbsp;•&nbsp;
         <span class="copyable" onclick="copyText(this, '${jsEscape(li.sku || '')}')" title="Klik om te kopiëren">SKU: ${escapeHtml(li.sku || '-')}</span>
       </div>
-      ${li.properties && li.properties.length && !isCadeautjeInpakken(li.title) ? `<div class="props">${li.properties.map(p => renderEigenschapRegel(order.id, li.id, p, li.title)).join('')}</div>` : ''}
+      ${toonProps ? `<div class="props">${li.properties.map(p => renderEigenschapRegel(order.id, li.id, p, li.title)).join('')}</div>` : ''}
+      ${kaartje && boodschapTekst ? `<div class="props copyable" onclick="copyText(this, '${jsEscape(boodschapTekst)}')" title="Klik om te kopiëren" style="white-space:pre-wrap;">✍️ ${escapeHtml(boodschapTekst)}</div>` : ''}
     </div>
-  `).join('') || '<p>Geen items gevonden</p>';
+  `;
+  }).join('') || '<p>Geen items gevonden</p>';
 
   // Muziekframe/Valentijnframe: zelfde aanpak als de andere producten —
   // server-berekend musicframe_items-veld gebruiken (was voorheen een eigen,
