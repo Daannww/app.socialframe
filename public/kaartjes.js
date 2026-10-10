@@ -19,6 +19,34 @@
   const fontCache = {};
   const FONT_VERSIE = 2; // ophogen als de lijn-lettertypes in public/schrijffonts veranderen
 
+  // ---------- Uitgelogd? ----------
+  // Na 7 dagen (of na uitloggen in een ander tabblad) is de sessie verlopen.
+  // Dan stuurt de server 401 (API) of een doorverwijzing naar /login (bestanden).
+  // In plaats van vage foutmeldingen tonen we dan één duidelijke melding.
+  class Uitgelogd extends Error {}
+  let uitgelogdGemeld = false;
+
+  function controleerSessie(res) {
+    if (res.status === 401 || res.redirected || /\/login(\?|$)/.test(res.url || '')) {
+      toonUitgelogd();
+      throw new Uitgelogd('Je bent uitgelogd');
+    }
+  }
+
+  function toonUitgelogd() {
+    if (uitgelogdGemeld) return;
+    uitgelogdGemeld = true;
+    clearInterval(verversTimer);
+    verversTimer = null;
+    const balk = document.createElement('div');
+    balk.className = 'kaart-uitgelogd-balk';
+    balk.innerHTML = '<span><i class="fa-solid fa-right-to-bracket"></i> Je bent uitgelogd (sessie verlopen). Log opnieuw in om verder te gaan.</span>' +
+      '<a class="btn btn-primary" href="/login">Opnieuw inloggen</a>';
+    const kop = $('kaartjesView').querySelector('.kaartjes-kop');
+    kop.parentNode.insertBefore(balk, kop.nextSibling);
+    $('kaartVoorbeeld').textContent = 'Log opnieuw in om het voorbeeld te zien.';
+  }
+
   // ---------- Lijn-lettertypes (SVG-fonts) ----------
 
   function parsePad(d) {
@@ -63,10 +91,12 @@
     if (fontCache[naam]) return fontCache[naam];
     // ?v=… zorgt dat de browser na een update van de lettertypes de nieuwe versie ophaalt
     const res = await fetch(`/schrijffonts/${encodeURIComponent(naam)}.svg?v=${FONT_VERSIE}`, { cache: 'no-cache' });
+    controleerSessie(res);
     if (!res.ok) throw new Error('Lettertype ' + naam + ' niet gevonden');
     const doc = new DOMParser().parseFromString(await res.text(), 'image/svg+xml');
     const fontEl = doc.querySelector('font');
     const face = doc.querySelector('font-face');
+    if (!fontEl || !face) throw new Error('Lettertype ' + naam + ' kon niet gelezen worden');
     const font = {
       defaultAdv: parseFloat(fontEl.getAttribute('horiz-adv-x') || '500'),
       xheight: parseFloat(face.getAttribute('x-height') || '300') || 300,
@@ -226,7 +256,7 @@
         <path d="${pad}" fill="none" stroke="#1b2a5e" stroke-width="0.32" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>`;
     } catch (e) {
-      doel.textContent = 'Kon voorbeeld niet maken: ' + e.message;
+      if (!(e instanceof Uitgelogd)) doel.textContent = 'Kon voorbeeld niet maken: ' + e.message;
     }
   }
 
@@ -284,6 +314,8 @@
   async function laadJobs() {
     try {
       const [jr, ir] = await Promise.all([fetch('/api/schrijfmachine/jobs'), fetch('/api/schrijfmachine/info')]);
+      controleerSessie(jr);
+      controleerSessie(ir);
       if (!jr.ok || !ir.ok) return;
       const jobs = await jr.json();
       const nieuweInfo = await ir.json();
@@ -391,6 +423,7 @@
 
   async function post(url, body) {
     const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}) });
+    controleerSessie(res);
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data.error || 'Onbekende fout');
     return data;

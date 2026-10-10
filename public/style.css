@@ -587,6 +587,12 @@ main { padding: 24px; max-width: 1100px; margin: 0 auto; }
 .kaartjes-acties .btn { margin-left: 4px; }
 .btn-klein { padding: 5px 10px; font-size: 12px; }
 .badge.kaart-bezig { background: #dbeafe; color: #1e40af; }
+.kaart-uitgelogd-balk {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  margin: 12px 0 4px 0; padding: 12px 16px; border-radius: 10px;
+  background: #fee2e2; color: #991b1b; font-size: 14px; font-weight: 600;
+}
+.kaart-uitgelogd-balk .btn { text-decoration: none; }
 .kaart-bezig-balk {
   display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
   margin-top: 24px; padding: 14px 16px; border-radius: 10px;
