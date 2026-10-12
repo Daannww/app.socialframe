@@ -39,7 +39,6 @@
     <label><input type="radio" name="hw-ai-orient" value="portrait"> Staand</label>
   </div>
 
-  <div class="hw-ai-label">Upload je afbeelding</div>
   <label class="hw-ai-upload" data-hw-ai-upload>
     <input type="file" accept="image/*" data-hw-ai-file hidden>
     <img class="hw-ai-thumb" data-hw-ai-thumb alt="" hidden>
@@ -48,6 +47,7 @@
   </label>
 
   <button type="button" class="hw-ai-btn" data-hw-ai-go disabled>Maak mijn tegeltje</button>
+  <div class="hw-ai-loader" data-hw-ai-loader hidden><div class="hw-ai-bar"><i></i></div><div class="hw-ai-loadtext">Je afbeelding wordt gemaakt… dit duurt ongeveer 30 seconden</div></div>
   <div class="hw-ai-status" data-hw-ai-status role="status" aria-live="polite"></div>
   <div class="hw-ai-choose" data-hw-ai-choose hidden>
     <div class="hw-ai-label">Kies je favoriet:</div>
@@ -77,12 +77,12 @@
   .hw-ai-hist:hover{border-color:#5B9BD5}
   .hw-ai-hist img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;display:block}
   .hw-ai-hist span{display:block;font-size:11px;margin-top:4px;line-height:1.2}
-  .hw-ai-textwrap{margin-bottom:6px}
+  .hw-ai-textwrap{margin-bottom:0}
   .hw-ai-text{width:100%;padding:15px 16px;border:1.5px solid #8A8A8A;border-radius:14px;font:inherit;font-size:17px;color:#222;background:#fff}
   .hw-ai-text::placeholder{color:#bbb}
-  .hw-ai-count{text-align:right;font-size:14px;color:#aaa;margin:12px 0 18px}
+  .hw-ai-count{text-align:right;font-size:13px;color:#aaa;margin:4px 0 6px}
   .hw-ai-orient{display:flex;gap:18px;margin:0 0 18px}
-  .hw-ai-upload{display:flex;flex-direction:row;align-items:center;justify-content:center;gap:10px;min-height:48px;border:1.5px dashed #CFCFCF;border-radius:999px;padding:8px 14px;text-align:center;cursor:pointer;background:#fff;margin-bottom:12px;color:#777;overflow:hidden}
+  .hw-ai-upload{display:flex;flex-direction:row;align-items:center;justify-content:center;gap:10px;min-height:48px;border:1.5px dashed #CFCFCF;border-radius:999px;padding:8px 14px;text-align:center;cursor:pointer;background:#fff;margin-bottom:12px;margin-top:6px;color:#777;overflow:hidden}
   .hw-ai-upload:hover{border-color:#999}
   .hw-ai-plus{font-size:22px;line-height:1;color:#999;font-weight:300}
   .hw-ai-uptext{font-size:14px}
@@ -96,6 +96,11 @@
   .hw-ai-choice img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:13px;display:block;background:#f0f0f0}
   .hw-ai-choice span{display:block;margin-top:6px;font-size:13px;color:#444}
   .hw-ai-choice[aria-pressed="true"]{border-color:#5B9BD5}
+  .hw-ai-loader{margin-top:14px;text-align:center}
+  .hw-ai-bar{height:8px;border-radius:99px;background:#EEE;overflow:hidden;position:relative}
+  .hw-ai-bar i{position:absolute;top:0;bottom:0;width:40%;border-radius:99px;background:#222;animation:hwai 1.2s ease-in-out infinite}
+  @keyframes hwai{0%{left:-40%}100%{left:100%}}
+  .hw-ai-loadtext{margin-top:8px;font-size:14px;color:#555}
   .hw-ai-left{margin-top:8px;text-align:center;font-size:.9em;opacity:.8}
   .hw-ai-left.low{color:#b00020;opacity:1}
   .hw-ai-status{margin-top:12px;min-height:1em;text-align:center}
@@ -118,6 +123,7 @@
   var STYLES = (root.dataset.styles || '').trim();
   var $ = function (s) { return root.querySelector(s); };
   var designsEl = $('[data-hw-ai-designs]'), fileEl = $('[data-hw-ai-file]'), fileLabel = $('[data-hw-ai-filelabel]');
+  var loaderEl = $('[data-hw-ai-loader]');
   var leftEl = document.createElement('div'); leftEl.hidden = true;
   var goBtn = $('[data-hw-ai-go]'), statusEl = $('[data-hw-ai-status]'), resultEl = $('[data-hw-ai-result]');
   var imgEl = $('[data-hw-ai-img]'), orientEl = $('[data-hw-ai-orient]');
@@ -145,6 +151,7 @@
   }
   function say(t, err) { statusEl.textContent = t || ''; statusEl.className = 'hw-ai-status' + (err ? ' err' : ''); }
   function refresh() {
+    loaderEl.hidden = !state.busy;
     if (typeof state.left === 'number') {
       leftEl.hidden = false;
       leftEl.textContent = state.left > 0 ? 'Nog ' + state.left + (state.left === 1 ? ' poging' : ' pogingen') + ' beschikbaar' : 'Je hebt al je pogingen gebruikt. Kom morgen terug of kies een eerder gemaakte afbeelding.';
