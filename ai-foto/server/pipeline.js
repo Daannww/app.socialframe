@@ -79,7 +79,7 @@ async function process_(job) {
     delete base.image_url; delete base.aspect_ratio; delete base.negative_prompt;
     if (design.negative_prompt) base.prompt += ' Vermijd: ' + design.negative_prompt + '.';
     base.image_size = job.profile === 'tegel' ? '1024x1024' : (job.orientation === 'portrait' ? '1024x1536' : '1536x1024');
-    if (!base.quality) base.quality = 'high';
+    if (!base.quality) base.quality = 'medium';
     delete base.output_format; base.output_format = 'jpeg';
     Object.assign(base, extra);
   }
