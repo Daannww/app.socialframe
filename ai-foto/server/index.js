@@ -16,7 +16,16 @@ const BASE = (process.env.PUBLIC_BASE_URL || '').replace(/\/$/, '');
 const fileUrl = (name) => (name ? `${BASE}/files/${name}` : null);
 
 const origins = (process.env.ALLOWED_ORIGINS || '').split(',').map((s) => s.trim()).filter(Boolean);
-app.use('/api', cors({ origin: origins.length ? origins : true }));
+// Toegestane websites: de eigen domeinen uit ALLOWED_ORIGINS, plus Shopify-voorbeeld- en admin-omgevingen (voor testen).
+function originAllowed(origin) {
+  if (!origin) return true;
+  if (!origins.length || origins.includes(origin)) return true;
+  try {
+    const h = new URL(origin).hostname;
+    return h.endsWith('.shopifypreview.com') || h.endsWith('.myshopify.com');
+  } catch { return false; }
+}
+app.use('/api', cors({ origin: (o, cb) => cb(null, originAllowed(o)) }));
 app.use(express.json({ limit: '1mb' }));
 
 // Publieke bestanden: alleen print/preview/voorbeeld (onraadbare namen), nooit originelen.

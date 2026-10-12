@@ -29,8 +29,8 @@
   <div class="hw-ai-designs" data-hw-ai-designs></div>
 
   <div class="hw-ai-textwrap" data-hw-ai-textwrap hidden>
-    <label class="hw-ai-label" for="hw-ai-text"><span data-hw-ai-textlabel>Eigen tekst</span> <span class="hw-ai-opt">(optioneel)</span></label>
-    <input type="text" id="hw-ai-text" class="hw-ai-text" data-hw-ai-text maxlength="40" autocomplete="off" placeholder="Vul je tekst in">
+    <label class="hw-ai-label"><span data-hw-ai-textlabel>Eigen tekst</span> <span class="hw-ai-opt">(optioneel)</span></label>
+    <input type="text" class="hw-ai-text" data-hw-ai-text maxlength="40" autocomplete="off" placeholder="Vul je tekst in">
     <div class="hw-ai-count" data-hw-ai-count></div>
   </div>
 
@@ -106,8 +106,11 @@
 
 <script>
 (function () {
-  var root = document.querySelector('[data-hw-ai]');
-  if (!root) return;
+  // Het thema kan dit blok twee keer op de pagina zetten (bv. een versie voor mobiel en een voor desktop).
+  // Daarom starten we elk blok apart, en slaan we blokken die al draaien over.
+  function initOne(root, idx) {
+  if (root.dataset.hwAiInit) return;
+  root.dataset.hwAiInit = '1';
   var API = (root.dataset.api || '').replace(/\/$/, '');
   var PROFILE = root.dataset.profile === 'poster' ? 'poster' : 'tegel';
   var STYLES = (root.dataset.styles || '').trim();
@@ -122,6 +125,7 @@
   // design: gekozen ontwerp; result: afbeelding die bij de bestelling hoort (nieuw of hergebruikt)
   var state = { pending: null, design: null, designName: '', allowsText: false, result: null, busy: false, left: null };
   if (PROFILE === 'poster') orientEl.hidden = false;
+  root.querySelectorAll('input[type="radio"]').forEach(function (r) { r.name = 'hw-ai-orient-' + idx; });
 
   var clientId;
   try { clientId = localStorage.getItem('hw_ai_client'); } catch (e) {}
@@ -130,6 +134,11 @@
     try { localStorage.setItem('hw_ai_client', clientId); } catch (e) {}
   }
 
+  function hideAll() {
+    root.hidden = true;
+    var h = root.previousElementSibling;
+    if (h && h.classList.contains('hw-ai-heading')) h.hidden = true;
+  }
   function say(t, err) { statusEl.textContent = t || ''; statusEl.className = 'hw-ai-status' + (err ? ' err' : ''); }
   function refresh() { goBtn.disabled = state.busy || !state.design || !fileEl.files[0] || state.left === 0; }
   function fmtDate(iso) {
@@ -228,9 +237,9 @@
         });
         designsEl.appendChild(b);
       });
-      if (!(d.designs || []).length) root.hidden = true; else loadHistory();
+      if (!(d.designs || []).length) hideAll(); else loadHistory();
     })
-    .catch(function () { root.hidden = true; });
+    .catch(function () { hideAll(); });
 
   fileEl.addEventListener('change', function () {
     var f = fileEl.files[0];
@@ -302,7 +311,7 @@
     if (state.busy || !fileEl.files[0] || !state.design) return;
     state.busy = true; state.result = null; state.pending = null; resultEl.hidden = true; chooseBox.hidden = true; setProps(false); refresh();
     say('Je afbeelding wordt gemaakt… dit duurt ongeveer 20 tot 60 seconden.');
-    var o = root.querySelector('input[name="hw-ai-orient"]:checked');
+    var o = root.querySelector('input[type="radio"]:checked');
     var fd = new FormData();
     fd.append('photo', fileEl.files[0]); fd.append('design_id', state.design);
     fd.append('profile', PROFILE); fd.append('orientation', o ? o.value : 'landscape'); fd.append('client_id', clientId);
@@ -318,7 +327,7 @@
 
   // Zonder gekozen afbeelding niet in de winkelwagen: anders krijgen we een bestelling zonder afbeelding.
   function blockIfNoResult(e, target) {
-    if (root.hidden || state.result) return;
+    if (root.hidden || root.offsetParent === null || state.result) return;
     if (!target || !target.closest || !target.closest('.product-form, form[data-type="add-to-cart-form"]')) return;
     e.preventDefault(); e.stopImmediatePropagation();
     say(state.pending ? 'Kies eerst een van de varianten voordat je bestelt.' : 'Maak eerst je afbeelding voordat je bestelt.', true);
@@ -330,6 +339,8 @@
     var btn = e.target.closest && e.target.closest('button[type="submit"], button[name="add"], input[type="submit"]');
     if (btn) blockIfNoResult(e, btn);
   }, true);
+  }
+  document.querySelectorAll('[data-hw-ai]').forEach(function (r, i) { initOne(r, i); });
 })();
 </script>
 {%- endif -%}
