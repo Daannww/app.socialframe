@@ -206,6 +206,7 @@ async function buildReceiptHtml(order, serverBasisUrl) {
     const isHandgeschrevenKaartje = /handgeschreven\s*kaartje/i.test(li.title || '');
     const propsHtml = isCadeautjeInpakken ? '' : (li.properties || [])
       .filter(p => !/autopictura/i.test(p.name) && !/autopictura/i.test(p.value))
+      .filter(p => !/^\s*_?AI (afbeelding|drukbestand|job)/i.test(p.name || ''))
       .filter(p => !isHandgeschrevenKaartje)
       .map(p => `${escapeHtml(p.name)}: ${escapeHtml(p.value)}`)
       .join('<br>');

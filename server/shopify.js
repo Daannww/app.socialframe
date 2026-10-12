@@ -16,6 +16,10 @@ const IMAGE_REGEX = /(https?:\/\/[^\s"'<>]+\.(?:jpg|jpeg|png|gif|webp|svg)(?:\?[
 // De autopictura design-link heeft geen bestandsextensie (bv. .../design-link/<uuid>),
 // dus die wordt los herkend op basis van het domein + pad, niet op extensie.
 const AUTOPICTURA_REGEX = /(https?:\/\/[^\s"'<>]*autopictura[^\s"'<>]*)/gi;
+// Drukbestand uit onze eigen AI-foto-service (eigenschap "_AI drukbestand"): .../files/<32 hex>-print.jpg
+const AI_FOTO_PRINT_REGEX = /(https?:\/\/[^\s"'<>]+\/files\/[a-f0-9]{32}-print\.jpg)/i;
+// Het voorbeeld (eigenschap "AI afbeelding") is alleen voor de klant en mag nooit als foto/drukbestand meetellen.
+const isAiPreviewProp = p => /^\s*AI afbeelding/i.test(p.name || '');
 // Bestanden die de klant zelf rechtstreeks via Shopify uploadt (bv. een "upload je ontwerp"
 // veld) landen op Shopify's eigen CDN, soms zonder duidelijke/herkenbare extensie in de URL.
 const SHOPIFY_CDN_UPLOAD_REGEX = /(https?:\/\/cdn\.shopify\.com\/s\/files\/[^\s"'<>]+)/gi;
@@ -70,6 +74,7 @@ function extractPhotoLinks(order) {
     const lineItemLinks = new Set(); // dedupliceren binnen deze ene regel
 
     (li.properties || []).forEach(p => {
+      if (isAiPreviewProp(p)) return;
       const text = `${p.name}: ${p.value}`;
 
       const imageMatches = String(text).match(IMAGE_REGEX);
@@ -160,7 +165,7 @@ function extractTileItemsFromOrder(lineItems) {
     // Autopictura-link binnen DEZE regel
     let autopicturaLink = null;
     for (const p of props) {
-      const m = String(p.value || '').match(AUTOPICTURA_REGEX);
+      const m = String(p.value || '').match(AUTOPICTURA_REGEX) || (/^_?AI drukbestand/i.test(p.name || '') ? String(p.value || '').match(AI_FOTO_PRINT_REGEX) : null);
       if (m) { autopicturaLink = m[0]; break; }
     }
     if (autopicturaLink) {
