@@ -44,7 +44,10 @@ app.get('/api/designs', (req, res) => {
   let rows = db.prepare('SELECT * FROM designs WHERE active=1 ORDER BY sort, id').all();
   if (styles.length) rows = rows.filter((d) => styles.includes((d.slug || '').toLowerCase()));
   else rows = rows.filter((d) => d.products === '*' || !product || d.products.split(',').map((s) => s.trim()).includes(product));
-  res.json({ designs: rows.map(publicDesign), max_attempts: parseInt(getSetting('max_attempts'), 10), text_max: parseInt(getSetting('text_max'), 10) });
+  const maxA = parseInt(getSetting('max_attempts'), 10);
+  const cid = String(req.query.client_id || '');
+  const left = /^[A-Za-z0-9_-]{8,64}$/.test(cid) ? Math.max(0, maxA - attemptsUsed(cid)) : maxA;
+  res.json({ designs: rows.map(publicDesign), attempts_left: left, max_attempts: maxA, text_max: parseInt(getSetting('text_max'), 10) });
 });
 
 const genLimiter = rateLimit({ windowMs: 60 * 60 * 1000, limit: 20, standardHeaders: true, legacyHeaders: false,

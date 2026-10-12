@@ -96,6 +96,8 @@
   .hw-ai-choice img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:13px;display:block;background:#f0f0f0}
   .hw-ai-choice span{display:block;margin-top:6px;font-size:13px;color:#444}
   .hw-ai-choice[aria-pressed="true"]{border-color:#5B9BD5}
+  .hw-ai-left{margin-top:8px;text-align:center;font-size:.9em;opacity:.8}
+  .hw-ai-left.low{color:#b00020;opacity:1}
   .hw-ai-status{margin-top:12px;min-height:1em;text-align:center}
   .hw-ai-status.err{color:#b00020}
   .hw-ai-result{margin-top:16px;text-align:center}
@@ -116,6 +118,7 @@
   var STYLES = (root.dataset.styles || '').trim();
   var $ = function (s) { return root.querySelector(s); };
   var designsEl = $('[data-hw-ai-designs]'), fileEl = $('[data-hw-ai-file]'), fileLabel = $('[data-hw-ai-filelabel]');
+  var leftEl = document.createElement('div'); leftEl.hidden = true;
   var goBtn = $('[data-hw-ai-go]'), statusEl = $('[data-hw-ai-status]'), resultEl = $('[data-hw-ai-result]');
   var imgEl = $('[data-hw-ai-img]'), orientEl = $('[data-hw-ai-orient]');
   var textWrap = $('[data-hw-ai-textwrap]'), textEl = $('[data-hw-ai-text]'), textLabel = $('[data-hw-ai-textlabel]');
@@ -134,6 +137,7 @@
     try { localStorage.setItem('hw_ai_client', clientId); } catch (e) {}
   }
 
+  goBtn.parentNode.insertBefore(leftEl, goBtn.nextSibling);
   function hideAll() {
     root.hidden = true;
     var h = root.previousElementSibling;
@@ -141,6 +145,11 @@
   }
   function say(t, err) { statusEl.textContent = t || ''; statusEl.className = 'hw-ai-status' + (err ? ' err' : ''); }
   function refresh() {
+    if (typeof state.left === 'number') {
+      leftEl.hidden = false;
+      leftEl.textContent = state.left > 0 ? 'Nog ' + state.left + (state.left === 1 ? ' poging' : ' pogingen') + ' beschikbaar' : 'Je hebt al je pogingen gebruikt. Kom morgen terug of kies een eerder gemaakte afbeelding.';
+      leftEl.className = 'hw-ai-left' + (state.left <= 1 ? ' low' : '');
+    }
     var needText = state.allowsText && state.textRequired && !textEl.value.trim();
     goBtn.disabled = state.busy || !state.design || !fileEl.files[0] || state.left === 0 || needText;
   }
@@ -219,9 +228,10 @@
   }
 
   var q = '?product=' + encodeURIComponent(root.dataset.product || '') + (STYLES ? '&styles=' + encodeURIComponent(STYLES) : '');
-  fetch(API + '/api/designs' + q)
+  fetch(API + '/api/designs' + q + '&client_id=' + encodeURIComponent(clientId))
     .then(function (r) { return r.json(); })
     .then(function (d) {
+      if (d.attempts_left !== undefined) state.left = d.attempts_left;
       if (d.text_max) textEl.maxLength = d.text_max;
       count();
       (d.designs || []).forEach(function (x) {
