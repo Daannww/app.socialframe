@@ -8,7 +8,7 @@ const fs = require('fs');
 const path = require('path');
 const sharp = require('sharp');
 const { db, getSetting, setSetting, allSettings } = require('./db');
-const { promptFor, enqueue, resume, rid, FILES, ORIGINALS } = require('./pipeline');
+const { finalizeVariant, promptFor, enqueue, resume, rid, FILES, ORIGINALS } = require('./pipeline');
 
 const app = express();
 app.set('trust proxy', 1);
@@ -100,13 +100,20 @@ const validClient = (c) => /^[A-Za-z0-9_-]{8,64}$/.test(String(c || ''));
 function parseVariants(j) { try { return JSON.parse(j.variants_json || '[]'); } catch { return []; } }
 
 // De klant kiest één van de varianten; pas daarna is er een afbeelding voor de bestelling.
-app.post('/api/jobs/:id/choose', (req, res) => {
+app.post('/api/jobs/:id/choose', async (req, res) => {
   const { client_id: clientId, index } = req.body || {};
   if (!validClient(clientId)) return res.status(400).json({ error: 'Ongeldige sessie.' });
   const j = db.prepare("SELECT j.*, d.name design_name FROM jobs j LEFT JOIN designs d ON d.id=j.design_id WHERE j.id=? AND j.client_id=? AND j.status='done'").get(req.params.id, clientId);
   if (!j) return res.status(404).json({ error: 'Niet gevonden' });
   const v = parseVariants(j)[parseInt(index, 10)];
-  if (!v || !fs.existsSync(path.join(FILES, v.print_file))) return res.status(400).json({ error: 'Deze keuze bestaat niet.' });
+  if (!v) return res.status(400).json({ error: 'Deze keuze bestaat niet.' });
+  try {
+    if (!v.print_file || !fs.existsSync(path.join(FILES, v.print_file))) {
+      await finalizeVariant(j, v);
+      const all = parseVariants(j); all[parseInt(index, 10)] = v;
+      db.prepare('UPDATE jobs SET variants_json=?, print_w=?, print_h=? WHERE id=?').run(JSON.stringify(all), v.print_w || j.print_w, v.print_h || j.print_h, j.id);
+    }
+  } catch (e) { console.error('[choose]', e.message); return res.status(500).json({ error: 'Scherp maken is mislukt, probeer het opnieuw.' }); }
   db.prepare('UPDATE jobs SET chosen=?, preview_file=?, print_file=? WHERE id=?').run(parseInt(index, 10), v.preview_file, v.print_file, j.id);
   res.json({ job_id: j.id, design: j.design_name, text: j.custom_text || '', preview_url: fileUrl(v.preview_file), print_url: fileUrl(v.print_file), created_at: j.created_at });
 });
@@ -236,7 +243,7 @@ function cleanup() {
   const old = db.prepare("SELECT * FROM jobs WHERE created_at < datetime('now', ?)").all(`-${days} days`);
   for (const j of old) {
     const files = [[ORIGINALS, j.original_file], [FILES, j.preview_file], [FILES, j.print_file]];
-    parseVariants(j).forEach((v) => files.push([FILES, v.preview_file], [FILES, v.print_file]));
+    parseVariants(j).forEach((v) => files.push([FILES, v.preview_file], [FILES, v.print_file], [ORIGINALS, v.raw_file]));
     for (const [dir, f] of files) if (f) fs.rmSync(path.join(dir, f), { force: true });
     db.prepare('DELETE FROM jobs WHERE id=?').run(j.id);
   }

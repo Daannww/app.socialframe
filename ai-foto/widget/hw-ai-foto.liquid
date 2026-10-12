@@ -123,7 +123,7 @@
   var STYLES = (root.dataset.styles || '').trim();
   var $ = function (s) { return root.querySelector(s); };
   var designsEl = $('[data-hw-ai-designs]'), fileEl = $('[data-hw-ai-file]'), fileLabel = $('[data-hw-ai-filelabel]');
-  var loaderEl = $('[data-hw-ai-loader]');
+  var loaderEl = $('[data-hw-ai-loader]'), loadText = $('.hw-ai-loadtext');
   var leftEl = document.createElement('div'); leftEl.hidden = true;
   var goBtn = $('[data-hw-ai-go]'), statusEl = $('[data-hw-ai-status]'), resultEl = $('[data-hw-ai-result]');
   var imgEl = $('[data-hw-ai-img]'), orientEl = $('[data-hw-ai-orient]');
@@ -289,10 +289,12 @@
       var sp = document.createElement('span'); sp.textContent = 'Variant ' + (idx + 1);
       b.appendChild(im); b.appendChild(sp);
       b.addEventListener('click', function () {
-        say('Even opslaan…');
+        if (state.busy) return;
+        state.busy = true; loadText.textContent = 'Je gekozen afbeelding wordt scherp gemaakt voor het drukken…'; refresh(); say('');
         fetch(API + '/api/jobs/' + j.job_id + '/choose', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ client_id: clientId, index: idx }) })
           .then(function (r) { return r.json().then(function (x) { return { ok: r.ok, x: x }; }); })
           .then(function (res) {
+            state.busy = false; refresh();
             if (!res.ok) { say(res.x.error || 'Mislukt, probeer het opnieuw.', true); return; }
             chooseList.querySelectorAll('.hw-ai-choice').forEach(function (o) { o.setAttribute('aria-pressed', 'false'); });
             b.setAttribute('aria-pressed', 'true');
@@ -301,7 +303,7 @@
             state.pending = keep; resultEl.hidden = true; loadHistory();
             say('Mooi! Deze afbeelding wordt op je product gedrukt.' + (state.left > 0 ? ' Niet tevreden? Je kunt het nog ' + state.left + ' keer opnieuw proberen.' : ''));
           })
-          .catch(function () { say('Geen verbinding, probeer het opnieuw.', true); });
+          .catch(function () { state.busy = false; refresh(); say('Geen verbinding, probeer het opnieuw.', true); });
       });
       chooseList.appendChild(b);
     });
@@ -331,6 +333,7 @@
   goBtn.addEventListener('click', function () {
     if (state.busy || !fileEl.files[0] || !state.design) return;
     if (state.allowsText && state.textRequired && !textEl.value.trim()) { say('Vul eerst een tekst in.', true); textEl.focus(); return; }
+    loadText.textContent = 'Je afbeelding wordt gemaakt… dit duurt ongeveer 30 seconden';
     state.busy = true; state.result = null; state.pending = null; resultEl.hidden = true; chooseBox.hidden = true; setProps(false); refresh();
     say('Je afbeelding wordt gemaakt… dit duurt ongeveer 20 tot 60 seconden.');
     var o = root.querySelector('input[type="radio"]:checked');

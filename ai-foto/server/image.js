@@ -51,4 +51,13 @@ async function finalize(buffer, target) {
   return { printBuf, previewBuf };
 }
 
-module.exports = { PROFILES, targetSize, prepareInput, finalize };
+// Snelle voorbeeldweergave rechtstreeks uit het ruwe resultaat (zelfde uitsnede als het drukbestand).
+async function previewOnly(buffer, target) {
+  const k = Math.min(1, 1000 / Math.max(target.w, target.h));
+  return sharp(buffer)
+    .resize(Math.round(target.w * k), Math.round(target.h * k), { fit: 'cover', position: 'centre' })
+    .jpeg({ quality: 85 })
+    .toBuffer();
+}
+
+module.exports = { PROFILES, targetSize, prepareInput, finalize, previewOnly };

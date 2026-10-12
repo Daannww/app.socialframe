@@ -27,27 +27,37 @@ function promptFor(design, text) {
 
 const FAL_RATIO = { tegel: '1:1', landscape: '3:2', portrait: '2:3' };
 
-async function makeVariant({ design, input, target, settings }) {
+// Snel deel: alleen het AI-resultaat + voorbeeld. Vergroten/drukbestand gebeurt pas na de keuze (finalizeVariant).
+async function makeVariant({ design, input, target }) {
   const out = await fal.run(design.model, input);
   const url = fal.firstImageUrl(out);
   if (!url) throw new Error('Model gaf geen afbeelding terug');
-  let buf = await download(url);
+  const buf = await download(url);
+  const base = rid();
+  const v = { raw_file: `${base}-raw.jpg`, preview_file: `${base}-preview.jpg`, print_file: null };
+  fs.writeFileSync(path.join(ORIGINALS, v.raw_file), buf);
+  fs.writeFileSync(path.join(FILES, v.preview_file), await img.previewOnly(buf, target));
+  return v;
+}
 
-  // Upscale als het resultaat kleiner is dan het drukformaat.
+// Zware deel: indien nodig vergroten en het drukbestand maken. Het ontwerp zelf verandert niet.
+async function finalizeVariant(job, v) {
+  if (v.print_file && fs.existsSync(path.join(FILES, v.print_file))) return v;
+  const settings = allSettings();
+  const target = img.targetSize(job.profile, job.orientation, settings);
+  let buf = fs.readFileSync(path.join(ORIGINALS, v.raw_file));
   const meta = await require('sharp')(buf).metadata();
   const need = Math.max(target.w / meta.width, target.h / meta.height);
   if (need > 1.05 && settings.upscale_model) {
     const factor = Math.min(4, Math.max(2, Math.ceil(need)));
-    const up = await fal.run(settings.upscale_model, { image_url: url, upscale_factor: factor });
+    const up = await fal.run(settings.upscale_model, { image_url: `data:image/jpeg;base64,${buf.toString('base64')}`, upscale_factor: factor });
     const upUrl = fal.firstImageUrl(up);
     if (upUrl) buf = await download(upUrl);
   }
-
-  const { printBuf, previewBuf } = await img.finalize(buf, target);
-  const base = rid();
-  const v = { print_file: `${base}-print.jpg`, preview_file: `${base}-preview.jpg` };
+  const { printBuf } = await img.finalize(buf, target);
+  v.print_file = `${rid()}-print.jpg`;
   fs.writeFileSync(path.join(FILES, v.print_file), printBuf);
-  fs.writeFileSync(path.join(FILES, v.preview_file), previewBuf);
+  v.print_w = target.w; v.print_h = target.h;
   return v;
 }
 
@@ -89,7 +99,7 @@ async function process_(job) {
   for (let i = 0; i < n; i++) {
     const input = { ...base };
     if (n > 1 && /flux/i.test(design.model) && input.seed === undefined) input.seed = Math.floor(Math.random() * 2147483647);
-    jobs.push(makeVariant({ design, input, target, settings }));
+    jobs.push(makeVariant({ design, input, target }));
   }
   const settled = await Promise.allSettled(jobs);
   const variants = settled.filter((r) => r.status === 'fulfilled').map((r) => r.value);
@@ -97,6 +107,7 @@ async function process_(job) {
 
   // Eén variant: meteen definitief. Meer: de klant kiest (chosen/print_file blijven leeg tot die keuze).
   if (variants.length === 1) {
+    await finalizeVariant(job, variants[0]);
     db.prepare(`UPDATE jobs SET status='done', variants_json=?, chosen=0, preview_file=?, print_file=?, print_w=?, print_h=?, finished_at=CURRENT_TIMESTAMP WHERE id=?`)
       .run(JSON.stringify(variants), variants[0].preview_file, variants[0].print_file, target.w, target.h, job.id);
   } else {
@@ -131,4 +142,4 @@ function resume() {
   db.prepare("SELECT id FROM jobs WHERE status IN ('queued','running')").all().forEach((r) => enqueue(r.id));
 }
 
-module.exports = { promptFor, enqueue, resume, rid, FILES, ORIGINALS };
+module.exports = { finalizeVariant, promptFor, enqueue, resume, rid, FILES, ORIGINALS };
