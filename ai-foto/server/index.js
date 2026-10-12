@@ -92,8 +92,15 @@ app.post('/api/generate', genLimiter, upload.single('photo'), async (req, res) =
     const id = rid();
     const originalFile = `${id}.jpg`;
     fs.writeFileSync(path.join(ORIGINALS, originalFile), await sharp(req.file.buffer).rotate().jpeg({ quality: 95 }).toBuffer());
-    db.prepare('INSERT INTO jobs(id,client_id,ip,design_id,profile,orientation,original_file,custom_text) VALUES(?,?,?,?,?,?,?,?)')
-      .run(id, clientId, req.ip, design.id, profile, orientation, originalFile, customText);
+    // Optionele uitsnede (fracties van de foto): alleen geldig als het een echt vak binnen de foto is.
+    let cropJson = null;
+    const cr = ['crop_x', 'crop_y', 'crop_w', 'crop_h'].map((k) => parseFloat(req.body[k]));
+    if (cr.every((n) => Number.isFinite(n))) {
+      const [x, y, w, h] = cr.map((n) => Math.min(1, Math.max(0, n)));
+      if (w >= 0.05 && h >= 0.05 && x + w <= 1.001 && y + h <= 1.001) cropJson = JSON.stringify({ x, y, w, h });
+    }
+    db.prepare('INSERT INTO jobs(id,client_id,ip,design_id,profile,orientation,original_file,custom_text,crop_json) VALUES(?,?,?,?,?,?,?,?,?)')
+      .run(id, clientId, req.ip, design.id, profile, orientation, originalFile, customText, cropJson);
     enqueue(id);
     res.json({ job_id: id, attempts_left: attemptsLeft(clientId, req.ip) });
   } catch (e) {

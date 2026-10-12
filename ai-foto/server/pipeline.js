@@ -70,7 +70,9 @@ async function process_(job) {
   const n = Math.min(3, Math.max(1, parseInt(settings.variants, 10) || 1));
 
   const original = fs.readFileSync(path.join(ORIGINALS, job.original_file));
-  const prepared = await img.prepareInput(original, job.profile, job.orientation);
+  let crop = null;
+  try { crop = job.crop_json ? JSON.parse(job.crop_json) : null; } catch { /* negeren */ }
+  const prepared = await img.prepareInput(original, job.profile, job.orientation, crop);
 
   let extra = {};
   try { extra = JSON.parse(design.extra_json || '{}'); } catch { /* negeren */ }
