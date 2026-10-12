@@ -27,30 +27,9 @@ function promptFor(design, text) {
 
 const FAL_RATIO = { tegel: '1:1', landscape: '3:2', portrait: '2:3' };
 
-async function process_(job) {
-  const settings = allSettings();
-  const design = db.prepare('SELECT * FROM designs WHERE id=?').get(job.design_id);
-  if (!design) throw new Error('Ontwerp bestaat niet meer');
-  const target = img.targetSize(job.profile, job.orientation, settings);
-
-  const original = fs.readFileSync(path.join(ORIGINALS, job.original_file));
-  const prepared = await img.prepareInput(original, job.profile, job.orientation);
-
-  let extra = {};
-  try { extra = JSON.parse(design.extra_json || '{}'); } catch { /* negeren */ }
-  const prompt = promptFor(design, job.custom_text);
-  const input = {
-    prompt,
-    image_url: `data:image/jpeg;base64,${prepared.buffer.toString('base64')}`,
-    num_images: 1,
-    output_format: 'jpeg',
-    aspect_ratio: job.profile === 'tegel' ? FAL_RATIO.tegel : FAL_RATIO[job.orientation],
-    ...extra,
-  };
-  if (design.negative_prompt) input.negative_prompt = design.negative_prompt;
-
+async function makeVariant({ design, input, target, settings }) {
   const out = await fal.run(design.model, input);
-  let url = fal.firstImageUrl(out);
+  const url = fal.firstImageUrl(out);
   if (!url) throw new Error('Model gaf geen afbeelding terug');
   let buf = await download(url);
 
@@ -66,12 +45,54 @@ async function process_(job) {
 
   const { printBuf, previewBuf } = await img.finalize(buf, target);
   const base = rid();
-  const printFile = `${base}-print.jpg`;
-  const previewFile = `${base}-preview.jpg`;
-  fs.writeFileSync(path.join(FILES, printFile), printBuf);
-  fs.writeFileSync(path.join(FILES, previewFile), previewBuf);
-  db.prepare(`UPDATE jobs SET status='done', preview_file=?, print_file=?, print_w=?, print_h=?, finished_at=CURRENT_TIMESTAMP WHERE id=?`)
-    .run(previewFile, printFile, target.w, target.h, job.id);
+  const v = { print_file: `${base}-print.jpg`, preview_file: `${base}-preview.jpg` };
+  fs.writeFileSync(path.join(FILES, v.print_file), printBuf);
+  fs.writeFileSync(path.join(FILES, v.preview_file), previewBuf);
+  return v;
+}
+
+async function process_(job) {
+  const settings = allSettings();
+  const design = db.prepare('SELECT * FROM designs WHERE id=?').get(job.design_id);
+  if (!design) throw new Error('Ontwerp bestaat niet meer');
+  const target = img.targetSize(job.profile, job.orientation, settings);
+  const n = Math.min(3, Math.max(1, parseInt(settings.variants, 10) || 1));
+
+  const original = fs.readFileSync(path.join(ORIGINALS, job.original_file));
+  const prepared = await img.prepareInput(original, job.profile, job.orientation);
+
+  let extra = {};
+  try { extra = JSON.parse(design.extra_json || '{}'); } catch { /* negeren */ }
+  const prompt = promptFor(design, job.custom_text);
+  const base = {
+    prompt,
+    image_url: `data:image/jpeg;base64,${prepared.buffer.toString('base64')}`,
+    num_images: 1,
+    output_format: 'jpeg',
+    aspect_ratio: job.profile === 'tegel' ? FAL_RATIO.tegel : FAL_RATIO[job.orientation],
+    ...extra,
+  };
+  if (design.negative_prompt) base.negative_prompt = design.negative_prompt;
+
+  // Meerdere varianten tegelijk. Bij flux-modellen geven we elke variant een eigen seed, zodat ze echt verschillen.
+  const jobs = [];
+  for (let i = 0; i < n; i++) {
+    const input = { ...base };
+    if (n > 1 && /flux/i.test(design.model) && input.seed === undefined) input.seed = Math.floor(Math.random() * 2147483647);
+    jobs.push(makeVariant({ design, input, target, settings }));
+  }
+  const settled = await Promise.allSettled(jobs);
+  const variants = settled.filter((r) => r.status === 'fulfilled').map((r) => r.value);
+  if (!variants.length) throw settled[0].reason || new Error('Geen afbeelding gemaakt');
+
+  // Eén variant: meteen definitief. Meer: de klant kiest (chosen/print_file blijven leeg tot die keuze).
+  if (variants.length === 1) {
+    db.prepare(`UPDATE jobs SET status='done', variants_json=?, chosen=0, preview_file=?, print_file=?, print_w=?, print_h=?, finished_at=CURRENT_TIMESTAMP WHERE id=?`)
+      .run(JSON.stringify(variants), variants[0].preview_file, variants[0].print_file, target.w, target.h, job.id);
+  } else {
+    db.prepare(`UPDATE jobs SET status='done', variants_json=?, print_w=?, print_h=?, finished_at=CURRENT_TIMESTAMP WHERE id=?`)
+      .run(JSON.stringify(variants), target.w, target.h, job.id);
+  }
 }
 
 // Eenvoudige wachtrij: maximaal 3 tegelijk.

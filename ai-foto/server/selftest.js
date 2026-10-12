@@ -15,6 +15,8 @@ const app = require('./index');
   const photo = await sharp({ create: { width: 3000, height: 2000, channels: 3, background: '#2980b9' } }).jpeg().toBuffer();
 
   assert.equal((await fetch(B + '/admin/api/state')).status, 401);
+  const setVariants = (n) => fetch(B + '/admin/api/settings', { method: 'PUT', headers: { ...auth, 'Content-Type': 'application/json' }, body: JSON.stringify({ variants: n }) });
+  await setVariants(1);
   const d = await (await fetch(B + '/admin/api/designs', { method: 'POST', headers: { ...auth, 'Content-Type': 'application/json' },
     body: JSON.stringify({ name: 'Test', slug: 'Aquarel', prompt: 'maak er een aquarel van', prompt_with_text: 'aquarel met de tekst {{tekst}}', active: true, products: 'ander-product' }) })).json();
   assert(d.id);
@@ -67,6 +69,23 @@ const app = require('./index');
   const bad = new FormData(); bad.append('photo', new Blob(['niet een foto']), 'f.txt');
   bad.append('design_id', d.id); bad.append('client_id', 'client-bbbb2222');
   assert.equal((await fetch(B + '/api/generate', { method: 'POST', body: bad })).status, 400);
+  // Twee varianten: klant moet kiezen, pas daarna is er een printbestand/herbestelling
+  await setVariants(2);
+  const before = calls.length;
+  const two = await gen('tegel', 'landscape', 'client-cccc3333');
+  assert.equal(two.status, 'done'); assert.equal(two.variants.length, 2);
+  assert.equal(two.print_url, null); assert.equal(two.chosen, null);
+  assert.equal(calls.filter((c) => c.input.prompt).length - calls.slice(0, before).filter((c) => c.input.prompt).length, 2);
+  const h0 = await (await fetch(B + '/api/history?client_id=client-cccc3333&profile=tegel')).json();
+  assert.equal(h0.items.length, 0);                                                                   // nog niet gekozen = niet in geschiedenis
+  const post = (u, b) => fetch(B + u, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(b) });
+  assert.equal((await post('/api/jobs/' + two.job_id + '/choose', { client_id: 'client-zzzz9999', index: 1 })).status, 404);
+  assert.equal((await post('/api/jobs/' + two.job_id + '/choose', { client_id: 'client-cccc3333', index: 5 })).status, 400);
+  const pick = await (await post('/api/jobs/' + two.job_id + '/choose', { client_id: 'client-cccc3333', index: 1 })).json();
+  m = await sharp(Buffer.from(await (await fetch(pick.print_url)).arrayBuffer())).metadata();
+  assert.equal(m.width, 1600);
+  const h1 = await (await fetch(B + '/api/history?client_id=client-cccc3333&profile=tegel')).json();
+  assert.equal(h1.items.length, 1);
   console.log('ALLE TESTS OK');
   srv.close(); fake.close(); process.exit(0);
 })().catch((e) => { console.error('FOUT', e); process.exit(1); });

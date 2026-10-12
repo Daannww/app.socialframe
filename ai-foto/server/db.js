@@ -48,11 +48,14 @@ function addColumn(table, col, def) {
 addColumn('designs', 'slug', "TEXT DEFAULT ''");              // korte naam voor de productinstelling (metafield)
 addColumn('designs', 'prompt_with_text', "TEXT DEFAULT ''");   // andere prompt als de klant tekst invult ({{tekst}})
 addColumn('designs', 'text_label', "TEXT DEFAULT ''");         // label bij het tekstveld
+addColumn('jobs', 'variants_json', "TEXT DEFAULT '[]'");      // alle gemaakte varianten (klant kiest er één)
+addColumn('jobs', 'chosen', 'INTEGER');                          // index van de gekozen variant
 addColumn('jobs', 'custom_text', "TEXT DEFAULT ''");
 addColumn('jobs', 'reuse_count', 'INTEGER DEFAULT 0');
 addColumn('jobs', 'last_reused_at', 'TEXT');
 
 const DEFAULT_SETTINGS = {
+  variants: '2',                // aantal varianten per poging; de klant kiest er één (1 = geen keuze, max 3)
   text_max: '40',               // maximaal aantal tekens dat een klant mag invullen
   max_attempts: '4',            // pogingen per klant (client_id) per 24 uur
   upscale_model: 'fal-ai/clarity-upscaler',

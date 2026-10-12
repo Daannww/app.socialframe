@@ -82,6 +82,21 @@ app.post('/api/generate', genLimiter, upload.single('photo'), async (req, res) =
   }
 });
 
+const validClient = (c) => /^[A-Za-z0-9_-]{8,64}$/.test(String(c || ''));
+function parseVariants(j) { try { return JSON.parse(j.variants_json || '[]'); } catch { return []; } }
+
+// De klant kiest één van de varianten; pas daarna is er een afbeelding voor de bestelling.
+app.post('/api/jobs/:id/choose', (req, res) => {
+  const { client_id: clientId, index } = req.body || {};
+  if (!validClient(clientId)) return res.status(400).json({ error: 'Ongeldige sessie.' });
+  const j = db.prepare("SELECT j.*, d.name design_name FROM jobs j LEFT JOIN designs d ON d.id=j.design_id WHERE j.id=? AND j.client_id=? AND j.status='done'").get(req.params.id, clientId);
+  if (!j) return res.status(404).json({ error: 'Niet gevonden' });
+  const v = parseVariants(j)[parseInt(index, 10)];
+  if (!v || !fs.existsSync(path.join(FILES, v.print_file))) return res.status(400).json({ error: 'Deze keuze bestaat niet.' });
+  db.prepare('UPDATE jobs SET chosen=?, preview_file=?, print_file=? WHERE id=?').run(parseInt(index, 10), v.preview_file, v.print_file, j.id);
+  res.json({ job_id: j.id, design: j.design_name, text: j.custom_text || '', preview_url: fileUrl(v.preview_file), print_url: fileUrl(v.print_file), created_at: j.created_at });
+});
+
 app.get('/api/jobs/:id', (req, res) => {
   const j = db.prepare('SELECT * FROM jobs WHERE id=?').get(req.params.id);
   if (!j) return res.status(404).json({ error: 'Niet gevonden' });
@@ -89,6 +104,8 @@ app.get('/api/jobs/:id', (req, res) => {
   res.json({
     status: j.status,
     error: j.status === 'error' ? 'Het maken van de afbeelding is mislukt. Probeer het opnieuw.' : null,
+    variants: parseVariants(j).map((v) => ({ preview_url: fileUrl(v.preview_file) })),
+    chosen: j.chosen,
     preview_url: fileUrl(j.preview_file),
     print_url: fileUrl(j.print_file),
     job_id: j.id,
@@ -98,7 +115,6 @@ app.get('/api/jobs/:id', (req, res) => {
 });
 
 // Eerder gemaakte afbeeldingen van deze klant (herbestellen zonder opnieuw te genereren).
-const validClient = (c) => /^[A-Za-z0-9_-]{8,64}$/.test(String(c || ''));
 const jobCard = (j) => ({ job_id: j.id, design: j.design_name, text: j.custom_text || '', profile: j.profile, orientation: j.orientation,
   preview_url: fileUrl(j.preview_file), created_at: j.created_at });
 app.get('/api/history', (req, res) => {
@@ -138,7 +154,7 @@ app.get('/admin/api/state', (req, res) => {
     settings: allSettings(),
     has_fal_key: !!process.env.FAL_KEY,
     recent: db.prepare('SELECT j.*, d.name design_name FROM jobs j LEFT JOIN designs d ON d.id=j.design_id ORDER BY j.created_at DESC LIMIT 30').all()
-      .map((j) => ({ ...j, preview_url: fileUrl(j.preview_file), print_url: fileUrl(j.print_file) })),
+      .map((j) => { const v0 = parseVariants(j)[0] || {}; return { ...j, preview_url: fileUrl(j.preview_file || v0.preview_file), print_url: fileUrl(j.print_file || v0.print_file), variants: parseVariants(j).length }; }),
   });
 });
 
@@ -204,8 +220,9 @@ function cleanup() {
   const days = parseInt(getSetting('retention_days'), 10) || 180;
   const old = db.prepare("SELECT * FROM jobs WHERE created_at < datetime('now', ?)").all(`-${days} days`);
   for (const j of old) {
-    for (const [dir, f] of [[ORIGINALS, j.original_file], [FILES, j.preview_file], [FILES, j.print_file]])
-      if (f) fs.rmSync(path.join(dir, f), { force: true });
+    const files = [[ORIGINALS, j.original_file], [FILES, j.preview_file], [FILES, j.print_file]];
+    parseVariants(j).forEach((v) => files.push([FILES, v.preview_file], [FILES, v.print_file]));
+    for (const [dir, f] of files) if (f) fs.rmSync(path.join(dir, f), { force: true });
     db.prepare('DELETE FROM jobs WHERE id=?').run(j.id);
   }
 }
