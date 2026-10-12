@@ -86,6 +86,9 @@
   .hw-ai-upload:hover{border-color:#999}
   .hw-ai-plus{font-size:22px;line-height:1;color:#999;font-weight:300}
   .hw-ai-uptext{font-size:14px}
+  .hw-ai-uptext{display:flex;flex-direction:column;align-items:flex-start;min-width:0;text-align:left}
+  .hw-ai-fname{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#333;font-size:14px}
+  .hw-ai-change{font-size:13px;font-weight:600;color:#111;text-decoration:underline}
   .hw-ai-thumb{width:34px;height:34px;object-fit:cover;border-radius:8px;display:block}
   .hw-ai-btn{width:100%;border:1.5px solid #111;border-radius:999px;background:#fff;color:#111;padding:11px;font:inherit;font-size:14px;font-weight:600;cursor:pointer}
   .hw-ai-btn:hover:not(:disabled){background:#111;color:#fff}
@@ -266,7 +269,10 @@
     var f = fileEl.files[0];
     if (f) {
       try { thumbEl.src = URL.createObjectURL(f); thumbEl.hidden = false; plusEl.hidden = true; } catch (e) {}
-      fileLabel.textContent = f.name + ' (klik om te wijzigen)';
+      fileLabel.textContent = '';
+      var nm = document.createElement('span'); nm.className = 'hw-ai-fname'; nm.textContent = f.name;
+      var ch = document.createElement('span'); ch.className = 'hw-ai-change'; ch.textContent = 'Andere foto kiezen';
+      fileLabel.appendChild(nm); fileLabel.appendChild(ch);
     } else {
       thumbEl.hidden = true; plusEl.hidden = false; fileLabel.textContent = 'Klik hier om je foto te uploaden';
     }
