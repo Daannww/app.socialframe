@@ -53,6 +53,7 @@ addColumn('jobs', 'variants_json', "TEXT DEFAULT '[]'");      // alle gemaakte v
 addColumn('jobs', 'chosen', 'INTEGER');                          // index van de gekozen variant
 addColumn('jobs', 'custom_text', "TEXT DEFAULT ''");
 addColumn('jobs', 'crop_json', 'TEXT');                         // uitsnede die de klant koos (fracties x,y,w,h), of leeg
+addColumn('jobs', 'deleted', 'INTEGER DEFAULT 0');                // klant heeft dit ontwerp uit zijn lijst verwijderd (bestand blijft bewaard voor lopende bestellingen)
 addColumn('jobs', 'reuse_count', 'INTEGER DEFAULT 0');
 addColumn('jobs', 'last_reused_at', 'TEXT');
 

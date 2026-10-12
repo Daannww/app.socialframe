@@ -65,6 +65,12 @@ require('./db').setSetting('max_attempts', '4'); require('./db').setSetting('max
   assert.equal(wrong.status, 404);                                                                    // andermans afbeelding kan niet
   const ok = await (await fetch(B + '/api/reuse', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ job_id: hist.items[0].job_id, client_id: 'client-aaaa1111' }) })).json();
   assert(ok.print_url && ok.reuse_count === 1);
+  const delBad = await fetch(B + '/api/jobs/' + hist.items[0].job_id + '/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ client_id: 'client-zzzz9999' }) });
+  assert.equal(delBad.status, 404);                                                                    // andermans ontwerp kun je niet verwijderen
+  const delOk = await fetch(B + '/api/jobs/' + hist.items[hist.items.length - 1].job_id + '/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ client_id: 'client-aaaa1111' }) });
+  assert.equal(delOk.status, 200);
+  const hist2 = await (await fetch(B + '/api/history?client_id=client-aaaa1111&profile=tegel')).json();
+  assert.equal(hist2.items.length, hist.items.length - 1);                                             // verdwenen uit de lijst
   const p4 = await gen('tegel', 'landscape', 'client-aaaa1111'); // 5e poging, limiet 4
   assert.equal(p4.status, 429);
   const bad = new FormData(); bad.append('photo', new Blob(['niet een foto']), 'f.txt');

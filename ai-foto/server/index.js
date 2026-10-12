@@ -155,13 +155,28 @@ app.get('/api/history', (req, res) => {
   if (!validClient(req.query.client_id)) return res.json({ items: [] });
   const profile = req.query.profile === 'poster' ? 'poster' : 'tegel';
   const rows = db.prepare(`SELECT j.*, d.name design_name FROM jobs j LEFT JOIN designs d ON d.id=j.design_id
-    WHERE j.client_id=? AND j.status='done' AND j.profile=? AND j.print_file IS NOT NULL ORDER BY j.created_at DESC LIMIT 6`).all(req.query.client_id, profile);
+    WHERE j.client_id=? AND j.status='done' AND j.profile=? AND j.print_file IS NOT NULL AND COALESCE(j.deleted,0)=0 ORDER BY j.created_at DESC LIMIT 6`).all(req.query.client_id, profile);
   res.json({ items: rows.filter((j) => fs.existsSync(path.join(FILES, j.print_file))).map(jobCard) });
 });
+// Klant verwijdert een gemaakt ontwerp uit zijn lijst. Het gekozen bestand blijft bewaard (een lopende bestelling kan er nog naar verwijzen);
+// de niet-gekozen varianten worden direct van de server gewist.
+app.post('/api/jobs/:id/delete', (req, res) => {
+  const clientId = (req.body || {}).client_id;
+  if (!validClient(clientId)) return res.status(400).json({ error: 'Ongeldige sessie.' });
+  const j = db.prepare("SELECT * FROM jobs WHERE id=? AND client_id=?").get(req.params.id, clientId);
+  if (!j) return res.status(404).json({ error: 'Niet gevonden' });
+  parseVariants(j).forEach((v, i) => {
+    if (i === j.chosen) return;
+    [[FILES, v.preview_file], [FILES, v.print_file], [ORIGINALS, v.raw_file]].forEach(([dir, f]) => { if (f) fs.rmSync(path.join(dir, f), { force: true }); });
+  });
+  db.prepare('UPDATE jobs SET deleted=1 WHERE id=?').run(j.id);
+  res.json({ ok: true });
+});
+
 app.post('/api/reuse', (req, res) => {
   const { job_id: jobId, client_id: clientId } = req.body || {};
   if (!validClient(clientId)) return res.status(400).json({ error: 'Ongeldige sessie.' });
-  const j = db.prepare("SELECT j.*, d.name design_name FROM jobs j LEFT JOIN designs d ON d.id=j.design_id WHERE j.id=? AND j.client_id=? AND j.status='done'").get(String(jobId || ''), clientId);
+  const j = db.prepare("SELECT j.*, d.name design_name FROM jobs j LEFT JOIN designs d ON d.id=j.design_id WHERE j.id=? AND j.client_id=? AND j.status='done' AND COALESCE(j.deleted,0)=0").get(String(jobId || ''), clientId);
   if (!j || !j.print_file || !fs.existsSync(path.join(FILES, j.print_file))) return res.status(404).json({ error: 'Deze afbeelding is niet meer beschikbaar.' });
   db.prepare("UPDATE jobs SET reuse_count=reuse_count+1, last_reused_at=CURRENT_TIMESTAMP WHERE id=?").run(j.id);
   res.json({ ...jobCard(j), print_url: fileUrl(j.print_file), reuse_count: j.reuse_count + 1 });

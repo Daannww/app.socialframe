@@ -69,6 +69,13 @@
   .hw-ai-design[aria-pressed="true"]{border-color:#5B9BD5}
   .hw-ai-history{margin-bottom:20px}
   .hw-ai-hist-list{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px}
+  .hw-ai-histwrap{flex:0 0 96px;text-align:center}
+  .hw-ai-histwrap .hw-ai-hist{width:100%}
+  .hw-ai-histbtns{display:flex;gap:6px;justify-content:center;margin-top:6px}
+  .hw-ai-ico{min-width:34px;height:34px;padding:0 8px;border:1px solid #E2E2E2;border-radius:10px;background:#F3F4F6;color:#111;display:inline-flex;align-items:center;justify-content:center;font:inherit;font-size:12px;font-weight:600;cursor:pointer}
+  .hw-ai-ico:hover{border-color:#999}
+  .hw-ai-del{background:#FBE4E4;border-color:#F0C8C8;color:#111}
+  .hw-ai-del.sure{background:#c62828;border-color:#c62828;color:#fff}
   .hw-ai-hist{flex:0 0 84px;border:2px solid #E2E2E2;border-radius:14px;background:#fff;padding:4px;cursor:pointer;font:inherit;color:#333;text-align:center}
   .hw-ai-hist:hover{border-color:#5B9BD5}
   .hw-ai-hist img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;display:block}
@@ -245,7 +252,25 @@
           var sp = document.createElement('span'); sp.textContent = (it.text || it.design || '') + ' · ' + fmtDate(it.created_at);
           b.appendChild(im); b.appendChild(sp); protect(im);
           b.addEventListener('click', function () { reuse(it.job_id); });
-          histList.appendChild(b);
+          var wrap = document.createElement('div'); wrap.className = 'hw-ai-histwrap';
+          var row = document.createElement('div'); row.className = 'hw-ai-histbtns';
+          var zoom = document.createElement('button'); zoom.type = 'button'; zoom.className = 'hw-ai-ico'; zoom.setAttribute('aria-label', 'Vergroten');
+          zoom.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>';
+          zoom.addEventListener('click', function () { openZoom(it.preview_url); });
+          var del = document.createElement('button'); del.type = 'button'; del.className = 'hw-ai-ico hw-ai-del'; del.setAttribute('aria-label', 'Verwijderen');
+          var trash = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>';
+          del.innerHTML = trash;
+          var sure = false, t = null;
+          del.addEventListener('click', function () {
+            if (!sure) { sure = true; del.classList.add('sure'); del.textContent = 'Zeker?'; clearTimeout(t); t = setTimeout(function () { sure = false; del.classList.remove('sure'); del.innerHTML = trash; }, 3000); return; }
+            clearTimeout(t); del.disabled = true;
+            fetch(API + '/api/jobs/' + it.job_id + '/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ client_id: clientId }) })
+              .then(function (r) { if (!r.ok) throw new Error(); wrap.remove(); if (!histList.children.length) histBox.hidden = true; })
+              .catch(function () { del.disabled = false; sure = false; del.classList.remove('sure'); del.innerHTML = trash; say('Verwijderen is niet gelukt, probeer het opnieuw.', true); });
+          });
+          row.appendChild(zoom); row.appendChild(del);
+          wrap.appendChild(b); wrap.appendChild(row);
+          histList.appendChild(wrap);
         });
         histBox.hidden = !(d.items || []).length;
       })
