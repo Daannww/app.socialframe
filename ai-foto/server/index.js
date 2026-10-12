@@ -46,13 +46,20 @@ app.get('/api/designs', (req, res) => {
   else rows = rows.filter((d) => d.products === '*' || !product || d.products.split(',').map((s) => s.trim()).includes(product));
   const maxA = parseInt(getSetting('max_attempts'), 10);
   const cid = String(req.query.client_id || '');
-  const left = /^[A-Za-z0-9_-]{8,64}$/.test(cid) ? Math.max(0, maxA - attemptsUsed(cid)) : maxA;
+  const left = /^[A-Za-z0-9_-]{8,64}$/.test(cid) ? attemptsLeft(cid, req.ip) : maxA;
   res.json({ designs: rows.map(publicDesign), attempts_left: left, max_attempts: maxA, text_max: parseInt(getSetting('text_max'), 10) });
 });
 
 const genLimiter = rateLimit({ windowMs: 60 * 60 * 1000, limit: 20, standardHeaders: true, legacyHeaders: false,
   message: { error: 'Te veel pogingen, probeer het later opnieuw.' } });
 
+// Limiet geldt op browsersessie EN op IP-adres: pas als beide gewisseld worden, begint iemand opnieuw.
+function attemptsLeft(clientId, ip) {
+  const max = parseInt(getSetting('max_attempts'), 10);
+  const maxIp = parseInt(getSetting('max_attempts_ip'), 10) || max * 3;
+  const byIp = db.prepare("SELECT COUNT(*) c FROM jobs WHERE ip=? AND client_id!='admin-test' AND created_at > datetime('now','-1 day') AND status!='error'").get(ip || '').c;
+  return Math.max(0, Math.min(max - attemptsUsed(clientId), maxIp - byIp));
+}
 function attemptsUsed(clientId) {
   return db.prepare("SELECT COUNT(*) c FROM jobs WHERE client_id=? AND created_at > datetime('now','-1 day') AND status!='error'").get(clientId).c;
 }
@@ -74,8 +81,7 @@ app.post('/api/generate', genLimiter, upload.single('photo'), async (req, res) =
     if (design.prompt_with_text && design.text_required && !customText) return res.status(400).json({ error: 'Vul eerst een tekst in voor dit ontwerp.' });
 
     const max = parseInt(getSetting('max_attempts'), 10);
-    const used = attemptsUsed(clientId);
-    if (used >= max) return res.status(429).json({ error: `Je hebt het maximale aantal pogingen (${max}) gebruikt.`, attempts_left: 0 });
+    if (attemptsLeft(clientId, req.ip) <= 0) return res.status(429).json({ error: `Je hebt het maximale aantal pogingen gebruikt. Probeer het morgen opnieuw.`, attempts_left: 0 });
 
     // Alleen echte afbeeldingen toelaten.
     let meta;
@@ -89,7 +95,7 @@ app.post('/api/generate', genLimiter, upload.single('photo'), async (req, res) =
     db.prepare('INSERT INTO jobs(id,client_id,ip,design_id,profile,orientation,original_file,custom_text) VALUES(?,?,?,?,?,?,?,?)')
       .run(id, clientId, req.ip, design.id, profile, orientation, originalFile, customText);
     enqueue(id);
-    res.json({ job_id: id, attempts_left: max - used - 1 });
+    res.json({ job_id: id, attempts_left: attemptsLeft(clientId, req.ip) });
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: 'Er ging iets mis, probeer het opnieuw.' });
@@ -131,7 +137,7 @@ app.get('/api/jobs/:id', (req, res) => {
     print_url: fileUrl(j.print_file),
     job_id: j.id,
     text: j.custom_text || '',
-    attempts_left: Math.max(0, max - attemptsUsed(j.client_id)),
+    attempts_left: attemptsLeft(j.client_id, j.ip),
   });
 });
 
