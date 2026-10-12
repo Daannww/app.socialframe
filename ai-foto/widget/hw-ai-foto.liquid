@@ -172,14 +172,15 @@
   }
 
   goBtn.parentNode.insertBefore(leftEl, goBtn.nextSibling);
-  var helpEl = document.createElement('div'); helpEl.className = 'hw-ai-help';
-  helpEl.innerHTML = '<span class="hw-ai-help-title">Lukt het niet helemaal?</span>Geen zorgen, wij denken graag met je mee. Stuur ons een berichtje via de chat, dan stellen we je pogingen persoonlijk voor je bij.';
+  var helpEl = document.createElement('div'); helpEl.className = 'hw-ai-help'; helpEl.hidden = true;
+  helpEl.innerHTML = '<span class="hw-ai-help-title">Lukt het niet helemaal?</span>Geen zorgen, wij denken graag met je mee. Stuur ons een berichtje via de chat en geef je bestelnummer door, dan stellen we je ontwerp persoonlijk voor je bij.';
   leftEl.parentNode.insertBefore(helpEl, leftEl.nextSibling);
   function hideAll() {
     root.hidden = true;
   }
   function say(t, err) { statusEl.textContent = t || ''; statusEl.className = 'hw-ai-status' + (err ? ' err' : ''); }
   function refresh() {
+    helpEl.hidden = !(typeof state.left === 'number' && (state.left === 0 || (state.max || 0) - state.left >= 4));
     loaderEl.hidden = !state.busy;
     if (typeof state.left === 'number') {
       leftEl.hidden = false;
@@ -268,6 +269,7 @@
     .then(function (r) { return r.json(); })
     .then(function (d) {
       if (d.attempts_left !== undefined) state.left = d.attempts_left;
+      if (d.max_attempts) state.max = d.max_attempts;
       if (d.text_max) textEl.maxLength = d.text_max;
       count();
       (d.designs || []).forEach(function (x) {
