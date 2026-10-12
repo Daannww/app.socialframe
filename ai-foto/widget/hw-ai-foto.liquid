@@ -47,7 +47,7 @@
   </label>
 
   <button type="button" class="hw-ai-btn" data-hw-ai-go disabled>Maak mijn tegeltje</button>
-  <div class="hw-ai-loader" data-hw-ai-loader hidden><div class="hw-ai-bar"><i></i></div><div class="hw-ai-loadtext">Je afbeelding wordt gemaakt… dit duurt ongeveer 30 seconden</div></div>
+  <div class="hw-ai-loader" data-hw-ai-loader hidden><div class="hw-ai-bar"><i></i></div><div class="hw-ai-loadtext">Je afbeelding wordt gemaakt… dit duurt ongeveer 20 tot 60 seconden</div></div>
   <div class="hw-ai-status" data-hw-ai-status role="status" aria-live="polite"></div>
   <div class="hw-ai-choose" data-hw-ai-choose hidden>
     <div class="hw-ai-label">Kies je favoriet:</div>
@@ -95,6 +95,13 @@
   .hw-ai-btn:disabled{opacity:.4;cursor:not-allowed}
   .hw-ai-choose{margin-top:16px}
   .hw-ai-choose-list{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+  .hw-ai-choicewrap{min-width:0;text-align:center}
+  .hw-ai-zoombtn{margin-top:4px;background:none;border:0;padding:4px;font:inherit;font-size:13px;font-weight:600;color:#111;text-decoration:underline;cursor:pointer}
+  .hw-ai img,.hw-ai-zoomimg{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+  .hw-ai-result img{cursor:zoom-in}
+  .hw-ai-zoom{position:fixed;inset:0;z-index:99998;background:rgba(0,0,0,.88);display:none;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;cursor:zoom-out}
+  .hw-ai-zoomimg{width:min(94vw,94vh);height:min(94vw,94vh);max-width:100%;background-size:contain;background-repeat:no-repeat;background-position:center}
+  .hw-ai-zoomclose{position:absolute;top:10px;right:14px;background:none;border:0;color:#fff;font-size:38px;line-height:1;cursor:pointer}
   .hw-ai-choice{border:3px solid transparent;border-radius:16px;padding:3px;background:#fff;cursor:pointer;min-width:0}
   .hw-ai-choice img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:13px;display:block;background:#f0f0f0}
   .hw-ai-choice span{display:block;margin-top:6px;font-size:13px;color:#444}
@@ -216,7 +223,10 @@
           b.type = 'button'; b.className = 'hw-ai-hist';
           var im = document.createElement('img'); im.src = it.preview_url; im.alt = ''; im.loading = 'lazy';
           var sp = document.createElement('span'); sp.textContent = (it.text || it.design || '') + ' · ' + fmtDate(it.created_at);
-          b.appendChild(im); b.appendChild(sp);
+          b.appendChild(im); b.appendChild(sp); protect(im);
+      var wrapB = document.createElement('div'); wrapB.className = 'hw-ai-choicewrap';
+      var zb = document.createElement('button'); zb.type = 'button'; zb.className = 'hw-ai-zoombtn'; zb.textContent = 'Vergroten';
+      zb.addEventListener('click', function () { openZoom(v.preview_url); });
           b.addEventListener('click', function () { reuse(it.job_id); });
           histList.appendChild(b);
         });
@@ -284,6 +294,30 @@
   }
   textEl.addEventListener('input', function () { count(); refresh(); });
 
+
+  // Voorbeelden: geen slepen/rechtsklik/lang indrukken. Volledig kopieerbaar voorkomen kan een website niet (printscreen), daarom staat er ook een watermerk in het voorbeeld.
+  function protect(el) {
+    el.draggable = false;
+    el.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+    el.addEventListener('dragstart', function (e) { e.preventDefault(); });
+  }
+  var zoomEl = null;
+  function openZoom(url) {
+    if (!zoomEl) {
+      zoomEl = document.createElement('div');
+      zoomEl.className = 'hw-ai-zoom';
+      zoomEl.innerHTML = '<div class="hw-ai-zoomimg"></div><button type="button" class="hw-ai-zoomclose" aria-label="Sluiten">&times;</button>';
+      zoomEl.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+      zoomEl.addEventListener('click', function () { zoomEl.style.display = 'none'; });
+      document.body.appendChild(zoomEl);
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && zoomEl) zoomEl.style.display = 'none'; });
+    }
+    zoomEl.querySelector('.hw-ai-zoomimg').style.backgroundImage = 'url("' + url + '")';
+    zoomEl.style.display = 'flex';
+  }
+  imgEl.addEventListener('click', function () { if (imgEl.src) openZoom(imgEl.src); });
+  protect(imgEl);
+
   // Meerdere varianten: de klant moet er eerst één kiezen, pas daarna kan er besteld worden.
   function showChoices(j) {
     state.pending = j.job_id; state.result = null; setProps(false); resultEl.hidden = true;
@@ -311,7 +345,7 @@
           })
           .catch(function () { state.busy = false; refresh(); say('Geen verbinding, probeer het opnieuw.', true); });
       });
-      chooseList.appendChild(b);
+      wrapB.appendChild(b); wrapB.appendChild(zb); chooseList.appendChild(wrapB);
     });
     chooseBox.hidden = false;
     say('Kies hierboven de variant die je het mooiste vindt. Daarna kun je bestellen.');
@@ -339,9 +373,8 @@
   goBtn.addEventListener('click', function () {
     if (state.busy || !fileEl.files[0] || !state.design) return;
     if (state.allowsText && state.textRequired && !textEl.value.trim()) { say('Vul eerst een tekst in.', true); textEl.focus(); return; }
-    loadText.textContent = 'Je afbeelding wordt gemaakt… dit duurt ongeveer 30 seconden';
+    loadText.textContent = 'Je afbeelding wordt gemaakt… dit duurt ongeveer 20 tot 60 seconden';
     state.busy = true; state.result = null; state.pending = null; resultEl.hidden = true; chooseBox.hidden = true; setProps(false); refresh();
-    say('Je afbeelding wordt gemaakt… dit duurt ongeveer 20 tot 60 seconden.');
     var o = root.querySelector('input[type="radio"]:checked');
     var fd = new FormData();
     fd.append('photo', fileEl.files[0]); fd.append('design_id', state.design);
