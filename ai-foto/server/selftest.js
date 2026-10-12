@@ -6,6 +6,7 @@ const fal = require('./fal'); const calls = [];
 let imgUrlBuf;
 fal.run = async (model, input) => { calls.push({ model, input }); return { images: [{ url: 'http://localhost:4598/fake.jpg' }] }; };
 const app = require('./index');
+require('./db').setSetting('max_attempts', '4'); require('./db').setSetting('max_attempts_ip', '12');
 
 (async () => {
   imgUrlBuf = await sharp({ create: { width: 1024, height: 1024, channels: 3, background: '#c0392b' } }).jpeg().toBuffer();

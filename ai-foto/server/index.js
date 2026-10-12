@@ -81,7 +81,7 @@ app.post('/api/generate', genLimiter, upload.single('photo'), async (req, res) =
     if (design.prompt_with_text && design.text_required && !customText) return res.status(400).json({ error: 'Vul eerst een tekst in voor dit ontwerp.' });
 
     const max = parseInt(getSetting('max_attempts'), 10);
-    if (attemptsLeft(clientId, req.ip) <= 0) return res.status(429).json({ error: `Je hebt het maximale aantal pogingen gebruikt. Probeer het morgen opnieuw.`, attempts_left: 0 });
+    if (attemptsLeft(clientId, req.ip) <= 0) return res.status(429).json({ error: `Je credits zijn op. Probeer het morgen weer.`, attempts_left: 0 });
 
     // Alleen echte afbeeldingen toelaten.
     let meta;

@@ -139,6 +139,7 @@
   @keyframes hwai{0%{left:-40%}100%{left:100%}}
   .hw-ai-loadtext{margin-top:8px;font-size:14px;color:#555}
   .hw-ai-left{margin-top:8px;text-align:center;font-size:.9em;opacity:.8}
+  .hw-ai-left.out{font-size:16px;font-weight:700;padding:12px;border-radius:12px;background:#fdecea;margin-top:10px}
   .hw-ai-left.low{color:#b00020;opacity:1}
   .hw-ai-status{margin-top:12px;min-height:1em;text-align:center}
   .hw-ai-status.err{color:#b00020}
@@ -191,8 +192,8 @@
     loaderEl.hidden = !state.busy;
     if (typeof state.left === 'number') {
       leftEl.hidden = false;
-      leftEl.textContent = state.left > 0 ? 'Nog ' + state.left + (state.left === 1 ? ' poging' : ' pogingen') + ' beschikbaar' : 'Je hebt al je pogingen gebruikt. Kom morgen terug of kies een eerder gemaakte afbeelding.';
-      leftEl.className = 'hw-ai-left' + (state.left <= 1 ? ' low' : '');
+      leftEl.textContent = state.left > 0 ? 'Nog ' + state.left + (state.left === 1 ? ' poging' : ' pogingen') + ' beschikbaar' : 'Je credits zijn op. Probeer het morgen weer.';
+      leftEl.className = 'hw-ai-left' + (state.left <= 1 ? ' low' : '') + (state.left === 0 ? ' out' : '');
     }
     var needText = state.allowsText && state.textRequired && !textEl.value.trim();
     goBtn.disabled = state.busy || !state.design || !fileEl.files[0] || state.left === 0 || needText;
