@@ -28,7 +28,7 @@ function promptFor(design, text) {
 const FAL_RATIO = { tegel: '1:1', landscape: '3:2', portrait: '2:3' };
 
 // Snel deel: alleen het AI-resultaat + voorbeeld. Vergroten/drukbestand gebeurt pas na de keuze (finalizeVariant).
-async function makeVariant({ design, input, target }) {
+async function makeVariant({ design, input, target, job }) {
   const out = await fal.run(design.model, input);
   const url = fal.firstImageUrl(out);
   if (!url) throw new Error('Model gaf geen afbeelding terug');
@@ -37,6 +37,7 @@ async function makeVariant({ design, input, target }) {
   const v = { raw_file: `${base}-raw.jpg`, preview_file: `${base}-preview.jpg`, print_file: null };
   fs.writeFileSync(path.join(ORIGINALS, v.raw_file), buf);
   fs.writeFileSync(path.join(FILES, v.preview_file), await img.previewOnly(buf, target));
+  await finalizeVariant({ profile: job.profile, orientation: job.orientation }, v); // direct scherp maken, zodat het drukbestand al klaar is bij de keuze
   return v;
 }
 
@@ -99,7 +100,7 @@ async function process_(job) {
   for (let i = 0; i < n; i++) {
     const input = { ...base };
     if (n > 1 && /flux/i.test(design.model) && input.seed === undefined) input.seed = Math.floor(Math.random() * 2147483647);
-    jobs.push(makeVariant({ design, input, target }));
+    jobs.push(makeVariant({ design, input, target, job }));
   }
   const settled = await Promise.allSettled(jobs);
   const variants = settled.filter((r) => r.status === 'fulfilled').map((r) => r.value);
