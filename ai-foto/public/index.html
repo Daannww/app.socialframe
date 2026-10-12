@@ -54,15 +54,15 @@ function edit(x){
  const e=$('#editor');e.hidden=false;e.replaceChildren(el('h2',{textContent:x.id?'Ontwerp bewerken':'Nieuw ontwerp'}));
  const form=el('form');
  form.append(el('div',{className:'row'},f('Naam (ziet de klant)','name',x.name),f('Code/slug (voor de productinstelling, bv. aquarel)','slug',x.slug)),f('Korte omschrijving (ziet de klant)','description',x.description),
-  f('Prompt','prompt',x.prompt,'textarea'),f('Negatieve prompt (optioneel)','negative_prompt',x.negative_prompt,'textarea'),f('Prompt MET klanttekst (optioneel; gebruik {{tekst}} voor de plek van de tekst. Leeg = klant kan geen tekst invullen)','prompt_with_text',x.prompt_with_text,'textarea'),f('Label bij het tekstveld (bv. Naam of tekst)','text_label',x.text_label),
-  el('div',{className:'row'},el('div',{},el('label',{textContent:'fal-model (kies of typ een eigen model-id)'}),el('input',{name:'model',value:x.model,setAttribute:null,list:'models'}),Object.assign(el('datalist',{id:'models'}),{innerHTML:['fal-ai/flux-pro/kontext','fal-ai/flux-pro/kontext/max','fal-ai/flux-kontext/dev','fal-ai/flux/dev/image-to-image'].map(m=>'<option value="'+m+'">').join('')})),f('Producten (* = alle, of handles met komma)','products',x.products),f('Volgorde','sort',x.sort)),
+  f('Prompt','prompt',x.prompt,'textarea'),f('Negatieve prompt (optioneel)','negative_prompt',x.negative_prompt,'textarea'),f('Prompt MET klanttekst (optioneel; gebruik {{tekst}} voor de plek van de tekst. Leeg = klant kan geen tekst invullen)','prompt_with_text',x.prompt_with_text,'textarea'),f('Label bij het tekstveld (bv. Naam of tekst)','text_label',x.text_label),el('label',{},el('input',{type:'checkbox',name:'text_required',checked:!!x.text_required,style:'width:auto'}),' Tekst is verplicht bij deze stijl (klant kan niet bestellen zonder tekst)'),
+  el('div',{className:'row'},el('div',{},el('label',{textContent:'fal-model (kies of typ een eigen model-id)'}),el('input',{name:'model',value:x.model,setAttribute:null,list:'models'}),Object.assign(el('datalist',{id:'models'}),{innerHTML:['fal-ai/flux-pro/kontext','fal-ai/flux-pro/kontext/max','fal-ai/flux-kontext/dev','fal-ai/flux/dev/image-to-image','fal-ai/gpt-image-1/edit-image','fal-ai/gpt-image-1-mini/edit'].map(m=>'<option value="'+m+'">').join('')})),f('Producten (* = alle, of handles met komma)','products',x.products),f('Volgorde','sort',x.sort)),
   f('Extra parameters voor het model (JSON, optioneel)','extra_json',x.extra_json,'textarea'));
  const act=el('input',{type:'checkbox',name:'active',checked:!!x.active,style:'width:auto'});
  form.append(el('label',{},act,' Actief (zichtbaar voor klanten)'));
  const ph=el('input',{type:'file',accept:'image/*'});
  form.append(el('label',{textContent:'Voorbeeldafbeelding (klant ziet deze bij het kiezen)'}),ph);
  const save=el('button',{type:'button',textContent:'Opslaan'});
- save.onclick=async()=>{try{const b=Object.fromEntries(new FormData(form));b.active=act.checked;
+ save.onclick=async()=>{try{const b=Object.fromEntries(new FormData(form));b.active=act.checked;b.text_required=form.elements.text_required.checked;
   let id=x.id;if(id)await api('/admin/api/designs/'+id,json('PUT',b));else id=(await api('/admin/api/designs',json('POST',b))).id;
   if(ph.files[0]){const fd=new FormData();fd.append('image',ph.files[0]);await api(`/admin/api/designs/${id}/example`,{method:'POST',body:fd})}
   say('Opgeslagen');e.hidden=true;load()}catch(err){say(err.message)}};

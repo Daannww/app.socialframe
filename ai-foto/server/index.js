@@ -35,7 +35,7 @@ app.use('/files', express.static(FILES, { maxAge: '30d', immutable: true }));
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 15 * 1024 * 1024 } });
 
 const publicDesign = (d) => ({ id: d.id, slug: d.slug, name: d.name, description: d.description, example_url: fileUrl(d.example_file),
-  allows_text: !!d.prompt_with_text, text_label: d.text_label || 'Tekst op je afbeelding' });
+  allows_text: !!d.prompt_with_text, text_required: !!(d.prompt_with_text && d.text_required), text_label: d.text_label || 'Tekst op je afbeelding' });
 
 app.get('/api/designs', (req, res) => {
   const product = String(req.query.product || '').trim();
@@ -67,6 +67,8 @@ app.post('/api/generate', genLimiter, upload.single('photo'), async (req, res) =
     const textMax = parseInt(getSetting('text_max'), 10) || 40;
     const customText = design.prompt_with_text
       ? String(req.body.text || '').replace(/[\u0000-\u001f"<>{}\\]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, textMax) : '';
+
+    if (design.prompt_with_text && design.text_required && !customText) return res.status(400).json({ error: 'Vul eerst een tekst in voor dit ontwerp.' });
 
     const max = parseInt(getSetting('max_attempts'), 10);
     const used = attemptsUsed(clientId);
@@ -171,16 +173,17 @@ function designFields(b) {
   let extra = b.extra_json || '{}';
   try { JSON.parse(extra); } catch { throw new Error('Extra parameters zijn geen geldige JSON'); }
   if (!String(b.name || '').trim() || !String(b.prompt || '').trim()) throw new Error('Naam en prompt zijn verplicht');
+  if (b.text_required && !String(b.prompt_with_text || '').trim()) throw new Error('Tekst verplicht kan alleen als je ook een "Prompt MET klanttekst" invult');
   const slug = String(b.slug || '').trim().toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '');
   if (!slug) throw new Error('Geef een korte code (slug) op, bijvoorbeeld aquarel');
   return [String(b.name).trim(), b.description || '', b.prompt, b.negative_prompt || '', (b.model || 'fal-ai/flux-pro/kontext').trim(),
-    extra, (b.products || '*').trim() || '*', b.active ? 1 : 0, parseInt(b.sort, 10) || 0, slug, b.prompt_with_text || '', b.text_label || ''];
+    extra, (b.products || '*').trim() || '*', b.active ? 1 : 0, parseInt(b.sort, 10) || 0, slug, b.prompt_with_text || '', b.text_label || '', b.text_required ? 1 : 0];
 }
 
 app.post('/admin/api/designs', (req, res) => {
   try {
     const f = designFields(req.body);
-    const r = db.prepare('INSERT INTO designs(name,description,prompt,negative_prompt,model,extra_json,products,active,sort,slug,prompt_with_text,text_label) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)')
+    const r = db.prepare('INSERT INTO designs(name,description,prompt,negative_prompt,model,extra_json,products,active,sort,slug,prompt_with_text,text_label,text_required) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)')
       .run(...f);
     res.json({ id: r.lastInsertRowid });
   } catch (e) { res.status(400).json({ error: e.message }); }
@@ -188,7 +191,7 @@ app.post('/admin/api/designs', (req, res) => {
 app.put('/admin/api/designs/:id', (req, res) => {
   try {
     const f = designFields(req.body);
-    db.prepare('UPDATE designs SET name=?,description=?,prompt=?,negative_prompt=?,model=?,extra_json=?,products=?,active=?,sort=?,slug=?,prompt_with_text=?,text_label=? WHERE id=?')
+    db.prepare('UPDATE designs SET name=?,description=?,prompt=?,negative_prompt=?,model=?,extra_json=?,products=?,active=?,sort=?,slug=?,prompt_with_text=?,text_label=?,text_required=? WHERE id=?')
       .run(...f, req.params.id);
     res.json({ ok: true });
   } catch (e) { res.status(400).json({ error: e.message }); }

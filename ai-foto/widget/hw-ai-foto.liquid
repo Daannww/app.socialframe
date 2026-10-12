@@ -29,7 +29,7 @@
   <div class="hw-ai-designs" data-hw-ai-designs></div>
 
   <div class="hw-ai-textwrap" data-hw-ai-textwrap hidden>
-    <label class="hw-ai-label"><span data-hw-ai-textlabel>Eigen tekst</span> <span class="hw-ai-opt">(optioneel)</span></label>
+    <label class="hw-ai-label"><span data-hw-ai-textlabel>Eigen tekst</span> <span class="hw-ai-opt" data-hw-ai-opt>(optioneel)</span></label>
     <input type="text" class="hw-ai-text" data-hw-ai-text maxlength="40" autocomplete="off" placeholder="Vul je tekst in">
     <div class="hw-ai-count" data-hw-ai-count></div>
   </div>
@@ -121,9 +121,9 @@
   var textWrap = $('[data-hw-ai-textwrap]'), textEl = $('[data-hw-ai-text]'), textLabel = $('[data-hw-ai-textlabel]');
   var histBox = $('[data-hw-ai-history]'), histList = $('[data-hw-ai-histlist]');
   var chooseBox = $('[data-hw-ai-choose]'), chooseList = $('[data-hw-ai-chooselist]');
-  var countEl = $('[data-hw-ai-count]'), thumbEl = $('[data-hw-ai-thumb]'), plusEl = $('[data-hw-ai-plus]');
+  var optEl = $('[data-hw-ai-opt]'), countEl = $('[data-hw-ai-count]'), thumbEl = $('[data-hw-ai-thumb]'), plusEl = $('[data-hw-ai-plus]');
   // design: gekozen ontwerp; result: afbeelding die bij de bestelling hoort (nieuw of hergebruikt)
-  var state = { pending: null, design: null, designName: '', allowsText: false, result: null, busy: false, left: null };
+  var state = { pending: null, design: null, designName: '', allowsText: false, textRequired: false, result: null, busy: false, left: null };
   if (PROFILE === 'poster') orientEl.hidden = false;
   root.querySelectorAll('input[type="radio"]').forEach(function (r) { r.name = 'hw-ai-orient-' + idx; });
 
@@ -140,7 +140,10 @@
     if (h && h.classList.contains('hw-ai-heading')) h.hidden = true;
   }
   function say(t, err) { statusEl.textContent = t || ''; statusEl.className = 'hw-ai-status' + (err ? ' err' : ''); }
-  function refresh() { goBtn.disabled = state.busy || !state.design || !fileEl.files[0] || state.left === 0; }
+  function refresh() {
+    var needText = state.allowsText && state.textRequired && !textEl.value.trim();
+    goBtn.disabled = state.busy || !state.design || !fileEl.files[0] || state.left === 0 || needText;
+  }
   function fmtDate(iso) {
     var d = new Date(String(iso).replace(' ', 'T') + 'Z');
     return isNaN(d) ? '' : d.getDate() + '-' + (d.getMonth() + 1) + '-' + d.getFullYear();
@@ -229,7 +232,8 @@
         b.addEventListener('click', function () {
           designsEl.querySelectorAll('.hw-ai-design').forEach(function (o) { o.setAttribute('aria-pressed', 'false'); });
           b.setAttribute('aria-pressed', 'true');
-          state.design = x.id; state.designName = x.name; state.allowsText = !!x.allows_text;
+          state.design = x.id; state.designName = x.name; state.allowsText = !!x.allows_text; state.textRequired = !!x.text_required;
+          optEl.textContent = x.text_required ? '(verplicht)' : '(optioneel)';
           textWrap.hidden = !x.allows_text; textLabel.textContent = x.text_label || 'Eigen tekst';
           if (!x.allows_text) textEl.value = '';
           count();
@@ -255,7 +259,7 @@
     var left = (textEl.maxLength > 0 ? textEl.maxLength : 40) - textEl.value.length;
     countEl.textContent = left + ' tekens over';
   }
-  textEl.addEventListener('input', count);
+  textEl.addEventListener('input', function () { count(); refresh(); });
 
   // Meerdere varianten: de klant moet er eerst één kiezen, pas daarna kan er besteld worden.
   function showChoices(j) {
@@ -309,6 +313,7 @@
 
   goBtn.addEventListener('click', function () {
     if (state.busy || !fileEl.files[0] || !state.design) return;
+    if (state.allowsText && state.textRequired && !textEl.value.trim()) { say('Vul eerst een tekst in.', true); textEl.focus(); return; }
     state.busy = true; state.result = null; state.pending = null; resultEl.hidden = true; chooseBox.hidden = true; setProps(false); refresh();
     say('Je afbeelding wordt gemaakt… dit duurt ongeveer 20 tot 60 seconden.');
     var o = root.querySelector('input[type="radio"]:checked');

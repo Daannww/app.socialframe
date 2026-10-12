@@ -73,6 +73,16 @@ async function process_(job) {
     ...extra,
   };
   if (design.negative_prompt) base.negative_prompt = design.negative_prompt;
+  // OpenAI/ChatGPT-beeldmodellen op fal verwachten een andere invoer (image_urls, image_size, geen negative prompt/aspect_ratio)
+  if (/gpt-image|openai/i.test(design.model)) {
+    base.image_urls = [base.image_url];
+    delete base.image_url; delete base.aspect_ratio; delete base.negative_prompt;
+    if (design.negative_prompt) base.prompt += ' Vermijd: ' + design.negative_prompt + '.';
+    base.image_size = job.profile === 'tegel' ? '1024x1024' : (job.orientation === 'portrait' ? '1024x1536' : '1536x1024');
+    if (!base.quality) base.quality = 'high';
+    delete base.output_format; base.output_format = 'jpeg';
+    Object.assign(base, extra);
+  }
 
   // Meerdere varianten tegelijk. Bij flux-modellen geven we elke variant een eigen seed, zodat ze echt verschillen.
   const jobs = [];
