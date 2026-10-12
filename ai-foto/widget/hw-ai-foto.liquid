@@ -1,15 +1,3 @@
-{%- comment -%}
-  AI-foto blok voor de productpagina (Custom Liquid).
-  Pas alleen de twee regels hieronder aan:
-    hw_ai_api     = het adres van jullie AI-foto service
-    hw_ai_profile = standaard 'tegel' (vierkant) of 'poster' (7:5, klant kiest liggend/staand)
-
-  Per product instellen (Shopify admin > product > Metafields):
-    AI stijlen  (custom.ai_stijlen)  = codes van de stijlen, met komma, bv. aquarel,popart
-    AI formaat  (custom.ai_formaat)  = tegel of poster (leeg = standaard hieronder)
-  Is "AI stijlen" leeg, dan verschijnt het blok helemaal niet. Zo kun je het op alle tegeltjes
-  laten staan en bepaal je per product of het zichtbaar is.
-{%- endcomment -%}
 {%- if product.metafields.custom.ai_stijlen.value != blank -%}
 {%- assign hw_ai_api = 'https://ai-foto-production.up.railway.app' -%}
 {%- assign hw_ai_profile = 'tegel' -%}
@@ -99,7 +87,7 @@
   .hw-ai-change{font-size:13px;font-weight:600;color:#111;text-decoration:underline}
   .hw-ai-thumb{width:34px;height:34px;object-fit:cover;border-radius:8px;display:block}
   .hw-ai-btn{width:100%;border:1.5px solid #111;border-radius:999px;background:#fff;color:#111;padding:11px;font:inherit;font-size:14px;font-weight:600;cursor:pointer}
-  .hw-ai-btn:hover:not(:disabled){background:#111;color:#fff}
+  .hw-ai .hw-ai-btn:hover:not(:disabled),.hw-ai .hw-ai-btn:focus-visible:not(:disabled){background:#111 !important;color:#fff !important;border-color:#111 !important}
   .hw-ai-btn:disabled{opacity:.4;cursor:not-allowed}
   .hw-ai-choose{margin-top:16px}
   .hw-ai-choose-list{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
@@ -252,9 +240,6 @@
           var im = document.createElement('img'); im.src = it.preview_url; im.alt = ''; im.loading = 'lazy';
           var sp = document.createElement('span'); sp.textContent = (it.text || it.design || '') + ' · ' + fmtDate(it.created_at);
           b.appendChild(im); b.appendChild(sp); protect(im);
-      var wrapB = document.createElement('div'); wrapB.className = 'hw-ai-choicewrap';
-      var zb = document.createElement('button'); zb.type = 'button'; zb.className = 'hw-ai-zoombtn'; zb.textContent = 'Vergroten';
-      zb.addEventListener('click', function () { openZoom(v.preview_url); });
           b.addEventListener('click', function () { reuse(it.job_id); });
           histList.appendChild(b);
         });
@@ -414,7 +399,10 @@
       b.type = 'button'; b.className = 'hw-ai-choice'; b.setAttribute('aria-pressed', 'false');
       var im = document.createElement('img'); im.src = v.preview_url; im.alt = 'Variant ' + (idx + 1);
       var sp = document.createElement('span'); sp.textContent = 'Variant ' + (idx + 1);
-      b.appendChild(im); b.appendChild(sp);
+      b.appendChild(im); b.appendChild(sp); protect(im);
+      var wrapB = document.createElement('div'); wrapB.className = 'hw-ai-choicewrap';
+      var zb = document.createElement('button'); zb.type = 'button'; zb.className = 'hw-ai-zoombtn'; zb.textContent = 'Vergroten';
+      zb.addEventListener('click', function () { openZoom(v.preview_url); });
       b.addEventListener('click', function () {
         if (state.busy) return;
         state.busy = true; loadText.textContent = 'Je gekozen afbeelding wordt scherp gemaakt voor het drukken…'; refresh(); say('');
@@ -454,7 +442,7 @@
       } else if (j.status === 'error') {
         state.busy = false; say(j.error || 'Mislukt, probeer het opnieuw.', true); refresh();
       } else { setTimeout(function () { poll(id); }, 2000); }
-    }).catch(function () { setTimeout(function () { poll(id); }, 3000); });
+    }).catch(function (err) { if (window.console) console.error('[hw-ai poll]', err); setTimeout(function () { poll(id); }, 3000); });
   }
 
   goBtn.addEventListener('click', function () {
@@ -472,7 +460,7 @@
       .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
       .then(function (x) {
         if (!x.ok) { state.busy = false; if (x.j.attempts_left === 0) state.left = 0; say(x.j.error || 'Mislukt', true); refresh(); return; }
-        state.left = x.j.attempts_left; poll(x.j.job_id);
+        state.left = x.j.attempts_left; refresh(); poll(x.j.job_id);
       })
       .catch(function () { state.busy = false; say('Geen verbinding, probeer het opnieuw.', true); refresh(); });
   });
