@@ -55,7 +55,13 @@ function edit(x){
  const form=el('form');
  form.append(el('div',{className:'row'},f('Naam (ziet de klant)','name',x.name),f('Code/slug (voor de productinstelling, bv. aquarel)','slug',x.slug)),f('Korte omschrijving (ziet de klant)','description',x.description),
   f('Prompt','prompt',x.prompt,'textarea'),f('Negatieve prompt (optioneel)','negative_prompt',x.negative_prompt,'textarea'),f('Prompt MET klanttekst (optioneel; gebruik {{tekst}} voor de plek van de tekst. Leeg = klant kan geen tekst invullen)','prompt_with_text',x.prompt_with_text,'textarea'),f('Label bij het tekstveld (bv. Naam of tekst)','text_label',x.text_label),el('label',{},el('input',{type:'checkbox',name:'text_required',checked:!!x.text_required,style:'width:auto'}),' Tekst is verplicht bij deze stijl (klant kan niet bestellen zonder tekst)'),
-  el('div',{className:'row'},el('div',{},el('label',{textContent:'fal-model (kies of typ een eigen model-id)'}),(()=>{const i=el('input',{name:'model',value:x.model});i.setAttribute('list','models');return i})(),Object.assign(el('datalist',{id:'models'}),{innerHTML:['fal-ai/flux-pro/kontext','fal-ai/flux-pro/kontext/max','fal-ai/flux-kontext/dev','fal-ai/flux/dev/image-to-image','fal-ai/gpt-image-1.5/edit','fal-ai/gpt-image-1/edit-image','fal-ai/gpt-image-1-mini/edit'].map(m=>'<option value="'+m+'">').join('')})),f('Producten (* = alle, of handles met komma)','products',x.products),f('Volgorde','sort',x.sort)),
+  el('div',{className:'row'},el('div',{},el('label',{textContent:'Model'}),(()=>{
+   const M=[['fal-ai/gpt-image-1.5/edit','ChatGPT / GPT Image 1.5 Edit (goede kwaliteit, betaald per afbeelding)'],['fal-ai/gpt-image-1/edit-image','ChatGPT / GPT Image 1 Edit'],['fal-ai/gpt-image-1-mini/edit','ChatGPT / GPT Image 1 mini (goedkoper)'],['fal-ai/flux-pro/kontext','FLUX Kontext Pro'],['fal-ai/flux-pro/kontext/max','FLUX Kontext Max'],['fal-ai/flux-kontext/dev','FLUX Kontext Dev (goedkoop)'],['fal-ai/flux/dev/image-to-image','FLUX Dev image-to-image']];
+   const wrap=el('div'),sel=el('select',{}),inp=el('input',{name:'model',value:x.model});
+   M.forEach(([v,t])=>sel.append(el('option',{value:v,textContent:t})));sel.append(el('option',{value:'',textContent:'Ander model (eigen id typen)…'}));
+   const known=M.some(m=>m[0]===x.model);sel.value=known?x.model:'';inp.hidden=known;
+   sel.onchange=()=>{if(sel.value){inp.value=sel.value;inp.hidden=true}else{inp.hidden=false;inp.focus()}};
+   wrap.append(sel,inp);return wrap})()),f('Producten (* = alle, of handles met komma)','products',x.products),f('Volgorde','sort',x.sort)),
   f('Extra parameters voor het model (JSON, optioneel)','extra_json',x.extra_json,'textarea'));
  const act=el('input',{type:'checkbox',name:'active',checked:!!x.active,style:'width:auto'});
  form.append(el('label',{},act,' Actief (zichtbaar voor klanten)'));
