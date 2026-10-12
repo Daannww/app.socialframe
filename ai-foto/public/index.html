@@ -46,15 +46,15 @@ function render(){
  Object.entries(S.settings).forEach(([k,v])=>{s.append(el('div',{},el('label',{textContent:k}),el('input',{name:k,value:v})))});
  const j=$('#jobs');j.replaceChildren();
  S.recent.forEach(x=>j.append(el('div',{},x.preview_url?el('a',{href:x.print_url,target:'_blank'},el('img',{src:x.preview_url})):el('div',{textContent:x.status==='error'?(x.error||'fout'):x.status}),
-  el('div',{textContent:`${x.design_name||'?'} · ${x.profile}${x.print_w?` ${x.print_w}x${x.print_h}`:''}`}))));
+  el('div',{textContent:`${x.design_name||'?'} · ${x.profile}${x.print_w?` ${x.print_w}x${x.print_h}`:''}${x.custom_text?` · "${x.custom_text}"`:''}${x.reuse_count?` · ${x.reuse_count}x hergebruikt`:''}`}))));
 }
 function f(label,name,v,tag='input'){return el('div',{},el('label',{textContent:label}),el(tag,{name,value:v??''}))}
 function edit(x){
  x=x||{id:0,name:'',description:'',prompt:'',negative_prompt:'',model:'fal-ai/flux-pro/kontext',extra_json:'{}',products:'*',active:1,sort:0};
  const e=$('#editor');e.hidden=false;e.replaceChildren(el('h2',{textContent:x.id?'Ontwerp bewerken':'Nieuw ontwerp'}));
  const form=el('form');
- form.append(f('Naam (ziet de klant)','name',x.name),f('Korte omschrijving (ziet de klant)','description',x.description),
-  f('Prompt','prompt',x.prompt,'textarea'),f('Negatieve prompt (optioneel)','negative_prompt',x.negative_prompt,'textarea'),
+ form.append(el('div',{className:'row'},f('Naam (ziet de klant)','name',x.name),f('Code/slug (voor de productinstelling, bv. aquarel)','slug',x.slug)),f('Korte omschrijving (ziet de klant)','description',x.description),
+  f('Prompt','prompt',x.prompt,'textarea'),f('Negatieve prompt (optioneel)','negative_prompt',x.negative_prompt,'textarea'),f('Prompt MET klanttekst (optioneel; gebruik {{tekst}} voor de plek van de tekst. Leeg = klant kan geen tekst invullen)','prompt_with_text',x.prompt_with_text,'textarea'),f('Label bij het tekstveld (bv. Naam of tekst)','text_label',x.text_label),
   el('div',{className:'row'},f('fal-model','model',x.model),f('Producten (* = alle, of handles met komma)','products',x.products),f('Volgorde','sort',x.sort)),
   f('Extra parameters voor het model (JSON, optioneel)','extra_json',x.extra_json,'textarea'));
  const act=el('input',{type:'checkbox',name:'active',checked:!!x.active,style:'width:auto'});

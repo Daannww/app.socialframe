@@ -42,7 +42,18 @@ CREATE INDEX IF NOT EXISTS jobs_client ON jobs(client_id, created_at);
 CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT);
 `);
 
+function addColumn(table, col, def) {
+  if (!db.prepare(`PRAGMA table_info(${table})`).all().some((c) => c.name === col)) db.exec(`ALTER TABLE ${table} ADD COLUMN ${col} ${def}`);
+}
+addColumn('designs', 'slug', "TEXT DEFAULT ''");              // korte naam voor de productinstelling (metafield)
+addColumn('designs', 'prompt_with_text', "TEXT DEFAULT ''");   // andere prompt als de klant tekst invult ({{tekst}})
+addColumn('designs', 'text_label', "TEXT DEFAULT ''");         // label bij het tekstveld
+addColumn('jobs', 'custom_text', "TEXT DEFAULT ''");
+addColumn('jobs', 'reuse_count', 'INTEGER DEFAULT 0');
+addColumn('jobs', 'last_reused_at', 'TEXT');
+
 const DEFAULT_SETTINGS = {
+  text_max: '40',               // maximaal aantal tekens dat een klant mag invullen
   max_attempts: '4',            // pogingen per klant (client_id) per 24 uur
   upscale_model: 'fal-ai/clarity-upscaler',
   tegel_px: '1600',             // 13x13 cm @ ~300 dpi = 1535 px

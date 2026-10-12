@@ -16,14 +16,18 @@ const app = require('./index');
 
   assert.equal((await fetch(B + '/admin/api/state')).status, 401);
   const d = await (await fetch(B + '/admin/api/designs', { method: 'POST', headers: { ...auth, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name: 'Test', prompt: 'maak er een aquarel van', active: true, products: '*' }) })).json();
+    body: JSON.stringify({ name: 'Test', slug: 'Aquarel', prompt: 'maak er een aquarel van', prompt_with_text: 'aquarel met de tekst {{tekst}}', active: true, products: 'ander-product' }) })).json();
   assert(d.id);
-  const list = await (await fetch(B + '/api/designs?product=x')).json();
-  assert.equal(list.designs.length, 1);
+  assert.equal((await (await fetch(B + '/api/designs?product=x')).json()).designs.length, 0);          // andere product-lijst
+  assert.equal((await (await fetch(B + '/api/designs?product=ander-product')).json()).designs.length, 1);
+  const bySlug = await (await fetch(B + '/api/designs?product=x&styles=popart,aquarel')).json();       // metafield wint
+  assert.equal(bySlug.designs.length, 1); assert(bySlug.designs[0].allows_text);
+  assert.equal((await (await fetch(B + '/api/designs?styles=popart')).json()).designs.length, 0);
 
-  async function gen(profile, orientation, client) {
+  async function gen(profile, orientation, client, text) {
     const fd = new FormData(); fd.append('photo', new Blob([photo], { type: 'image/jpeg' }), 'f.jpg');
     Object.entries({ design_id: d.id, profile, orientation, client_id: client }).forEach(([k, v]) => fd.append(k, v));
+    if (text !== undefined) fd.append('text', text);
     const r = await fetch(B + '/api/generate', { method: 'POST', body: fd }); const j = await r.json();
     if (!r.ok) return { status: r.status, ...j };
     for (;;) { await new Promise((s) => setTimeout(s, 300)); const s = await (await fetch(B + '/api/jobs/' + j.job_id)).json();
@@ -44,8 +48,20 @@ const app = require('./index');
   const pp = await gen('poster', 'portrait', 'client-aaaa1111');
   m = await sharp(Buffer.from(await (await fetch(pp.print_url)).arrayBuffer())).metadata();
   assert.equal(m.width, 2000); assert.equal(m.height, 2800);
-  const p3 = await gen('tegel', 'landscape', 'client-aaaa1111');
+  const p3 = await gen('tegel', 'landscape', 'client-aaaa1111', 'Mama "en" <b>Papa</b>');
   assert.equal(p3.status, 'done');
+  assert.equal(p3.text, 'Mama en b Papa /b'); // aanhalingstekens en < > worden spaties
+  const prompts = calls.filter((c) => c.input.prompt).map((c) => c.input.prompt);
+  const lastPrompt = prompts[prompts.length - 1];
+  assert(lastPrompt.startsWith('aquarel met de tekst "') && !lastPrompt.includes('<'), lastPrompt);
+  assert.equal(prompts[prompts.length - 2], 'maak er een aquarel van'); // zonder tekst: gewone prompt
+  // herbestelling: geschiedenis + hergebruik
+  const hist = await (await fetch(B + '/api/history?client_id=client-aaaa1111&profile=tegel')).json();
+  assert(hist.items.length >= 2);
+  const wrong = await fetch(B + '/api/reuse', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ job_id: hist.items[0].job_id, client_id: 'client-zzzz9999' }) });
+  assert.equal(wrong.status, 404);                                                                    // andermans afbeelding kan niet
+  const ok = await (await fetch(B + '/api/reuse', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ job_id: hist.items[0].job_id, client_id: 'client-aaaa1111' }) })).json();
+  assert(ok.print_url && ok.reuse_count === 1);
   const p4 = await gen('tegel', 'landscape', 'client-aaaa1111'); // 5e poging, limiet 4
   assert.equal(p4.status, 429);
   const bad = new FormData(); bad.append('photo', new Blob(['niet een foto']), 'f.txt');

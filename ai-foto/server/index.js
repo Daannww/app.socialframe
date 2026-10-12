@@ -8,7 +8,7 @@ const fs = require('fs');
 const path = require('path');
 const sharp = require('sharp');
 const { db, getSetting, setSetting, allSettings } = require('./db');
-const { enqueue, resume, rid, FILES, ORIGINALS } = require('./pipeline');
+const { promptFor, enqueue, resume, rid, FILES, ORIGINALS } = require('./pipeline');
 
 const app = express();
 app.set('trust proxy', 1);
@@ -25,13 +25,17 @@ app.use('/files', express.static(FILES, { maxAge: '30d', immutable: true }));
 // ---------- Publieke API (productpagina) ----------
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 15 * 1024 * 1024 } });
 
-const publicDesign = (d) => ({ id: d.id, name: d.name, description: d.description, example_url: fileUrl(d.example_file) });
+const publicDesign = (d) => ({ id: d.id, slug: d.slug, name: d.name, description: d.description, example_url: fileUrl(d.example_file),
+  allows_text: !!d.prompt_with_text, text_label: d.text_label || 'Tekst op je afbeelding' });
 
 app.get('/api/designs', (req, res) => {
   const product = String(req.query.product || '').trim();
-  const rows = db.prepare('SELECT * FROM designs WHERE active=1 ORDER BY sort, id').all()
-    .filter((d) => d.products === '*' || !product || d.products.split(',').map((s) => s.trim()).includes(product));
-  res.json({ designs: rows.map(publicDesign), max_attempts: parseInt(getSetting('max_attempts'), 10) });
+  // Per product ingesteld (metafield "AI stijlen" met slugs) gaat voor; anders de lijst in het ontwerp zelf.
+  const styles = String(req.query.styles || '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
+  let rows = db.prepare('SELECT * FROM designs WHERE active=1 ORDER BY sort, id').all();
+  if (styles.length) rows = rows.filter((d) => styles.includes((d.slug || '').toLowerCase()));
+  else rows = rows.filter((d) => d.products === '*' || !product || d.products.split(',').map((s) => s.trim()).includes(product));
+  res.json({ designs: rows.map(publicDesign), max_attempts: parseInt(getSetting('max_attempts'), 10), text_max: parseInt(getSetting('text_max'), 10) });
 });
 
 const genLimiter = rateLimit({ windowMs: 60 * 60 * 1000, limit: 20, standardHeaders: true, legacyHeaders: false,
@@ -51,6 +55,10 @@ app.post('/api/generate', genLimiter, upload.single('photo'), async (req, res) =
     const design = db.prepare('SELECT * FROM designs WHERE id=? AND active=1').get(parseInt(req.body.design_id, 10));
     if (!design) return res.status(400).json({ error: 'Dit ontwerp is niet beschikbaar.' });
 
+    const textMax = parseInt(getSetting('text_max'), 10) || 40;
+    const customText = design.prompt_with_text
+      ? String(req.body.text || '').replace(/[\u0000-\u001f"<>{}\\]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, textMax) : '';
+
     const max = parseInt(getSetting('max_attempts'), 10);
     const used = attemptsUsed(clientId);
     if (used >= max) return res.status(429).json({ error: `Je hebt het maximale aantal pogingen (${max}) gebruikt.`, attempts_left: 0 });
@@ -64,8 +72,8 @@ app.post('/api/generate', genLimiter, upload.single('photo'), async (req, res) =
     const id = rid();
     const originalFile = `${id}.jpg`;
     fs.writeFileSync(path.join(ORIGINALS, originalFile), await sharp(req.file.buffer).rotate().jpeg({ quality: 95 }).toBuffer());
-    db.prepare('INSERT INTO jobs(id,client_id,ip,design_id,profile,orientation,original_file) VALUES(?,?,?,?,?,?,?)')
-      .run(id, clientId, req.ip, design.id, profile, orientation, originalFile);
+    db.prepare('INSERT INTO jobs(id,client_id,ip,design_id,profile,orientation,original_file,custom_text) VALUES(?,?,?,?,?,?,?,?)')
+      .run(id, clientId, req.ip, design.id, profile, orientation, originalFile, customText);
     enqueue(id);
     res.json({ job_id: id, attempts_left: max - used - 1 });
   } catch (e) {
@@ -84,8 +92,29 @@ app.get('/api/jobs/:id', (req, res) => {
     preview_url: fileUrl(j.preview_file),
     print_url: fileUrl(j.print_file),
     job_id: j.id,
+    text: j.custom_text || '',
     attempts_left: Math.max(0, max - attemptsUsed(j.client_id)),
   });
+});
+
+// Eerder gemaakte afbeeldingen van deze klant (herbestellen zonder opnieuw te genereren).
+const validClient = (c) => /^[A-Za-z0-9_-]{8,64}$/.test(String(c || ''));
+const jobCard = (j) => ({ job_id: j.id, design: j.design_name, text: j.custom_text || '', profile: j.profile, orientation: j.orientation,
+  preview_url: fileUrl(j.preview_file), created_at: j.created_at });
+app.get('/api/history', (req, res) => {
+  if (!validClient(req.query.client_id)) return res.json({ items: [] });
+  const profile = req.query.profile === 'poster' ? 'poster' : 'tegel';
+  const rows = db.prepare(`SELECT j.*, d.name design_name FROM jobs j LEFT JOIN designs d ON d.id=j.design_id
+    WHERE j.client_id=? AND j.status='done' AND j.profile=? AND j.print_file IS NOT NULL ORDER BY j.created_at DESC LIMIT 6`).all(req.query.client_id, profile);
+  res.json({ items: rows.filter((j) => fs.existsSync(path.join(FILES, j.print_file))).map(jobCard) });
+});
+app.post('/api/reuse', (req, res) => {
+  const { job_id: jobId, client_id: clientId } = req.body || {};
+  if (!validClient(clientId)) return res.status(400).json({ error: 'Ongeldige sessie.' });
+  const j = db.prepare("SELECT j.*, d.name design_name FROM jobs j LEFT JOIN designs d ON d.id=j.design_id WHERE j.id=? AND j.client_id=? AND j.status='done'").get(String(jobId || ''), clientId);
+  if (!j || !j.print_file || !fs.existsSync(path.join(FILES, j.print_file))) return res.status(404).json({ error: 'Deze afbeelding is niet meer beschikbaar.' });
+  db.prepare("UPDATE jobs SET reuse_count=reuse_count+1, last_reused_at=CURRENT_TIMESTAMP WHERE id=?").run(j.id);
+  res.json({ ...jobCard(j), print_url: fileUrl(j.print_file), reuse_count: j.reuse_count + 1 });
 });
 
 // ---------- Admin ----------
@@ -117,23 +146,25 @@ function designFields(b) {
   let extra = b.extra_json || '{}';
   try { JSON.parse(extra); } catch { throw new Error('Extra parameters zijn geen geldige JSON'); }
   if (!String(b.name || '').trim() || !String(b.prompt || '').trim()) throw new Error('Naam en prompt zijn verplicht');
+  const slug = String(b.slug || '').trim().toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '');
+  if (!slug) throw new Error('Geef een korte code (slug) op, bijvoorbeeld aquarel');
   return [String(b.name).trim(), b.description || '', b.prompt, b.negative_prompt || '', (b.model || 'fal-ai/flux-pro/kontext').trim(),
-    extra, (b.products || '*').trim() || '*', b.active ? 1 : 0, parseInt(b.sort, 10) || 0];
+    extra, (b.products || '*').trim() || '*', b.active ? 1 : 0, parseInt(b.sort, 10) || 0, slug, b.prompt_with_text || '', b.text_label || ''];
 }
 
 app.post('/admin/api/designs', (req, res) => {
   try {
     const f = designFields(req.body);
-    const r = db.prepare('INSERT INTO designs(name,description,prompt,negative_prompt,model,extra_json,products,active,sort) VALUES(?,?,?,?,?,?,?,?,?)')
-      .run(f[0], f[1], f[2], f[3], f[4], f[5], f[6], f[7], f[8]);
+    const r = db.prepare('INSERT INTO designs(name,description,prompt,negative_prompt,model,extra_json,products,active,sort,slug,prompt_with_text,text_label) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)')
+      .run(...f);
     res.json({ id: r.lastInsertRowid });
   } catch (e) { res.status(400).json({ error: e.message }); }
 });
 app.put('/admin/api/designs/:id', (req, res) => {
   try {
     const f = designFields(req.body);
-    db.prepare('UPDATE designs SET name=?,description=?,prompt=?,negative_prompt=?,model=?,extra_json=?,products=?,active=?,sort=? WHERE id=?')
-      .run(f[0], f[1], f[2], f[3], f[4], f[5], f[6], f[7], f[8], req.params.id);
+    db.prepare('UPDATE designs SET name=?,description=?,prompt=?,negative_prompt=?,model=?,extra_json=?,products=?,active=?,sort=?,slug=?,prompt_with_text=?,text_label=? WHERE id=?')
+      .run(...f, req.params.id);
     res.json({ ok: true });
   } catch (e) { res.status(400).json({ error: e.message }); }
 });

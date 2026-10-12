@@ -17,6 +17,14 @@ async function download(url) {
   return Buffer.from(await r.arrayBuffer());
 }
 
+// Met klanttekst en een tekst-prompt -> die gebruiken ({{tekst}} wordt vervangen), anders de gewone prompt.
+function promptFor(design, text) {
+  const t = (text || '').trim();
+  if (!t || !design.prompt_with_text) return design.prompt;
+  const tpl = design.prompt_with_text;
+  return tpl.includes('{{tekst}}') ? tpl.split('{{tekst}}').join(`"${t}"`) : `${tpl} Tekst: "${t}"`;
+}
+
 const FAL_RATIO = { tegel: '1:1', landscape: '3:2', portrait: '2:3' };
 
 async function process_(job) {
@@ -30,8 +38,9 @@ async function process_(job) {
 
   let extra = {};
   try { extra = JSON.parse(design.extra_json || '{}'); } catch { /* negeren */ }
+  const prompt = promptFor(design, job.custom_text);
   const input = {
-    prompt: design.prompt,
+    prompt,
     image_url: `data:image/jpeg;base64,${prepared.buffer.toString('base64')}`,
     num_images: 1,
     output_format: 'jpeg',
@@ -91,4 +100,4 @@ function resume() {
   db.prepare("SELECT id FROM jobs WHERE status IN ('queued','running')").all().forEach((r) => enqueue(r.id));
 }
 
-module.exports = { enqueue, resume, rid, FILES, ORIGINALS };
+module.exports = { promptFor, enqueue, resume, rid, FILES, ORIGINALS };

@@ -2,16 +2,34 @@
   AI-foto blok voor de productpagina (Custom Liquid).
   Pas alleen de twee regels hieronder aan:
     hw_ai_api     = het adres van jullie AI-foto service
-    hw_ai_profile = 'tegel' (vierkant) of 'poster' (7:5, klant kiest liggend/staand)
-{%- endcomment -%}
-{%- assign hw_ai_api = 'https://ai-foto.JOUWDOMEIN.nl' -%}
-{%- assign hw_ai_profile = 'tegel' -%}
+    hw_ai_profile = standaard 'tegel' (vierkant) of 'poster' (7:5, klant kiest liggend/staand)
 
-<div class="hw-ai" data-hw-ai data-api="{{ hw_ai_api }}" data-profile="{{ hw_ai_profile }}" data-product="{{ product.handle }}">
+  Per product instellen (Shopify admin > product > Metafields):
+    AI stijlen  (custom.ai_stijlen)  = codes van de stijlen, met komma, bv. aquarel,popart
+    AI formaat  (custom.ai_formaat)  = tegel of poster (leeg = standaard hieronder)
+  Is "AI stijlen" leeg, dan gelden de producten die je in /admin bij de stijl hebt ingesteld.
+{%- endcomment -%}
+{%- assign hw_ai_api = 'https://ai-foto-production.up.railway.app' -%}
+{%- assign hw_ai_profile = 'tegel' -%}
+{%- if product.metafields.custom.ai_formaat.value != blank -%}
+  {%- assign hw_ai_profile = product.metafields.custom.ai_formaat.value -%}
+{%- endif -%}
+
+<div class="hw-ai" data-hw-ai data-api="{{ hw_ai_api }}" data-profile="{{ hw_ai_profile }}" data-product="{{ product.handle }}" data-styles="{{ product.metafields.custom.ai_stijlen.value | escape }}">
   <div class="hw-ai-title">Maak er een kunstwerk van met AI</div>
   <div class="hw-ai-sub">Upload je foto, kies een ontwerp en bekijk meteen het resultaat.</div>
 
+  <div class="hw-ai-history" data-hw-ai-history hidden>
+    <div class="hw-ai-label">Eerder gemaakt: gebruik opnieuw zonder te wachten</div>
+    <div class="hw-ai-hist-list" data-hw-ai-histlist></div>
+  </div>
+
   <div class="hw-ai-designs" data-hw-ai-designs></div>
+
+  <div class="hw-ai-textwrap" data-hw-ai-textwrap hidden>
+    <label class="hw-ai-label" data-hw-ai-textlabel for="hw-ai-text">Tekst op je afbeelding</label>
+    <input type="text" id="hw-ai-text" class="hw-ai-text" data-hw-ai-text maxlength="40" autocomplete="off">
+  </div>
 
   <div class="hw-ai-orient" data-hw-ai-orient hidden>
     <label><input type="radio" name="hw-ai-orient" value="landscape" checked> Liggend</label>
@@ -40,6 +58,14 @@
   .hw-ai-design img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;display:block;background:#eaeaea}
   .hw-ai-design span{display:block;margin-top:4px;font-size:11px;line-height:1.2}
   .hw-ai-design[aria-pressed="true"]{border-color:#000}
+  .hw-ai-label{font-size:11px;opacity:.75;margin:0 0 4px;display:block}
+  .hw-ai-history{margin-bottom:10px}
+  .hw-ai-hist-list{display:flex;gap:8px;overflow-x:auto}
+  .hw-ai-hist{flex:0 0 76px;border:2px solid transparent;border-radius:12px;background:#fff;padding:4px;cursor:pointer;font:inherit;color:inherit;text-align:center}
+  .hw-ai-hist img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;display:block}
+  .hw-ai-hist span{display:block;font-size:10px;margin-top:3px;line-height:1.2}
+  .hw-ai-textwrap{margin-bottom:10px}
+  .hw-ai-text{width:100%;padding:9px 10px;border:1px solid #D7D7D7;border-radius:10px;font:inherit;background:#fff;box-sizing:border-box}
   .hw-ai-orient{display:flex;gap:14px;margin-bottom:10px}
   .hw-ai-upload{display:block;border:1px dashed #999;border-radius:12px;padding:12px;text-align:center;cursor:pointer;background:#fff;margin-bottom:10px}
   .hw-ai-btn{width:100%;border:0;border-radius:999px;background:#000;color:#fff;padding:11px;font:inherit;font-weight:600;cursor:pointer}
@@ -57,11 +83,15 @@
   if (!root) return;
   var API = (root.dataset.api || '').replace(/\/$/, '');
   var PROFILE = root.dataset.profile === 'poster' ? 'poster' : 'tegel';
+  var STYLES = (root.dataset.styles || '').trim();
   var $ = function (s) { return root.querySelector(s); };
   var designsEl = $('[data-hw-ai-designs]'), fileEl = $('[data-hw-ai-file]'), fileLabel = $('[data-hw-ai-filelabel]');
   var goBtn = $('[data-hw-ai-go]'), statusEl = $('[data-hw-ai-status]'), resultEl = $('[data-hw-ai-result]');
   var imgEl = $('[data-hw-ai-img]'), orientEl = $('[data-hw-ai-orient]');
-  var state = { design: null, designName: '', result: null, busy: false, left: null };
+  var textWrap = $('[data-hw-ai-textwrap]'), textEl = $('[data-hw-ai-text]'), textLabel = $('[data-hw-ai-textlabel]');
+  var histBox = $('[data-hw-ai-history]'), histList = $('[data-hw-ai-histlist]');
+  // design: gekozen ontwerp; result: afbeelding die bij de bestelling hoort (nieuw of hergebruikt)
+  var state = { design: null, designName: '', allowsText: false, result: null, busy: false, left: null };
   if (PROFILE === 'poster') orientEl.hidden = false;
 
   var clientId;
@@ -73,6 +103,10 @@
 
   function say(t, err) { statusEl.textContent = t || ''; statusEl.className = 'hw-ai-status' + (err ? ' err' : ''); }
   function refresh() { goBtn.disabled = state.busy || !state.design || !fileEl.files[0] || state.left === 0; }
+  function fmtDate(iso) {
+    var d = new Date(String(iso).replace(' ', 'T') + 'Z');
+    return isNaN(d) ? '' : d.getDate() + '-' + (d.getMonth() + 1) + '-' + d.getFullYear();
+  }
 
   function getForms() {
     var f = document.querySelectorAll('.product-form .form');
@@ -80,15 +114,20 @@
     var fb = document.querySelector('form[data-type="add-to-cart-form"]');
     return fb ? [fb] : [];
   }
+  // Gegevens die bij de bestelling komen. "AI herbestelling" staat er alleen bij een hergebruikte afbeelding.
   function setProps(on) {
     getForms().forEach(function (form) {
       form.querySelectorAll('[data-hw-ai-prop]').forEach(function (el) { el.remove(); });
       if (!on) return;
+      var r = state.result;
       var props = {
-        'properties[AI afbeelding]': state.result.preview_url,
-        'properties[AI ontwerp]': state.designName,
-        'properties[_AI drukbestand]': state.result.print_url
+        'properties[AI afbeelding]': r.preview_url,
+        'properties[AI ontwerp]': r.design,
+        'properties[_AI drukbestand]': r.print_url,
+        'properties[_AI job]': r.job_id
       };
+      if (r.text) props['properties[AI tekst]'] = r.text;
+      if (r.reused) props['properties[AI herbestelling]'] = 'Ja, bestaande afbeelding van ' + fmtDate(r.created_at) + ' (job ' + r.job_id.slice(0, 8) + ')';
       Object.keys(props).forEach(function (name) {
         var i = document.createElement('input');
         i.type = 'hidden'; i.name = name; i.value = props[name];
@@ -98,10 +137,50 @@
     });
   }
 
-  fetch(API + '/api/designs?product=' + encodeURIComponent(root.dataset.product || ''))
+  function showResult(r) {
+    state.result = r;
+    imgEl.src = r.preview_url; resultEl.hidden = false; setProps(true);
+    resultEl.querySelector('.hw-ai-ok').textContent = r.reused
+      ? 'Deze eerder gemaakte afbeelding wordt opnieuw gebruikt. Zo krijg je precies hetzelfde tegeltje.'
+      : 'Mooi! Deze afbeelding wordt op je product gedrukt.';
+  }
+
+  function loadHistory() {
+    fetch(API + '/api/history?client_id=' + encodeURIComponent(clientId) + '&profile=' + PROFILE)
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        histList.replaceChildren();
+        (d.items || []).forEach(function (it) {
+          var b = document.createElement('button');
+          b.type = 'button'; b.className = 'hw-ai-hist';
+          var im = document.createElement('img'); im.src = it.preview_url; im.alt = ''; im.loading = 'lazy';
+          var sp = document.createElement('span'); sp.textContent = (it.text || it.design || '') + ' · ' + fmtDate(it.created_at);
+          b.appendChild(im); b.appendChild(sp);
+          b.addEventListener('click', function () { reuse(it.job_id); });
+          histList.appendChild(b);
+        });
+        histBox.hidden = !(d.items || []).length;
+      })
+      .catch(function () {});
+  }
+
+  function reuse(jobId) {
+    if (state.busy) return;
+    say('Even laden…');
+    fetch(API + '/api/reuse', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ job_id: jobId, client_id: clientId }) })
+      .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+      .then(function (x) {
+        if (!x.ok) { say(x.j.error || 'Niet beschikbaar.', true); return; }
+        x.j.reused = true; showResult(x.j); say('');
+      })
+      .catch(function () { say('Geen verbinding, probeer het opnieuw.', true); });
+  }
+
+  var q = '?product=' + encodeURIComponent(root.dataset.product || '') + (STYLES ? '&styles=' + encodeURIComponent(STYLES) : '');
+  fetch(API + '/api/designs' + q)
     .then(function (r) { return r.json(); })
     .then(function (d) {
-      state.left = null;
+      if (d.text_max) textEl.maxLength = d.text_max;
       (d.designs || []).forEach(function (x) {
         var b = document.createElement('button');
         b.type = 'button'; b.className = 'hw-ai-design'; b.setAttribute('aria-pressed', 'false');
@@ -110,11 +189,14 @@
         b.addEventListener('click', function () {
           designsEl.querySelectorAll('.hw-ai-design').forEach(function (o) { o.setAttribute('aria-pressed', 'false'); });
           b.setAttribute('aria-pressed', 'true');
-          state.design = x.id; state.designName = x.name; refresh();
+          state.design = x.id; state.designName = x.name; state.allowsText = !!x.allows_text;
+          textWrap.hidden = !x.allows_text; textLabel.textContent = x.text_label || 'Tekst op je afbeelding';
+          if (!x.allows_text) textEl.value = '';
+          refresh();
         });
         designsEl.appendChild(b);
       });
-      if (!(d.designs || []).length) root.hidden = true;
+      if (!(d.designs || []).length) root.hidden = true; else loadHistory();
     })
     .catch(function () { root.hidden = true; });
 
@@ -128,10 +210,9 @@
       if (j.attempts_left !== undefined) state.left = j.attempts_left;
       if (j.status === 'done') {
         state.busy = false;
-        state.result = { preview_url: j.preview_url, print_url: j.print_url };
-        imgEl.src = j.preview_url; resultEl.hidden = false; setProps(true);
+        showResult({ job_id: j.job_id, design: state.designName, text: j.text || '', preview_url: j.preview_url, print_url: j.print_url, reused: false });
         say(state.left > 0 ? 'Niet tevreden? Je kunt het nog ' + state.left + ' keer opnieuw proberen.' : '');
-        refresh();
+        refresh(); loadHistory();
       } else if (j.status === 'error') {
         state.busy = false; say(j.error || 'Mislukt, probeer het opnieuw.', true); refresh();
       } else { setTimeout(function () { poll(id); }, 2000); }
@@ -146,6 +227,7 @@
     var fd = new FormData();
     fd.append('photo', fileEl.files[0]); fd.append('design_id', state.design);
     fd.append('profile', PROFILE); fd.append('orientation', o ? o.value : 'landscape'); fd.append('client_id', clientId);
+    if (state.allowsText) fd.append('text', textEl.value);
     fetch(API + '/api/generate', { method: 'POST', body: fd })
       .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
       .then(function (x) {
