@@ -5,8 +5,8 @@
   {%- assign hw_ai_profile = product.metafields.custom.ai_formaat.value -%}
 {%- endif -%}
 
-<div class="hw-ai-heading">Personaliseren</div>
 <div class="hw-ai" data-hw-ai data-api="{{ hw_ai_api }}" data-profile="{{ hw_ai_profile }}" data-product="{{ product.handle }}" data-styles="{{ product.metafields.custom.ai_stijlen.value | escape }}">
+  <div class="hw-ai-heading">Personaliseren</div>
 
   <div class="hw-ai-history" data-hw-ai-history hidden>
     <div class="hw-ai-label">Herbestelling? Gebruik je ontwerp opnieuw</div>
@@ -56,8 +56,8 @@
 </div>
 
 <style>
-  .hw-ai-heading{font-family:inherit;font-size:22px;font-weight:700;color:#111;margin:0 0 14px}
-  .hw-ai{font-family:inherit;font-size:15px;color:#333;border:1.5px solid #E2E2E2;border-radius:24px;background:#fff;padding:20px 18px;margin:0 0 1rem;box-sizing:border-box}
+  .hw-ai-heading{font-family:inherit;font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#888;margin:0 0 14px}
+  .hw-ai{font-family:inherit;font-size:15px;color:#333;background:#fff;padding:4px 0 0;margin:0 0 1rem;box-sizing:border-box}
   .hw-ai *{box-sizing:border-box}
   .hw-ai [hidden]{display:none !important}
   .hw-ai-label{font-size:16px;letter-spacing:.02em;color:#444;margin:0 0 10px;display:block}
@@ -134,7 +134,7 @@
   .hw-ai-result{margin-top:16px;text-align:center}
   .hw-ai-result img{max-width:100%;border-radius:16px;display:block;margin:0 auto 8px}
   .hw-ai-ok{color:#666}
-  @media(max-width:480px){.hw-ai{padding:16px 14px}.hw-ai-heading{font-size:20px}.hw-ai-design span{font-size:13px}}
+  @media(max-width:480px){.hw-ai{padding:4px 0 0}.hw-ai-design span{font-size:13px}}
 </style>
 
 <script>
@@ -172,8 +172,6 @@
   goBtn.parentNode.insertBefore(leftEl, goBtn.nextSibling);
   function hideAll() {
     root.hidden = true;
-    var h = root.previousElementSibling;
-    if (h && h.classList.contains('hw-ai-heading')) h.hidden = true;
   }
   function say(t, err) { statusEl.textContent = t || ''; statusEl.className = 'hw-ai-status' + (err ? ' err' : ''); }
   function refresh() {
