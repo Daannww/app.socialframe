@@ -17,20 +17,21 @@
   {%- assign hw_ai_profile = product.metafields.custom.ai_formaat.value -%}
 {%- endif -%}
 
+<div class="hw-ai-heading">Personaliseren</div>
 <div class="hw-ai" data-hw-ai data-api="{{ hw_ai_api }}" data-profile="{{ hw_ai_profile }}" data-product="{{ product.handle }}" data-styles="{{ product.metafields.custom.ai_stijlen.value | escape }}">
-  <div class="hw-ai-title">Maak er een kunstwerk van met AI</div>
-  <div class="hw-ai-sub">Upload je foto, kies een ontwerp en bekijk meteen het resultaat.</div>
 
   <div class="hw-ai-history" data-hw-ai-history hidden>
     <div class="hw-ai-label">Eerder gemaakt: gebruik opnieuw zonder te wachten</div>
     <div class="hw-ai-hist-list" data-hw-ai-histlist></div>
   </div>
 
+  <div class="hw-ai-label">Selecteer stijl:</div>
   <div class="hw-ai-designs" data-hw-ai-designs></div>
 
   <div class="hw-ai-textwrap" data-hw-ai-textwrap hidden>
-    <label class="hw-ai-label" data-hw-ai-textlabel for="hw-ai-text">Tekst op je afbeelding</label>
-    <input type="text" id="hw-ai-text" class="hw-ai-text" data-hw-ai-text maxlength="40" autocomplete="off">
+    <label class="hw-ai-label" for="hw-ai-text"><span data-hw-ai-textlabel>Eigen tekst</span> <span class="hw-ai-opt">(optioneel)</span></label>
+    <input type="text" id="hw-ai-text" class="hw-ai-text" data-hw-ai-text maxlength="40" autocomplete="off" placeholder="Vul je tekst in">
+    <div class="hw-ai-count" data-hw-ai-count></div>
   </div>
 
   <div class="hw-ai-orient" data-hw-ai-orient hidden>
@@ -38,12 +39,15 @@
     <label><input type="radio" name="hw-ai-orient" value="portrait"> Staand</label>
   </div>
 
-  <label class="hw-ai-upload">
+  <div class="hw-ai-label">Upload je afbeelding</div>
+  <label class="hw-ai-upload" data-hw-ai-upload>
     <input type="file" accept="image/*" data-hw-ai-file hidden>
-    <span data-hw-ai-filelabel>Kies een foto</span>
+    <img class="hw-ai-thumb" data-hw-ai-thumb alt="" hidden>
+    <span class="hw-ai-plus" data-hw-ai-plus>+</span>
+    <span class="hw-ai-uptext" data-hw-ai-filelabel>Klik hier om je foto te uploaden</span>
   </label>
 
-  <button type="button" class="hw-ai-btn" data-hw-ai-go disabled>Maak mijn afbeelding</button>
+  <button type="button" class="hw-ai-btn" data-hw-ai-go disabled>🎨 Kunstwerk genereren</button>
   <div class="hw-ai-status" data-hw-ai-status role="status" aria-live="polite"></div>
   <div class="hw-ai-result" data-hw-ai-result hidden>
     <img data-hw-ai-img alt="Jouw AI-afbeelding">
@@ -52,31 +56,42 @@
 </div>
 
 <style>
-  .hw-ai{font-family:inherit;font-size:12px;color:#000;border:1px solid #D7D7D7;border-radius:20px;background:#F6F6F6;padding:12px;margin:0 0 .5rem}
-  .hw-ai-title{font-size:14px;font-weight:600}
-  .hw-ai-sub{opacity:.75;margin:2px 0 10px}
-  .hw-ai-designs{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px;margin-bottom:10px}
-  .hw-ai-design{border:2px solid transparent;border-radius:12px;background:#fff;padding:4px;cursor:pointer;text-align:center;font:inherit;color:inherit}
-  .hw-ai-design img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;display:block;background:#eaeaea}
-  .hw-ai-design span{display:block;margin-top:4px;font-size:11px;line-height:1.2}
-  .hw-ai-design[aria-pressed="true"]{border-color:#000}
-  .hw-ai-label{font-size:11px;opacity:.75;margin:0 0 4px;display:block}
-  .hw-ai-history{margin-bottom:10px}
-  .hw-ai-hist-list{display:flex;gap:8px;overflow-x:auto}
-  .hw-ai-hist{flex:0 0 76px;border:2px solid transparent;border-radius:12px;background:#fff;padding:4px;cursor:pointer;font:inherit;color:inherit;text-align:center}
-  .hw-ai-hist img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;display:block}
-  .hw-ai-hist span{display:block;font-size:10px;margin-top:3px;line-height:1.2}
-  .hw-ai-textwrap{margin-bottom:10px}
-  .hw-ai-text{width:100%;padding:9px 10px;border:1px solid #D7D7D7;border-radius:10px;font:inherit;background:#fff;box-sizing:border-box}
-  .hw-ai-orient{display:flex;gap:14px;margin-bottom:10px}
-  .hw-ai-upload{display:block;border:1px dashed #999;border-radius:12px;padding:12px;text-align:center;cursor:pointer;background:#fff;margin-bottom:10px}
-  .hw-ai-btn{width:100%;border:0;border-radius:999px;background:#000;color:#fff;padding:11px;font:inherit;font-weight:600;cursor:pointer}
+  .hw-ai-heading{font-family:inherit;font-size:22px;font-weight:700;color:#111;margin:0 0 14px}
+  .hw-ai{font-family:inherit;font-size:15px;color:#333;border:1.5px solid #E2E2E2;border-radius:24px;background:#fff;padding:20px 18px;margin:0 0 1rem;box-sizing:border-box}
+  .hw-ai *{box-sizing:border-box}
+  .hw-ai [hidden]{display:none !important}
+  .hw-ai-label{font-size:16px;letter-spacing:.02em;color:#444;margin:0 0 10px;display:block}
+  .hw-ai-opt{font-size:14px;color:#999}
+  .hw-ai-designs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:22px;align-items:start}
+  .hw-ai-design{border:3px solid transparent;border-radius:14px;background:#fff;padding:3px;cursor:pointer;text-align:center;font:inherit;color:#333;min-width:0}
+  .hw-ai-design img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px;display:block;background:#f0f0f0}
+  .hw-ai-design span{display:block;margin-top:6px;font-size:14px;line-height:1.25}
+  .hw-ai-design[aria-pressed="true"]{border-color:#5B9BD5}
+  .hw-ai-history{margin-bottom:20px}
+  .hw-ai-hist-list{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px}
+  .hw-ai-hist{flex:0 0 84px;border:2px solid #E2E2E2;border-radius:14px;background:#fff;padding:4px;cursor:pointer;font:inherit;color:#333;text-align:center}
+  .hw-ai-hist:hover{border-color:#5B9BD5}
+  .hw-ai-hist img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;display:block}
+  .hw-ai-hist span{display:block;font-size:11px;margin-top:4px;line-height:1.2}
+  .hw-ai-textwrap{margin-bottom:6px}
+  .hw-ai-text{width:100%;padding:15px 16px;border:1.5px solid #8A8A8A;border-radius:14px;font:inherit;font-size:17px;color:#222;background:#fff}
+  .hw-ai-text::placeholder{color:#bbb}
+  .hw-ai-count{text-align:right;font-size:14px;color:#aaa;margin:12px 0 18px}
+  .hw-ai-orient{display:flex;gap:18px;margin:0 0 18px}
+  .hw-ai-upload{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:150px;border:2px dashed #CFCFCF;border-radius:18px;padding:20px;text-align:center;cursor:pointer;background:#fff;margin-bottom:24px;color:#777;overflow:hidden}
+  .hw-ai-upload:hover{border-color:#999}
+  .hw-ai-plus{font-size:44px;line-height:1;color:#999;font-weight:300}
+  .hw-ai-uptext{font-size:16px}
+  .hw-ai-thumb{max-width:100%;max-height:220px;border-radius:12px;display:block}
+  .hw-ai-btn{width:100%;border:1.5px solid #111;border-radius:999px;background:#fff;color:#111;padding:16px;font:inherit;font-size:18px;font-weight:600;cursor:pointer}
+  .hw-ai-btn:hover:not(:disabled){background:#111;color:#fff}
   .hw-ai-btn:disabled{opacity:.4;cursor:not-allowed}
-  .hw-ai-status{margin-top:8px;min-height:1em}
+  .hw-ai-status{margin-top:12px;min-height:1em;text-align:center}
   .hw-ai-status.err{color:#b00020}
-  .hw-ai-result{margin-top:10px;text-align:center}
-  .hw-ai-result img{max-width:100%;border-radius:12px;display:block;margin:0 auto 6px}
-  .hw-ai-ok{opacity:.75}
+  .hw-ai-result{margin-top:16px;text-align:center}
+  .hw-ai-result img{max-width:100%;border-radius:16px;display:block;margin:0 auto 8px}
+  .hw-ai-ok{color:#666}
+  @media(max-width:480px){.hw-ai{padding:16px 14px}.hw-ai-heading{font-size:20px}.hw-ai-design span{font-size:13px}}
 </style>
 
 <script>
@@ -92,6 +107,7 @@
   var imgEl = $('[data-hw-ai-img]'), orientEl = $('[data-hw-ai-orient]');
   var textWrap = $('[data-hw-ai-textwrap]'), textEl = $('[data-hw-ai-text]'), textLabel = $('[data-hw-ai-textlabel]');
   var histBox = $('[data-hw-ai-history]'), histList = $('[data-hw-ai-histlist]');
+  var countEl = $('[data-hw-ai-count]'), thumbEl = $('[data-hw-ai-thumb]'), plusEl = $('[data-hw-ai-plus]');
   // design: gekozen ontwerp; result: afbeelding die bij de bestelling hoort (nieuw of hergebruikt)
   var state = { design: null, designName: '', allowsText: false, result: null, busy: false, left: null };
   if (PROFILE === 'poster') orientEl.hidden = false;
@@ -183,6 +199,7 @@
     .then(function (r) { return r.json(); })
     .then(function (d) {
       if (d.text_max) textEl.maxLength = d.text_max;
+      count();
       (d.designs || []).forEach(function (x) {
         var b = document.createElement('button');
         b.type = 'button'; b.className = 'hw-ai-design'; b.setAttribute('aria-pressed', 'false');
@@ -192,8 +209,9 @@
           designsEl.querySelectorAll('.hw-ai-design').forEach(function (o) { o.setAttribute('aria-pressed', 'false'); });
           b.setAttribute('aria-pressed', 'true');
           state.design = x.id; state.designName = x.name; state.allowsText = !!x.allows_text;
-          textWrap.hidden = !x.allows_text; textLabel.textContent = x.text_label || 'Tekst op je afbeelding';
+          textWrap.hidden = !x.allows_text; textLabel.textContent = x.text_label || 'Eigen tekst';
           if (!x.allows_text) textEl.value = '';
+          count();
           refresh();
         });
         designsEl.appendChild(b);
@@ -203,9 +221,20 @@
     .catch(function () { root.hidden = true; });
 
   fileEl.addEventListener('change', function () {
-    fileLabel.textContent = fileEl.files[0] ? fileEl.files[0].name : 'Kies een foto';
+    var f = fileEl.files[0];
+    if (f) {
+      try { thumbEl.src = URL.createObjectURL(f); thumbEl.hidden = false; plusEl.hidden = true; } catch (e) {}
+      fileLabel.textContent = f.name + ' (klik om te wijzigen)';
+    } else {
+      thumbEl.hidden = true; plusEl.hidden = false; fileLabel.textContent = 'Klik hier om je foto te uploaden';
+    }
     refresh();
   });
+  function count() {
+    var left = (textEl.maxLength > 0 ? textEl.maxLength : 40) - textEl.value.length;
+    countEl.textContent = left + ' tekens over';
+  }
+  textEl.addEventListener('input', count);
 
   function poll(id) {
     fetch(API + '/api/jobs/' + id).then(function (r) { return r.json(); }).then(function (j) {
