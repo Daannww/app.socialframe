@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI-foto beheer</title>
+<style>
+:root{--bg:#f6f6f6;--fg:#111;--mut:#666;--line:#d9d9d9;--card:#fff;--acc:#111}
+@media(prefers-color-scheme:dark){:root{--bg:#161616;--fg:#eee;--mut:#9a9a9a;--line:#333;--card:#202020;--acc:#eee}}
+*{box-sizing:border-box}body{margin:0;font:14px/1.4 system-ui,sans-serif;background:var(--bg);color:var(--fg)}
+header{padding:14px 20px;border-bottom:1px solid var(--line);display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+header h1{font-size:17px;margin:0;flex:1}main{max-width:1000px;margin:0 auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:14px}
+h2{font-size:15px;margin:0 0 10px}label{display:block;font-size:12px;color:var(--mut);margin:8px 0 3px}
+input,textarea,select{width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--fg);font:inherit}
+textarea{min-height:90px;resize:vertical}button{padding:7px 14px;border:1px solid var(--acc);background:var(--acc);color:var(--bg);border-radius:6px;cursor:pointer;font:inherit}
+button.sec{background:transparent;color:var(--fg);border-color:var(--line)}button.del{background:transparent;color:#c0392b;border-color:#c0392b}
+.row{display:flex;gap:10px;flex-wrap:wrap}.row>*{flex:1;min-width:140px}
+.dh{display:flex;gap:12px;align-items:center;cursor:pointer}.dh img{width:52px;height:52px;object-fit:cover;border-radius:6px;background:var(--line)}
+.dh b{flex:1}.tag{font-size:11px;padding:2px 8px;border-radius:99px;border:1px solid var(--line);color:var(--mut)}
+.jobs{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}.jobs div{font-size:11px;color:var(--mut)}
+.jobs img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:6px;background:var(--line)}
+#msg{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--acc);color:var(--bg);padding:8px 16px;border-radius:8px;display:none}
+small{color:var(--mut)}
+</style></head><body>
+<header><h1>AI-foto beheer</h1><span id="fal" class="tag"></span></header>
+<main>
+<div class="card"><h2>Ontwerpen</h2><div id="designs"></div><p><button id="new">+ Nieuw ontwerp</button></p></div>
+<div class="card" id="editor" hidden></div>
+<div class="card"><h2>Instellingen</h2><div class="row" id="settings"></div><p><button id="saveSet">Opslaan</button></p>
+<small>Tegel: 1600 px ≈ 300 dpi op 13x13 cm. Poster: lange zijde in px, 2800 px ≈ 100 dpi op 70 cm. Pogingen = per klant per 24 uur.</small></div>
+<div class="card"><h2>Laatste generaties</h2><div class="jobs" id="jobs"></div></div>
+</main><div id="msg"></div>
+<script>
+const $=s=>document.querySelector(s);
+const el=(t,p={},...k)=>{const e=document.createElement(t);Object.assign(e,p);k.forEach(c=>e.append(c));return e};
+const say=t=>{const m=$('#msg');m.textContent=t;m.style.display='block';setTimeout(()=>m.style.display='none',2600)};
+const api=async(u,o={})=>{const r=await fetch(u,o);const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||r.status);return j};
+const json=(m,b)=>({method:m,headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});
+let S;
+async function load(){S=await api('/admin/api/state');render()}
+function render(){
+ $('#fal').textContent=S.has_fal_key?'fal.ai key aanwezig':'FAL_KEY ontbreekt!';
+ const d=$('#designs');d.replaceChildren();
+ S.designs.forEach(x=>{const h=el('div',{className:'dh'},el('img',{src:x.example_url||'',alt:''}),el('b',{textContent:x.name}),
+  el('span',{className:'tag',textContent:x.products==='*'?'alle producten':x.products}),el('span',{className:'tag',textContent:x.active?'actief':'uit'}));
+  h.onclick=()=>edit(x);d.append(h,el('hr',{style:'border:0;border-top:1px solid var(--line)'}))});
+ const s=$('#settings');s.replaceChildren();
+ Object.entries(S.settings).forEach(([k,v])=>{s.append(el('div',{},el('label',{textContent:k}),el('input',{name:k,value:v})))});
+ const j=$('#jobs');j.replaceChildren();
+ S.recent.forEach(x=>j.append(el('div',{},x.preview_url?el('a',{href:x.print_url,target:'_blank'},el('img',{src:x.preview_url})):el('div',{textContent:x.status==='error'?(x.error||'fout'):x.status}),
+  el('div',{textContent:`${x.design_name||'?'} · ${x.profile}${x.print_w?` ${x.print_w}x${x.print_h}`:''}`}))));
+}
+function f(label,name,v,tag='input'){return el('div',{},el('label',{textContent:label}),el(tag,{name,value:v??''}))}
+function edit(x){
+ x=x||{id:0,name:'',description:'',prompt:'',negative_prompt:'',model:'fal-ai/flux-pro/kontext',extra_json:'{}',products:'*',active:1,sort:0};
+ const e=$('#editor');e.hidden=false;e.replaceChildren(el('h2',{textContent:x.id?'Ontwerp bewerken':'Nieuw ontwerp'}));
+ const form=el('form');
+ form.append(f('Naam (ziet de klant)','name',x.name),f('Korte omschrijving (ziet de klant)','description',x.description),
+  f('Prompt','prompt',x.prompt,'textarea'),f('Negatieve prompt (optioneel)','negative_prompt',x.negative_prompt,'textarea'),
+  el('div',{className:'row'},f('fal-model','model',x.model),f('Producten (* = alle, of handles met komma)','products',x.products),f('Volgorde','sort',x.sort)),
+  f('Extra parameters voor het model (JSON, optioneel)','extra_json',x.extra_json,'textarea'));
+ const act=el('input',{type:'checkbox',name:'active',checked:!!x.active,style:'width:auto'});
+ form.append(el('label',{},act,' Actief (zichtbaar voor klanten)'));
+ const ph=el('input',{type:'file',accept:'image/*'});
+ form.append(el('label',{textContent:'Voorbeeldafbeelding (klant ziet deze bij het kiezen)'}),ph);
+ const save=el('button',{type:'button',textContent:'Opslaan'});
+ save.onclick=async()=>{try{const b=Object.fromEntries(new FormData(form));b.active=act.checked;
+  let id=x.id;if(id)await api('/admin/api/designs/'+id,json('PUT',b));else id=(await api('/admin/api/designs',json('POST',b))).id;
+  if(ph.files[0]){const fd=new FormData();fd.append('image',ph.files[0]);await api(`/admin/api/designs/${id}/example`,{method:'POST',body:fd})}
+  say('Opgeslagen');e.hidden=true;load()}catch(err){say(err.message)}};
+ form.append(el('p',{},save,' ',el('button',{type:'button',className:'sec',textContent:'Sluiten',onclick:()=>e.hidden=true})));
+ if(x.id){ // testen
+  const tf=el('input',{type:'file',accept:'image/*'}),pr=el('select',{},el('option',{value:'tegel',textContent:'Tegel (vierkant)'}),el('option',{value:'poster',textContent:'Poster liggend'}),el('option',{value:'posterP',textContent:'Poster staand'}));
+  const out=el('div'),tb=el('button',{type:'button',className:'sec',textContent:'Test met deze foto'});
+  tb.onclick=async()=>{if(!tf.files[0])return say('Kies eerst een foto');const fd=new FormData();fd.append('photo',tf.files[0]);fd.append('design_id',x.id);
+   fd.append('profile',pr.value==='tegel'?'tegel':'poster');fd.append('orientation',pr.value==='posterP'?'portrait':'landscape');
+   out.textContent='Bezig…';try{const {job_id}=await api('/admin/api/test',{method:'POST',body:fd});
+   for(;;){await new Promise(r=>setTimeout(r,2000));const j=await api('/api/jobs/'+job_id);
+    if(j.status==='done'){out.replaceChildren(el('a',{href:j.print_url,target:'_blank'},el('img',{src:j.preview_url,style:'max-width:320px;border-radius:8px'})));load();break}
+    if(j.status==='error'){out.textContent=j.error;load();break}}}catch(err){out.textContent=err.message}};
+  form.append(el('hr'),el('label',{textContent:'Testen (telt niet mee voor de poginglimiet)'}),tf,pr,el('p',{},tb),out,
+   el('p',{},el('button',{type:'button',className:'del',textContent:'Ontwerp verwijderen',onclick:async()=>{if(confirm('Verwijderen?')){await api('/admin/api/designs/'+x.id,{method:'DELETE'});e.hidden=true;load()}}})));
+ }
+ e.append(form);e.scrollIntoView({behavior:'smooth'});
+}
+$('#new').onclick=()=>edit();
+$('#saveSet').onclick=async()=>{const b={};document.querySelectorAll('#settings input').forEach(i=>b[i.name]=i.value);await api('/admin/api/settings',json('PUT',b));say('Instellingen opgeslagen')};
+load();
+</script></body></html>

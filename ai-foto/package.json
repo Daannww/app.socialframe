@@ -1,0 +1,17 @@
+{
+  "name": "socialframe-ai-foto",
+  "version": "1.0.0",
+  "description": "AI-foto service voor Socialframe: klant uploadt foto, wij zetten hem met AI om in een gekozen ontwerp en maken een drukklaar bestand.",
+  "main": "server/index.js",
+  "engines": { "node": "22.x" },
+  "scripts": { "start": "node server/index.js", "dev": "node --watch server/index.js", "test": "node server/selftest.js" },
+  "dependencies": {
+    "better-sqlite3": "^11.3.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "express-rate-limit": "^8.7.0",
+    "multer": "^2.4.0",
+    "sharp": "^0.33.5"
+  }
+}
