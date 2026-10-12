@@ -119,7 +119,7 @@ app.post('/api/jobs/:id/choose', async (req, res) => {
   const j = db.prepare("SELECT j.*, d.name design_name FROM jobs j LEFT JOIN designs d ON d.id=j.design_id WHERE j.id=? AND j.client_id=? AND j.status='done'").get(req.params.id, clientId);
   if (!j) return res.status(404).json({ error: 'Niet gevonden' });
   const v = parseVariants(j)[parseInt(index, 10)];
-  if (!v) return res.status(400).json({ error: 'Deze keuze bestaat niet.' });
+  if (!v || v.deleted) return res.status(400).json({ error: 'Deze keuze bestaat niet.' });
   try {
     if (!v.print_file || !fs.existsSync(path.join(FILES, v.print_file))) {
       await finalizeVariant(j, v);
@@ -138,7 +138,7 @@ app.get('/api/jobs/:id', (req, res) => {
   res.json({
     status: j.status,
     error: j.status === 'error' ? 'Het maken van de afbeelding is mislukt. Probeer het opnieuw.' : null,
-    variants: parseVariants(j).map((v) => ({ preview_url: fileUrl(v.preview_file) })),
+    variants: parseVariants(j).map((v) => (v.deleted ? { deleted: true, preview_url: null } : { preview_url: fileUrl(v.preview_file) })),
     chosen: j.chosen,
     preview_url: fileUrl(j.preview_file),
     print_url: fileUrl(j.print_file),
@@ -158,6 +158,23 @@ app.get('/api/history', (req, res) => {
     WHERE j.client_id=? AND j.status='done' AND j.profile=? AND j.print_file IS NOT NULL AND COALESCE(j.deleted,0)=0 ORDER BY j.created_at DESC LIMIT 6`).all(req.query.client_id, profile);
   res.json({ items: rows.filter((j) => fs.existsSync(path.join(FILES, j.print_file))).map(jobCard) });
 });
+// Klant verwijdert één van de twee zojuist gemaakte varianten (voordat er gekozen is). Zijn alle varianten weg, dan is de poging weg.
+app.post('/api/jobs/:id/variants/:index/delete', (req, res) => {
+  const clientId = (req.body || {}).client_id;
+  if (!validClient(clientId)) return res.status(400).json({ error: 'Ongeldige sessie.' });
+  const j = db.prepare("SELECT * FROM jobs WHERE id=? AND client_id=? AND status='done'").get(req.params.id, clientId);
+  if (!j) return res.status(404).json({ error: 'Niet gevonden' });
+  if (j.chosen !== null && j.chosen !== undefined) return res.status(400).json({ error: 'Dit ontwerp is al gekozen.' });
+  const all = parseVariants(j), i = parseInt(req.params.index, 10);
+  const v = all[i];
+  if (!v || v.deleted) return res.status(404).json({ error: 'Niet gevonden' });
+  [[FILES, v.preview_file], [FILES, v.print_file], [ORIGINALS, v.raw_file]].forEach(([dir, f]) => { if (f) fs.rmSync(path.join(dir, f), { force: true }); });
+  all[i] = { deleted: true };
+  const left = all.filter((x) => !x.deleted).length;
+  db.prepare('UPDATE jobs SET variants_json=?, deleted=? WHERE id=?').run(JSON.stringify(all), left ? 0 : 1, j.id);
+  res.json({ ok: true, left });
+});
+
 // Klant verwijdert een gemaakt ontwerp uit zijn lijst. Het gekozen bestand blijft bewaard (een lopende bestelling kan er nog naar verwijzen);
 // de niet-gekozen varianten worden direct van de server gewist.
 app.post('/api/jobs/:id/delete', (req, res) => {
