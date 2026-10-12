@@ -7,8 +7,10 @@
   Per product instellen (Shopify admin > product > Metafields):
     AI stijlen  (custom.ai_stijlen)  = codes van de stijlen, met komma, bv. aquarel,popart
     AI formaat  (custom.ai_formaat)  = tegel of poster (leeg = standaard hieronder)
-  Is "AI stijlen" leeg, dan gelden de producten die je in /admin bij de stijl hebt ingesteld.
+  Is "AI stijlen" leeg, dan verschijnt het blok helemaal niet. Zo kun je het op alle tegeltjes
+  laten staan en bepaal je per product of het zichtbaar is.
 {%- endcomment -%}
+{%- if product.metafields.custom.ai_stijlen.value != blank -%}
 {%- assign hw_ai_api = 'https://ai-foto-production.up.railway.app' -%}
 {%- assign hw_ai_profile = 'tegel' -%}
 {%- if product.metafields.custom.ai_formaat.value != blank -%}
@@ -247,3 +249,4 @@
   }, true);
 })();
 </script>
+{%- endif -%}
