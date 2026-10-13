@@ -100,8 +100,6 @@
   .hw-ai-choose-list{display:block}
   .hw-ai-group{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:16px}
   .hw-ai-group:first-child{margin-top:0}
-  .hw-ai-grouptitle{grid-column:1/-1;font-size:13px;opacity:.65;text-align:left}
-  .hw-ai-group:only-child .hw-ai-grouptitle{display:none}
   .hw-ai-choicewrap{min-width:0;text-align:center}
   .hw-ai-zoombtn{margin-top:4px;background:none;border:0;padding:4px;font:inherit;font-size:13px;font-weight:600;color:#111;text-decoration:underline;cursor:pointer}
   .hw-ai img,.hw-ai-zoomimg{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
@@ -171,7 +169,7 @@
   var chooseBox = $('[data-hw-ai-choose]'), chooseList = $('[data-hw-ai-chooselist]');
   var optEl = $('[data-hw-ai-opt]'), countEl = $('[data-hw-ai-count]'), thumbEl = $('[data-hw-ai-thumb]'), plusEl = $('[data-hw-ai-plus]');
   // design: gekozen ontwerp; result: afbeelding die bij de bestelling hoort (nieuw of hergebruikt)
-  var state = { pending: null, design: null, designName: '', allowsText: false, textRequired: false, result: null, busy: false, left: null };
+  var state = { pending: null, design: null, designName: '', allowsText: false, textRequired: false, result: null, busy: false, left: null, vcount: 0 };
   if (PROFILE === 'poster') orientEl.hidden = false;
   root.querySelectorAll('input[type="radio"]').forEach(function (r) { r.name = 'hw-ai-orient-' + idx; });
 
@@ -429,14 +427,13 @@
     if (!restore) { state.pending = j.job_id; state.result = null; setProps(false); resultEl.hidden = true; }
     chooseList.querySelectorAll('.hw-ai-choice').forEach(function (o) { o.setAttribute('aria-pressed', 'false'); });
     var group = document.createElement('div'); group.className = 'hw-ai-group';
-    var gt = document.createElement('div'); gt.className = 'hw-ai-grouptitle';
-    gt.textContent = 'Poging ' + (chooseList.children.length + 1); group.appendChild(gt);
     j.variants.forEach(function (v, idx) {
       if (v.deleted || !v.preview_url) return;
       var b = document.createElement('button');
       b.type = 'button'; b.className = 'hw-ai-choice'; b.setAttribute('aria-pressed', 'false');
-      var im = document.createElement('img'); im.src = v.preview_url; im.alt = 'Variant ' + (idx + 1);
-      var sp = document.createElement('span'); sp.textContent = 'Variant ' + (idx + 1);
+      var vnum = ++state.vcount;
+      var im = document.createElement('img'); im.src = v.preview_url; im.alt = 'Variant ' + vnum;
+      var sp = document.createElement('span'); sp.textContent = 'Variant ' + vnum;
       b.appendChild(im); b.appendChild(sp); protect(im);
       var wrapB = document.createElement('div'); wrapB.className = 'hw-ai-choicewrap';
       var zb = document.createElement('button'); zb.type = 'button'; zb.className = 'hw-ai-zoombtn'; zb.textContent = 'Vergroten';
