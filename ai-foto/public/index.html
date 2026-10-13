@@ -80,10 +80,14 @@ function edit(x){
  form.append(el('label',{},act,' Actief (zichtbaar voor klanten)'));
  const ph=el('input',{type:'file',accept:'image/*'});
  form.append(el('label',{textContent:'Voorbeeldafbeelding (klant ziet deze bij het kiezen)'}),ph);
+ const rph=el('input',{type:'file',accept:'image/*'});
+ form.append(el('label',{textContent:'Referentiebeeld (optioneel, alleen ChatGPT/GPT Image-modellen): wordt bij elke generatie als voorbeeld meegestuurd, bv. de hoekornamenten'}),rph);
+ if(x.id&&x.ref_url)form.append(el('p',{},el('img',{src:x.ref_url,style:'max-height:90px;border:1px solid #ddd;vertical-align:middle'}),' ',el('button',{type:'button',className:'sec',textContent:'Referentiebeeld verwijderen',onclick:async()=>{await api(`/admin/api/designs/${x.id}/reference`,{method:'DELETE'});say('Referentiebeeld verwijderd');e.hidden=true;load()}})));
  const save=el('button',{type:'button',textContent:'Opslaan'});
  save.onclick=async()=>{try{const b=Object.fromEntries(new FormData(form));b.active=act.checked;b.text_required=form.elements.text_required.checked;
   let id=x.id;if(id)await api('/admin/api/designs/'+id,json('PUT',b));else id=(await api('/admin/api/designs',json('POST',b))).id;
   if(ph.files[0]){const fd=new FormData();fd.append('image',ph.files[0]);await api(`/admin/api/designs/${id}/example`,{method:'POST',body:fd})}
+  if(rph.files[0]){const fd=new FormData();fd.append('image',rph.files[0]);await api(`/admin/api/designs/${id}/reference`,{method:'POST',body:fd})}
   say('Opgeslagen');e.hidden=true;load()}catch(err){say(err.message)}};
  form.append(el('p',{},save,' ',x.id?el('button',{type:'button',className:'sec',textContent:'Dupliceren',onclick:()=>{const b=Object.fromEntries(new FormData(form));edit({...x,...b,id:0,name:(b.name||x.name)+' (kopie)',slug:((b.slug||x.slug||'stijl')+'-kopie'),active:0,text_required:form.elements.text_required.checked?1:0,example_file:null});say('Kopie geopend — pas aan en klik Opslaan')}}):'',x.id?' ':'',el('button',{type:'button',className:'sec',textContent:'Sluiten',onclick:()=>e.hidden=true})));
  if(x.id){ // testen

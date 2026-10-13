@@ -233,7 +233,7 @@ function adminAuth(req, res, next) {
 app.use('/admin', adminAuth);
 app.use('/admin', express.static(path.join(__dirname, '..', 'public')));
 
-const adminDesign = (d) => ({ ...d, example_url: fileUrl(d.example_file) });
+const adminDesign = (d) => ({ ...d, example_url: fileUrl(d.example_file), ref_url: d.ref_file ? `/admin/api/designs/${d.id}/reference?v=${encodeURIComponent(d.ref_file)}` : '' });
 
 app.get('/admin/api/state', (req, res) => {
   res.json({
@@ -297,6 +297,26 @@ app.post('/admin/api/designs/:id/example', upload.single('image'), async (req, r
   fs.writeFileSync(path.join(FILES, name), await sharp(req.file.buffer).rotate().resize(800, 800, { fit: 'cover' }).jpeg({ quality: 85 }).toBuffer());
   db.prepare('UPDATE designs SET example_file=? WHERE id=?').run(name, req.params.id);
   res.json({ example_url: fileUrl(name) });
+});
+app.post('/admin/api/designs/:id/reference', upload.single('image'), async (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'Geen bestand' });
+  const name = `ref-${rid()}.jpg`;
+  fs.writeFileSync(path.join(ORIGINALS, name), await sharp(req.file.buffer).rotate().flatten({ background: '#ffffff' }).resize(1536, 1536, { fit: 'inside', withoutEnlargement: true }).jpeg({ quality: 90 }).toBuffer());
+  const old = db.prepare('SELECT ref_file FROM designs WHERE id=?').get(req.params.id);
+  if (old && old.ref_file) fs.rmSync(path.join(ORIGINALS, old.ref_file), { force: true });
+  db.prepare('UPDATE designs SET ref_file=? WHERE id=?').run(name, req.params.id);
+  res.json({ ok: true });
+});
+app.get('/admin/api/designs/:id/reference', (req, res) => {
+  const d = db.prepare('SELECT ref_file FROM designs WHERE id=?').get(req.params.id);
+  if (!d || !d.ref_file) return res.status(404).end();
+  res.sendFile(path.join(ORIGINALS, d.ref_file));
+});
+app.delete('/admin/api/designs/:id/reference', (req, res) => {
+  const d = db.prepare('SELECT ref_file FROM designs WHERE id=?').get(req.params.id);
+  if (d && d.ref_file) fs.rmSync(path.join(ORIGINALS, d.ref_file), { force: true });
+  db.prepare("UPDATE designs SET ref_file='' WHERE id=?").run(req.params.id);
+  res.json({ ok: true });
 });
 app.put('/admin/api/settings', (req, res) => {
   for (const k of Object.keys(allSettings())) if (req.body[k] !== undefined) setSetting(k, req.body[k]);

@@ -90,6 +90,12 @@ async function process_(job) {
   // OpenAI/ChatGPT-beeldmodellen op fal verwachten een andere invoer (image_urls, image_size, geen negative prompt/aspect_ratio)
   if (/gpt-image|openai/i.test(design.model)) {
     base.image_urls = [base.image_url];
+    if (design.ref_file && fs.existsSync(path.join(ORIGINALS, design.ref_file))) {
+      // Referentiebeeld eerst (voorbeeld), daarna de foto van de klant
+      const ref = fs.readFileSync(path.join(ORIGINALS, design.ref_file));
+      base.image_urls = [`data:image/jpeg;base64,${ref.toString('base64')}`, base.image_url];
+      base.prompt = 'Image 1 is a reference example: reproduce its decorative elements (such as the corner ornaments) in the same positions, exactly as shown. Image 2 is the customer photo to transform. ' + base.prompt;
+    }
     delete base.image_url; delete base.aspect_ratio; delete base.negative_prompt;
     if (design.negative_prompt) base.prompt += ' Vermijd: ' + design.negative_prompt + '.';
     base.image_size = job.profile === 'tegel' ? '1024x1024' : (job.orientation === 'portrait' ? '1024x1536' : '1536x1024');

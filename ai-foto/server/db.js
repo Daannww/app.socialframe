@@ -48,6 +48,7 @@ function addColumn(table, col, def) {
 addColumn('designs', 'slug', "TEXT DEFAULT ''");              // korte naam voor de productinstelling (metafield)
 addColumn('designs', 'prompt_with_text', "TEXT DEFAULT ''");   // andere prompt als de klant tekst invult ({{tekst}})
 addColumn('designs', 'text_required', 'INTEGER DEFAULT 0');   // klant moet tekst invullen
+addColumn('designs', 'ref_file', "TEXT DEFAULT ''");          // referentiebeeld (blijft privé in originals/), wordt bij elke generatie meegestuurd
 addColumn('designs', 'text_label', "TEXT DEFAULT ''");         // label bij het tekstveld
 addColumn('jobs', 'variants_json', "TEXT DEFAULT '[]'");      // alle gemaakte varianten (klant kiest er één)
 addColumn('jobs', 'chosen', 'INTEGER');                          // index van de gekozen variant
