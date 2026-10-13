@@ -5,8 +5,10 @@
 {%- endcomment -%}
 {%- assign hw_kaart_api = 'https://ai-foto.socialframe.nl' -%}
 {%- assign hw_kaart_google_key = '' -%}
+{%- comment -%}  Kaartbron: 'osm' = OpenStreetMap (scherp, gratis) of 'google' = Google-kaart in dezelfde stijl (vraagt een Google-sleutel met Map Tiles API aan).  {%- endcomment -%}
+{%- assign hw_kaart_bron = 'osm' -%}
 
-<div class="hw-kaart" data-hw-kaart data-api="{{ hw_kaart_api }}" data-google-key="{{ hw_kaart_google_key }}">
+<div class="hw-kaart" data-hw-kaart data-api="{{ hw_kaart_api }}" data-google-key="{{ hw_kaart_google_key }}" data-bron="{{ hw_kaart_bron }}">
   <div class="hw-kaart-heading">Personaliseren</div>
 
   <label class="hw-kaart-label" for="hw-kaart-search">Zoek jouw favoriete plek.</label>
@@ -204,6 +206,42 @@
     if (root.dataset.hwKInit) return; root.dataset.hwKInit = '1';
     var API = (root.dataset.api || '').replace(/\/$/, '');
     var GKEY = (root.dataset.googleKey || '').trim();
+    var BRON = (root.dataset.bron === 'google' && GKEY) ? 'google' : 'osm';
+    // ----- Google-kaart (Map Tiles API) in dezelfde zwart-wit stijl -----
+    var gCache = {};
+    function gStyles(o) {
+      var off = { visibility: 'off' }, txt = [{ visibility: 'on' }, { color: '#3A3A3A' }], st = [
+        { elementType: 'geometry', stylers: [{ color: '#FFFFFF' }] },
+        { elementType: 'labels', stylers: [off] },
+        { featureType: 'poi', stylers: [off] }, { featureType: 'transit', stylers: [off] }, { featureType: 'administrative', stylers: [off] },
+        { featureType: 'landscape', elementType: 'geometry', stylers: [{ color: '#FFFFFF' }] },
+        { featureType: 'landscape.man_made', elementType: 'geometry', stylers: [{ color: o.buildings ? '#E0E0E0' : '#FFFFFF' }] },
+        { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#C9C9C9' }] },
+        { featureType: 'road', elementType: 'geometry.fill', stylers: [{ color: '#333333' }] },
+        { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#333333' }] },
+        { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#1E1E1E' }] },
+        { featureType: 'road.local', elementType: 'geometry', stylers: [{ color: '#4A4A4A' }] }
+      ];
+      if (o.labels) st.push({ featureType: 'administrative.locality', elementType: 'labels.text', stylers: txt }, { featureType: 'administrative.neighborhood', elementType: 'labels.text', stylers: txt });
+      if (o.streets) st.push({ featureType: 'road', elementType: 'labels.text', stylers: txt }, { featureType: 'road', elementType: 'labels.icon', stylers: [off] });
+      return st;
+    }
+    function styleFor(o) {
+      if (BRON !== 'google') return Promise.resolve(buildStyle(o));
+      var key = [!!o.labels, !!o.streets, !!o.buildings].join();
+      if (!gCache[key]) {
+        gCache[key] = fetch('https://tile.googleapis.com/v1/createSession?key=' + encodeURIComponent(GKEY), { method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mapType: 'roadmap', language: 'nl', region: 'NL', scale: 'scaleFactor2x', styles: gStyles(o) }) })
+          .then(function (r) { return r.json(); })
+          .then(function (j) { if (!j.session) throw new Error('Google-kaart niet beschikbaar'); return j.session; });
+        gCache[key].catch(function () { delete gCache[key]; });
+      }
+      return gCache[key].then(function (sess) {
+        return { version: 8, glyphs: GLYPHS,
+          sources: { g: { type: 'raster', tiles: ['https://tile.googleapis.com/v1/2dtiles/{z}/{x}/{y}?session=' + sess + '&key=' + encodeURIComponent(GKEY)], tileSize: 256, maxzoom: 21 } },
+          layers: [{ id: 'bg', type: 'background', paint: { 'background-color': BG } }, { id: 'g', type: 'raster', source: 'g' }] };
+      });
+    }
     var $ = function (s) { return root.querySelector(s); };
     var searchEl = $('[data-hw-k-search]'), suggEl = $('[data-hw-k-sugg]'), mapEl = $('[data-hw-k-map]'), stageEl = $('[data-hw-k-stage]');
     var cityEl = $('[data-hw-k-city]'), countryEl = $('[data-hw-k-country]'), cityView = $('[data-hw-k-cityview]'), countryView = $('[data-hw-k-countryview]');
@@ -290,6 +328,7 @@
 
     // ----- extra's op de kaart (plaatsnamen, gebouwen) -----
     function applyExtras(m) {
+      if (BRON === 'google') { styleFor(state).then(function (st) { m.setStyle(st); }, function () { say('Google-kaart niet beschikbaar.', true); }); return; }
       var set = function (ids, on) { ids.forEach(function (id) { if (m.getLayer(id)) m.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none'); }); };
       set(['l_city', 'l_town', 'l_village', 'l_small'], state.labels); set(['l_street'], state.streets); set(['building'], state.buildings);
     }
@@ -375,8 +414,8 @@
 
     // ----- kaart starten -----
     var start = { lng: 4.8952, lat: 52.3702 };
-    function startMap() {
-      map = new maplibregl.Map({ container: mapEl, style: buildStyle(state), center: [start.lng, start.lat], zoom: 13.2, attributionControl: false, cooperativeGestures: true, dragRotate: false, pitchWithRotate: false, maxZoom: 18.5, minZoom: 3, fadeDuration: 0 });
+    function startMap(styleObj) {
+      map = new maplibregl.Map({ container: mapEl, style: styleObj, center: [start.lng, start.lat], zoom: 13.2, attributionControl: false, cooperativeGestures: true, dragRotate: false, pitchWithRotate: false, maxZoom: 18.5, minZoom: 3, fadeDuration: 0 });
       map.touchZoomRotate.disableRotation();
       // Bronvermelding (verplicht bij OpenStreetMap-gegevens): staat klein onderaan de widget.
           map.on('moveend', changed);
@@ -384,7 +423,7 @@
       // Standaard Amsterdam als voorbeeld, tot de klant zelf een plek kiest.
       cityEl.value = 'Amsterdam'; countryEl.value = 'Nederland'; drawTexts();
     }
-    addJs(MAPLIBRE_JS).then(startMap, function () { say('De kaart kon niet worden geladen. Controleer je verbinding en ververs de pagina.', true); });
+    addJs(MAPLIBRE_JS).then(function () { return styleFor(state); }).then(startMap, function () { say('De kaart kon niet worden geladen. Controleer je verbinding en ververs de pagina.', true); });
 
     // ----- drukbestand maken (in de browser) en uploaden -----
     function loadSvgImage(p) {
@@ -421,12 +460,13 @@
           if (country && L.countryBase != null) { ctx.font = F.ctyStyle + ' ' + F.ctyW + ' ' + (L.countryPx * k) + 'px ' + F.ctyFam; drawSpaced(ctx, L.shown, size / 2, L.countryBase * k, L.countryLs * k); }
     }
 
-    function renderPrint() {
+    function renderPrint() { return styleFor(state).then(renderPrintWith); }
+    function renderPrintWith(styleObj) {
       var W = stageEl.clientWidth, size = PRINT_PX, pr = size / W;
       var host = document.createElement('div'); host.style.cssText = 'position:fixed;left:-20000px;top:0;width:' + W + 'px;height:' + W + 'px;pointer-events:none';
       document.body.appendChild(host);
       var c = map.getCenter();
-      var m2 = new maplibregl.Map({ container: host, style: buildStyle(state), center: [c.lng, c.lat], zoom: map.getZoom(), interactive: false, attributionControl: false, pixelRatio: pr, fadeDuration: 0, preserveDrawingBuffer: true });
+      var m2 = new maplibregl.Map({ container: host, style: styleObj, center: [c.lng, c.lat], zoom: map.getZoom(), interactive: false, attributionControl: false, pixelRatio: pr, fadeDuration: 0, preserveDrawingBuffer: true });
       return new Promise(function (ok, fail) {
         var done = false, t = setTimeout(function () { if (!done) { done = true; m2.remove(); host.remove(); fail(new Error('De kaart laadde te langzaam, probeer het opnieuw.')); } }, 25000);
         m2.once('idle', function () {
