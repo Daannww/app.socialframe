@@ -5,15 +5,8 @@
 {%- endcomment -%}
 {%- assign hw_kaart_api = 'https://ai-foto.socialframe.nl' -%}
 {%- assign hw_kaart_google_key = '' -%}
-{%- comment -%}
-  Kaart op de hoofdafbeelding: de live kaart komt over de eerste productfoto te staan (zoals bij Zepto).
-  hw_kaart_overlay = 'links %, boven %, breedte %' van de foto. '0,0,100' = hele foto (vierkante foto zonder tegel erop).
-  Staat er een tegel op de foto? Pas dan de drie getallen aan tot de kaart precies op de tegel valt. Leeg = kaart blijft onder de foto.
-{%- endcomment -%}
-{%- assign hw_kaart_overlay = '' -%}
-{%- assign hw_kaart_gallery = '.product-gallery-item' -%}
 
-<div class="hw-kaart" data-hw-kaart data-api="{{ hw_kaart_api }}" data-google-key="{{ hw_kaart_google_key }}" data-overlay="{{ hw_kaart_overlay }}" data-gallery="{{ hw_kaart_gallery }}">
+<div class="hw-kaart" data-hw-kaart data-api="{{ hw_kaart_api }}" data-google-key="{{ hw_kaart_google_key }}">
   <div class="hw-kaart-heading">Personaliseren</div>
 
   <label class="hw-kaart-label" for="hw-kaart-search">Zoek jouw favoriete plek.</label>
@@ -90,7 +83,6 @@
   .hw-kaart-mode[aria-pressed="true"]{border-color:#111;background:#111 !important;color:#fff !important}
   .hw-kaart-pins{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px}
   .hw-kaart-pin{height:64px;border:1.5px solid #E2E2E2;border-radius:12px;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:6px;font:inherit;font-size:13px;color:#333;line-height:1.1}
-  .hw-kaart-onimg{position:absolute;z-index:6}
   .hw-kaart-photo{margin-top:10px}
   .hw-kaart-pin img{height:100%;width:auto}
   .hw-kaart-pin svg{height:100%;width:auto;max-width:100%}
@@ -222,9 +214,7 @@
     var state = { font: 'classic', labels: false, streets: true, buildings: true, pin: 'druppel', photoImg: null, photoUrl: '', loc: null, placed: false, result: null, busy: false, pass: false };
     var map = null, marker = null;
     function say(t, err) { statusEl.textContent = t || ''; statusEl.className = 'hw-kaart-status' + (err ? ' err' : ''); }
-    function changed() { state.result = null; mirrorSoon(); }
-    var mirrorPaint = null;
-    function mirrorSoon() { if (mirrorPaint) mirrorPaint(); }
+    function changed() { state.result = null; }
 
     var clientId;
     try { clientId = localStorage.getItem('hw_ai_client'); } catch (e) {}
@@ -270,7 +260,6 @@
       }
       marker = new maplibregl.Marker({ element: el, anchor: p.anchor, draggable: true }).setLngLat([state.loc.lng, state.loc.lat]).addTo(map);
       el.style.cursor = 'grab';
-      marker.on('drag', mirrorSoon);
       marker.on('dragend', function () { var l = marker.getLngLat(); state.loc = { lng: l.lng, lat: l.lat }; changed(); });
     }
 
@@ -285,7 +274,6 @@
       countryView.style.fontFamily = F.ctyFam; countryView.style.fontWeight = F.ctyW; countryView.style.fontStyle = F.ctyStyle;
       countryView.style.fontSize = L.countryPx + 'px'; countryView.style.letterSpacing = L.countryLs + 'px'; countryView.style.paddingLeft = L.countryLs + 'px'; countryView.style.lineHeight = '1';
       countryView.style.top = L.countryBase != null ? (L.countryBase - L.countryPx * F.base) + 'px' : '';
-      mirrorSoon();
     }
     cityEl.addEventListener('input', function () { drawTexts(); changed(); });
     countryEl.addEventListener('input', function () { drawTexts(); changed(); });
@@ -391,8 +379,7 @@
     // ----- kaart starten -----
     var start = { lng: 4.8952, lat: 52.3702 };
     function startMap() {
-      map = new maplibregl.Map({ container: mapEl, style: buildStyle(state), center: [start.lng, start.lat], zoom: 13.2, attributionControl: false, cooperativeGestures: true, dragRotate: false, pitchWithRotate: false, maxZoom: 18.5, minZoom: 3, fadeDuration: 0, preserveDrawingBuffer: true });
-      map.on('render', mirrorSoon);
+      map = new maplibregl.Map({ container: mapEl, style: buildStyle(state), center: [start.lng, start.lat], zoom: 13.2, attributionControl: false, cooperativeGestures: true, dragRotate: false, pitchWithRotate: false, maxZoom: 18.5, minZoom: 3, fadeDuration: 0 });
       map.touchZoomRotate.disableRotation();
       // Bronvermelding (verplicht bij OpenStreetMap-gegevens): staat klein onderaan de widget.
           map.on('moveend', changed);
@@ -400,45 +387,6 @@
       // Standaard Amsterdam als voorbeeld, tot de klant zelf een plek kiest.
       cityEl.value = 'Amsterdam'; countryEl.value = 'Nederland'; drawTexts();
     }
-    // ----- kaart over de hoofdafbeelding van de productgalerij leggen -----
-    function mountOnImage() {
-      var ov = (root.dataset.overlay || '').split(',').map(parseFloat);
-      if (ov.length !== 3 || ov.some(isNaN)) return;
-      // Spiegel: een niet-aanklikbare kopie van de kaart over de eerste productfoto, die live meebeweegt.
-      var box = document.createElement('div'); box.className = 'hw-kaart-onimg'; box.style.cssText = 'left:' + ov[0] + '%;top:' + ov[1] + '%;width:' + ov[2] + '%;pointer-events:none;aspect-ratio:1/1;overflow:hidden';
-      var cv = document.createElement('canvas'); cv.style.cssText = 'display:block;width:100%;height:100%'; box.appendChild(cv);
-      var pending = false, pinImgs = {};
-      function paint() {
-        pending = false;
-        var W = stageEl.clientWidth, bw = box.clientWidth; if (!W || !bw || !map) return;
-        var px = Math.round(bw * Math.min(window.devicePixelRatio || 1, 2));
-        if (cv.width !== px) { cv.width = cv.height = px; }
-        var ctx = cv.getContext('2d'), p = pinById(state.pin), pt = state.loc ? map.project([state.loc.lng, state.loc.lat]) : null;
-        ctx.fillStyle = BG; ctx.fillRect(0, 0, px, px);
-        try { ctx.drawImage(map.getCanvas(), 0, 0, px, px); } catch (e) {}
-        var draw = function (img) { drawTop(ctx, px, W, pt, img); };
-        if (p.id === 'none' || !pt) draw(null);
-        else if (p.photo) draw(true);
-        else if (pinImgs[p.id]) draw(pinImgs[p.id]);
-        else { draw(null); loadSvgImage(p).then(function (im) { pinImgs[p.id] = im; mirrorSoon(); }); }
-      }
-      mirrorPaint = function () { if (!pending) { pending = true; requestAnimationFrame(paint); } };
-      function place() {
-        var item = null;
-        try { item = document.querySelector(root.dataset.gallery || '.product-gallery-item'); } catch (e) {}
-        if (!item || !item.offsetWidth) return;
-        document.querySelectorAll('.hw-kaart-onimg').forEach(function (x) { if (x !== box) x.remove(); });
-        if (box.parentNode === item) return;
-        if (getComputedStyle(item).position === 'static') item.style.position = 'relative';
-        item.appendChild(box); mirrorSoon();
-      }
-      var t = null;
-      function soon() { clearTimeout(t); t = setTimeout(place, 120); }
-      new MutationObserver(soon).observe(document.body, { childList: true, subtree: true });
-      window.addEventListener('load', soon); window.addEventListener('resize', function () { soon(); mirrorSoon(); });
-      var n = 0, iv = setInterval(function () { place(); if (++n > 40) clearInterval(iv); }, 250);
-    }
-    mountOnImage();
     addJs(MAPLIBRE_JS).then(startMap, function () { say('De kaart kon niet worden geladen. Controleer je verbinding en ververs de pagina.', true); });
 
     // ----- drukbestand maken (in de browser) en uploaden -----
