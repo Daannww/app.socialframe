@@ -8,6 +8,7 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const sharp = require('sharp');
+const img = require('./image');
 const { db, getSetting, setSetting, allSettings } = require('./db');
 const { finalizeVariant, promptFor, enqueue, resume, rid, FILES, ORIGINALS } = require('./pipeline');
 
@@ -58,11 +59,11 @@ const genLimiter = rateLimit({ windowMs: 60 * 60 * 1000, limit: 20, standardHead
 function attemptsLeft(clientId, ip) {
   const max = parseInt(getSetting('max_attempts'), 10);
   const maxIp = parseInt(getSetting('max_attempts_ip'), 10) || max * 3;
-  const byIp = db.prepare("SELECT COUNT(*) c FROM jobs WHERE ip=? AND client_id!='admin-test' AND created_at > datetime('now','-1 day') AND status!='error'").get(ip || '').c;
+  const byIp = db.prepare("SELECT COUNT(*) c FROM jobs WHERE ip=? AND client_id!='admin-test' AND profile!='kaart' AND created_at > datetime('now','-1 day') AND status!='error'").get(ip || '').c;
   return Math.max(0, Math.min(max - attemptsUsed(clientId), maxIp - byIp));
 }
 function attemptsUsed(clientId) {
-  return db.prepare("SELECT COUNT(*) c FROM jobs WHERE client_id=? AND created_at > datetime('now','-1 day') AND status!='error'").get(clientId).c;
+  return db.prepare("SELECT COUNT(*) c FROM jobs WHERE client_id=? AND profile!='kaart' AND created_at > datetime('now','-1 day') AND status!='error'").get(clientId).c;
 }
 
 app.post('/api/generate', genLimiter, (req, res, next) => (looksLikeBot(req) ? res.status(403).json({ error: 'Dit verzoek is geweigerd.' }) : next()), upload.single('photo'), async (req, res) => {
@@ -108,6 +109,42 @@ app.post('/api/generate', genLimiter, (req, res, next) => (looksLikeBot(req) ? r
     console.error(e);
     res.status(500).json({ error: 'Er ging iets mis, probeer het opnieuw.' });
   }
+});
+
+// Landkaart-tegeltje: de browser van de klant maakt het beeld (kaart + tekst + pin); wij maken er het drukbestand van.
+const mapLimiter = rateLimit({ windowMs: 60 * 60 * 1000, limit: 30, standardHeaders: true, legacyHeaders: false, keyGenerator: (req) => clientIp(req), validate: false,
+  message: { error: 'Te veel pogingen, probeer het later opnieuw.' } });
+app.post('/api/map/print', mapLimiter, (req, res, next) => (looksLikeBot(req) ? res.status(403).json({ error: 'Dit verzoek is geweigerd.' }) : next()), upload.single('image'), async (req, res) => {
+  try {
+    const clientId = String(req.body.client_id || '').slice(0, 64);
+    if (!/^[A-Za-z0-9_-]{8,64}$/.test(clientId)) return res.status(400).json({ error: 'Ongeldige sessie.' });
+    if (!req.file) return res.status(400).json({ error: 'Geen afbeelding ontvangen.' });
+    let meta; try { meta = await sharp(req.file.buffer).metadata(); } catch { meta = null; }
+    if (!meta || !['jpeg', 'png', 'webp'].includes(meta.format) || Math.min(meta.width, meta.height) < 600) return res.status(400).json({ error: 'Ongeldige afbeelding.' });
+    const clean = (v) => String(v || '').replace(/[\u0000-\u001f"<>{}\\]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60);
+    const place = clean(req.body.place), country = clean(req.body.country), style = clean(req.body.style);
+    const target = img.targetSize('tegel', 'landscape', allSettings());
+    const { printBuf, previewBuf } = await img.finalize(await sharp(req.file.buffer).flatten({ background: '#ffffff' }).toBuffer(), target);
+    const id = rid();
+    const printFile = `${rid()}-print.jpg`, previewFile = `${rid()}-preview.jpg`;
+    fs.writeFileSync(path.join(FILES, printFile), printBuf);
+    fs.writeFileSync(path.join(FILES, previewFile), previewBuf);
+    db.prepare("INSERT INTO jobs(id,client_id,ip,design_id,profile,orientation,status,preview_file,print_file,print_w,print_h,chosen,custom_text,ua,country,finished_at) VALUES(?,?,?,0,'kaart','landscape','done',?,?,?,?,0,?,?,?,CURRENT_TIMESTAMP)")
+      .run(id, clientId, clientIp(req), previewFile, printFile, target.w, target.h, [place, country].filter(Boolean).join(', ') + (style ? ' · ' + style : ''),
+        String(req.headers['user-agent'] || '').slice(0, 200), String(req.headers['cf-ipcountry'] || '').slice(0, 4));
+    res.json({ job_id: id, preview_url: fileUrl(previewFile), print_url: fileUrl(printFile) });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'Er ging iets mis, probeer het opnieuw.' });
+  }
+});
+
+// Demo-pagina om de kaartwidget te testen (zonder winkelwagen). Niet door zoekmachines te indexeren.
+app.get('/kaart-demo', (req, res) => {
+  const widget = fs.readFileSync(path.join(__dirname, '..', 'widget', 'hw-kaart.liquid'), 'utf8')
+    .replace(/\{%-?[\s\S]*?-?%\}/g, '').replace('data-hw-kaart ', 'data-hw-kaart data-demo="1" ').replace(/data-api="[^"]*"/, `data-api="${BASE}"`)
+    .replace(/data-google-key="[^"]*"/, 'data-google-key=""');
+  res.set('X-Robots-Tag', 'noindex').type('html').send(`<!doctype html><html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Kaart-demo</title><style>body{font-family:Montserrat,system-ui,sans-serif;max-width:520px;margin:20px auto;padding:0 12px}</style></head><body>${widget}</body></html>`);
 });
 
 // Eenvoudige botfilter: geen/zeer korte user-agent of bekende scripts/headless-browsers.
@@ -252,7 +289,7 @@ app.get('/admin/api/jobs', (req, res) => {
   const where = w.join(' AND ');
   const total = db.prepare(`SELECT COUNT(*) c FROM jobs j WHERE ${where}`).get(...a).c;
   const offset = Math.max(0, parseInt(req.query.offset, 10) || 0);
-  const rows = db.prepare(`SELECT j.*, d.name design_name FROM jobs j LEFT JOIN designs d ON d.id=j.design_id WHERE ${where} ORDER BY j.created_at DESC LIMIT 60 OFFSET ?`).all(...a, offset)
+  const rows = db.prepare(`SELECT j.*, COALESCE(d.name, CASE WHEN j.profile='kaart' THEN 'Landkaart' END) design_name FROM jobs j LEFT JOIN designs d ON d.id=j.design_id WHERE ${where} ORDER BY j.created_at DESC LIMIT 60 OFFSET ?`).all(...a, offset)
     .map((j) => {
       const vs = parseVariants(j);
       return { id: j.id, created_at: j.created_at, status: j.status, error: j.error, design_name: j.design_name, profile: j.profile, custom_text: j.custom_text, ip: j.ip, country: j.country,
@@ -269,7 +306,7 @@ app.get('/admin/api/state', (req, res) => {
     settings: allSettings(),
     has_fal_key: !!process.env.FAL_KEY,
     activity: activity(),
-    recent: db.prepare('SELECT j.*, d.name design_name FROM jobs j LEFT JOIN designs d ON d.id=j.design_id ORDER BY j.created_at DESC LIMIT 30').all()
+    recent: db.prepare("SELECT j.*, COALESCE(d.name, CASE WHEN j.profile='kaart' THEN 'Landkaart' END) design_name FROM jobs j LEFT JOIN designs d ON d.id=j.design_id ORDER BY j.created_at DESC LIMIT 30").all()
       .map((j) => { const v0 = parseVariants(j)[0] || {}; return { ...j, preview_url: fileUrl(j.preview_file || v0.preview_file), print_url: fileUrl(j.print_file || v0.print_file), variants: parseVariants(j).length }; }),
   });
 });

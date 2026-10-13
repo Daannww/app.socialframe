@@ -1,0 +1,470 @@
+{%- comment -%}
+  Landkaart-tegeltje: klant zoekt een plek, beweegt/zoomt de kaart, past plaats en land aan en kiest een pin.
+  Zet dit in een Custom Liquid-blok op de productpagina van het kaart-tegeltje.
+  Optioneel: zet hieronder een Google Places API-sleutel (alleen voor het zoekveld). Leeg = gratis zoekdienst (Photon/OpenStreetMap).
+{%- endcomment -%}
+{%- assign hw_kaart_api = 'https://ai-foto.socialframe.nl' -%}
+{%- assign hw_kaart_google_key = '' -%}
+
+<div class="hw-kaart" data-hw-kaart data-api="{{ hw_kaart_api }}" data-google-key="{{ hw_kaart_google_key }}">
+  <div class="hw-kaart-heading">Personaliseren</div>
+
+  <label class="hw-kaart-label" for="hw-kaart-search">Zoek jouw favoriete plek.</label>
+  <div class="hw-kaart-searchwrap">
+    <input type="text" class="hw-kaart-input" id="hw-kaart-search" data-hw-k-search autocomplete="off" placeholder="Straat, plaats of adres">
+    <div class="hw-kaart-sugg" data-hw-k-sugg hidden></div>
+  </div>
+
+  <div class="hw-kaart-stage" data-hw-k-stage>
+    <div class="hw-kaart-map" data-hw-k-map></div>
+    <div class="hw-kaart-fade" data-hw-k-fade></div>
+    <div class="hw-kaart-text" data-hw-k-textbox>
+      <div class="hw-kaart-city" data-hw-k-cityview></div>
+      <div class="hw-kaart-country" data-hw-k-countryview></div>
+    </div>
+  </div>
+  <div class="hw-kaart-attr">Kaartgegevens © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>-bijdragers</div>
+  <div class="hw-kaart-hint">Sleep de kaart om te verplaatsen. Zoom met de knoppen (of Ctrl + scrollen).</div>
+
+  <label class="hw-kaart-label" for="hw-kaart-city">Typ hier jouw: Stad of Dorp of eigen tekst.</label>
+  <input type="text" class="hw-kaart-input" id="hw-kaart-city" data-hw-k-city maxlength="40" autocomplete="off">
+
+  <label class="hw-kaart-label" for="hw-kaart-country">Typ hier jouw: Land of regio of eigen tekst.</label>
+  <input type="text" class="hw-kaart-input" id="hw-kaart-country" data-hw-k-country maxlength="40" autocomplete="off">
+
+  <div class="hw-kaart-label">Details op de kaart:</div>
+  <div class="hw-kaart-modes" data-hw-k-modes>
+    <button type="button" class="hw-kaart-mode" data-mode="both" aria-pressed="true">Wegen en water</button>
+    <button type="button" class="hw-kaart-mode" data-mode="roads" aria-pressed="false">Alleen wegen</button>
+    <button type="button" class="hw-kaart-mode" data-mode="water" aria-pressed="false">Alleen water</button>
+  </div>
+
+  <div class="hw-kaart-label">Pin</div>
+  <div class="hw-kaart-pins" data-hw-k-pins></div>
+
+  <div class="hw-kaart-status" data-hw-k-status role="status" aria-live="polite"></div>
+  <div class="hw-kaart-demo" data-hw-k-demo hidden>
+    <button type="button" class="hw-kaart-demobtn" data-hw-k-demobtn>Test: maak printbestand</button>
+    <div data-hw-k-demoout></div>
+  </div>
+</div>
+
+<style>
+  .hw-kaart{font-family:inherit;font-size:14px;color:#333;border:1.5px solid #E2E2E2;border-radius:24px;background:#fff;padding:22px 18px 20px;margin:1.75rem 0 1rem;box-sizing:border-box}
+  .hw-kaart *{box-sizing:border-box}
+  .hw-kaart-heading{font-family:inherit;font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#111;margin:0 0 16px}
+  .hw-kaart-label{display:block;font-size:14px;font-weight:700;color:#121212;margin:18px 0 8px}
+  .hw-kaart-heading + .hw-kaart-label{margin-top:0}
+  .hw-kaart-input{width:100%;padding:13px 14px;border:1.5px solid #8A8A8A;border-radius:12px;font:inherit;font-size:16px;color:#222;background:#fff}
+  .hw-kaart-searchwrap{position:relative}
+  .hw-kaart-sugg{position:absolute;z-index:30;left:0;right:0;top:100%;margin-top:4px;background:#fff;border:1px solid #D0D0D0;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.14);overflow:hidden}
+  .hw-kaart-sugg button{display:block;width:100%;text-align:left;border:0;background:#fff;padding:11px 14px;font:inherit;font-size:14px;color:#222;cursor:pointer;border-bottom:1px solid #F0F0F0}
+  .hw-kaart-sugg button:last-child{border-bottom:0}
+  .hw-kaart-sugg button:hover,.hw-kaart-sugg button:focus{background:#F5F5F5;outline:0}
+  .hw-kaart-sugg small{display:block;color:#777;font-size:12px;margin-top:2px}
+  .hw-kaart-stage{position:relative;width:100%;aspect-ratio:1/1;margin-top:14px;border:1.5px solid #E2E2E2;border-radius:6px;overflow:hidden;background:#F4F1EA;touch-action:pan-y}
+  .hw-kaart-map{position:absolute;inset:0}
+  .hw-kaart-fade{position:absolute;left:0;right:0;bottom:0;height:36%;pointer-events:none;background:linear-gradient(to top,#fff 0%,rgba(255,255,255,.94) 38%,rgba(255,255,255,0) 100%)}
+  .hw-kaart-text{position:absolute;left:0;right:0;bottom:0;text-align:center;pointer-events:none;color:#111}
+  .hw-kaart-city,.hw-kaart-country{position:absolute;left:0;right:0;white-space:nowrap;font-family:"Playfair Display",Georgia,serif}
+  .hw-kaart-city{font-weight:700}
+  .hw-kaart-country{font-style:italic;font-weight:600}
+  .hw-kaart-attr{margin-top:6px;font-size:11px;color:#888}
+  .hw-kaart-attr a{color:#888}
+  .hw-kaart-hint{margin-top:2px;font-size:12px;color:#777}
+  .hw-kaart-modes{display:flex;flex-wrap:wrap;gap:8px}
+  .hw-kaart-mode{border:1.5px solid #D0D0D0;border-radius:999px;background:#fff;color:#222;padding:9px 16px;font:inherit;font-size:14px;cursor:pointer}
+  .hw-kaart-mode[aria-pressed="true"]{border-color:#111;background:#111;color:#fff}
+  .hw-kaart-pins{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px}
+  .hw-kaart-pin{height:64px;border:1.5px solid #E2E2E2;border-radius:12px;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:6px;font:inherit;font-size:13px;color:#333;line-height:1.1}
+  .hw-kaart-pin svg{height:100%;width:auto;max-width:100%}
+  .hw-kaart-pin[aria-pressed="true"]{border-color:#111;box-shadow:0 0 0 1px #111}
+  .hw-kaart-status{margin-top:12px;font-size:13px;color:#555;min-height:18px}
+  .hw-kaart-status.err{color:#b3261e}
+  .hw-kaart-demo{margin-top:14px;padding-top:12px;border-top:1px dashed #ccc}
+  .hw-kaart-demobtn{border:1.5px solid #111;border-radius:999px;background:#fff;padding:10px 18px;font:inherit;font-size:14px;font-weight:600;cursor:pointer}
+  .hw-kaart-demo img{max-width:100%;margin-top:10px;border:1px solid #ddd}
+  .hw-kaart .maplibregl-ctrl-group button{width:36px;height:36px}
+</style>
+
+<script>
+(function () {
+  var MAPLIBRE_JS = 'https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.js';
+  var MAPLIBRE_CSS = 'https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.css';
+  var FONT_CSS = 'https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,600&display=swap';
+  var TILES = 'https://tiles.openfreemap.org/planet';
+  var GLYPHS = 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf';
+  var BG = '#F4F1EA', WATER = '#C9C9C9', ROAD_MINOR = '#5A5A5A', ROAD_MID = '#3B3B3B', ROAD_MAJOR = '#222222';
+  var PRINT_PX = 1600;
+
+  function addCss(href) { if (document.querySelector('link[href="' + href + '"]')) return; var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = href; document.head.appendChild(l); }
+  function addJs(src) {
+    return new Promise(function (ok, fail) {
+      if (window.maplibregl) return ok();
+      var ex = document.querySelector('script[data-hw-maplibre]');
+      if (ex) { ex.addEventListener('load', function () { ok(); }); ex.addEventListener('error', fail); return; }
+      var s = document.createElement('script'); s.src = src; s.async = true; s.setAttribute('data-hw-maplibre', '');
+      s.onload = function () { ok(); }; s.onerror = fail; document.head.appendChild(s);
+    });
+  }
+  addCss(MAPLIBRE_CSS); addCss(FONT_CSS);
+
+  // ---- pins (zelfde tekening op de kaart en in het drukbestand) ----
+  var HEART = 'M16 28C4 19 2 12 2 9C2 5 5 2.5 8.5 2.5C11.5 2.5 14.5 4.5 16 7.5C17.5 4.5 20.5 2.5 23.5 2.5C27 2.5 30 5 30 9C30 12 28 19 16 28Z';
+  var DROP = 'M16 43C16 43 3 26 3 16A13 13 0 0 1 29 16C29 26 16 43 16 43Z';
+  var PINS = [
+    { id: 'none', label: 'geen pin' },
+    { id: 'druppel', label: 'Druppel', vb: '0 0 32 44', anchor: 'bottom', svg: '<path d="' + DROP + '" fill="#D32F2F"/><circle cx="16" cy="16" r="5.5" fill="#fff"/>' },
+    { id: 'hart', label: 'Hart', vb: '0 0 32 32', anchor: 'center', svg: '<path d="' + HEART + '" fill="#D9534F"/>' },
+    { id: 'hartdruppel', label: 'Hartdruppel', vb: '0 0 32 44', anchor: 'bottom', svg: '<path d="' + DROP + '" fill="#D9534F"/><g transform="translate(8.6 8.6) scale(.45)"><path d="' + HEART + '" fill="#fff"/></g>' },
+    { id: 'hartpunt', label: 'Hart met punt', vb: '0 0 32 36', anchor: 'bottom', svg: '<path d="M16 35C3 22 1 14 1 10C1 5 5 2 9 2C12 2 15 4 16 7C17 4 20 2 23 2C27 2 31 5 31 10C31 14 29 22 16 35Z" fill="#D62828"/>' },
+    { id: 'hartrood', label: 'Hart rood', vb: '0 0 32 32', anchor: 'center', svg: '<path d="' + HEART + '" fill="#B71C1C"/>' }
+  ];
+  function pinSvg(p) { return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="' + p.vb + '">' + p.svg + '</svg>'; }
+  function pinById(id) { for (var i = 0; i < PINS.length; i++) if (PINS[i].id === id) return PINS[i]; return PINS[0]; }
+
+  // ---- kaartstijl (OpenStreetMap-data via OpenFreeMap) ----
+  function roadW(a, b, c) { return ['interpolate', ['exponential', 1.5], ['zoom'], 10, a, 16, b, 20, c]; }
+  function buildStyle(mode) {
+    var roadsOn = mode !== 'water', waterOn = mode !== 'roads';
+    var vis = function (on) { return { visibility: on ? 'visible' : 'none' }; };
+    var inList = function (list) { return ['match', ['get', 'class'], list, true, false]; };
+    var notTunnel = ['!=', ['get', 'brunnel'], 'tunnel'];
+    return {
+      version: 8, glyphs: GLYPHS,
+      sources: { omt: { type: 'vector', url: TILES } },
+      layers: [
+        { id: 'bg', type: 'background', paint: { 'background-color': BG } },
+        { id: 'water', type: 'fill', source: 'omt', 'source-layer': 'water', layout: vis(waterOn), paint: { 'fill-color': WATER } },
+        { id: 'waterway', type: 'line', source: 'omt', 'source-layer': 'waterway', layout: vis(waterOn), paint: { 'line-color': WATER, 'line-width': roadW(0.3, 1.6, 6) } },
+        { id: 'r_minor', type: 'line', source: 'omt', 'source-layer': 'transportation', minzoom: 11, layout: Object.assign(vis(roadsOn), { 'line-cap': 'butt', 'line-join': 'round' }),
+          filter: ['all', notTunnel, inList(['minor', 'service', 'track'])], paint: { 'line-color': ROAD_MINOR, 'line-width': roadW(0.25, 1.4, 5) } },
+        { id: 'r_mid', type: 'line', source: 'omt', 'source-layer': 'transportation', layout: Object.assign(vis(roadsOn), { 'line-join': 'round' }),
+          filter: ['all', notTunnel, inList(['tertiary', 'secondary'])], paint: { 'line-color': ROAD_MID, 'line-width': roadW(0.5, 2.6, 9) } },
+        { id: 'r_major', type: 'line', source: 'omt', 'source-layer': 'transportation', layout: Object.assign(vis(roadsOn), { 'line-join': 'round' }),
+          filter: ['all', notTunnel, inList(['primary', 'trunk', 'motorway'])], paint: { 'line-color': ROAD_MAJOR, 'line-width': roadW(0.8, 4.2, 13) } }
+      ]
+    };
+  }
+
+  // ---- tekst onderaan: zelfde indeling op de kaart en in het drukbestand ----
+  var FONT = '"Playfair Display", Georgia, serif';
+  var mctx = document.createElement('canvas').getContext('2d');
+  function textWidth(str, px, weight, style, ls) {
+    mctx.font = style + ' ' + weight + ' ' + px + 'px ' + FONT;
+    var w = 0; for (var i = 0; i < str.length; i++) w += mctx.measureText(str[i]).width + (i < str.length - 1 ? ls : 0);
+    return w;
+  }
+  // geeft px-groottes en y-posities (als fractie van de breedte) terug
+  function layoutText(city, country, W) {
+    var maxW = W * 0.86;
+    var cityPx = W * 0.105;
+    var cityLs = 0;
+    while (city && cityPx > W * 0.045 && textWidth(city, cityPx, 700, 'normal', cityLs) > maxW) cityPx -= 1;
+    var cPx = W * 0.042, cLs = W * 0.012;
+    while (country && cPx > W * 0.025 && textWidth(country, cPx, 600, 'italic', cLs) > maxW) { cPx -= 1; cLs = cPx * 0.28; }
+    var hasCity = !!city, hasCountry = !!country;
+    var bottom = W * 0.055;
+    var countryBase = hasCountry ? W - bottom : null;           // onderkant (baseline) van land
+    var cityBase = hasCity ? (hasCountry ? W - bottom - cPx * 1.5 : W - bottom - cPx * 0.3) : null;
+    return { cityPx: cityPx, cityLs: cityLs, countryPx: cPx, countryLs: cLs, cityBase: cityBase, countryBase: countryBase };
+  }
+  function drawSpaced(ctx, str, cx, y, ls) {
+    var total = 0, ws = [];
+    for (var i = 0; i < str.length; i++) { var w = ctx.measureText(str[i]).width; ws.push(w); total += w + (i < str.length - 1 ? ls : 0); }
+    var x = cx - total / 2;
+    for (var j = 0; j < str.length; j++) { ctx.fillText(str[j], x, y); x += ws[j] + ls; }
+  }
+
+  function initOne(root) {
+    if (root.dataset.hwKInit) return; root.dataset.hwKInit = '1';
+    var API = (root.dataset.api || '').replace(/\/$/, '');
+    var GKEY = (root.dataset.googleKey || '').trim();
+    var $ = function (s) { return root.querySelector(s); };
+    var searchEl = $('[data-hw-k-search]'), suggEl = $('[data-hw-k-sugg]'), mapEl = $('[data-hw-k-map]'), stageEl = $('[data-hw-k-stage]');
+    var cityEl = $('[data-hw-k-city]'), countryEl = $('[data-hw-k-country]'), cityView = $('[data-hw-k-cityview]'), countryView = $('[data-hw-k-countryview]');
+    var fadeEl = $('[data-hw-k-fade]'), statusEl = $('[data-hw-k-status]'), pinsEl = $('[data-hw-k-pins]');
+    var state = { mode: 'both', pin: 'druppel', loc: null, placed: false, result: null, busy: false, pass: false };
+    var map = null, marker = null;
+    function say(t, err) { statusEl.textContent = t || ''; statusEl.className = 'hw-kaart-status' + (err ? ' err' : ''); }
+    function changed() { state.result = null; }
+
+    var clientId;
+    try { clientId = localStorage.getItem('hw_ai_client'); } catch (e) {}
+    if (!clientId) { clientId = 'c' + Math.random().toString(36).slice(2) + Date.now().toString(36); try { localStorage.setItem('hw_ai_client', clientId); } catch (e) {} }
+
+    // ----- pins kiezen -----
+    PINS.forEach(function (p) {
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'hw-kaart-pin'; b.setAttribute('aria-label', p.label);
+      b.setAttribute('aria-pressed', p.id === state.pin ? 'true' : 'false');
+      if (p.id === 'none') b.textContent = 'geen pin'; else b.innerHTML = pinSvg(p);
+      b.addEventListener('click', function () {
+        state.pin = p.id; pinsEl.querySelectorAll('.hw-kaart-pin').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+        drawMarker(); changed();
+      });
+      pinsEl.appendChild(b);
+    });
+    function drawMarker() {
+      if (marker) { marker.remove(); marker = null; }
+      var p = pinById(state.pin);
+      if (!map || p.id === 'none' || !state.loc) return;
+      var el = document.createElement('div'); el.innerHTML = pinSvg(p);
+      var w = stageEl.clientWidth * 0.085; el.style.width = w + 'px'; el.style.height = (w * (p.vb.split(' ')[3] / p.vb.split(' ')[2])) + 'px';
+      el.firstChild.style.cssText = 'width:100%;height:100%;display:block;filter:drop-shadow(0 1px 2px rgba(0,0,0,.35))';
+      marker = new maplibregl.Marker({ element: el, anchor: p.anchor }).setLngLat([state.loc.lng, state.loc.lat]).addTo(map);
+    }
+
+    // ----- plaats/land tekst -----
+    function drawTexts() {
+      var W = stageEl.clientWidth; if (!W) return;
+      var city = cityEl.value.trim(), country = countryEl.value.trim();
+      var L = layoutText(city, country, W);
+      var asc = function (px) { return px * 1.0; };
+      cityView.textContent = city; countryView.textContent = country;
+      cityView.style.fontSize = L.cityPx + 'px'; cityView.style.lineHeight = '1'; cityView.style.top = L.cityBase != null ? (L.cityBase - L.cityPx * 0.915) + 'px' : '';
+      countryView.style.fontSize = L.countryPx + 'px'; countryView.style.letterSpacing = L.countryLs + 'px'; countryView.style.paddingLeft = L.countryLs + 'px'; countryView.style.lineHeight = '1';
+      countryView.style.top = L.countryBase != null ? (L.countryBase - L.countryPx * 0.915) + 'px' : '';
+    }
+    cityEl.addEventListener('input', function () { drawTexts(); changed(); });
+    countryEl.addEventListener('input', function () { drawTexts(); changed(); });
+    if (window.ResizeObserver) new ResizeObserver(function () { drawTexts(); drawMarker(); }).observe(stageEl);
+    if (document.fonts && document.fonts.load) {
+      Promise.all([document.fonts.load('700 40px "Playfair Display"'), document.fonts.load('italic 600 40px "Playfair Display"')]).then(drawTexts, function () {});
+    }
+
+    // ----- kaartstijl kiezen -----
+    root.querySelectorAll('[data-mode]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        state.mode = b.dataset.mode;
+        root.querySelectorAll('[data-mode]').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+        if (map) applyMode(map, state.mode);
+        changed();
+      });
+    });
+    function applyMode(m, mode) {
+      var roads = mode !== 'water', water = mode !== 'roads';
+      ['r_minor', 'r_mid', 'r_major'].forEach(function (id) { if (m.getLayer(id)) m.setLayoutProperty(id, 'visibility', roads ? 'visible' : 'none'); });
+      ['water', 'waterway'].forEach(function (id) { if (m.getLayer(id)) m.setLayoutProperty(id, 'visibility', water ? 'visible' : 'none'); });
+    }
+
+    // ----- zoeken -----
+    var regionNames = null;
+    try { regionNames = new Intl.DisplayNames(['nl'], { type: 'region' }); } catch (e) {}
+    var timer = null, seq = 0;
+    function hideSugg() { suggEl.hidden = true; suggEl.replaceChildren(); }
+    function showSugg(items) {
+      suggEl.replaceChildren();
+      items.forEach(function (it) {
+        var b = document.createElement('button'); b.type = 'button';
+        b.textContent = it.title; var s = document.createElement('small'); s.textContent = it.sub || ''; b.appendChild(s);
+        b.addEventListener('click', function () { hideSugg(); searchEl.value = it.title + (it.sub ? ', ' + it.sub : ''); pick(it); });
+        suggEl.appendChild(b);
+      });
+      suggEl.hidden = !items.length;
+    }
+    function photon(q) {
+      return fetch('https://photon.komoot.io/api/?limit=6&lang=de&q=' + encodeURIComponent(q)).then(function (r) { return r.json(); }).then(function (d) {
+        return (d.features || []).map(function (f) {
+          var p = f.properties || {}, g = f.geometry.coordinates;
+          var isPlace = /^(city|town|village|hamlet|suburb|municipality|locality|borough|neighbourhood|district)$/.test(p.osm_value || '') || p.osm_key === 'place';
+          var line1 = [p.name, p.street && !isPlace ? p.street + (p.housenumber ? ' ' + p.housenumber : '') : ''].filter(Boolean);
+          if (p.street && p.name === p.street) line1 = [p.street + (p.housenumber ? ' ' + p.housenumber : '')];
+          var city = p.city || p.town || p.village || p.municipality || p.district || p.county || '';
+          var cityName = isPlace ? (p.name || city) : (city || p.name || '');
+          var country = (p.countrycode && regionNames) ? regionNames.of(p.countrycode.toUpperCase()) : (p.country || '');
+          return { title: line1.join(', ') || p.name || q, sub: [isPlace ? '' : city, p.state, country].filter(Boolean).join(', '), lng: g[0], lat: g[1], city: cityName, country: country, zoom: isPlace ? 13.5 : 16 };
+        });
+      });
+    }
+    function googleSuggest(q) {
+      return fetch('https://places.googleapis.com/v1/places:autocomplete', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Goog-Api-Key': GKEY }, body: JSON.stringify({ input: q, languageCode: 'nl' }) })
+        .then(function (r) { return r.json(); }).then(function (d) {
+          return (d.suggestions || []).filter(function (s) { return s.placePrediction; }).map(function (s) {
+            var pp = s.placePrediction; var m = pp.structuredFormat || {};
+            return { title: (m.mainText && m.mainText.text) || pp.text.text, sub: (m.secondaryText && m.secondaryText.text) || '', placeId: pp.placeId };
+          });
+        });
+    }
+    function googleDetails(it) {
+      return fetch('https://places.googleapis.com/v1/places/' + encodeURIComponent(it.placeId) + '?languageCode=nl', { headers: { 'X-Goog-Api-Key': GKEY, 'X-Goog-FieldMask': 'location,addressComponents,types' } })
+        .then(function (r) { return r.json(); }).then(function (d) {
+          var city = '', country = '', comps = d.addressComponents || [];
+          comps.forEach(function (c) {
+            var t = c.types || [];
+            if (!city && (t.indexOf('locality') > -1 || t.indexOf('postal_town') > -1)) city = c.longText;
+            if (t.indexOf('country') > -1) country = c.longText;
+          });
+          var isArea = (d.types || []).some(function (t) { return /^(locality|political|administrative_area_level_[12]|sublocality)$/.test(t); });
+          return { title: it.title, lng: d.location.longitude, lat: d.location.latitude, city: city || it.title, country: country, zoom: isArea ? 13.5 : 16 };
+        });
+    }
+    function pick(it) {
+      var go = it.placeId ? googleDetails(it) : Promise.resolve(it);
+      go.then(function (r) {
+        state.loc = { lng: r.lng, lat: r.lat }; state.placed = true;
+        cityEl.value = r.city || ''; countryEl.value = r.country || '';
+        drawTexts();
+        if (map) { map.jumpTo({ center: [r.lng, r.lat], zoom: r.zoom || 14 }); drawMarker(); }
+        changed(); say('');
+      }).catch(function () { say('Deze plek kon niet worden geladen, probeer een andere.', true); });
+    }
+    searchEl.addEventListener('input', function () {
+      clearTimeout(timer); var q = searchEl.value.trim();
+      if (q.length < 3) { hideSugg(); return; }
+      timer = setTimeout(function () {
+        var my = ++seq;
+        (GKEY ? googleSuggest(q) : photon(q)).then(function (items) { if (my === seq) showSugg(items); }).catch(function () { if (my === seq) hideSugg(); });
+      }, 300);
+    });
+    searchEl.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); var f = suggEl.querySelector('button'); if (f) f.click(); } });
+    document.addEventListener('click', function (e) { if (!root.contains(e.target)) hideSugg(); });
+
+    // ----- kaart starten -----
+    var start = { lng: 4.8952, lat: 52.3702 };
+    function startMap() {
+      map = new maplibregl.Map({ container: mapEl, style: buildStyle(state.mode), center: [start.lng, start.lat], zoom: 13.2, attributionControl: false, cooperativeGestures: true, dragRotate: false, pitchWithRotate: false, maxZoom: 18.5, minZoom: 3, fadeDuration: 0 });
+      map.touchZoomRotate.disableRotation();
+      map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
+      map.on('moveend', changed);
+      map.once('load', function () { say(''); });
+      // Standaard Amsterdam als voorbeeld, tot de klant zelf een plek kiest.
+      cityEl.value = 'Amsterdam'; countryEl.value = 'Nederland'; drawTexts();
+    }
+    addJs(MAPLIBRE_JS).then(startMap, function () { say('De kaart kon niet worden geladen. Controleer je verbinding en ververs de pagina.', true); });
+
+    // ----- drukbestand maken (in de browser) en uploaden -----
+    function loadSvgImage(p) {
+      return new Promise(function (ok) {
+        var img = new Image(); img.onload = function () { ok(img); }; img.onerror = function () { ok(null); };
+        img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(pinSvg(p));
+      });
+    }
+    function renderPrint() {
+      var W = stageEl.clientWidth, size = PRINT_PX, pr = size / W;
+      var host = document.createElement('div'); host.style.cssText = 'position:fixed;left:-20000px;top:0;width:' + W + 'px;height:' + W + 'px;pointer-events:none';
+      document.body.appendChild(host);
+      var c = map.getCenter();
+      var m2 = new maplibregl.Map({ container: host, style: buildStyle(state.mode), center: [c.lng, c.lat], zoom: map.getZoom(), interactive: false, attributionControl: false, pixelRatio: pr, fadeDuration: 0, preserveDrawingBuffer: true });
+      return new Promise(function (ok, fail) {
+        var done = false, t = setTimeout(function () { if (!done) { done = true; m2.remove(); host.remove(); fail(new Error('De kaart laadde te langzaam, probeer het opnieuw.')); } }, 25000);
+        m2.once('idle', function () {
+          if (done) return;
+          // 'idle' kan al afgaan vóór de stijl compleet is: wacht tot alle tegels er zijn.
+          var tries = 0;
+          (function waitTiles() {
+            if (done) return;
+            if (!m2.areTilesLoaded() && tries++ < 60) return setTimeout(waitTiles, 250);
+            done = true; clearTimeout(t);
+            var cnv = document.createElement('canvas'); cnv.width = size; cnv.height = size;
+            var ctx = cnv.getContext('2d');
+            ctx.fillStyle = BG; ctx.fillRect(0, 0, size, size);
+            ctx.drawImage(m2.getCanvas(), 0, 0, size, size);
+            var p = pinById(state.pin), pt = state.loc ? m2.project([state.loc.lng, state.loc.lat]) : null;
+            var finish = function (pinImg) {
+              var k = size / W;
+              if (pinImg && pt) {
+                var pw = W * 0.085 * k, ph = pw * (p.vb.split(' ')[3] / p.vb.split(' ')[2]);
+                var x = pt.x * k - pw / 2, y = p.anchor === 'bottom' ? pt.y * k - ph : pt.y * k - ph / 2;
+                ctx.shadowColor = 'rgba(0,0,0,.35)'; ctx.shadowBlur = 3 * k; ctx.shadowOffsetY = 1 * k;
+                ctx.drawImage(pinImg, x, y, pw, ph); ctx.shadowColor = 'transparent';
+              }
+              var g = ctx.createLinearGradient(0, size, 0, size * 0.64);
+              g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.38, 'rgba(255,255,255,.94)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+              ctx.fillStyle = g; ctx.fillRect(0, size * 0.64, size, size * 0.36);
+              var city = cityEl.value.trim(), country = countryEl.value.trim();
+              var L = layoutText(city, country, W);
+              ctx.fillStyle = '#111'; ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';
+              if (city && L.cityBase != null) { ctx.font = '700 ' + (L.cityPx * k) + 'px ' + FONT; drawSpaced(ctx, city, size / 2, L.cityBase * k, 0); }
+              if (country && L.countryBase != null) { ctx.font = 'italic 600 ' + (L.countryPx * k) + 'px ' + FONT; drawSpaced(ctx, country, size / 2, L.countryBase * k, L.countryLs * k); }
+              m2.remove(); host.remove();
+              cnv.toBlob(function (b) { b ? ok(b) : fail(new Error('Afbeelding maken mislukt.')); }, 'image/jpeg', 0.92);
+            };
+            if (p.id !== 'none' && pt) loadSvgImage(p).then(finish); else finish(null);
+          })();
+        });
+      });
+    }
+    var MODE_LABEL = { both: 'Wegen en water', roads: 'Alleen wegen', water: 'Alleen water' };
+    function buildAndUpload() {
+      if (state.busy) return Promise.reject(new Error('busy'));
+      if (!map) return Promise.reject(new Error('De kaart is nog niet geladen.'));
+      if (!state.placed) return Promise.reject(new Error('Zoek eerst jouw plek.'));
+      state.busy = true;
+      var wait = (document.fonts && document.fonts.load) ? Promise.all([document.fonts.load('700 40px "Playfair Display"'), document.fonts.load('italic 600 40px "Playfair Display"')]).catch(function () {}) : Promise.resolve();
+      return wait.then(renderPrint).then(function (blob) {
+        var fd = new FormData();
+        fd.append('image', blob, 'kaart.jpg'); fd.append('client_id', clientId);
+        fd.append('place', cityEl.value.trim()); fd.append('country', countryEl.value.trim()); fd.append('style', MODE_LABEL[state.mode]);
+        return fetch(API + '/api/map/print', { method: 'POST', body: fd }).then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || 'Opslaan mislukt'); return j; }); });
+      }).then(function (j) {
+        state.busy = false;
+        state.result = { job_id: j.job_id, preview_url: j.preview_url, print_url: j.print_url, design: 'Landkaart – ' + MODE_LABEL[state.mode] };
+        return state.result;
+      }, function (e) { state.busy = false; throw e; });
+    }
+
+    // ----- winkelwagen -----
+    function getForms() {
+      var f = document.querySelectorAll('.product-form .form');
+      if (f.length) return f;
+      var fb = document.querySelector('form[data-type="add-to-cart-form"]');
+      return fb ? [fb] : [];
+    }
+    function setProps(r) {
+      getForms().forEach(function (form) {
+        form.querySelectorAll('[data-hw-k-prop]').forEach(function (el) { el.remove(); });
+        var P = {
+          'properties[Uw personalisatie]': r.preview_url, 'properties[Stijl]': r.design,
+          'properties[Plaats]': cityEl.value.trim(), 'properties[Land]': countryEl.value.trim(),
+          'properties[_AI drukbestand]': r.print_url, 'properties[_AI job]': r.job_id
+        };
+        if (state.pin !== 'none') P['properties[Pin]'] = pinById(state.pin).label;
+        Object.keys(P).forEach(function (n) { var i = document.createElement('input'); i.type = 'hidden'; i.name = n; i.value = P[n]; i.setAttribute('data-hw-k-prop', ''); form.appendChild(i); });
+      });
+    }
+    var toastEl = null, toastTimer = null;
+    function toast(anchor, msg, ms) {
+      if (!toastEl) {
+        toastEl = document.createElement('div'); toastEl.setAttribute('role', 'alert');
+        toastEl.style.cssText = 'position:fixed;z-index:99999;background:#fff;color:#444;font:500 15px/1.3 inherit;font-family:inherit;padding:14px 20px;border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,.22);text-align:center;max-width:90vw;pointer-events:none;transform:translate(-50%,-50%);transition:opacity .25s';
+        document.body.appendChild(toastEl);
+      }
+      var r = anchor.getBoundingClientRect();
+      toastEl.textContent = msg; toastEl.style.left = (r.left + r.width / 2) + 'px'; toastEl.style.top = (r.top + r.height / 2) + 'px';
+      toastEl.style.opacity = '1'; toastEl.style.display = 'block';
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () { toastEl.style.opacity = '0'; setTimeout(function () { toastEl.style.display = 'none'; }, 260); }, ms || 2500);
+    }
+    function intercept(e, target) {
+      if (state.pass) return;
+      if (root.hidden || root.offsetParent === null) return;
+      if (!target || !target.closest || !target.closest('.product-form, form[data-type="add-to-cart-form"]')) return;
+      var btn = target.matches && target.matches('button, input') ? target : (target.querySelector && target.querySelector('button[type="submit"], button[name="add"]')) || target;
+      if (state.result) { setProps(state.result); return; }
+      e.preventDefault(); e.stopImmediatePropagation();
+      if (state.busy) { toast(btn, 'Even geduld, je drukbestand wordt gemaakt…', 2500); return; }
+      toast(btn, 'Even geduld, je drukbestand wordt gemaakt…', 30000);
+      buildAndUpload().then(function (r) {
+        setProps(r); toast(btn, 'Klaar!', 600);
+        state.pass = true; btn.click(); setTimeout(function () { state.pass = false; }, 2000);
+      }, function (err) { if (err && err.message !== 'busy') toast(btn, err.message || 'Er ging iets mis, probeer het opnieuw.', 3500); });
+    }
+    document.addEventListener('submit', function (e) { intercept(e, e.target); }, true);
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest && e.target.closest('button[type="submit"], button[name="add"], input[type="submit"]');
+      if (btn) intercept(e, btn);
+    }, true);
+
+    // ----- testknop (alleen op de demo-pagina) -----
+    if (root.dataset.demo) {
+      $('[data-hw-k-demo]').hidden = false;
+      $('[data-hw-k-demobtn]').addEventListener('click', function () {
+        var out = $('[data-hw-k-demoout]'); out.textContent = 'Bezig…';
+        buildAndUpload().then(function (r) { out.innerHTML = '<div>Klaar: <a target="_blank" href="' + r.print_url + '">drukbestand</a></div><img src="' + r.preview_url + '" alt="">'; }, function (err) { out.textContent = 'Fout: ' + err.message; });
+      });
+    }
+    window.__hwKaart = { state: state, buildAndUpload: buildAndUpload, getMap: function () { return map; }, pick: pick };
+  }
+  document.querySelectorAll('[data-hw-kaart]').forEach(initOne);
+})();
+</script>
