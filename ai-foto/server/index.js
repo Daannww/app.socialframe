@@ -176,14 +176,16 @@ app.post('/api/jobs/:id/variants/:index/delete', (req, res) => {
   if (!validClient(clientId)) return res.status(400).json({ error: 'Ongeldige sessie.' });
   const j = db.prepare("SELECT * FROM jobs WHERE id=? AND client_id=? AND status='done'").get(req.params.id, clientId);
   if (!j) return res.status(404).json({ error: 'Niet gevonden' });
-  if (j.chosen !== null && j.chosen !== undefined) return res.status(400).json({ error: 'Dit ontwerp is al gekozen.' });
   const all = parseVariants(j), i = parseInt(req.params.index, 10);
   const v = all[i];
   if (!v || v.deleted) return res.status(404).json({ error: 'Niet gevonden' });
-  [[FILES, v.preview_file], [FILES, v.print_file], [ORIGINALS, v.raw_file]].forEach(([dir, f]) => { if (f) fs.rmSync(path.join(dir, f), { force: true }); });
-  all[i] = { deleted: true };
+  const hasChoice = j.chosen !== null && j.chosen !== undefined;
+  if (hasChoice && j.chosen === i) return res.status(400).json({ error: 'Dit is je gekozen ontwerp.' });
+  // Bij een poging waaruit al gekozen is, blijft het drukbestand bewaard (kan al besteld zijn); de klant ziet de variant niet meer.
+  [[FILES, v.preview_file], ...(hasChoice ? [] : [[FILES, v.print_file]]), [ORIGINALS, v.raw_file]].forEach(([dir, f]) => { if (f) fs.rmSync(path.join(dir, f), { force: true }); });
+  all[i] = hasChoice ? { deleted: true, print_file: v.print_file } : { deleted: true };
   const left = all.filter((x) => !x.deleted).length;
-  db.prepare('UPDATE jobs SET variants_json=?, deleted=? WHERE id=?').run(JSON.stringify(all), left ? 0 : 1, j.id);
+  db.prepare('UPDATE jobs SET variants_json=?, deleted=? WHERE id=?').run(JSON.stringify(all), left || hasChoice ? 0 : 1, j.id);
   res.json({ ok: true, left });
 });
 

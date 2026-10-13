@@ -97,6 +97,13 @@ require('./db').setSetting('max_attempts', '4'); require('./db').setSetting('max
   assert.equal(m.width, 1600);
   const h1 = await (await fetch(B + '/api/history?client_id=client-cccc3333&profile=tegel')).json();
   assert.equal(h1.items.length, 1);
+  // na kiezen: de gekozen variant is beschermd, de andere mag weg (drukbestand blijft bewaard)
+  assert.equal((await post('/api/jobs/' + two.job_id + '/variants/1/delete', { client_id: 'client-cccc3333' })).status, 400);
+  const dOther = await post('/api/jobs/' + two.job_id + '/variants/0/delete', { client_id: 'client-cccc3333' });
+  assert.equal(dOther.status, 200);
+  const rec2 = await (await fetch(B + '/api/recent?client_id=client-cccc3333&profile=tegel')).json();
+  assert.equal(rec2.items[0].variants[0].deleted, true); assert(rec2.items[0].variants[1].preview_url);
+  assert.equal((await fetch(pick.print_url)).status, 200);                                          // gekozen drukbestand ongemoeid
   console.log('ALLE TESTS OK');
   srv.close(); fake.close(); process.exit(0);
 })().catch((e) => { console.error('FOUT', e); process.exit(1); });
