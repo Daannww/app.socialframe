@@ -180,10 +180,11 @@ app.post('/api/jobs/:id/variants/:index/delete', (req, res) => {
   const v = all[i];
   if (!v || v.deleted) return res.status(404).json({ error: 'Niet gevonden' });
   const hasChoice = j.chosen !== null && j.chosen !== undefined;
-  if (hasChoice && j.chosen === i) return res.status(400).json({ error: 'Dit is je gekozen ontwerp.' });
+  const wasChosen = hasChoice && j.chosen === i;
   // Bij een poging waaruit al gekozen is, blijft het drukbestand bewaard (kan al besteld zijn); de klant ziet de variant niet meer.
-  [[FILES, v.preview_file], ...(hasChoice ? [] : [[FILES, v.print_file]]), [ORIGINALS, v.raw_file]].forEach(([dir, f]) => { if (f) fs.rmSync(path.join(dir, f), { force: true }); });
-  all[i] = hasChoice ? { deleted: true, print_file: v.print_file } : { deleted: true };
+  [[FILES, v.preview_file], ...(hasChoice ? [] : [[FILES, v.print_file]]), [ORIGINALS, v.raw_file]].forEach(([dir, f]) => { if (f && !wasChosen) fs.rmSync(path.join(dir, f), { force: true }); });
+  all[i] = hasChoice ? { deleted: true, print_file: v.print_file, preview_file: wasChosen ? v.preview_file : undefined } : { deleted: true };
+  if (wasChosen) db.prepare('UPDATE jobs SET chosen=NULL, preview_file=NULL, print_file=NULL WHERE id=?').run(j.id); // uit "Herbestelling" en de keuze
   const left = all.filter((x) => !x.deleted).length;
   db.prepare('UPDATE jobs SET variants_json=?, deleted=? WHERE id=?').run(JSON.stringify(all), left || hasChoice ? 0 : 1, j.id);
   res.json({ ok: true, left });

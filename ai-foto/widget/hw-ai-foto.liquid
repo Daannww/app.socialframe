@@ -462,7 +462,7 @@
           })
           .catch(function () { vdel.disabled = false; vsure = false; vdel.classList.remove('sure'); vdel.innerHTML = vtrash; say('Verwijderen is niet gelukt, probeer het opnieuw.', true); });
       });
-      vrow.appendChild(zb); vrow.appendChild(vdel); vdel.setAttribute('data-idx', idx); if (j.chosen === idx) vdel.style.display = 'none';
+      vrow.appendChild(zb); vrow.appendChild(vdel);
       b.addEventListener('click', function () {
         if (state.busy) return;
         state.busy = true; loadText.textContent = 'Je gekozen afbeelding wordt scherp gemaakt voor het drukken…'; refresh(); say('');
@@ -473,8 +473,6 @@
             if (!res.ok) { say(res.x.error || 'Mislukt, probeer het opnieuw.', true); return; }
             chooseList.querySelectorAll('.hw-ai-choice').forEach(function (o) { o.setAttribute('aria-pressed', 'false'); });
             b.setAttribute('aria-pressed', 'true');
-            j.chosen = idx;
-            group.querySelectorAll('.hw-ai-del').forEach(function (d) { d.style.display = (parseInt(d.getAttribute('data-idx'), 10) === idx) ? 'none' : ''; });
             var keep = state.pending;
             showResult({ job_id: res.x.job_id, design: res.x.design || state.designName, text: res.x.text || '', preview_url: res.x.preview_url, print_url: res.x.print_url, created_at: res.x.created_at, reused: false });
             state.pending = keep; resultEl.hidden = true; loadHistory();
