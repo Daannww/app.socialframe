@@ -400,19 +400,27 @@
     function mountOnImage() {
       var ov = (root.dataset.overlay || '').split(',').map(parseFloat);
       if (ov.length !== 3 || ov.some(isNaN)) return;
-      var tries = 0;
-      (function find() {
+      var box = document.createElement('div'); box.className = 'hw-kaart-onimg';
+      box.style.cssText = 'left:' + ov[0] + '%;top:' + ov[1] + '%;width:' + ov[2] + '%';
+      ['pointerdown', 'mousedown', 'touchstart', 'touchmove', 'wheel', 'click'].forEach(function (ev) { box.addEventListener(ev, function (e) { e.stopPropagation(); }); });
+      var holder = document.createComment('hw-kaart-stage'); stageEl.parentNode.insertBefore(holder, stageEl);
+      box.appendChild(stageEl);
+      // Sommige thema's bouwen de galerij na het laden opnieuw op (en kopiëren dan de kaart): hang de échte kaart daarna weer terug.
+      function place() {
         var item = null;
         try { item = document.querySelector(root.dataset.gallery || '.product-gallery-item'); } catch (e) {}
-        if (!item || !item.offsetWidth) { if (tries++ < 40) setTimeout(find, 250); return; }
+        if (!item || !item.offsetWidth) return;
+        document.querySelectorAll('.hw-kaart-onimg').forEach(function (x) { if (x !== box) x.remove(); });
+        if (box.parentNode === item) return;
         if (getComputedStyle(item).position === 'static') item.style.position = 'relative';
-        var box = document.createElement('div'); box.className = 'hw-kaart-onimg';
-        box.style.cssText = 'left:' + ov[0] + '%;top:' + ov[1] + '%;width:' + ov[2] + '%';
-        ['pointerdown', 'mousedown', 'touchstart', 'touchmove', 'wheel', 'click'].forEach(function (ev) { box.addEventListener(ev, function (e) { e.stopPropagation(); }); });
-        var holder = document.createComment('hw-kaart-stage'); stageEl.parentNode.insertBefore(holder, stageEl);
-        box.appendChild(stageEl); item.appendChild(box);
+        item.appendChild(box);
         if (map) map.resize(); drawTexts(); drawMarker();
-      })();
+      }
+      var t = null;
+      function soon() { clearTimeout(t); t = setTimeout(place, 120); }
+      new MutationObserver(soon).observe(document.body, { childList: true, subtree: true });
+      window.addEventListener('load', soon); window.addEventListener('resize', soon);
+      var n = 0, iv = setInterval(function () { place(); if (++n > 40) clearInterval(iv); }, 250);
     }
     mountOnImage();
     addJs(MAPLIBRE_JS).then(startMap, function () { say('De kaart kon niet worden geladen. Controleer je verbinding en ververs de pagina.', true); });
