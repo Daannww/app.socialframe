@@ -65,6 +65,9 @@ async function finalize(buffer, target) {
   return { printBuf, previewBuf };
 }
 
+// Watermerk als vectorvorm (geen systeemlettertype nodig; op de server ontbreken lettertypen).
+const WM_FONT = require('opentype.js').loadSync(require('path').join(__dirname, 'fonts', 'Poppins-Bold.ttf'));
+
 // Snelle voorbeeldweergave rechtstreeks uit het ruwe resultaat (zelfde uitsnede als het drukbestand).
 async function previewOnly(buffer, target) {
   const k = Math.min(1, 1000 / Math.max(target.w, target.h));
@@ -74,8 +77,10 @@ async function previewOnly(buffer, target) {
   const step = Math.round(Math.max(w, h) / 4);
   const fs = Math.max(14, Math.round(step / 6));
   let t = '';
-  for (let y = -step; y < h + step; y += step) for (let x = -step; x < w + step; x += step * 1.4)
-    t += `<text x="${Math.round(x)}" y="${Math.round(y)}" font-size="${fs}" font-family="Arial,Helvetica,sans-serif" font-weight="700" fill="#fff" fill-opacity="0.28" stroke="#000" stroke-opacity="0.10" stroke-width="1" transform="rotate(-30 ${Math.round(x)} ${Math.round(y)})">socialframe.nl</text>`;
+  for (let y = -step; y < h + step; y += step) for (let x = -step; x < w + step; x += step * 1.4) {
+    const rx = Math.round(x), ry = Math.round(y);
+    t += `<path d="${WM_FONT.getPath('socialframe.nl', rx, ry, fs).toPathData(1)}" fill="#fff" fill-opacity="0.30" stroke="#000" stroke-opacity="0.30" stroke-width="1.2" transform="rotate(-30 ${rx} ${ry})"/>`;
+  }
   const svg = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}">${t}</svg>`);
   return sharp(base).composite([{ input: svg }]).jpeg({ quality: 85 }).toBuffer();
 }
