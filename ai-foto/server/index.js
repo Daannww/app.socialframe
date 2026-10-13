@@ -235,6 +235,34 @@ app.use('/admin', express.static(path.join(__dirname, '..', 'public')));
 
 const adminDesign = (d) => ({ ...d, example_url: fileUrl(d.example_file), ref_url: d.ref_file ? `/admin/api/designs/${d.id}/reference?v=${encodeURIComponent(d.ref_file)}` : '' });
 
+// Alle generaties doorzoeken: periode (UTC-tijden, de browser rekent om), stijl, status, tekst.
+app.get('/admin/api/jobs', (req, res) => {
+  const w = ['1=1']; const a = [];
+  const ts = (v) => (/^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}/.test(String(v)) ? String(v).replace('T', ' ').slice(0, 19) : null);
+  const from = ts(req.query.from), to = ts(req.query.to);
+  if (from) { w.push('j.created_at >= ?'); a.push(from.length === 16 ? from + ':00' : from); }
+  if (to) { w.push('j.created_at <= ?'); a.push(to.length === 16 ? to + ':59' : to); }
+  if (parseInt(req.query.design, 10)) { w.push('j.design_id = ?'); a.push(parseInt(req.query.design, 10)); }
+  const st = String(req.query.status || '');
+  if (st === 'chosen') w.push('j.chosen IS NOT NULL');
+  else if (st === 'error') w.push("j.status = 'error'");
+  else if (st === 'done') w.push("j.status = 'done'");
+  const q = String(req.query.q || '').trim();
+  if (q) { w.push("(j.custom_text LIKE ? OR j.ip LIKE ? OR j.id LIKE ?)"); a.push(`%${q}%`, `%${q}%`, `%${q}%`); }
+  const where = w.join(' AND ');
+  const total = db.prepare(`SELECT COUNT(*) c FROM jobs j WHERE ${where}`).get(...a).c;
+  const offset = Math.max(0, parseInt(req.query.offset, 10) || 0);
+  const rows = db.prepare(`SELECT j.*, d.name design_name FROM jobs j LEFT JOIN designs d ON d.id=j.design_id WHERE ${where} ORDER BY j.created_at DESC LIMIT 60 OFFSET ?`).all(...a, offset)
+    .map((j) => {
+      const vs = parseVariants(j);
+      return { id: j.id, created_at: j.created_at, status: j.status, error: j.error, design_name: j.design_name, profile: j.profile, custom_text: j.custom_text, ip: j.ip, country: j.country,
+        chosen: j.chosen, print_w: j.print_w, print_h: j.print_h,
+        variants: vs.map((v, i) => ({ i, deleted: !!v.deleted, preview_url: fileUrl(v.preview_file), print_url: fileUrl(v.print_file) })),
+        preview_url: fileUrl(j.preview_file), print_url: fileUrl(j.print_file) };
+    });
+  res.json({ total, offset, jobs: rows });
+});
+
 app.get('/admin/api/state', (req, res) => {
   res.json({
     designs: db.prepare('SELECT * FROM designs ORDER BY sort, id').all().map(adminDesign),

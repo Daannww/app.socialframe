@@ -27,7 +27,17 @@ small{color:var(--mut)}
 <div class="card"><h2>Instellingen</h2><div class="row" id="settings"></div><p><button id="saveSet">Opslaan</button></p>
 <small>Tegel: 1600 px ≈ 300 dpi op 13x13 cm. Poster: lange zijde in px, 2800 px ≈ 100 dpi op 70 cm. Pogingen = per klant per 24 uur.</small></div>
 <div class="card"><h2>Activiteit (laatste 24 uur, per IP)</h2><div id="activity"></div></div>
-<div class="card"><h2>Laatste generaties</h2><div class="jobs" id="jobs"></div></div>
+<div class="card"><h2>Generaties terugvinden</h2>
+<div id="jf" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:12px">
+<div><label>Van (datum en tijd)</label><input type="datetime-local" id="jf-from"></div>
+<div><label>Tot</label><input type="datetime-local" id="jf-to"></div>
+<div><label>Stijl</label><select id="jf-design"><option value="">Alle stijlen</option></select></div>
+<div><label>Status</label><select id="jf-status"><option value="">Alles</option><option value="chosen">Gekozen door klant</option><option value="done">Klaar</option><option value="error">Fout</option></select></div>
+<div><label>Tekst of IP</label><input id="jf-q" placeholder="zoeken"></div>
+<div><button type="button" id="jf-go">Zoeken</button> <button type="button" class="sec" id="jf-today">Vandaag</button> <button type="button" class="sec" id="jf-reset">Wissen</button></div>
+</div>
+<div id="jcount" style="font-size:12px;color:var(--mut);margin-bottom:8px"></div>
+<div id="jlist"></div><p><button type="button" class="sec" id="jmore" hidden>Meer laden</button></p></div>
 </main><div id="msg"></div>
 <script>
 const $=s=>document.querySelector(s);
@@ -51,9 +61,44 @@ function render(){
   el('b',{textContent:`${x.ip||'?'} ${x.country?'('+x.country+')':''}`}),el('span',{textContent:` · ${x.n} pogingen · ${x.clients} browser(s)${x.errors?' · '+x.errors+' fout':''} · laatst ${x.last}`}),
   x.flags.length?el('span',{style:'color:#c62828;font-weight:600',textContent:' · ⚠ '+x.flags.join(', ')}):'',
   el('div',{style:'opacity:.6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap',textContent:x.ua||'(geen user-agent)'}))));
+ fillJobDesigns();
+ if(!window._jobsLoaded){window._jobsLoaded=1;initJobFilters();searchJobs(true)}
+ return;
  const j=$('#jobs');j.replaceChildren();
  S.recent.forEach(x=>j.append(el('div',{},x.preview_url?el('a',{href:x.print_url,target:'_blank'},el('img',{src:x.preview_url})):el('div',{textContent:x.status==='error'?(x.error||'fout'):x.status}),
   el('div',{textContent:`${x.design_name||'?'} · ${x.profile}${x.print_w?` ${x.print_w}x${x.print_h}`:''}${x.custom_text?` · "${x.custom_text}"`:''}${x.reuse_count?` · ${x.reuse_count}x hergebruikt`:''}`}))));
+}
+const pad2=n=>String(n).padStart(2,'0');
+const toLocalInput=d=>`${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}T${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+const toUtc=v=>v?new Date(v).toISOString().slice(0,19).replace('T',' '):'';
+const fromUtc=s=>new Date(String(s).replace(' ','T')+'Z');
+const fmtDay=d=>d.toLocaleDateString('nl-NL',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+const fmtTime=d=>d.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'});
+function fillJobDesigns(){const sel=$('#jf-design');if(!sel||sel.dataset.filled===String((S.designs||[]).length))return;const cur=sel.value;sel.replaceChildren(el('option',{value:'',textContent:'Alle stijlen'}));(S.designs||[]).forEach(d=>sel.append(el('option',{value:d.id,textContent:d.name+' ('+d.slug+')'})));sel.value=cur;sel.dataset.filled=String((S.designs||[]).length)}
+let jobsOffset=0,lastDay='';
+async function searchJobs(reset){
+ if(reset){jobsOffset=0;lastDay='';$('#jlist').replaceChildren()}
+ const p=new URLSearchParams({from:toUtc($('#jf-from').value),to:toUtc($('#jf-to').value),design:$('#jf-design').value,status:$('#jf-status').value,q:$('#jf-q').value,offset:jobsOffset});
+ let r;try{r=await api('/admin/api/jobs?'+p)}catch(err){say(err.message);return}
+ const list=$('#jlist');
+ let grid=list.lastElementChild&&list.lastElementChild.classList.contains('jgrid')?list.lastElementChild:null;
+ r.jobs.forEach(x=>{const d=fromUtc(x.created_at);const day=fmtDay(d);
+  if(day!==lastDay){lastDay=day;list.append(el('h3',{style:'margin:14px 0 6px;font-size:14px;text-transform:capitalize',textContent:day}));grid=el('div',{className:'jgrid jobs'});list.append(grid)}
+  const vs=x.variants.filter(v=>!v.deleted&&v.preview_url);
+  const thumbs=vs.length?vs.map(v=>el('a',{href:v.print_url||v.preview_url,target:'_blank',title:'Variant '+(v.i+1)+(x.chosen===v.i?' (gekozen)':'')},el('img',{src:v.preview_url,style:'width:64px;height:64px;object-fit:cover;border-radius:6px;margin-right:4px;'+(x.chosen===v.i?'outline:2px solid #2e7d32':'')}))):(x.preview_url?[el('a',{href:x.print_url||x.preview_url,target:'_blank'},el('img',{src:x.preview_url,style:'width:64px;height:64px;object-fit:cover;border-radius:6px'}))]:[el('span',{textContent:x.status==='error'?(x.error||'fout'):x.status})]);
+  grid.append(el('div',{style:'grid-column:1/-1;display:flex;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)'},
+   el('b',{style:'min-width:44px',textContent:fmtTime(d)}),el('div',{style:'display:flex'},...thumbs),
+   el('div',{style:'font-size:12px;color:var(--mut)',textContent:`${x.design_name||'?'} · ${x.profile}${x.chosen!=null?' · gekozen':''}${x.custom_text?` · "${x.custom_text}"`:''}${x.country?' · '+x.country:''}${x.ip?' · '+x.ip:''}`})))});
+ jobsOffset+=r.jobs.length;
+ $('#jcount').textContent=`${r.total} generaties gevonden${r.total>jobsOffset?`, ${jobsOffset} getoond`:''}`;
+ $('#jmore').hidden=jobsOffset>=r.total;
+}
+function initJobFilters(){
+ $('#jf-go').onclick=()=>searchJobs(true);
+ $('#jmore').onclick=()=>searchJobs(false);
+ $('#jf-q').onkeydown=e=>{if(e.key==='Enter')searchJobs(true)};
+ $('#jf-today').onclick=()=>{const a=new Date();a.setHours(0,0,0,0);const b=new Date();b.setHours(23,59,0,0);$('#jf-from').value=toLocalInput(a);$('#jf-to').value=toLocalInput(b);searchJobs(true)};
+ $('#jf-reset').onclick=()=>{['#jf-from','#jf-to','#jf-q'].forEach(i=>$(i).value='');$('#jf-design').value='';$('#jf-status').value='';searchJobs(true)};
 }
 function f(label,name,v,tag='input'){return el('div',{},el('label',{textContent:label}),el(tag,{name,value:v??''}))}
 function edit(x){

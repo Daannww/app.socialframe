@@ -115,6 +115,15 @@ require('./db').setSetting('max_attempts', '4'); require('./db').setSetting('max
   assert.equal(botRes.status, 403);
   const act = await (await realFetch(B + '/admin/api/state', { headers: { authorization: 'Basic ' + Buffer.from('x:pw').toString('base64') } })).json();
   assert(Array.isArray(act.activity) && act.activity.length >= 1 && act.activity[0].n >= 1);
+  // Admin: generaties terugvinden op periode/stijl
+  const all = await (await fetch(B + '/admin/api/jobs', { headers: auth })).json();
+  assert(all.total >= 1 && all.jobs[0].created_at);
+  const day = all.jobs[0].created_at.slice(0, 10);
+  const inDay = await (await fetch(B + `/admin/api/jobs?from=${day}T00:00&to=${day}T23:59`, { headers: auth })).json();
+  assert.equal(inDay.total, all.total);
+  const old = await (await fetch(B + '/admin/api/jobs?from=2001-01-01T00:00&to=2001-01-02T00:00', { headers: auth })).json();
+  assert.equal(old.total, 0);
+  assert.equal((await fetch(B + '/admin/api/jobs')).status, 401);
   console.log('ALLE TESTS OK');
   srv.close(); fake.close(); process.exit(0);
 })().catch((e) => { console.error('FOUT', e); process.exit(1); });
