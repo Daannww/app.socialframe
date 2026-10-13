@@ -32,7 +32,8 @@
 
   <div class="hw-kaart-label">Extra op de kaart:</div>
   <div class="hw-kaart-modes" data-hw-k-modes>
-    <button type="button" class="hw-kaart-mode" data-extra="labels" aria-pressed="true">Plaats- en straatnamen</button>
+    <button type="button" class="hw-kaart-mode" data-extra="labels" aria-pressed="false">Plaatsnamen</button>
+    <button type="button" class="hw-kaart-mode" data-extra="streets" aria-pressed="true">Straatnamen</button>
     <button type="button" class="hw-kaart-mode" data-extra="buildings" aria-pressed="true">Gebouwen</button>
   </div>
 
@@ -154,7 +155,7 @@
           filter: ['all', notTunnel, inList(['tertiary', 'secondary'])], paint: { 'line-color': ROAD_MID, 'line-width': roadW(0.7, 3.4, 11) } },
         { id: 'r_major', type: 'line', source: 'omt', 'source-layer': 'transportation', layout: { 'line-join': 'round' },
           filter: ['all', notTunnel, inList(['primary', 'trunk', 'motorway'])], paint: { 'line-color': ROAD_MAJOR, 'line-width': roadW(1.1, 5.2, 15) } },
-        { id: 'l_street', type: 'symbol', source: 'omt', 'source-layer': 'transportation_name', minzoom: 14.5, layout: Object.assign(vis(o.labels), { 'symbol-placement': 'line', 'text-field': nameField, 'text-font': ['Noto Sans Regular'], 'text-size': ['interpolate', ['linear'], ['zoom'], 14.5, 9, 18, 13], 'text-letter-spacing': 0.02 }),
+        { id: 'l_street', type: 'symbol', source: 'omt', 'source-layer': 'transportation_name', minzoom: 14.5, layout: Object.assign(vis(o.streets), { 'symbol-placement': 'line', 'text-field': nameField, 'text-font': ['Noto Sans Regular'], 'text-size': ['interpolate', ['linear'], ['zoom'], 14.5, 9, 18, 13], 'text-letter-spacing': 0.02 }),
           paint: { 'text-color': '#3A3A3A', 'text-halo-color': 'rgba(255,255,255,.95)', 'text-halo-width': 1.6 } },
         lbl('l_city', ['city'], 4, ['interpolate', ['linear'], ['zoom'], 4, 12, 12, 20]),
         lbl('l_town', ['town'], 6, ['interpolate', ['linear'], ['zoom'], 6, 11, 13, 17]),
@@ -210,7 +211,7 @@
     var searchEl = $('[data-hw-k-search]'), suggEl = $('[data-hw-k-sugg]'), mapEl = $('[data-hw-k-map]'), stageEl = $('[data-hw-k-stage]');
     var cityEl = $('[data-hw-k-city]'), countryEl = $('[data-hw-k-country]'), cityView = $('[data-hw-k-cityview]'), countryView = $('[data-hw-k-countryview]');
     var fadeEl = $('[data-hw-k-fade]'), statusEl = $('[data-hw-k-status]'), pinsEl = $('[data-hw-k-pins]');
-    var state = { font: 'classic', labels: true, buildings: true, pin: 'druppel', photoImg: null, photoUrl: '', loc: null, placed: false, result: null, busy: false, pass: false };
+    var state = { font: 'classic', labels: false, streets: true, buildings: true, pin: 'druppel', photoImg: null, photoUrl: '', loc: null, placed: false, result: null, busy: false, pass: false };
     var map = null, marker = null;
     function say(t, err) { statusEl.textContent = t || ''; statusEl.className = 'hw-kaart-status' + (err ? ' err' : ''); }
     function changed() { state.result = null; }
@@ -257,7 +258,9 @@
         im.style.cssText = 'position:absolute;left:16.25%;top:12.04%;width:67.5%;height:50%;border-radius:50%;object-fit:cover';
         el.appendChild(im);
       }
-      marker = new maplibregl.Marker({ element: el, anchor: p.anchor }).setLngLat([state.loc.lng, state.loc.lat]).addTo(map);
+      marker = new maplibregl.Marker({ element: el, anchor: p.anchor, draggable: true }).setLngLat([state.loc.lng, state.loc.lat]).addTo(map);
+      el.style.cursor = 'grab';
+      marker.on('dragend', function () { var l = marker.getLngLat(); state.loc = { lng: l.lng, lat: l.lat }; changed(); });
     }
 
     // ----- plaats/land tekst -----
@@ -291,7 +294,7 @@
     // ----- extra's op de kaart (plaatsnamen, gebouwen) -----
     function applyExtras(m) {
       var set = function (ids, on) { ids.forEach(function (id) { if (m.getLayer(id)) m.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none'); }); };
-      set(['l_city', 'l_town', 'l_village', 'l_small', 'l_street'], state.labels); set(['building'], state.buildings);
+      set(['l_city', 'l_town', 'l_village', 'l_small'], state.labels); set(['l_street'], state.streets); set(['building'], state.buildings);
     }
     root.querySelectorAll('[data-extra]').forEach(function (b) {
       b.addEventListener('click', function () {
@@ -446,7 +449,7 @@
         });
       });
     }
-    function detailLabel() { return 'wegen en water' + (state.labels ? ', plaats- en straatnamen' : '') + (state.buildings ? ', gebouwen' : ''); }
+    function detailLabel() { return 'wegen en water' + (state.labels ? ', plaatsnamen' : '') + (state.streets ? ', straatnamen' : '') + (state.buildings ? ', gebouwen' : ''); }
     function buildAndUpload() {
       if (state.busy) return Promise.reject(new Error('busy'));
       if (!map) return Promise.reject(new Error('De kaart is nog niet geladen.'));
