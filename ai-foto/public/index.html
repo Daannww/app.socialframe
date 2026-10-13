@@ -53,7 +53,13 @@ function edit(x){
  x=x||{id:0,name:'',description:'',prompt:'',negative_prompt:'',model:'fal-ai/flux-pro/kontext',extra_json:'{}',products:'*',active:1,sort:0};
  const e=$('#editor');e.hidden=false;e.replaceChildren(el('h2',{textContent:x.id?'Ontwerp bewerken':'Nieuw ontwerp'}));
  const form=el('form');
- form.append(el('div',{className:'row'},f('Naam (ziet de klant)','name',x.name),f('Code/slug (voor de productinstelling, bv. aquarel)','slug',x.slug)),f('Korte omschrijving (ziet de klant)','description',x.description),
+ form.append(el('div',{className:'row'},f('Naam (ziet de klant)','name',x.name),el('div',{},el('label',{textContent:'Code/slug (voor de productinstelling, bv. aquarel)'}),(()=>{
+   const codes=[...new Set((S.designs||[]).map(d=>d.slug).filter(Boolean))].sort();
+   const wrap=el('div'),sel=el('select',{}),inp=el('input',{name:'slug',value:x.slug||''});
+   codes.forEach(c=>sel.append(el('option',{value:c,textContent:c})));sel.append(el('option',{value:'',textContent:'Nieuwe code typen…'}));
+   const known=codes.includes(x.slug);sel.value=known?x.slug:'';inp.hidden=known;
+   sel.onchange=()=>{if(sel.value){inp.value=sel.value;inp.hidden=true}else{inp.value='';inp.hidden=false;inp.focus()}};
+   wrap.append(sel,inp);return wrap})())),f('Korte omschrijving (ziet de klant)','description',x.description),
   f('Prompt','prompt',x.prompt,'textarea'),f('Negatieve prompt (optioneel)','negative_prompt',x.negative_prompt,'textarea'),f('Prompt MET klanttekst (optioneel; gebruik {{tekst}} voor de plek van de tekst. Leeg = klant kan geen tekst invullen)','prompt_with_text',x.prompt_with_text,'textarea'),f('Label bij het tekstveld (bv. Naam of tekst)','text_label',x.text_label),el('label',{},el('input',{type:'checkbox',name:'text_required',checked:!!x.text_required,style:'width:auto'}),' Tekst is verplicht bij deze stijl (klant kan niet bestellen zonder tekst)'),
   el('div',{className:'row'},el('div',{},el('label',{textContent:'Model'}),(()=>{
    const M=[['fal-ai/gpt-image-1.5/edit','ChatGPT / GPT Image 1.5 Edit (goede kwaliteit, betaald per afbeelding)'],['fal-ai/gpt-image-1/edit-image','ChatGPT / GPT Image 1 Edit'],['fal-ai/gpt-image-1-mini/edit','ChatGPT / GPT Image 1 mini (goedkoper)'],['fal-ai/flux-pro/kontext','FLUX Kontext Pro'],['fal-ai/flux-pro/kontext/max','FLUX Kontext Max'],['fal-ai/flux-kontext/dev','FLUX Kontext Dev (goedkoop)'],['fal-ai/flux/dev/image-to-image','FLUX Dev image-to-image']];
