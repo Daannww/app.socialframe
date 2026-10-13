@@ -158,6 +158,18 @@ app.get('/api/history', (req, res) => {
     WHERE j.client_id=? AND j.status='done' AND j.profile=? AND j.print_file IS NOT NULL AND COALESCE(j.deleted,0)=0 ORDER BY j.created_at DESC LIMIT 6`).all(req.query.client_id, profile);
   res.json({ items: rows.filter((j) => fs.existsSync(path.join(FILES, j.print_file))).map(jobCard) });
 });
+// Recente pogingen van deze klant (alle niet-verwijderde varianten), zodat ze na een refresh van de pagina blijven staan.
+app.get('/api/recent', (req, res) => {
+  if (!validClient(req.query.client_id)) return res.json({ items: [] });
+  const profile = req.query.profile === 'poster' ? 'poster' : 'tegel';
+  const rows = db.prepare(`SELECT j.*, d.name design_name FROM jobs j LEFT JOIN designs d ON d.id=j.design_id
+    WHERE j.client_id=? AND j.status='done' AND j.profile=? AND COALESCE(j.deleted,0)=0 AND j.created_at>=datetime('now','-7 days') ORDER BY j.created_at DESC LIMIT 10`).all(req.query.client_id, profile);
+  const items = rows.map((j) => {
+    const vs = parseVariants(j).map((v) => (v.deleted || !v.preview_file || !fs.existsSync(path.join(FILES, v.preview_file)) ? { deleted: true, preview_url: null } : { preview_url: fileUrl(v.preview_file) }));
+    return { job_id: j.id, design_id: j.design_id, design: j.design_name, chosen: j.chosen, created_at: j.created_at, variants: vs };
+  }).filter((it) => it.variants.some((v) => !v.deleted));
+  res.json({ items: items.reverse() });
+});
 // Klant verwijdert één van de twee zojuist gemaakte varianten (voordat er gekozen is). Zijn alle varianten weg, dan is de poging weg.
 app.post('/api/jobs/:id/variants/:index/delete', (req, res) => {
   const clientId = (req.body || {}).client_id;

@@ -58,6 +58,10 @@ require('./db').setSetting('max_attempts', '4'); require('./db').setSetting('max
   const lastPrompt = prompts[prompts.length - 1];
   assert(lastPrompt.startsWith('aquarel met de tekst "') && !lastPrompt.includes('<'), lastPrompt);
   assert.equal(prompts[prompts.length - 2], 'maak er een aquarel van'); // zonder tekst: gewone prompt
+  const rec = await (await fetch(B + '/api/recent?client_id=client-aaaa1111&profile=tegel')).json();
+  assert(rec.items.length >= 2 && rec.items[0].variants.length >= 1 && rec.items[0].variants[0].preview_url); // pogingen blijven na refresh
+  const recOther = await (await fetch(B + '/api/recent?client_id=client-zzzz9999&profile=tegel')).json();
+  assert.equal(recOther.items.length, 0);                                                              // niet van een ander
   // herbestelling: geschiedenis + hergebruik
   const hist = await (await fetch(B + '/api/history?client_id=client-aaaa1111&profile=tegel')).json();
   assert(hist.items.length >= 2);

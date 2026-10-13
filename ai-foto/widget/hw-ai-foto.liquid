@@ -318,7 +318,7 @@
         });
         designsEl.appendChild(b);
       });
-      if (!(d.designs || []).length) hideAll(); else loadHistory();
+      if (!(d.designs || []).length) hideAll(); else { loadHistory(); loadRecent((d.designs || []).map(function (x) { return x.id; })); }
     })
     .catch(function () { hideAll(); });
 
@@ -425,8 +425,8 @@
   protect(imgEl);
 
   // Meerdere varianten: de klant moet er eerst één kiezen, pas daarna kan er besteld worden.
-  function showChoices(j) {
-    state.pending = j.job_id; state.result = null; setProps(false); resultEl.hidden = true;
+  function showChoices(j, restore) {
+    if (!restore) { state.pending = j.job_id; state.result = null; setProps(false); resultEl.hidden = true; }
     chooseList.querySelectorAll('.hw-ai-choice').forEach(function (o) { o.setAttribute('aria-pressed', 'false'); });
     var group = document.createElement('div'); group.className = 'hw-ai-group';
     var gt = document.createElement('div'); gt.className = 'hw-ai-grouptitle';
@@ -462,7 +462,7 @@
           })
           .catch(function () { vdel.disabled = false; vsure = false; vdel.classList.remove('sure'); vdel.innerHTML = vtrash; say('Verwijderen is niet gelukt, probeer het opnieuw.', true); });
       });
-      vrow.appendChild(zb); vrow.appendChild(vdel);
+      vrow.appendChild(zb); if (j.chosen === undefined || j.chosen === null) vrow.appendChild(vdel);
       b.addEventListener('click', function () {
         if (state.busy) return;
         state.busy = true; loadText.textContent = 'Je gekozen afbeelding wordt scherp gemaakt voor het drukken…'; refresh(); say('');
@@ -473,6 +473,7 @@
             if (!res.ok) { say(res.x.error || 'Mislukt, probeer het opnieuw.', true); return; }
             chooseList.querySelectorAll('.hw-ai-choice').forEach(function (o) { o.setAttribute('aria-pressed', 'false'); });
             b.setAttribute('aria-pressed', 'true');
+            group.querySelectorAll('.hw-ai-del').forEach(function (d) { d.remove(); });
             var keep = state.pending;
             showResult({ job_id: res.x.job_id, design: res.x.design || state.designName, text: res.x.text || '', preview_url: res.x.preview_url, print_url: res.x.print_url, created_at: res.x.created_at, reused: false });
             state.pending = keep; resultEl.hidden = true; loadHistory();
@@ -484,8 +485,24 @@
     });
     chooseList.appendChild(group);
     chooseBox.hidden = false;
+    if (restore) return;
     say('Kies hierboven de variant die je het mooiste vindt. Daarna kun je bestellen.');
     group.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  // Eerdere pogingen blijven ook na een refresh van de pagina staan.
+  function loadRecent(designIds) {
+    fetch(API + '/api/recent?client_id=' + encodeURIComponent(clientId) + '&profile=' + PROFILE)
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (state.busy || chooseList.children.length) return;
+        (d.items || []).forEach(function (it) {
+          if (designIds.indexOf(it.design_id) < 0) return;
+          showChoices(it, true);
+        });
+        if (chooseList.children.length) { chooseBox.hidden = false; say('Kies hierboven de variant die je het mooiste vindt. Daarna kun je bestellen.'); }
+      })
+      .catch(function () {});
   }
 
   function poll(id) {
@@ -532,7 +549,7 @@
     if (root.hidden || root.offsetParent === null || state.result) return;
     if (!target || !target.closest || !target.closest('.product-form, form[data-type="add-to-cart-form"]')) return;
     e.preventDefault(); e.stopImmediatePropagation();
-    var msg = state.pending ? 'Kies eerst een van de varianten' : (!fileEl.files[0] ? 'Upload en selecteer eerst een afbeelding' : 'Klik eerst op "' + goBtn.textContent.trim() + '"');
+    var msg = (state.pending || chooseList.children.length) ? 'Kies eerst een van de varianten' : (!fileEl.files[0] ? 'Upload en selecteer eerst een afbeelding' : 'Klik eerst op "' + goBtn.textContent.trim() + '"');
     var anchor = target.matches && target.matches('button, input') ? target : (target.querySelector && target.querySelector('button[type="submit"], button[name="add"]')) || target;
     toast(anchor, msg);
   }
