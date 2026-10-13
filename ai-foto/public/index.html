@@ -72,7 +72,7 @@ function edit(x){
   let id=x.id;if(id)await api('/admin/api/designs/'+id,json('PUT',b));else id=(await api('/admin/api/designs',json('POST',b))).id;
   if(ph.files[0]){const fd=new FormData();fd.append('image',ph.files[0]);await api(`/admin/api/designs/${id}/example`,{method:'POST',body:fd})}
   say('Opgeslagen');e.hidden=true;load()}catch(err){say(err.message)}};
- form.append(el('p',{},save,' ',el('button',{type:'button',className:'sec',textContent:'Sluiten',onclick:()=>e.hidden=true})));
+ form.append(el('p',{},save,' ',x.id?el('button',{type:'button',className:'sec',textContent:'Dupliceren',onclick:()=>{const b=Object.fromEntries(new FormData(form));edit({...x,...b,id:0,name:(b.name||x.name)+' (kopie)',slug:((b.slug||x.slug||'stijl')+'-kopie'),active:0,text_required:form.elements.text_required.checked?1:0,example_file:null});say('Kopie geopend — pas aan en klik Opslaan')}}):'',x.id?' ':'',el('button',{type:'button',className:'sec',textContent:'Sluiten',onclick:()=>e.hidden=true})));
  if(x.id){ // testen
   const tf=el('input',{type:'file',accept:'image/*'}),pr=el('select',{},el('option',{value:'tegel',textContent:'Tegel (vierkant)'}),el('option',{value:'poster',textContent:'Poster liggend'}),el('option',{value:'posterP',textContent:'Poster staand'}));
   const out=el('div'),tb=el('button',{type:'button',className:'sec',textContent:'Test met deze foto'});
