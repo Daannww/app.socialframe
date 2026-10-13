@@ -20,6 +20,15 @@ const AUTOPICTURA_REGEX = /(https?:\/\/[^\s"'<>]*autopictura[^\s"'<>]*)/gi;
 const AI_FOTO_PRINT_REGEX = /(https?:\/\/[^\s"'<>]+\/files\/[a-f0-9]{32}-print\.jpg)/i;
 // Het voorbeeld (eigenschap "AI afbeelding") is alleen voor de klant en mag nooit als foto/drukbestand meetellen.
 const isAiPreviewProp = p => /^\s*(AI afbeelding|Uw personalisatie)/i.test(p.name || '');
+
+// Heeft de regel een drukbestand van onze eigen AI-foto-dienst, dan is DAT het enige bestand voor deze regel.
+// (Overgebleven Autopictura-eigenschappen uit de browser van de klant worden dan genegeerd.)
+function aiPrintLinkOfLine(li) {
+  for (const p of (li.properties || [])) {
+    if (/^_?AI drukbestand/i.test(p.name || '')) { const m = String(p.value || '').match(AI_FOTO_PRINT_REGEX); if (m) return m[0]; }
+  }
+  return null;
+}
 // Bestanden die de klant zelf rechtstreeks via Shopify uploadt (bv. een "upload je ontwerp"
 // veld) landen op Shopify's eigen CDN, soms zonder duidelijke/herkenbare extensie in de URL.
 const SHOPIFY_CDN_UPLOAD_REGEX = /(https?:\/\/cdn\.shopify\.com\/s\/files\/[^\s"'<>]+)/gi;
@@ -72,6 +81,8 @@ function extractPhotoLinks(order) {
 
   (order.line_items || []).forEach(li => {
     const lineItemLinks = new Set(); // dedupliceren binnen deze ene regel
+    const aiLink = aiPrintLinkOfLine(li);
+    if (aiLink) { const q = li.quantity && li.quantity > 0 ? li.quantity : 1; for (let i = 0; i < q; i++) found.push(aiLink); return; }
 
     (li.properties || []).forEach(p => {
       if (isAiPreviewProp(p)) return;
@@ -163,8 +174,8 @@ function extractTileItemsFromOrder(lineItems) {
     const is13x13 = /13\s*x\s*13/i.test(textBlob);
 
     // Autopictura-link binnen DEZE regel
-    let autopicturaLink = null;
-    for (const p of props) {
+    let autopicturaLink = aiPrintLinkOfLine(li);
+    for (const p of (autopicturaLink ? [] : props)) {
       const m = String(p.value || '').match(AUTOPICTURA_REGEX) || (/^_?AI drukbestand/i.test(p.name || '') ? String(p.value || '').match(AI_FOTO_PRINT_REGEX) : null);
       if (m) { autopicturaLink = m[0]; break; }
     }
