@@ -62,7 +62,7 @@
   .hw-kaart-sugg button:last-child{border-bottom:0}
   .hw-kaart-sugg button:hover,.hw-kaart-sugg button:focus{background:#F5F5F5;outline:0}
   .hw-kaart-sugg small{display:block;color:#777;font-size:12px;margin-top:2px}
-  .hw-kaart-stage{position:relative;width:100%;aspect-ratio:1/1;margin-top:14px;border:1.5px solid #E2E2E2;border-radius:6px;overflow:hidden;background:#F4F1EA;touch-action:pan-y}
+  .hw-kaart-stage{position:relative;width:100%;aspect-ratio:1/1;margin-top:14px;border:1.5px solid #E2E2E2;border-radius:6px;overflow:hidden;background:#fff;touch-action:pan-y}
   .hw-kaart-map{position:absolute !important;left:0;top:0;width:100%;height:100%}
   .hw-kaart-fade{position:absolute;left:0;right:0;bottom:0;height:36%;pointer-events:none;background:linear-gradient(to top,#fff 0%,rgba(255,255,255,.94) 38%,rgba(255,255,255,0) 100%)}
   .hw-kaart-text{position:absolute;left:0;top:0;right:0;bottom:0;text-align:center;pointer-events:none;color:#111}
@@ -94,7 +94,7 @@
   var FONT_CSS = 'https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,600&display=swap';
   var TILES = 'https://tiles.openfreemap.org/planet';
   var GLYPHS = 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf';
-  var BG = '#F4F1EA', WATER = '#C9C9C9', ROAD_MINOR = '#4A4A4A', ROAD_MID = '#333333', ROAD_MAJOR = '#1E1E1E';
+  var BG = '#FFFFFF', WATER = '#C9C9C9', ROAD_MINOR = '#4A4A4A', ROAD_MID = '#333333', ROAD_MAJOR = '#1E1E1E';
   var PRINT_PX = 1600;
 
   function addCss(href) { if (document.querySelector('link[href="' + href + '"]')) return; var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = href; document.head.appendChild(l); }
@@ -158,10 +158,10 @@
   // geeft px-groottes en y-posities (als fractie van de breedte) terug
   function layoutText(city, country, W) {
     var maxW = W * 0.86;
-    var cityPx = W * 0.105;
+    var cityPx = W * 0.092;
     var cityLs = 0;
     while (city && cityPx > W * 0.045 && textWidth(city, cityPx, 700, 'normal', cityLs) > maxW) cityPx -= 1;
-    var cPx = W * 0.042, cLs = W * 0.012;
+    var cPx = W * 0.037, cLs = W * 0.011;
     while (country && cPx > W * 0.025 && textWidth(country, cPx, 600, 'italic', cLs) > maxW) { cPx -= 1; cLs = cPx * 0.28; }
     var hasCity = !!city, hasCountry = !!country;
     var bottom = W * 0.055;
