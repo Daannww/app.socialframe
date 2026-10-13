@@ -17,12 +17,13 @@ async function download(url) {
   return Buffer.from(await r.arrayBuffer());
 }
 
-// Met klanttekst en een tekst-prompt -> die gebruiken ({{tekst}} wordt vervangen), anders de gewone prompt.
+// Met klanttekst en een tekst-prompt -> die gebruiken ({{CUSTOM_TEXT}} wordt vervangen; {{tekst}} werkt ook), anders de gewone prompt.
 function promptFor(design, text) {
   const t = (text || '').trim();
   if (!t || !design.prompt_with_text) return design.prompt;
   const tpl = design.prompt_with_text;
-  return tpl.includes('{{tekst}}') ? tpl.split('{{tekst}}').join(`"${t}"`) : `${tpl} Tekst: "${t}"`;
+  const re = /\{\{\s*(CUSTOM_TEXT|tekst)\s*\}\}/gi;
+  return re.test(tpl) ? tpl.replace(re, () => `"${t}"`) : `${tpl} Tekst: "${t}"`;
 }
 
 const FAL_RATIO = { tegel: '1:1', landscape: '3:2', portrait: '2:3' };

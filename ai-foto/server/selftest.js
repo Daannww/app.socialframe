@@ -19,7 +19,7 @@ require('./db').setSetting('max_attempts', '4'); require('./db').setSetting('max
   const setVariants = (n) => fetch(B + '/admin/api/settings', { method: 'PUT', headers: { ...auth, 'Content-Type': 'application/json' }, body: JSON.stringify({ variants: n }) });
   await setVariants(1);
   const d = await (await fetch(B + '/admin/api/designs', { method: 'POST', headers: { ...auth, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name: 'Test', slug: 'Aquarel', prompt: 'maak er een aquarel van', prompt_with_text: 'aquarel met de tekst {{tekst}}', active: true, products: 'ander-product' }) })).json();
+    body: JSON.stringify({ name: 'Test', slug: 'Aquarel', prompt: 'maak er een aquarel van', prompt_with_text: 'aquarel met de tekst {{CUSTOM_TEXT}}', active: true, products: 'ander-product' }) })).json();
   assert(d.id);
   assert.equal((await (await fetch(B + '/api/designs?product=x')).json()).designs.length, 0);          // andere product-lijst
   assert.equal((await (await fetch(B + '/api/designs?product=ander-product')).json()).designs.length, 1);
