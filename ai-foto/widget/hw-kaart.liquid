@@ -192,7 +192,7 @@
     var maxW = W * 0.86;
     var cityPx = W * F.cityK;
     while (city && cityPx > W * 0.025 && textWidth(city, cityPx, F.cityW, F.cityStyle, 0, F.cityFam) > maxW) cityPx -= 1;
-    var shown = country ? (F.tildes ? '~ ' + country + ' ~' : country) : '';
+    var shown = country ? (F.tildes ? '~ ' + country + ' ~' : '- ' + country + ' -') : '';
     var cPx = W * F.ctyK, lsRatio;
     if (F.tildes) { var s0 = textWidth('~ Nederland ~', cPx, F.ctyW, F.ctyStyle, 0, F.ctyFam); lsRatio = ((0.254 * W - s0) / 12) / cPx; } else lsRatio = F.lsEm;
     var cLs = cPx * lsRatio;
