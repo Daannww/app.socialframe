@@ -63,7 +63,7 @@
   .hw-kaart-sugg small{display:block;color:#777;font-size:12px;margin-top:2px}
   .hw-kaart-stage{position:relative;width:100%;aspect-ratio:1/1;margin-top:14px;border:1.5px solid #E2E2E2;border-radius:6px;overflow:hidden;background:#fff;touch-action:pan-y}
   .hw-kaart-map{position:absolute !important;left:0;top:0;width:100%;height:100%}
-  .hw-kaart-fade{position:absolute;left:0;right:0;bottom:0;height:36%;pointer-events:none;background:linear-gradient(to top,#fff 0%,rgba(255,255,255,.94) 38%,rgba(255,255,255,0) 100%)}
+  .hw-kaart-fade{position:absolute;left:0;right:0;bottom:0;height:28%;pointer-events:none;background:linear-gradient(to top,#fff 0%,rgba(255,255,255,.94) 38%,rgba(255,255,255,0) 100%)}
   .hw-kaart-text{position:absolute;left:0;top:0;right:0;bottom:0;text-align:center;pointer-events:none;color:#111}
   .hw-kaart-city,.hw-kaart-country{position:absolute;left:0;right:0;white-space:nowrap;font-family:"Playfair Display",Georgia,serif}
   .hw-kaart-city{font-weight:700}
@@ -166,15 +166,15 @@
   // geeft px-groottes en y-posities (als fractie van de breedte) terug
   function layoutText(city, country, W) {
     var maxW = W * 0.86;
-    var cityPx = W * 0.092;
+    var cityPx = W * 0.052;
     var cityLs = 0;
-    while (city && cityPx > W * 0.045 && textWidth(city, cityPx, 700, 'normal', cityLs) > maxW) cityPx -= 1;
-    var cPx = W * 0.037, cLs = W * 0.011;
-    while (country && cPx > W * 0.025 && textWidth(country, cPx, 600, 'italic', cLs) > maxW) { cPx -= 1; cLs = cPx * 0.28; }
+    while (city && cityPx > W * 0.03 && textWidth(city, cityPx, 700, 'normal', cityLs) > maxW) cityPx -= 1;
+    var cPx = W * 0.026, cLs = W * 0.008;
+    while (country && cPx > W * 0.017 && textWidth(country, cPx, 600, 'italic', cLs) > maxW) { cPx -= 1; cLs = cPx * 0.3; }
     var hasCity = !!city, hasCountry = !!country;
-    var bottom = W * 0.055;
+    var bottom = W * 0.05;
     var countryBase = hasCountry ? W - bottom : null;           // onderkant (baseline) van land
-    var cityBase = hasCity ? (hasCountry ? W - bottom - cPx * 1.5 : W - bottom - cPx * 0.3) : null;
+    var cityBase = hasCity ? (hasCountry ? W - bottom - cPx * 1.9 : W - bottom - cPx * 0.3) : null;
     return { cityPx: cityPx, cityLs: cityLs, countryPx: cPx, countryLs: cLs, cityBase: cityBase, countryBase: countryBase };
   }
   function drawSpaced(ctx, str, cx, y, ls) {
@@ -374,9 +374,9 @@
                 ctx.shadowColor = 'rgba(0,0,0,.35)'; ctx.shadowBlur = 3 * k; ctx.shadowOffsetY = 1 * k;
                 ctx.drawImage(pinImg, x, y, pw, ph); ctx.shadowColor = 'transparent';
               }
-              var g = ctx.createLinearGradient(0, size, 0, size * 0.64);
+              var g = ctx.createLinearGradient(0, size, 0, size * 0.72);
               g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.38, 'rgba(255,255,255,.94)'); g.addColorStop(1, 'rgba(255,255,255,0)');
-              ctx.fillStyle = g; ctx.fillRect(0, size * 0.64, size, size * 0.36);
+              ctx.fillStyle = g; ctx.fillRect(0, size * 0.72, size, size * 0.28);
               var city = cityEl.value.trim(), country = countryEl.value.trim();
               var L = layoutText(city, country, W);
               ctx.fillStyle = '#111'; ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';
