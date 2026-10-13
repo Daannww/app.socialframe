@@ -23,8 +23,6 @@
       <div class="hw-kaart-country" data-hw-k-countryview></div>
     </div>
   </div>
-  <div class="hw-kaart-attr">Kaartgegevens © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>-bijdragers</div>
-  <div class="hw-kaart-hint">Sleep de kaart om te verplaatsen. Zoom met Ctrl + scrollen, dubbelklikken of knijp met twee vingers.</div>
 
   <label class="hw-kaart-label" for="hw-kaart-city">Typ hier jouw: Stad of Dorp of eigen tekst.</label>
   <input type="text" class="hw-kaart-input" id="hw-kaart-city" data-hw-k-city maxlength="40" autocomplete="off">
@@ -352,6 +350,8 @@
     function startMap() {
       map = new maplibregl.Map({ container: mapEl, style: buildStyle(state), center: [start.lng, start.lat], zoom: 13.2, attributionControl: false, cooperativeGestures: true, dragRotate: false, pitchWithRotate: false, maxZoom: 18.5, minZoom: 3, fadeDuration: 0 });
       map.touchZoomRotate.disableRotation();
+      // Bronvermelding (verplicht bij OpenStreetMap-gegevens): klein ⓘ-knopje linksboven, niet storend.
+      map.addControl(new maplibregl.AttributionControl({ compact: true }), 'top-left');
       map.on('moveend', changed);
       map.once('load', function () { say(''); });
       // Standaard Amsterdam als voorbeeld, tot de klant zelf een plek kiest.
