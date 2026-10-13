@@ -318,10 +318,10 @@
         designsEl.appendChild(b);
       });
       // Maar 1 stijl = geen keuze voor de klant: automatisch gekozen en de stijlkeuze verborgen.
-      if ((d.designs || []).length === 1) {
-        var only = designsEl.querySelector('.hw-ai-design');
-        if (only) { only.click(); designsEl.style.display = 'none'; var lbl = designsEl.previousElementSibling; if (lbl && lbl.classList.contains('hw-ai-label')) lbl.style.display = 'none'; }
-      }
+      // Standaard is de eerste stijl al gekozen; bij meer stijlen kan de klant wisselen.
+      var only = designsEl.querySelector('.hw-ai-design');
+      if (only) { only.click(); }
+      if ((d.designs || []).length === 1 && only) { designsEl.style.display = 'none'; var lbl = designsEl.previousElementSibling; if (lbl && lbl.classList.contains('hw-ai-label')) lbl.style.display = 'none'; }
       refresh();
       if (!(d.designs || []).length) hideAll(); else { loadHistory(); loadRecent((d.designs || []).map(function (x) { return x.id; })); }
     })
