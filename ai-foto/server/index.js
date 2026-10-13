@@ -142,7 +142,7 @@ app.post('/api/map/print', mapLimiter, (req, res, next) => (looksLikeBot(req) ? 
 // Demo-pagina om de kaartwidget te testen (zonder winkelwagen). Niet door zoekmachines te indexeren.
 app.get('/kaart-demo', (req, res) => {
   const widget = fs.readFileSync(path.join(__dirname, '..', 'widget', 'hw-kaart.liquid'), 'utf8')
-    .replace(/\{%-?[\s\S]*?-?%\}/g, '').replace('data-hw-kaart ', 'data-hw-kaart data-demo="1" ').replace(/data-api="[^"]*"/, `data-api="${BASE}"`)
+    .replace(/\{%-?\s*comment\s*-?%\}[\s\S]*?\{%-?\s*endcomment\s*-?%\}/g, '').replace(/\{%-?[\s\S]*?-?%\}/g, '').replace('data-hw-kaart ', 'data-hw-kaart data-demo="1" ').replace(/data-api="[^"]*"/, `data-api="${BASE}"`)
     .replace(/data-google-key="[^"]*"/, 'data-google-key=""');
   res.set('X-Robots-Tag', 'noindex').type('html').send(`<!doctype html><html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Kaart-demo</title><style>body{font-family:Montserrat,system-ui,sans-serif;max-width:520px;margin:20px auto;padding:0 12px}</style></head><body>${widget}</body></html>`);
 });
