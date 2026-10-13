@@ -197,6 +197,7 @@
       leftEl.className = 'hw-ai-left' + (state.left <= 1 ? ' low' : '') + (state.left === 0 ? ' out' : '');
     }
     var needText = state.allowsText && state.textRequired && !textEl.value.trim();
+    goBtn.textContent = state.design ? 'Maak mijn tegeltje' : 'Kies eerst jouw stijl';
     goBtn.disabled = state.busy || !state.design || !fileEl.files[0] || state.left === 0 || needText;
   }
   function fmtDate(iso) {
@@ -550,7 +551,7 @@
     if (root.hidden || root.offsetParent === null || state.result) return;
     if (!target || !target.closest || !target.closest('.product-form, form[data-type="add-to-cart-form"]')) return;
     e.preventDefault(); e.stopImmediatePropagation();
-    var msg = (state.pending || chooseList.children.length) ? 'Kies eerst een van de varianten' : (!fileEl.files[0] ? 'Upload en selecteer eerst een afbeelding' : 'Klik eerst op "' + goBtn.textContent.trim() + '"');
+    var msg = (state.pending || chooseList.children.length) ? 'Kies eerst een van de varianten' : (!fileEl.files[0] ? 'Upload en selecteer eerst een afbeelding' : (!state.design ? 'Kies eerst jouw stijl' : 'Klik eerst op "Maak mijn tegeltje"'));
     var anchor = target.matches && target.matches('button, input') ? target : (target.querySelector && target.querySelector('button[type="submit"], button[name="add"]')) || target;
     toast(anchor, msg);
   }
