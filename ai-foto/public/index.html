@@ -26,6 +26,7 @@ small{color:var(--mut)}
 <div class="card" id="editor" hidden></div>
 <div class="card"><h2>Instellingen</h2><div class="row" id="settings"></div><p><button id="saveSet">Opslaan</button></p>
 <small>Tegel: 1600 px ≈ 300 dpi op 13x13 cm. Poster: lange zijde in px, 2800 px ≈ 100 dpi op 70 cm. Pogingen = per klant per 24 uur.</small></div>
+<div class="card"><h2>Activiteit (laatste 24 uur, per IP)</h2><div id="activity"></div></div>
 <div class="card"><h2>Laatste generaties</h2><div class="jobs" id="jobs"></div></div>
 </main><div id="msg"></div>
 <script>
@@ -44,6 +45,12 @@ function render(){
   h.onclick=()=>edit(x);d.append(h,el('hr',{style:'border:0;border-top:1px solid var(--line)'}))});
  const s=$('#settings');s.replaceChildren();
  Object.entries(S.settings).forEach(([k,v])=>{s.append(el('div',{},el('label',{textContent:k}),el('input',{name:k,value:v})))});
+ const ac=$('#activity');ac.replaceChildren();
+ if(!(S.activity||[]).length)ac.append(el('p',{textContent:'Nog geen activiteit.'}));
+ (S.activity||[]).forEach(x=>ac.append(el('div',{style:'padding:6px 0;border-bottom:1px solid var(--line);font-size:13px'},
+  el('b',{textContent:`${x.ip||'?'} ${x.country?'('+x.country+')':''}`}),el('span',{textContent:` · ${x.n} pogingen · ${x.clients} browser(s)${x.errors?' · '+x.errors+' fout':''} · laatst ${x.last}`}),
+  x.flags.length?el('span',{style:'color:#c62828;font-weight:600',textContent:' · ⚠ '+x.flags.join(', ')}):'',
+  el('div',{style:'opacity:.6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap',textContent:x.ua||'(geen user-agent)'}))));
  const j=$('#jobs');j.replaceChildren();
  S.recent.forEach(x=>j.append(el('div',{},x.preview_url?el('a',{href:x.print_url,target:'_blank'},el('img',{src:x.preview_url})):el('div',{textContent:x.status==='error'?(x.error||'fout'):x.status}),
   el('div',{textContent:`${x.design_name||'?'} · ${x.profile}${x.print_w?` ${x.print_w}x${x.print_h}`:''}${x.custom_text?` · "${x.custom_text}"`:''}${x.reuse_count?` · ${x.reuse_count}x hergebruikt`:''}`}))));

@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
 const rateLimit = require('express-rate-limit');
+const { clientIp } = require('./clientip');
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
@@ -46,11 +47,11 @@ app.get('/api/designs', (req, res) => {
   else rows = rows.filter((d) => d.products === '*' || !product || d.products.split(',').map((s) => s.trim()).includes(product));
   const maxA = parseInt(getSetting('max_attempts'), 10);
   const cid = String(req.query.client_id || '');
-  const left = /^[A-Za-z0-9_-]{8,64}$/.test(cid) ? attemptsLeft(cid, req.ip) : maxA;
+  const left = /^[A-Za-z0-9_-]{8,64}$/.test(cid) ? attemptsLeft(cid, clientIp(req)) : maxA;
   res.json({ designs: rows.map(publicDesign), attempts_left: left, max_attempts: maxA, text_max: parseInt(getSetting('text_max'), 10) });
 });
 
-const genLimiter = rateLimit({ windowMs: 60 * 60 * 1000, limit: 20, standardHeaders: true, legacyHeaders: false,
+const genLimiter = rateLimit({ windowMs: 60 * 60 * 1000, limit: 20, standardHeaders: true, legacyHeaders: false, keyGenerator: (req) => clientIp(req), validate: false,
   message: { error: 'Te veel pogingen, probeer het later opnieuw.' } });
 
 // Limiet geldt op browsersessie EN op IP-adres: pas als beide gewisseld worden, begint iemand opnieuw.
@@ -64,7 +65,7 @@ function attemptsUsed(clientId) {
   return db.prepare("SELECT COUNT(*) c FROM jobs WHERE client_id=? AND created_at > datetime('now','-1 day') AND status!='error'").get(clientId).c;
 }
 
-app.post('/api/generate', genLimiter, upload.single('photo'), async (req, res) => {
+app.post('/api/generate', genLimiter, (req, res, next) => (looksLikeBot(req) ? res.status(403).json({ error: 'Dit verzoek is geweigerd.' }) : next()), upload.single('photo'), async (req, res) => {
   try {
     const clientId = String(req.body.client_id || '').slice(0, 64);
     if (!/^[A-Za-z0-9_-]{8,64}$/.test(clientId)) return res.status(400).json({ error: 'Ongeldige sessie.' });
@@ -81,7 +82,7 @@ app.post('/api/generate', genLimiter, upload.single('photo'), async (req, res) =
     if (design.prompt_with_text && design.text_required && !customText) return res.status(400).json({ error: 'Vul eerst een tekst in voor dit ontwerp.' });
 
     const max = parseInt(getSetting('max_attempts'), 10);
-    if (attemptsLeft(clientId, req.ip) <= 0) return res.status(429).json({ error: `Je credits zijn op. Probeer het morgen weer.`, attempts_left: 0 });
+    if (attemptsLeft(clientId, clientIp(req)) <= 0) return res.status(429).json({ error: `Je credits zijn op. Probeer het morgen weer.`, attempts_left: 0 });
 
     // Alleen echte afbeeldingen toelaten.
     let meta;
@@ -99,16 +100,21 @@ app.post('/api/generate', genLimiter, upload.single('photo'), async (req, res) =
       const [x, y, w, h] = cr.map((n) => Math.min(1, Math.max(0, n)));
       if (w >= 0.05 && h >= 0.05 && x + w <= 1.001 && y + h <= 1.001) cropJson = JSON.stringify({ x, y, w, h });
     }
-    db.prepare('INSERT INTO jobs(id,client_id,ip,design_id,profile,orientation,original_file,custom_text,crop_json) VALUES(?,?,?,?,?,?,?,?,?)')
-      .run(id, clientId, req.ip, design.id, profile, orientation, originalFile, customText, cropJson);
+    db.prepare('INSERT INTO jobs(id,client_id,ip,design_id,profile,orientation,original_file,custom_text,crop_json,ua,country) VALUES(?,?,?,?,?,?,?,?,?,?,?)')
+      .run(id, clientId, clientIp(req), design.id, profile, orientation, originalFile, customText, cropJson, String(req.headers['user-agent'] || '').slice(0, 200), String(req.headers['cf-ipcountry'] || '').slice(0, 4));
     enqueue(id);
-    res.json({ job_id: id, attempts_left: attemptsLeft(clientId, req.ip) });
+    res.json({ job_id: id, attempts_left: attemptsLeft(clientId, clientIp(req)) });
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: 'Er ging iets mis, probeer het opnieuw.' });
   }
 });
 
+// Eenvoudige botfilter: geen/zeer korte user-agent of bekende scripts/headless-browsers.
+function looksLikeBot(req) {
+  const ua = String(req.headers['user-agent'] || '');
+  return ua.length < 15 || /bot|crawl|spider|curl|wget|python|httpclient|axios|node-fetch|go-http|java\/|headless|phantom|puppeteer|playwright|selenium/i.test(ua);
+}
 const validClient = (c) => /^[A-Za-z0-9_-]{8,64}$/.test(String(c || ''));
 function parseVariants(j) { try { return JSON.parse(j.variants_json || '[]'); } catch { return []; } }
 
@@ -234,10 +240,25 @@ app.get('/admin/api/state', (req, res) => {
     designs: db.prepare('SELECT * FROM designs ORDER BY sort, id').all().map(adminDesign),
     settings: allSettings(),
     has_fal_key: !!process.env.FAL_KEY,
+    activity: activity(),
     recent: db.prepare('SELECT j.*, d.name design_name FROM jobs j LEFT JOIN designs d ON d.id=j.design_id ORDER BY j.created_at DESC LIMIT 30').all()
       .map((j) => { const v0 = parseVariants(j)[0] || {}; return { ...j, preview_url: fileUrl(j.preview_file || v0.preview_file), print_url: fileUrl(j.print_file || v0.print_file), variants: parseVariants(j).length }; }),
   });
 });
+
+// Activiteit per IP in de laatste 24 uur, met markering van verdachte patronen.
+function activity() {
+  const rows = db.prepare(`SELECT ip, COUNT(*) n, COUNT(DISTINCT client_id) clients, MIN(created_at) first, MAX(created_at) last, MAX(ua) ua, MAX(country) country,
+      SUM(status='error') errors FROM jobs WHERE client_id!='admin-test' AND created_at > datetime('now','-1 day') GROUP BY ip ORDER BY n DESC LIMIT 25`).all();
+  return rows.map((r) => {
+    const flags = [];
+    if (r.clients >= 3) flags.push(`${r.clients} verschillende browsers vanaf 1 IP`);
+    if (r.n >= 8) flags.push(`${r.n} pogingen in 24 uur`);
+    if (!r.ua || /bot|curl|python|headless|wget|axios|node/i.test(r.ua)) flags.push('verdachte user-agent');
+    if (r.country && !['NL', 'BE', 'DE', 'LU', 'FR', ''].includes(r.country)) flags.push('land ' + r.country);
+    return { ...r, flags };
+  });
+}
 
 function designFields(b) {
   let extra = b.extra_json || '{}';
@@ -288,7 +309,7 @@ app.post('/admin/api/test', upload.single('photo'), async (req, res) => {
   const originalFile = `${id}.jpg`;
   fs.writeFileSync(path.join(ORIGINALS, originalFile), await sharp(req.file.buffer).rotate().jpeg({ quality: 95 }).toBuffer());
   db.prepare('INSERT INTO jobs(id,client_id,ip,design_id,profile,orientation,original_file) VALUES(?,?,?,?,?,?,?)')
-    .run(id, 'admin-test', req.ip, parseInt(req.body.design_id, 10), req.body.profile === 'poster' ? 'poster' : 'tegel',
+    .run(id, 'admin-test', clientIp(req), parseInt(req.body.design_id, 10), req.body.profile === 'poster' ? 'poster' : 'tegel',
       req.body.orientation === 'portrait' ? 'portrait' : 'landscape', originalFile);
   enqueue(id);
   res.json({ job_id: id });

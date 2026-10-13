@@ -5,6 +5,9 @@ const sharp = require('sharp'); const http = require('http'); const assert = req
 const fal = require('./fal'); const calls = [];
 let imgUrlBuf;
 fal.run = async (model, input) => { calls.push({ model, input }); return { images: [{ url: 'http://localhost:4598/fake.jpg' }] }; };
+// Test-verzoeken doen alsof ze uit een gewone browser komen (de botfilter blokkeert 'node' als user-agent).
+const realFetch = global.fetch;
+global.fetch = (u, o = {}) => realFetch(u, { ...o, headers: { 'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/120 Safari/537.36', ...(o.headers || {}) } });
 const app = require('./index');
 require('./db').setSetting('max_attempts', '4'); require('./db').setSetting('max_attempts_ip', '12');
 
@@ -107,6 +110,11 @@ require('./db').setSetting('max_attempts', '4'); require('./db').setSetting('max
   assert.equal((await fetch(pick.print_url)).status, 200);                                          // drukbestand blijft (bestelling kan al lopen)
   const h2 = await (await fetch(B + '/api/history?client_id=client-cccc3333&profile=tegel')).json();
   assert.equal(h2.items.length, 0);                                                                  // niet meer in herbestelling
+  // botfilter + activiteit
+  const botRes = await realFetch(B + '/api/generate', { method: 'POST', headers: { 'user-agent': 'python-requests/2.31' }, body: new FormData() });
+  assert.equal(botRes.status, 403);
+  const act = await (await realFetch(B + '/admin/api/state', { headers: { authorization: 'Basic ' + Buffer.from('x:pw').toString('base64') } })).json();
+  assert(Array.isArray(act.activity) && act.activity.length >= 1 && act.activity[0].n >= 1);
   console.log('ALLE TESTS OK');
   srv.close(); fake.close(); process.exit(0);
 })().catch((e) => { console.error('FOUT', e); process.exit(1); });
