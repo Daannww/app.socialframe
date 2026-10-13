@@ -161,10 +161,10 @@
 
   // ---- tekst onderaan: zelfde indeling op de kaart en in het drukbestand ----
   var FONTS = {
-    classic: { cityFam: '"Playfair Display", Georgia, serif', cityW: 700, cityStyle: 'normal', cityK: 0.053, ctyFam: '"Playfair Display", Georgia, serif', ctyW: 500, ctyStyle: 'italic', ctyK: 0.033, tildes: true, gap: 0.0325, base: 0.915 },
+    classic: { cityFam: '"Playfair Display", Georgia, serif', cityW: 700, cityStyle: 'normal', cityK: 0.052, ctyFam: '"Playfair Display", Georgia, serif', ctyW: 500, ctyStyle: 'italic', ctyK: 0.030, tildes: true, gap: 0.0325, base: 0.915 },
     modern: { cityFam: 'Montserrat, Arial, sans-serif', cityW: 700, cityStyle: 'normal', cityK: 0.046, ctyFam: 'Montserrat, Arial, sans-serif', ctyW: 500, ctyStyle: 'normal', ctyK: 0.022, tildes: false, lsEm: 0.32, gap: 0.034, base: 0.93 }
   };
-  var TEXT_BASE = 0.90;   // onderkant landnaam: 1 cm boven de onderkant van een tegel van 10 cm
+  var TEXT_BASE = 0.895;   // onderkant landnaam: 1 cm boven de onderkant van een tegel van 10 cm
   var mctx = document.createElement('canvas').getContext('2d');
   function textWidth(str, px, weight, style, ls, fam) {
     mctx.font = style + ' ' + weight + ' ' + px + 'px ' + fam;
