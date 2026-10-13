@@ -91,7 +91,6 @@
   .hw-kaart-pins{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px}
   .hw-kaart-pin{height:64px;border:1.5px solid #E2E2E2;border-radius:12px;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:6px;font:inherit;font-size:13px;color:#333;line-height:1.1}
   .hw-kaart-onimg{position:absolute;z-index:6}
-  .hw-kaart-onimg .hw-kaart-stage{margin:0;border:0;border-radius:0}
   .hw-kaart-photo{margin-top:10px}
   .hw-kaart-pin img{height:100%;width:auto}
   .hw-kaart-pin svg{height:100%;width:auto;max-width:100%}
@@ -223,7 +222,9 @@
     var state = { font: 'classic', labels: false, streets: true, buildings: true, pin: 'druppel', photoImg: null, photoUrl: '', loc: null, placed: false, result: null, busy: false, pass: false };
     var map = null, marker = null;
     function say(t, err) { statusEl.textContent = t || ''; statusEl.className = 'hw-kaart-status' + (err ? ' err' : ''); }
-    function changed() { state.result = null; }
+    function changed() { state.result = null; mirrorSoon(); }
+    var mirrorPaint = null;
+    function mirrorSoon() { if (mirrorPaint) mirrorPaint(); }
 
     var clientId;
     try { clientId = localStorage.getItem('hw_ai_client'); } catch (e) {}
@@ -269,6 +270,7 @@
       }
       marker = new maplibregl.Marker({ element: el, anchor: p.anchor, draggable: true }).setLngLat([state.loc.lng, state.loc.lat]).addTo(map);
       el.style.cursor = 'grab';
+      marker.on('drag', mirrorSoon);
       marker.on('dragend', function () { var l = marker.getLngLat(); state.loc = { lng: l.lng, lat: l.lat }; changed(); });
     }
 
@@ -283,6 +285,7 @@
       countryView.style.fontFamily = F.ctyFam; countryView.style.fontWeight = F.ctyW; countryView.style.fontStyle = F.ctyStyle;
       countryView.style.fontSize = L.countryPx + 'px'; countryView.style.letterSpacing = L.countryLs + 'px'; countryView.style.paddingLeft = L.countryLs + 'px'; countryView.style.lineHeight = '1';
       countryView.style.top = L.countryBase != null ? (L.countryBase - L.countryPx * F.base) + 'px' : '';
+      mirrorSoon();
     }
     cityEl.addEventListener('input', function () { drawTexts(); changed(); });
     countryEl.addEventListener('input', function () { drawTexts(); changed(); });
@@ -388,7 +391,8 @@
     // ----- kaart starten -----
     var start = { lng: 4.8952, lat: 52.3702 };
     function startMap() {
-      map = new maplibregl.Map({ container: mapEl, style: buildStyle(state), center: [start.lng, start.lat], zoom: 13.2, attributionControl: false, cooperativeGestures: true, dragRotate: false, pitchWithRotate: false, maxZoom: 18.5, minZoom: 3, fadeDuration: 0 });
+      map = new maplibregl.Map({ container: mapEl, style: buildStyle(state), center: [start.lng, start.lat], zoom: 13.2, attributionControl: false, cooperativeGestures: true, dragRotate: false, pitchWithRotate: false, maxZoom: 18.5, minZoom: 3, fadeDuration: 0, preserveDrawingBuffer: true });
+      map.on('render', mirrorSoon);
       map.touchZoomRotate.disableRotation();
       // Bronvermelding (verplicht bij OpenStreetMap-gegevens): staat klein onderaan de widget.
           map.on('moveend', changed);
@@ -400,12 +404,25 @@
     function mountOnImage() {
       var ov = (root.dataset.overlay || '').split(',').map(parseFloat);
       if (ov.length !== 3 || ov.some(isNaN)) return;
-      var box = document.createElement('div'); box.className = 'hw-kaart-onimg';
-      box.style.cssText = 'left:' + ov[0] + '%;top:' + ov[1] + '%;width:' + ov[2] + '%';
-      ['pointerdown', 'mousedown', 'touchstart', 'touchmove', 'wheel', 'click'].forEach(function (ev) { box.addEventListener(ev, function (e) { e.stopPropagation(); }); });
-      var holder = document.createComment('hw-kaart-stage'); stageEl.parentNode.insertBefore(holder, stageEl);
-      box.appendChild(stageEl);
-      // Sommige thema's bouwen de galerij na het laden opnieuw op (en kopiëren dan de kaart): hang de échte kaart daarna weer terug.
+      // Spiegel: een niet-aanklikbare kopie van de kaart over de eerste productfoto, die live meebeweegt.
+      var box = document.createElement('div'); box.className = 'hw-kaart-onimg'; box.style.cssText = 'left:' + ov[0] + '%;top:' + ov[1] + '%;width:' + ov[2] + '%;pointer-events:none;aspect-ratio:1/1;overflow:hidden';
+      var cv = document.createElement('canvas'); cv.style.cssText = 'display:block;width:100%;height:100%'; box.appendChild(cv);
+      var pending = false, pinImgs = {};
+      function paint() {
+        pending = false;
+        var W = stageEl.clientWidth, bw = box.clientWidth; if (!W || !bw || !map) return;
+        var px = Math.round(bw * Math.min(window.devicePixelRatio || 1, 2));
+        if (cv.width !== px) { cv.width = cv.height = px; }
+        var ctx = cv.getContext('2d'), p = pinById(state.pin), pt = state.loc ? map.project([state.loc.lng, state.loc.lat]) : null;
+        ctx.fillStyle = BG; ctx.fillRect(0, 0, px, px);
+        try { ctx.drawImage(map.getCanvas(), 0, 0, px, px); } catch (e) {}
+        var draw = function (img) { drawTop(ctx, px, W, pt, img); };
+        if (p.id === 'none' || !pt) draw(null);
+        else if (p.photo) draw(true);
+        else if (pinImgs[p.id]) draw(pinImgs[p.id]);
+        else { draw(null); loadSvgImage(p).then(function (im) { pinImgs[p.id] = im; mirrorSoon(); }); }
+      }
+      mirrorPaint = function () { if (!pending) { pending = true; requestAnimationFrame(paint); } };
       function place() {
         var item = null;
         try { item = document.querySelector(root.dataset.gallery || '.product-gallery-item'); } catch (e) {}
@@ -413,13 +430,12 @@
         document.querySelectorAll('.hw-kaart-onimg').forEach(function (x) { if (x !== box) x.remove(); });
         if (box.parentNode === item) return;
         if (getComputedStyle(item).position === 'static') item.style.position = 'relative';
-        item.appendChild(box);
-        if (map) map.resize(); drawTexts(); drawMarker();
+        item.appendChild(box); mirrorSoon();
       }
       var t = null;
       function soon() { clearTimeout(t); t = setTimeout(place, 120); }
       new MutationObserver(soon).observe(document.body, { childList: true, subtree: true });
-      window.addEventListener('load', soon); window.addEventListener('resize', soon);
+      window.addEventListener('load', soon); window.addEventListener('resize', function () { soon(); mirrorSoon(); });
       var n = 0, iv = setInterval(function () { place(); if (++n > 40) clearInterval(iv); }, 250);
     }
     mountOnImage();
@@ -432,6 +448,34 @@
         img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(pinSvg(p));
       });
     }
+    // pin + witte fade + tekst op een canvas (voor het drukbestand én de spiegel op de productfoto)
+    function drawTop(ctx, size, W, pt, pinImg) {
+      var p = pinById(state.pin);
+          var k = size / W;
+          if (pinImg && pt) {
+            var pw = W * (p.photo ? 0.11 : 0.085) * k, ph = pw * (p.vb.split(' ')[3] / p.vb.split(' ')[2]);
+            var x = pt.x * k - pw / 2, y = p.anchor === 'bottom' ? pt.y * k - ph : pt.y * k - ph / 2;
+            ctx.shadowColor = 'rgba(0,0,0,.35)'; ctx.shadowBlur = 3 * k; ctx.shadowOffsetY = 1 * k;
+            if (p.photo) {
+              var sc = pw / 40, dp = new Path2D(PHOTO_DROP);
+              ctx.save(); ctx.translate(x, y); ctx.scale(sc, sc);
+              ctx.fillStyle = '#fff'; ctx.fill(dp);
+              ctx.shadowColor = 'transparent'; ctx.lineWidth = 2.5; ctx.strokeStyle = '#D32F2F'; ctx.stroke(dp);
+              if (state.photoImg) { ctx.beginPath(); ctx.arc(20, 20, 13.5, 0, Math.PI * 2); ctx.clip(); ctx.drawImage(state.photoImg, 6.5, 6.5, 27, 27); }
+              ctx.restore();
+            } else ctx.drawImage(pinImg, x, y, pw, ph);
+            ctx.shadowColor = 'transparent';
+          }
+          var g = ctx.createLinearGradient(0, size * 0.64, 0, size);
+          g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.3, 'rgba(255,255,255,.35)'); g.addColorStop(0.55, 'rgba(255,255,255,.8)'); g.addColorStop(0.72, 'rgba(255,255,255,1)'); g.addColorStop(1, 'rgba(255,255,255,1)');
+          ctx.fillStyle = g; ctx.fillRect(0, size * 0.64, size, size * 0.36);
+          var city = cityEl.value.trim(), country = countryEl.value.trim(), F = FONTS[state.font];
+          var L = layoutText(city, country, W, F);
+          ctx.fillStyle = '#111'; ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';
+          if (city && L.cityBase != null) { ctx.font = F.cityStyle + ' ' + F.cityW + ' ' + (L.cityPx * k) + 'px ' + F.cityFam; drawSpaced(ctx, L.city, size / 2, L.cityBase * k, 0); }
+          if (country && L.countryBase != null) { ctx.font = F.ctyStyle + ' ' + F.ctyW + ' ' + (L.countryPx * k) + 'px ' + F.ctyFam; drawSpaced(ctx, L.shown, size / 2, L.countryBase * k, L.countryLs * k); }
+    }
+
     function renderPrint() {
       var W = stageEl.clientWidth, size = PRINT_PX, pr = size / W;
       var host = document.createElement('div'); host.style.cssText = 'position:fixed;left:-20000px;top:0;width:' + W + 'px;height:' + W + 'px;pointer-events:none';
@@ -454,29 +498,7 @@
             ctx.drawImage(m2.getCanvas(), 0, 0, size, size);
             var p = pinById(state.pin), pt = state.loc ? m2.project([state.loc.lng, state.loc.lat]) : null;
             var finish = function (pinImg) {
-              var k = size / W;
-              if (pinImg && pt) {
-                var pw = W * 0.085 * k, ph = pw * (p.vb.split(' ')[3] / p.vb.split(' ')[2]);
-                var x = pt.x * k - pw / 2, y = p.anchor === 'bottom' ? pt.y * k - ph : pt.y * k - ph / 2;
-                ctx.shadowColor = 'rgba(0,0,0,.35)'; ctx.shadowBlur = 3 * k; ctx.shadowOffsetY = 1 * k;
-                if (p.photo) {
-                  var sc = pw / 40, dp = new Path2D(PHOTO_DROP);
-                  ctx.save(); ctx.translate(x, y); ctx.scale(sc, sc);
-                  ctx.fillStyle = '#fff'; ctx.fill(dp);
-                  ctx.shadowColor = 'transparent'; ctx.lineWidth = 2.5; ctx.strokeStyle = '#D32F2F'; ctx.stroke(dp);
-                  if (state.photoImg) { ctx.beginPath(); ctx.arc(20, 20, 13.5, 0, Math.PI * 2); ctx.clip(); ctx.drawImage(state.photoImg, 6.5, 6.5, 27, 27); }
-                  ctx.restore();
-                } else ctx.drawImage(pinImg, x, y, pw, ph);
-                ctx.shadowColor = 'transparent';
-              }
-              var g = ctx.createLinearGradient(0, size * 0.64, 0, size);
-              g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.3, 'rgba(255,255,255,.35)'); g.addColorStop(0.55, 'rgba(255,255,255,.8)'); g.addColorStop(0.72, 'rgba(255,255,255,1)'); g.addColorStop(1, 'rgba(255,255,255,1)');
-              ctx.fillStyle = g; ctx.fillRect(0, size * 0.64, size, size * 0.36);
-              var city = cityEl.value.trim(), country = countryEl.value.trim(), F = FONTS[state.font];
-              var L = layoutText(city, country, W, F);
-              ctx.fillStyle = '#111'; ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';
-              if (city && L.cityBase != null) { ctx.font = F.cityStyle + ' ' + F.cityW + ' ' + (L.cityPx * k) + 'px ' + F.cityFam; drawSpaced(ctx, L.city, size / 2, L.cityBase * k, 0); }
-              if (country && L.countryBase != null) { ctx.font = F.ctyStyle + ' ' + F.ctyW + ' ' + (L.countryPx * k) + 'px ' + F.ctyFam; drawSpaced(ctx, L.shown, size / 2, L.countryBase * k, L.countryLs * k); }
+              drawTop(ctx, size, W, pt, pinImg);
               m2.remove(); host.remove();
               cnv.toBlob(function (b) { b ? ok(b) : fail(new Error('Afbeelding maken mislukt.')); }, 'image/jpeg', 0.92);
             };
