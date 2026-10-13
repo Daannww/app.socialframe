@@ -44,6 +44,7 @@
 
   <div class="hw-kaart-label">Pin</div>
   <div class="hw-kaart-pins" data-hw-k-pins></div>
+  <div class="hw-kaart-photo" data-hw-k-photo hidden><label class="hw-kaart-hint">Kies een foto voor in je pin <input type="file" accept="image/*" data-hw-k-file style="display:block;margin-top:6px;font-size:14px"></label></div>
 
   <div class="hw-kaart-status" data-hw-k-status role="status" aria-live="polite"></div>
   <div class="hw-kaart-demo" data-hw-k-demo hidden>
@@ -78,6 +79,8 @@
   .hw-kaart-mode[aria-pressed="true"]{border-color:#111;background:#111;color:#fff}
   .hw-kaart-pins{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px}
   .hw-kaart-pin{height:64px;border:1.5px solid #E2E2E2;border-radius:12px;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:6px;font:inherit;font-size:13px;color:#333;line-height:1.1}
+  .hw-kaart-photo{margin-top:10px}
+  .hw-kaart-pin img{height:100%;width:auto}
   .hw-kaart-pin svg{height:100%;width:auto;max-width:100%}
   .hw-kaart-pin[aria-pressed="true"]{border-color:#111;box-shadow:0 0 0 1px #111}
   .hw-kaart-status{margin-top:12px;font-size:13px;color:#555;min-height:18px}
@@ -113,13 +116,12 @@
   // ---- pins (zelfde tekening op de kaart en in het drukbestand) ----
   var HEART = 'M16 28C4 19 2 12 2 9C2 5 5 2.5 8.5 2.5C11.5 2.5 14.5 4.5 16 7.5C17.5 4.5 20.5 2.5 23.5 2.5C27 2.5 30 5 30 9C30 12 28 19 16 28Z';
   var DROP = 'M16 43C16 43 3 26 3 16A13 13 0 0 1 29 16C29 26 16 43 16 43Z';
+  var PHOTO_DROP = 'M20 53C20 53 3 33 3 20A17 17 0 0 1 37 20C37 33 20 53 20 53Z';
   var PINS = [
     { id: 'none', label: 'geen pin' },
     { id: 'druppel', label: 'Druppel', vb: '0 0 32 44', anchor: 'bottom', svg: '<path d="' + DROP + '" fill="#D32F2F"/><circle cx="16" cy="16" r="5.5" fill="#fff"/>' },
     { id: 'hart', label: 'Hart', vb: '0 0 32 32', anchor: 'center', svg: '<path d="' + HEART + '" fill="#D9534F"/>' },
-    { id: 'hartdruppel', label: 'Hartdruppel', vb: '0 0 32 44', anchor: 'bottom', svg: '<path d="' + DROP + '" fill="#D9534F"/><g transform="translate(8.6 8.6) scale(.45)"><path d="' + HEART + '" fill="#fff"/></g>' },
-    { id: 'hartpunt', label: 'Hart met punt', vb: '0 0 32 36', anchor: 'bottom', svg: '<path d="M16 35C3 22 1 14 1 10C1 5 5 2 9 2C12 2 15 4 16 7C17 4 20 2 23 2C27 2 31 5 31 10C31 14 29 22 16 35Z" fill="#D62828"/>' },
-    { id: 'hartrood', label: 'Hart rood', vb: '0 0 32 32', anchor: 'center', svg: '<path d="' + HEART + '" fill="#B71C1C"/>' }
+    { id: 'foto', label: 'Foto-pin', vb: '0 0 40 54', anchor: 'bottom', photo: true, svg: '<path d="' + PHOTO_DROP + '" fill="#fff" stroke="#D32F2F" stroke-width="2.5"/><circle cx="20" cy="20" r="13.5" fill="#E3E3E3"/><path d="M13 25l5-6 4 4 3-3 5 5z" fill="#fff"/>' }
   ];
   function pinSvg(p) { return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="' + p.vb + '">' + p.svg + '</svg>'; }
   function pinById(id) { for (var i = 0; i < PINS.length; i++) if (PINS[i].id === id) return PINS[i]; return PINS[0]; }
@@ -160,7 +162,7 @@
   // ---- tekst onderaan: zelfde indeling op de kaart en in het drukbestand ----
   var FONTS = {
     classic: { cityFam: '"Playfair Display", Georgia, serif', cityW: 700, cityStyle: 'normal', cityK: 0.052, ctyFam: '"Playfair Display", Georgia, serif', ctyW: 500, ctyStyle: 'italic', ctyK: 0.030, tildes: true, gap: 0.0325, base: 0.915 },
-    modern: { cityFam: 'Montserrat, Arial, sans-serif', cityW: 700, cityStyle: 'normal', cityK: 0.046, ctyFam: 'Montserrat, Arial, sans-serif', ctyW: 500, ctyStyle: 'normal', ctyK: 0.022, tildes: false, lsEm: 0.32, gap: 0.034, base: 0.93 }
+    modern: { cityFam: 'Montserrat, Arial, sans-serif', cityW: 700, cityStyle: 'normal', cityK: 0.040, ctyFam: 'Montserrat, Arial, sans-serif', ctyW: 500, ctyStyle: 'normal', ctyK: 0.020, upper: true, tildes: false, lsEm: 0.32, gap: 0.034, base: 0.93 }
   };
   var TEXT_BASE = 0.895;   // onderkant landnaam: 1 cm boven de onderkant van een tegel van 10 cm
   var mctx = document.createElement('canvas').getContext('2d');
@@ -171,6 +173,7 @@
   }
   // px-groottes en baseline-posities; maten volgen het oude drukbestand (Oldenzaal 10x10)
   function layoutText(city, country, W, F) {
+    if (F.upper) { city = city.toUpperCase(); country = country.toUpperCase(); }
     var maxW = W * 0.86;
     var cityPx = W * F.cityK;
     while (city && cityPx > W * 0.025 && textWidth(city, cityPx, F.cityW, F.cityStyle, 0, F.cityFam) > maxW) cityPx -= 1;
@@ -181,7 +184,7 @@
     while (shown && cPx > W * 0.014 && textWidth(shown, cPx, F.ctyW, F.ctyStyle, cLs, F.ctyFam) > maxW) { cPx -= 1; cLs = cPx * lsRatio; }
     var countryBase = country ? W * TEXT_BASE : null;
     var cityBase = city ? (country ? W * (TEXT_BASE - F.gap) : W * TEXT_BASE) : null;
-    return { cityPx: cityPx, countryPx: cPx, countryLs: cLs, cityBase: cityBase, countryBase: countryBase, shown: shown };
+    return { cityPx: cityPx, countryPx: cPx, countryLs: cLs, cityBase: cityBase, countryBase: countryBase, shown: shown, city: city };
   }
   function loadFonts() {
     if (!(document.fonts && document.fonts.load)) return Promise.resolve();
@@ -202,7 +205,7 @@
     var searchEl = $('[data-hw-k-search]'), suggEl = $('[data-hw-k-sugg]'), mapEl = $('[data-hw-k-map]'), stageEl = $('[data-hw-k-stage]');
     var cityEl = $('[data-hw-k-city]'), countryEl = $('[data-hw-k-country]'), cityView = $('[data-hw-k-cityview]'), countryView = $('[data-hw-k-countryview]');
     var fadeEl = $('[data-hw-k-fade]'), statusEl = $('[data-hw-k-status]'), pinsEl = $('[data-hw-k-pins]');
-    var state = { font: 'classic', labels: false, buildings: false, pin: 'druppel', loc: null, placed: false, result: null, busy: false, pass: false };
+    var state = { font: 'classic', labels: false, buildings: false, pin: 'druppel', photoImg: null, photoUrl: '', loc: null, placed: false, result: null, busy: false, pass: false };
     var map = null, marker = null;
     function say(t, err) { statusEl.textContent = t || ''; statusEl.className = 'hw-kaart-status' + (err ? ' err' : ''); }
     function changed() { state.result = null; }
@@ -212,12 +215,26 @@
     if (!clientId) { clientId = 'c' + Math.random().toString(36).slice(2) + Date.now().toString(36); try { localStorage.setItem('hw_ai_client', clientId); } catch (e) {} }
 
     // ----- pins kiezen -----
+    var photoBox = $('[data-hw-k-photo]'), fileEl = $('[data-hw-k-file]'), photoBtn = null;
+    fileEl.addEventListener('change', function () {
+      var f = fileEl.files && fileEl.files[0]; if (!f) return;
+      var done = function (bmp) {
+        var s = Math.min(bmp.width, bmp.height), out = Math.min(s, 360), c = document.createElement('canvas'); c.width = c.height = out;
+        c.getContext('2d').drawImage(bmp, (bmp.width - s) / 2, (bmp.height - s) / 2, s, s, 0, 0, out, out);
+        state.photoImg = c; state.photoUrl = c.toDataURL('image/jpeg', 0.9);
+        if (photoBtn) photoBtn.innerHTML = '<img alt="" src="' + state.photoUrl + '" style="display:none">' + pinSvg(pinById('foto')).replace('<circle', '<image href="' + state.photoUrl + '" x="6.5" y="6.5" width="27" height="27" clip-path="url(#hwkc)"/><clipPath id="hwkc"><circle cx="20" cy="20" r="13.5"/></clipPath><circle fill-opacity="0" ');
+        drawMarker(); changed(); say('');
+      };
+      if (window.createImageBitmap) createImageBitmap(f, { imageOrientation: 'from-image' }).then(done, function () { say('Deze foto kan niet worden gelezen.', true); });
+      else { var im = new Image(); im.onload = function () { done(im); }; im.src = URL.createObjectURL(f); }
+    });
     PINS.forEach(function (p) {
       var b = document.createElement('button'); b.type = 'button'; b.className = 'hw-kaart-pin'; b.setAttribute('aria-label', p.label);
       b.setAttribute('aria-pressed', p.id === state.pin ? 'true' : 'false');
       if (p.id === 'none') b.textContent = 'geen pin'; else b.innerHTML = pinSvg(p);
+      if (p.photo) photoBtn = b;
       b.addEventListener('click', function () {
-        state.pin = p.id; pinsEl.querySelectorAll('.hw-kaart-pin').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+        state.pin = p.id; photoBox.hidden = !p.photo; pinsEl.querySelectorAll('.hw-kaart-pin').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
         drawMarker(); changed();
       });
       pinsEl.appendChild(b);
@@ -227,8 +244,14 @@
       var p = pinById(state.pin);
       if (!map || p.id === 'none' || !state.loc) return;
       var el = document.createElement('div'); el.innerHTML = pinSvg(p);
-      var w = stageEl.clientWidth * 0.085; el.style.width = w + 'px'; el.style.height = (w * (p.vb.split(' ')[3] / p.vb.split(' ')[2])) + 'px';
+      var w = stageEl.clientWidth * (p.photo ? 0.11 : 0.085); el.style.width = w + 'px'; el.style.height = (w * (p.vb.split(' ')[3] / p.vb.split(' ')[2])) + 'px';
       el.firstChild.style.cssText = 'width:100%;height:100%;display:block;filter:drop-shadow(0 1px 2px rgba(0,0,0,.35))';
+      if (p.photo && state.photoUrl) {
+        el.style.position = 'relative';
+        var im = document.createElement('img'); im.src = state.photoUrl; im.alt = '';
+        im.style.cssText = 'position:absolute;left:16.25%;top:12.04%;width:67.5%;height:50%;border-radius:50%;object-fit:cover';
+        el.appendChild(im);
+      }
       marker = new maplibregl.Marker({ element: el, anchor: p.anchor }).setLngLat([state.loc.lng, state.loc.lat]).addTo(map);
     }
 
@@ -237,7 +260,7 @@
       var W = stageEl.clientWidth; if (!W) return;
       var city = cityEl.value.trim(), country = countryEl.value.trim(), F = FONTS[state.font];
       var L = layoutText(city, country, W, F);
-      cityView.textContent = city; countryView.textContent = L.shown;
+      cityView.textContent = L.city; countryView.textContent = L.shown;
       cityView.style.fontFamily = F.cityFam; cityView.style.fontWeight = F.cityW; cityView.style.fontStyle = F.cityStyle;
       cityView.style.fontSize = L.cityPx + 'px'; cityView.style.lineHeight = '1'; cityView.style.top = L.cityBase != null ? (L.cityBase - L.cityPx * F.base) + 'px' : '';
       countryView.style.fontFamily = F.ctyFam; countryView.style.fontWeight = F.ctyW; countryView.style.fontStyle = F.ctyStyle;
@@ -393,7 +416,15 @@
                 var pw = W * 0.085 * k, ph = pw * (p.vb.split(' ')[3] / p.vb.split(' ')[2]);
                 var x = pt.x * k - pw / 2, y = p.anchor === 'bottom' ? pt.y * k - ph : pt.y * k - ph / 2;
                 ctx.shadowColor = 'rgba(0,0,0,.35)'; ctx.shadowBlur = 3 * k; ctx.shadowOffsetY = 1 * k;
-                ctx.drawImage(pinImg, x, y, pw, ph); ctx.shadowColor = 'transparent';
+                if (p.photo) {
+                  var sc = pw / 40, dp = new Path2D(PHOTO_DROP);
+                  ctx.save(); ctx.translate(x, y); ctx.scale(sc, sc);
+                  ctx.fillStyle = '#fff'; ctx.fill(dp);
+                  ctx.shadowColor = 'transparent'; ctx.lineWidth = 2.5; ctx.strokeStyle = '#D32F2F'; ctx.stroke(dp);
+                  if (state.photoImg) { ctx.beginPath(); ctx.arc(20, 20, 13.5, 0, Math.PI * 2); ctx.clip(); ctx.drawImage(state.photoImg, 6.5, 6.5, 27, 27); }
+                  ctx.restore();
+                } else ctx.drawImage(pinImg, x, y, pw, ph);
+                ctx.shadowColor = 'transparent';
               }
               var g = ctx.createLinearGradient(0, size * 0.64, 0, size);
               g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.3, 'rgba(255,255,255,.35)'); g.addColorStop(0.55, 'rgba(255,255,255,.8)'); g.addColorStop(0.72, 'rgba(255,255,255,1)'); g.addColorStop(1, 'rgba(255,255,255,1)');
@@ -401,12 +432,12 @@
               var city = cityEl.value.trim(), country = countryEl.value.trim(), F = FONTS[state.font];
               var L = layoutText(city, country, W, F);
               ctx.fillStyle = '#111'; ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';
-              if (city && L.cityBase != null) { ctx.font = F.cityStyle + ' ' + F.cityW + ' ' + (L.cityPx * k) + 'px ' + F.cityFam; drawSpaced(ctx, city, size / 2, L.cityBase * k, 0); }
+              if (city && L.cityBase != null) { ctx.font = F.cityStyle + ' ' + F.cityW + ' ' + (L.cityPx * k) + 'px ' + F.cityFam; drawSpaced(ctx, L.city, size / 2, L.cityBase * k, 0); }
               if (country && L.countryBase != null) { ctx.font = F.ctyStyle + ' ' + F.ctyW + ' ' + (L.countryPx * k) + 'px ' + F.ctyFam; drawSpaced(ctx, L.shown, size / 2, L.countryBase * k, L.countryLs * k); }
               m2.remove(); host.remove();
               cnv.toBlob(function (b) { b ? ok(b) : fail(new Error('Afbeelding maken mislukt.')); }, 'image/jpeg', 0.92);
             };
-            if (p.id !== 'none' && pt) loadSvgImage(p).then(finish); else finish(null);
+            if (p.id !== 'none' && pt && p.photo) finish(true); else if (p.id !== 'none' && pt) loadSvgImage(p).then(finish); else finish(null);
           })();
         });
       });
@@ -416,6 +447,7 @@
       if (state.busy) return Promise.reject(new Error('busy'));
       if (!map) return Promise.reject(new Error('De kaart is nog niet geladen.'));
       if (!state.placed) return Promise.reject(new Error('Zoek eerst jouw plek.'));
+      if (state.pin === 'foto' && !state.photoImg) return Promise.reject(new Error('Kies eerst een foto voor in je pin.'));
       state.busy = true;
       var wait = loadFonts().catch(function () {});
       return wait.then(renderPrint).then(function (blob) {
