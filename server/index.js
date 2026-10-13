@@ -30,6 +30,7 @@ const { generateFotoTegelGepersonaliseerdPdf, extractFotoTegelGepersonaliseerdIt
 const { sendReviewEmail } = require('./reviewEmail');
 const { stuurTweeFactorCode, tweeFactorIsGeconfigureerd } = require('./twoFactorEmail');
 const SqliteSessionStore = require('./sqliteSessionStore');
+const { pushStockToShopify, schedulePush: scheduleStockPush } = require('./shopifyStock');
 const { registreerAgentRoutes, registreerDashboardRoutes } = require('./schrijfmachine');
 
 const app = express();
@@ -619,7 +620,17 @@ app.post('/api/inventory', (req, res) => {
       const stock = parseInt(item.stock, 10);
       if (item.id && !isNaN(stock)) setInventoryStock(item.id, stock);
     });
+    scheduleStockPush(getInventory);
     res.json(getInventory());
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Voorraad van gedeelde SKU's (lijsten, metalen houder) naar Shopify sturen. ?dry=1 = alleen tonen wat er zou veranderen.
+app.post('/api/inventory/shopify-sync', requireAdmin, async (req, res) => {
+  try {
+    res.json(await pushStockToShopify(getInventory, { dry: req.query.dry === '1', force: true, tekst: req.query.tekst === '1' }));
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -1526,6 +1537,7 @@ cron.schedule('*/5 * * * *', async () => {
     console.log('[sync] start automatische sync...');
     const result = await syncOrders();
     console.log(`[sync] klaar: ${result.totalNew} nieuwe orders, ${result.totalSeen} verwerkt`);
+    if (result.totalNew > 0) scheduleStockPush(getInventory);
   } catch (e) {
     console.error('[sync] fout tijdens automatische sync:', e.message);
   }
