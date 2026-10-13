@@ -19,7 +19,7 @@ const AUTOPICTURA_REGEX = /(https?:\/\/[^\s"'<>]*autopictura[^\s"'<>]*)/gi;
 // Drukbestand uit onze eigen AI-foto-service (eigenschap "_AI drukbestand"): .../files/<32 hex>-print.jpg
 const AI_FOTO_PRINT_REGEX = /(https?:\/\/[^\s"'<>]+\/files\/[a-f0-9]{32}-print\.jpg)/i;
 // Het voorbeeld (eigenschap "AI afbeelding") is alleen voor de klant en mag nooit als foto/drukbestand meetellen.
-const isAiPreviewProp = p => /^\s*AI afbeelding/i.test(p.name || '');
+const isAiPreviewProp = p => /^\s*(AI afbeelding|Uw personalisatie)/i.test(p.name || '');
 // Bestanden die de klant zelf rechtstreeks via Shopify uploadt (bv. een "upload je ontwerp"
 // veld) landen op Shopify's eigen CDN, soms zonder duidelijke/herkenbare extensie in de URL.
 const SHOPIFY_CDN_UPLOAD_REGEX = /(https?:\/\/cdn\.shopify\.com\/s\/files\/[^\s"'<>]+)/gi;
