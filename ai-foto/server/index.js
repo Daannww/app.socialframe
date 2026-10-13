@@ -146,7 +146,7 @@ app.get('/kaart-demo', (req, res) => {
     .replace(/data-google-key="[^"]*"/, 'data-google-key=""')
     .replace(/data-overlay="[^"]*"/, `data-overlay="${req.query.galerij ? '0,0,100' : ''}"`).replace(/data-gallery="[^"]*"/, 'data-gallery=".product-gallery-item"');
   const gal = req.query.galerij ? '<div class="product-gallery-item" style="aspect-ratio:1/1;background:#eee;border:1px solid #ccc;margin-bottom:16px;display:flex;align-items:center;justify-content:center;color:#999">hoofdafbeelding</div>' : '';
-  res.set('X-Robots-Tag', 'noindex').type('html').send(`<!doctype html><html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Kaart-demo</title><style>body{font-family:Montserrat,system-ui,sans-serif;max-width:520px;margin:20px auto;padding:0 12px}</style></head><body>${gal}${widget}</body></html>`);
+  res.set({ 'X-Robots-Tag': 'noindex', 'Access-Control-Allow-Origin': '*' }).type('html').send(`<!doctype html><html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Kaart-demo</title><style>body{font-family:Montserrat,system-ui,sans-serif;max-width:520px;margin:20px auto;padding:0 12px}</style></head><body>${gal}${widget}</body></html>`);
 });
 
 // Eenvoudige botfilter: geen/zeer korte user-agent of bekende scripts/headless-browsers.
