@@ -253,8 +253,8 @@ async function buildReceiptHtml(order, serverBasisUrl) {
     `;
 
   const allPhotoLinks = order.photo_links || [];
-  const autopicturaPhotos = allPhotoLinks.filter(l => /autopictura/i.test(l));
-  const otherPhotos = allPhotoLinks.filter(l => !/autopictura/i.test(l));
+  const autopicturaPhotos = allPhotoLinks.filter(l => /autopictura|\/files\/[a-f0-9]{32}-print\.jpg/i.test(l));
+  const otherPhotos = allPhotoLinks.filter(l => !/autopictura|\/files\/[a-f0-9]{32}-print\.jpg/i.test(l));
   const photosForReceipt = [...autopicturaPhotos, ...(otherPhotos.length ? [otherPhotos[0]] : [])];
 
   // Server-side ophalen en als base64 inbedden (zie fotoAlsDataUri hierboven)

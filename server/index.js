@@ -699,7 +699,7 @@ app.get('/api/download', async (req, res) => {
   }
 });
 
-// --- Eén drukwerkbestand (PDF) downloaden op het juiste formaat — alleen voor autopictura-links ---
+// --- Eén drukwerkbestand (PDF) downloaden op het juiste formaat — alleen voor autopictura-/AI-foto-links ---
 app.get('/api/print-files/single-pdf', requireAdmin, async (req, res) => {
   const link = req.query.link;
   const widthCm = parseFloat(req.query.widthCm) || 10;
@@ -707,7 +707,7 @@ app.get('/api/print-files/single-pdf', requireAdmin, async (req, res) => {
   const filename = (req.query.filename || 'drukwerkbestand.pdf').replace(/[\\/:*?"<>|]/g, '-');
 
   if (!link) return res.status(400).json({ error: 'link is verplicht' });
-  if (!/autopictura/i.test(link) && !/cdn\.shopify\.com/i.test(link) && !/posterlyapp\.io/i.test(link)) {
+  if (!/autopictura|\/files\/[a-f0-9]{32}-print\.jpg/i.test(link) && !/cdn\.shopify\.com/i.test(link) && !/posterlyapp\.io/i.test(link)) {
     return res.status(400).json({ error: 'Dit endpoint is alleen voor autopictura-links, Shopify CDN-foto-uploads, of Posterly-links.' });
   }
 
@@ -1016,7 +1016,7 @@ app.get('/api/print-files/pdf-zip', requireAdmin, async (req, res) => {
       }));
 
     const targets = selectedOrders.filter(o =>
-      o.photo_links.some(l => /autopictura/i.test(l)) ||
+      o.photo_links.some(l => /autopictura|\/files\/[a-f0-9]{32}-print\.jpg/i.test(l)) ||
       extractMusicFrameItemsFromOrder({ line_items: o.line_items }).length > 0 ||
       extractFotoTegelPhotoUrls(o.line_items).length > 0 ||
       extractPosterlyPhotoUrls(o.line_items).length > 0 ||
@@ -1479,7 +1479,7 @@ async function runScheduledPrintFilesExport() {
     photo_links: JSON.parse(o.photo_links_json || '[]')
   }));
   const targets = allOrders.filter(o =>
-    o.photo_links.some(l => /autopictura/i.test(l)) ||
+    o.photo_links.some(l => /autopictura|\/files\/[a-f0-9]{32}-print\.jpg/i.test(l)) ||
     extractMusicFrameItemsFromOrder({ line_items: o.line_items }).length > 0 ||
     extractFotoTegelPhotoUrls(o.line_items).length > 0 ||
     extractPosterlyPhotoUrls(o.line_items).length > 0 ||
