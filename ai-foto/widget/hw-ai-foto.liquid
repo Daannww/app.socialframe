@@ -97,7 +97,11 @@
   .hw-ai .hw-ai-btn:hover:not(:disabled),.hw-ai .hw-ai-btn:focus-visible:not(:disabled){background:#111 !important;color:#fff !important;border-color:#111 !important}
   .hw-ai-btn:disabled{opacity:.4;cursor:not-allowed}
   .hw-ai-choose{margin-top:16px}
-  .hw-ai-choose-list{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+  .hw-ai-choose-list{display:block}
+  .hw-ai-group{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:16px}
+  .hw-ai-group:first-child{margin-top:0}
+  .hw-ai-grouptitle{grid-column:1/-1;font-size:13px;opacity:.65;text-align:left}
+  .hw-ai-group:only-child .hw-ai-grouptitle{display:none}
   .hw-ai-choicewrap{min-width:0;text-align:center}
   .hw-ai-zoombtn{margin-top:4px;background:none;border:0;padding:4px;font:inherit;font-size:13px;font-weight:600;color:#111;text-decoration:underline;cursor:pointer}
   .hw-ai img,.hw-ai-zoomimg{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
@@ -233,7 +237,7 @@
 
   function showResult(r) {
     state.result = r; state.pending = null;
-    if (r.reused) chooseBox.hidden = true;
+    if (r.reused) { chooseBox.hidden = true; chooseList.replaceChildren(); }
     imgEl.src = r.preview_url; resultEl.hidden = false; setProps(true);
     resultEl.querySelector('.hw-ai-ok').textContent = r.reused
       ? 'Deze eerder gemaakte afbeelding wordt opnieuw gebruikt. Zo krijg je precies hetzelfde tegeltje.'
@@ -423,7 +427,10 @@
   // Meerdere varianten: de klant moet er eerst één kiezen, pas daarna kan er besteld worden.
   function showChoices(j) {
     state.pending = j.job_id; state.result = null; setProps(false); resultEl.hidden = true;
-    chooseList.replaceChildren();
+    chooseList.querySelectorAll('.hw-ai-choice').forEach(function (o) { o.setAttribute('aria-pressed', 'false'); });
+    var group = document.createElement('div'); group.className = 'hw-ai-group';
+    var gt = document.createElement('div'); gt.className = 'hw-ai-grouptitle';
+    gt.textContent = 'Poging ' + (chooseList.children.length + 1); group.appendChild(gt);
     j.variants.forEach(function (v, idx) {
       if (v.deleted || !v.preview_url) return;
       var b = document.createElement('button');
@@ -448,8 +455,10 @@
         fetch(API + '/api/jobs/' + j.job_id + '/variants/' + idx + '/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ client_id: clientId }) })
           .then(function (r) { return r.json().then(function (x) { if (!r.ok) throw new Error(); return x; }); })
           .then(function (x) {
+            if (b.getAttribute('aria-pressed') === 'true') { state.result = null; setProps(false); resultEl.hidden = true; }
             wrapB.remove();
-            if (!x.left) { chooseBox.hidden = true; state.pending = null; say('Ontwerp verwijderd. Maak een nieuw ontwerp om verder te gaan.'); refresh(); }
+            if (!group.querySelector('.hw-ai-choicewrap')) group.remove();
+            if (!chooseList.querySelector('.hw-ai-choicewrap')) { chooseBox.hidden = true; state.pending = null; say('Ontwerp verwijderd. Maak een nieuw ontwerp om verder te gaan.'); refresh(); }
           })
           .catch(function () { vdel.disabled = false; vsure = false; vdel.classList.remove('sure'); vdel.innerHTML = vtrash; say('Verwijderen is niet gelukt, probeer het opnieuw.', true); });
       });
@@ -471,11 +480,12 @@
           })
           .catch(function () { state.busy = false; refresh(); say('Geen verbinding, probeer het opnieuw.', true); });
       });
-      wrapB.appendChild(b); wrapB.appendChild(vrow); chooseList.appendChild(wrapB);
+      wrapB.appendChild(b); wrapB.appendChild(vrow); group.appendChild(wrapB);
     });
+    chooseList.appendChild(group);
     chooseBox.hidden = false;
     say('Kies hierboven de variant die je het mooiste vindt. Daarna kun je bestellen.');
-    chooseBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    group.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
   function poll(id) {
@@ -500,7 +510,8 @@
     if (state.busy || !fileEl.files[0] || !state.design) return;
     if (state.allowsText && state.textRequired && !textEl.value.trim()) { say('Vul eerst een tekst in.', true); textEl.focus(); return; }
     loadText.textContent = 'Je afbeelding wordt gemaakt… dit duurt ongeveer 20 tot 60 seconden';
-    state.busy = true; state.result = null; state.pending = null; resultEl.hidden = true; chooseBox.hidden = true; setProps(false); refresh();
+    state.busy = true; state.result = null; state.pending = null; resultEl.hidden = true; setProps(false); refresh();
+    chooseList.querySelectorAll('.hw-ai-choice').forEach(function (o) { o.setAttribute('aria-pressed', 'false'); });
     var o = root.querySelector('input[type="radio"]:checked');
     var fd = new FormData();
     fd.append('photo', fileEl.files[0]); fd.append('design_id', state.design);
