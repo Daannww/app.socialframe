@@ -47,6 +47,7 @@
   <div class="hw-kaart-photo" data-hw-k-photo hidden><label class="hw-kaart-hint">Kies een foto voor in je pin <input type="file" accept="image/*" data-hw-k-file style="display:block;margin-top:6px;font-size:14px"></label></div>
 
   <div class="hw-kaart-status" data-hw-k-status role="status" aria-live="polite"></div>
+  <div class="hw-kaart-credit"><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap</a> · <a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a></div>
   <div class="hw-kaart-demo" data-hw-k-demo hidden>
     <button type="button" class="hw-kaart-demobtn" data-hw-k-demobtn>Test: maak printbestand</button>
     <div data-hw-k-demoout></div>
@@ -71,6 +72,8 @@
   .hw-kaart-fade{position:absolute;left:0;right:0;bottom:0;height:36%;pointer-events:none;background:linear-gradient(to bottom,rgba(255,255,255,0) 0%,rgba(255,255,255,.35) 30%,rgba(255,255,255,.8) 55%,#fff 72%,#fff 100%)}
   .hw-kaart-text{position:absolute;left:0;top:0;right:0;bottom:0;text-align:center;pointer-events:none;color:#111}
   .hw-kaart-city,.hw-kaart-country{position:absolute;left:0;right:0;white-space:nowrap}
+  .hw-kaart-credit{margin-top:4px;font-size:10px;line-height:1.2;color:#C4C4C4;text-align:right}
+  .hw-kaart-credit a{color:#C4C4C4;text-decoration:none}
   .hw-kaart-attr{margin-top:6px;font-size:11px;color:#888}
   .hw-kaart-attr a{color:#888}
   .hw-kaart-hint{margin-top:2px;font-size:12px;color:#777}
@@ -373,9 +376,8 @@
     function startMap() {
       map = new maplibregl.Map({ container: mapEl, style: buildStyle(state), center: [start.lng, start.lat], zoom: 13.2, attributionControl: false, cooperativeGestures: true, dragRotate: false, pitchWithRotate: false, maxZoom: 18.5, minZoom: 3, fadeDuration: 0 });
       map.touchZoomRotate.disableRotation();
-      // Bronvermelding (verplicht bij OpenStreetMap-gegevens): klein ⓘ-knopje linksboven, niet storend.
-      map.addControl(new maplibregl.AttributionControl({ compact: true }), 'top-left');
-      map.on('moveend', changed);
+      // Bronvermelding (verplicht bij OpenStreetMap-gegevens): staat klein onderaan de widget.
+          map.on('moveend', changed);
       map.once('load', function () { say(''); });
       // Standaard Amsterdam als voorbeeld, tot de klant zelf een plek kiest.
       cityEl.value = 'Amsterdam'; countryEl.value = 'Nederland'; drawTexts();
