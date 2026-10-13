@@ -5,8 +5,15 @@
 {%- endcomment -%}
 {%- assign hw_kaart_api = 'https://ai-foto.socialframe.nl' -%}
 {%- assign hw_kaart_google_key = '' -%}
+{%- comment -%}
+  Kaart op de hoofdafbeelding: de live kaart komt over de eerste productfoto te staan (zoals bij Zepto).
+  hw_kaart_overlay = 'links %, boven %, breedte %' van de foto. '0,0,100' = hele foto (vierkante foto zonder tegel erop).
+  Staat er een tegel op de foto? Pas dan de drie getallen aan tot de kaart precies op de tegel valt. Leeg = kaart blijft onder de foto.
+{%- endcomment -%}
+{%- assign hw_kaart_overlay = '0,0,100' -%}
+{%- assign hw_kaart_gallery = '.product-gallery-item' -%}
 
-<div class="hw-kaart" data-hw-kaart data-api="{{ hw_kaart_api }}" data-google-key="{{ hw_kaart_google_key }}">
+<div class="hw-kaart" data-hw-kaart data-api="{{ hw_kaart_api }}" data-google-key="{{ hw_kaart_google_key }}" data-overlay="{{ hw_kaart_overlay }}" data-gallery="{{ hw_kaart_gallery }}">
   <div class="hw-kaart-heading">Personaliseren</div>
 
   <label class="hw-kaart-label" for="hw-kaart-search">Zoek jouw favoriete plek.</label>
@@ -83,6 +90,8 @@
   .hw-kaart-mode[aria-pressed="true"]{border-color:#111;background:#111;color:#fff}
   .hw-kaart-pins{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px}
   .hw-kaart-pin{height:64px;border:1.5px solid #E2E2E2;border-radius:12px;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:6px;font:inherit;font-size:13px;color:#333;line-height:1.1}
+  .hw-kaart-onimg{position:absolute;z-index:6}
+  .hw-kaart-onimg .hw-kaart-stage{margin:0;border:0;border-radius:0}
   .hw-kaart-photo{margin-top:10px}
   .hw-kaart-pin img{height:100%;width:auto}
   .hw-kaart-pin svg{height:100%;width:auto;max-width:100%}
@@ -387,6 +396,25 @@
       // Standaard Amsterdam als voorbeeld, tot de klant zelf een plek kiest.
       cityEl.value = 'Amsterdam'; countryEl.value = 'Nederland'; drawTexts();
     }
+    // ----- kaart over de hoofdafbeelding van de productgalerij leggen -----
+    function mountOnImage() {
+      var ov = (root.dataset.overlay || '').split(',').map(parseFloat);
+      if (ov.length !== 3 || ov.some(isNaN)) return;
+      var tries = 0;
+      (function find() {
+        var item = null;
+        try { item = document.querySelector(root.dataset.gallery || '.product-gallery-item'); } catch (e) {}
+        if (!item || !item.offsetWidth) { if (tries++ < 40) setTimeout(find, 250); return; }
+        if (getComputedStyle(item).position === 'static') item.style.position = 'relative';
+        var box = document.createElement('div'); box.className = 'hw-kaart-onimg';
+        box.style.cssText = 'left:' + ov[0] + '%;top:' + ov[1] + '%;width:' + ov[2] + '%';
+        ['pointerdown', 'mousedown', 'touchstart', 'touchmove', 'wheel', 'click'].forEach(function (ev) { box.addEventListener(ev, function (e) { e.stopPropagation(); }); });
+        var holder = document.createComment('hw-kaart-stage'); stageEl.parentNode.insertBefore(holder, stageEl);
+        box.appendChild(stageEl); item.appendChild(box);
+        if (map) map.resize(); drawTexts(); drawMarker();
+      })();
+    }
+    mountOnImage();
     addJs(MAPLIBRE_JS).then(startMap, function () { say('De kaart kon niet worden geladen. Controleer je verbinding en ververs de pagina.', true); });
 
     // ----- drukbestand maken (in de browser) en uploaden -----
