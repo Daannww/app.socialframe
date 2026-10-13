@@ -10,7 +10,7 @@
   hw_kaart_overlay = 'links %, boven %, breedte %' van de foto. '0,0,100' = hele foto (vierkante foto zonder tegel erop).
   Staat er een tegel op de foto? Pas dan de drie getallen aan tot de kaart precies op de tegel valt. Leeg = kaart blijft onder de foto.
 {%- endcomment -%}
-{%- assign hw_kaart_overlay = '0,0,100' -%}
+{%- assign hw_kaart_overlay = '' -%}
 {%- assign hw_kaart_gallery = '.product-gallery-item' -%}
 
 <div class="hw-kaart" data-hw-kaart data-api="{{ hw_kaart_api }}" data-google-key="{{ hw_kaart_google_key }}" data-overlay="{{ hw_kaart_overlay }}" data-gallery="{{ hw_kaart_gallery }}">
@@ -86,8 +86,8 @@
   .hw-kaart-attr a{color:#888}
   .hw-kaart-hint{margin-top:2px;font-size:12px;color:#777}
   .hw-kaart-modes{display:flex;flex-wrap:wrap;gap:8px}
-  .hw-kaart-mode{border:1.5px solid #D0D0D0;border-radius:999px;background:#fff;color:#222;padding:9px 16px;font:inherit;font-size:14px;cursor:pointer}
-  .hw-kaart-mode[aria-pressed="true"]{border-color:#111;background:#111;color:#fff}
+  .hw-kaart-mode{border:1.5px solid #D0D0D0;border-radius:999px;background:#fff !important;color:#222 !important;padding:9px 16px;font:inherit;font-size:14px;cursor:pointer}
+  .hw-kaart-mode[aria-pressed="true"]{border-color:#111;background:#111 !important;color:#fff !important}
   .hw-kaart-pins{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px}
   .hw-kaart-pin{height:64px;border:1.5px solid #E2E2E2;border-radius:12px;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:6px;font:inherit;font-size:13px;color:#333;line-height:1.1}
   .hw-kaart-onimg{position:absolute;z-index:6}
