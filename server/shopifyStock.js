@@ -11,7 +11,8 @@ const axios = require('axios');
 const SKU_MAP = [
   { sku: 'SFTL10', item: 'Lijst 10x10', test: t => /lijst/i.test(t) && /10\s*x\s*10/i.test(t) },
   { sku: 'SFTL13', item: 'Lijst 13x13cm', test: t => /lijst/i.test(t) && /13\s*x\s*13/i.test(t) },
-  { sku: 'SFTMHD', item: 'Metalen houder', test: t => /metalen[\s-]?houder/i.test(t) }
+  { sku: 'SFTMHD', item: 'Metalen houder', test: t => /metalen[\s-]?houder/i.test(t) },
+  { sku: 'SFCD', item: 'Luxe cadeauverpakking', test: t => /luxe\s*cadeau-?verpakking/i.test(t), create: true }
 ];
 
 function enabled() { return process.env.SHOPIFY_STOCK_SYNC === '1'; }
@@ -56,7 +57,16 @@ async function pushStockToShopify(getInventory, opts = {}) {
   const variants = await allVariants(q, loc);
   const result = [];
   for (const m of SKU_MAP) {
-    const row = inv.find(i => i.name === m.item);
+    let row = inv.find(i => i.name === m.item);
+    if (!row && m.create) {
+      // Nog niet in het voorraadsysteem: begin met de huidige Shopify-voorraad (nooit met 0, anders zou 'ie uitverkocht raken).
+      const v = variants.find(x => x.sku === m.sku && x.inventoryItem && x.inventoryItem.tracked && x.inventoryItem.inventoryLevel && x.inventoryItem.inventoryLevel.quantities[0]);
+      if (!v) { result.push({ artikel: m.item, error: `geen bijgehouden Shopify-variant met SKU ${m.sku} gevonden` }); continue; }
+      const start = Math.max(0, v.inventoryItem.inventoryLevel.quantities[0].quantity);
+      if (dry || !opts.addItem) { result.push({ artikel: m.item, nieuw: `wordt aangemaakt met voorraad ${start}` }); continue; }
+      row = opts.addItem(m.item, start) || (getInventory().find(i => i.name === m.item));
+      if (!row) { result.push({ artikel: m.item, error: 'aanmaken mislukt' }); continue; }
+    }
     if (!row) { result.push({ item: m.item, error: 'voorraadartikel bestaat niet' }); continue; }
     const target = Math.max(0, parseInt(row.stock, 10) || 0);
     const seen = new Set(), changes = [], wijz = [];
@@ -83,11 +93,11 @@ async function pushStockToShopify(getInventory, opts = {}) {
 
 // Debounce: meerdere triggers vlak na elkaar worden één push.
 let timer = null;
-function schedulePush(getInventory) {
+function schedulePush(getInventory, addItem) {
   if (!enabled()) return;
   clearTimeout(timer);
   timer = setTimeout(() => {
-    pushStockToShopify(getInventory).then(r => console.log('[voorraad-sync] klaar', JSON.stringify(r.result || r)), e => console.error('[voorraad-sync] fout:', e.message));
+    pushStockToShopify(getInventory, { addItem }).then(r => console.log('[voorraad-sync] klaar', JSON.stringify(r.result || r)), e => console.error('[voorraad-sync] fout:', e.message));
   }, 3000);
 }
 
