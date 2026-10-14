@@ -179,6 +179,7 @@
     var out = [], maxW = W * 0.88;
     [['sport', v.sport], ['place', (v.place || '').toUpperCase()], ['country', v.country ? '-' + v.country.toUpperCase() + '-' : ''], ['stats', v.stats]].forEach(function (p) {
       var key = p[0], text = p[1]; if (!text) return;
+      if (key === 'sport') text = text.replace(/(\d)\s+(km)\b/gi, '$1$2');
       var d = LINES[key], px = W * d.k, ls = d.ls || 0;
       if (d.target) { var nat = textWidth(text, px, d, 0); ls = Math.max(0, (W * d.target - nat) / Math.max(1, text.length - 1)); }
       var guard = 0;

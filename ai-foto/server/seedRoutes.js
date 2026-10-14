@@ -11,30 +11,30 @@ const LIST = [
   ['enschede_marathon', 'Enschede Marathon', 'Marathon', 'Enschede', 'Netherlands'],
   ['munich_marathon', 'Munich Marathon', 'Marathon', 'Munich', 'Germany'],
   ['munich_half_marathon', 'Munich Halve Marathon', 'Halve Marathon', 'Munich', 'Germany'],
-  ['munich_10km', 'Munich 10 KM', '10 KM', 'Munich', 'Germany'],
+  ['munich_10km', 'Munich 10 KM', '10KM', 'Munich', 'Germany'],
   ['oslo_marathon', 'Oslo Marathon', 'Marathon', 'Oslo', 'Norway'],
   ['oslo_half_marathon', 'Oslo Halve Marathon', 'Halve Marathon', 'Oslo', 'Norway'],
-  ['oslo_10km', 'Oslo 10 KM', '10 KM', 'Oslo', 'Norway'],
+  ['oslo_10km', 'Oslo 10 KM', '10KM', 'Oslo', 'Norway'],
   ['bogota_half_marathon', 'Bogotá Halve Marathon', 'Halve Marathon', 'Bogotá', 'Colombia'],
-  ['bogota_10km', 'Bogotá 10 KM', '10 KM', 'Bogotá', 'Colombia'],
-  ['houilles_10km', 'Houilles 10 KM', '10 KM', 'Houilles', 'France'],
-  ['houilles_5km', 'Houilles 5 KM', '5 KM', 'Houilles', 'France'],
+  ['bogota_10km', 'Bogotá 10 KM', '10KM', 'Bogotá', 'Colombia'],
+  ['houilles_10km', 'Houilles 10 KM', '10KM', 'Houilles', 'France'],
+  ['houilles_5km', 'Houilles 5 KM', '5KM', 'Houilles', 'France'],
   ['amsterdam_marathon', 'Amsterdam Marathon', 'Marathon', 'Amsterdam', 'Netherlands'],
   ['eindhoven_marathon', 'Eindhoven Marathon', 'Marathon', 'Eindhoven', 'Netherlands'],
   ['eindhoven_quarter_marathon', 'Eindhoven Quarter Marathon', 'Quarter Marathon', 'Eindhoven', 'Netherlands'],
-  ['eindhoven_5km', 'Eindhoven 5 KM', '5 KM', 'Eindhoven', 'Netherlands'],
+  ['eindhoven_5km', 'Eindhoven 5 KM', '5KM', 'Eindhoven', 'Netherlands'],
   ['eindhoven_urban_walk_25km', 'Eindhoven Urban Walk 2,5 KM', 'Urban Walk', 'Eindhoven', 'Netherlands'],
   ['eindhoven_urban_walk_15km', 'Eindhoven Urban Walk 1,5 KM', 'Urban Walk', 'Eindhoven', 'Netherlands'],
   ['kustmarathon_zeeland', 'Kustmarathon Zeeland', 'Marathon', 'Zeeland', 'Netherlands'],
   ['berlin_marathon', 'Berlin Marathon', 'Marathon', 'Berlin', 'Germany'],
   ['eindhoven_half_marathon', 'Eindhoven Halve Marathon', 'Halve Marathon', 'Eindhoven', 'Netherlands'],
   ['enschede_half_marathon', 'Enschede Halve Marathon', 'Halve Marathon', 'Enschede', 'Netherlands'],
-  ['venloop_5km', 'Venloop 5 KM', '5 KM', 'Venlo', 'Netherlands'],
-  ['venloop_10km', 'Venloop 10 KM', '10 KM', 'Venlo', 'Netherlands'],
+  ['venloop_5km', 'Venloop 5 KM', '5KM', 'Venlo', 'Netherlands'],
+  ['venloop_10km', 'Venloop 10 KM', '10KM', 'Venlo', 'Netherlands'],
   ['venloop_half_marathon', 'Venloop Halve Marathon', 'Halve Marathon', 'Venlo', 'Netherlands'],
-  ['zevenheuvelennacht_7km', 'Zevenheuvelennacht 7 KM', '7 KM', 'Nijmegen', 'Netherlands'],
-  ['zevenheuvelenloop_15km', 'Zevenheuvelenloop 15 KM', '15 KM', 'Nijmegen', 'Netherlands'],
-  ['rotterdam_10km', 'Rotterdam 10 KM', '10 KM', 'Rotterdam', 'Netherlands'],
+  ['zevenheuvelennacht_7km', 'Zevenheuvelennacht 7 KM', '7KM', 'Nijmegen', 'Netherlands'],
+  ['zevenheuvelenloop_15km', 'Zevenheuvelenloop 15 KM', '15KM', 'Nijmegen', 'Netherlands'],
+  ['rotterdam_10km', 'Rotterdam 10 KM', '10KM', 'Rotterdam', 'Netherlands'],
   ['rotterdam_city_run_4_2km', 'Rotterdam City Run 4,2 KM', 'City Run', 'Rotterdam', 'Netherlands'],
   ['new_york_city_marathon', 'New York City Marathon', 'Marathon', 'New York', 'United States']
 ];
@@ -56,6 +56,12 @@ function seedRoutes() {
       done.push(file); n++;
     } catch (e) { console.error('[seed-routes]', file, e.message); }
   });
+  if (!getSetting('seed_km_rename')) {
+    try {
+      db.prepare("UPDATE routes SET sport=REPLACE(sport,' KM','KM') WHERE id LIKE 'seed-%' AND sport LIKE '% KM'").run();
+      setSetting('seed_km_rename', '1');
+    } catch (e) { console.error('[seed-routes] km', e.message); }
+  }
   if (!getSetting('seed_halve_rename')) {
     try {
       db.prepare("UPDATE routes SET name=REPLACE(name,'Half Marathon','Halve Marathon') WHERE id LIKE 'seed-%' AND name LIKE '%Half Marathon%'").run();
