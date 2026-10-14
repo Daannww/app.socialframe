@@ -47,7 +47,7 @@
 
   <div class="hw-kaart-label">Pin</div>
   <div class="hw-kaart-pins" data-hw-k-pins></div>
-  <div class="hw-kaart-photo" data-hw-k-photo hidden><label class="hw-kaart-hint">Kies een foto voor in je pin <input type="file" accept="image/*" data-hw-k-file style="display:block;margin-top:6px;font-size:14px"></label></div>
+  <div class="hw-kaart-photo" data-hw-k-photo hidden><div class="hw-kaart-hint">Kies een foto voor in je pin</div><label class="hw-kaart-filebtn"><span class="hw-kaart-filebtn-b">Foto kiezen</span><span class="hw-kaart-filebtn-n" data-hw-k-fname>Geen foto gekozen</span><input type="file" accept="image/*" data-hw-k-file hidden></label></div>
 
   <div class="hw-kaart-status" data-hw-k-status role="status" aria-live="polite"></div>
   <div class="hw-kaart-demo" data-hw-k-demo hidden>
@@ -78,11 +78,14 @@
   .hw-kaart-attr a{color:#888}
   .hw-kaart-hint{margin-top:2px;font-size:12px;color:#777}
   .hw-kaart-modes{display:flex;flex-wrap:wrap;gap:8px}
-  .hw-kaart-mode{border:1.5px solid #D0D0D0;border-radius:999px;background:#fff !important;color:#222 !important;padding:9px 16px;font:inherit;font-size:14px;cursor:pointer}
+  .hw-kaart-mode{border:1.5px solid #D0D0D0;border-radius:999px;background:#fff !important;color:#222 !important;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
   .hw-kaart-mode[aria-pressed="true"]{border-color:#111;background:#111 !important;color:#fff !important}
-  .hw-kaart-pins{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px}
-  .hw-kaart-pin{height:64px;border:1.5px solid #E2E2E2;border-radius:12px;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:6px;font:inherit;font-size:13px;color:#333;line-height:1.1}
-  .hw-kaart-photo{margin-top:10px}
+  .hw-kaart-pins{display:grid;grid-template-columns:repeat(auto-fill,minmax(52px,1fr));gap:6px}
+  .hw-kaart-pin{height:48px;border:1.5px solid #E2E2E2;border-radius:10px;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:5px;font:inherit;font-size:13px;color:#333;line-height:1.1}
+  .hw-kaart-photo{margin-top:10px;max-width:100%;overflow:hidden}
+  .hw-kaart-filebtn{display:flex;align-items:center;gap:8px;margin-top:6px;max-width:100%;min-width:0;cursor:pointer}
+  .hw-kaart-filebtn-b{flex:none;border:1.5px solid #D0D0D0;border-radius:999px;padding:6px 12px;font-size:13px;background:#fff;color:#222}
+  .hw-kaart-filebtn-n{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;color:#777}
   .hw-kaart-pin img{height:100%;width:auto}
   .hw-kaart-pin svg{height:100%;width:auto;max-width:100%}
   .hw-kaart-pin[aria-pressed="true"]{border-color:#111;box-shadow:0 0 0 1px #111}
@@ -259,6 +262,7 @@
     var photoBox = $('[data-hw-k-photo]'), fileEl = $('[data-hw-k-file]'), photoBtn = null;
     fileEl.addEventListener('change', function () {
       var f = fileEl.files && fileEl.files[0]; if (!f) return;
+      var fn = $('[data-hw-k-fname]'); if (fn) fn.textContent = f.name;
       var done = function (bmp) {
         var s = Math.min(bmp.width, bmp.height), out = Math.min(s, 360), c = document.createElement('canvas'); c.width = c.height = out;
         c.getContext('2d').drawImage(bmp, (bmp.width - s) / 2, (bmp.height - s) / 2, s, s, 0, 0, out, out);
