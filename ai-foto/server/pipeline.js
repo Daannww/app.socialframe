@@ -52,7 +52,7 @@ async function finalizeVariant(job, v) {
   const need = Math.max(target.w / meta.width, target.h / meta.height);
   if (need > 1.05 && settings.upscale_model) {
     const factor = Math.min(4, Math.max(2, Math.ceil(need)));
-    const up = await fal.run(settings.upscale_model, { image_url: `data:image/jpeg;base64,${buf.toString('base64')}`, upscale_factor: factor });
+    const up = await fal.run(settings.upscale_model, { image_url: `data:image/jpeg;base64,${buf.toString('base64')}`, ...(/clarity/i.test(settings.upscale_model) ? { upscale_factor: factor } : {}) });
     const upUrl = fal.firstImageUrl(up);
     if (upUrl) buf = await download(upUrl);
   }

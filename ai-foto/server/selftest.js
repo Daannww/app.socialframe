@@ -46,7 +46,7 @@ require('./db').setSetting('max_attempts', '4'); require('./db').setSetting('max
   assert.equal(calls[0].input.aspect_ratio, '1:1');
   assert(calls[0].input.image_url.startsWith('data:image/jpeg;base64,'));
   // 1024 < 1600 -> upscaler moet erbij zijn gekomen
-  assert.equal(calls[1].model, 'fal-ai/clarity-upscaler');
+  assert.equal(calls[1].model, 'fal-ai/recraft/upscale/crisp');
 
   const p = await gen('poster', 'landscape', 'client-aaaa1111');
   m = await sharp(Buffer.from(await (await fetch(p.print_url)).arrayBuffer())).metadata();
