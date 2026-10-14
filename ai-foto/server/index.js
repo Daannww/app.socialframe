@@ -11,6 +11,7 @@ const sharp = require('sharp');
 const img = require('./image');
 const { db, getSetting, setSetting, allSettings } = require('./db');
 const routesLib = require('./routes');
+const { seedRoutes } = require('./seedRoutes');
 const { finalizeVariant, promptFor, enqueue, resume, rid, FILES, ORIGINALS } = require('./pipeline');
 
 const app = express();
@@ -468,6 +469,6 @@ setInterval(cleanup, 24 * 60 * 60 * 1000).unref();
 
 if (require.main === module) {
   const port = process.env.PORT || 3000;
-  app.listen(port, () => { console.log('AI-foto service op poort', port); resume(); });
+  app.listen(port, () => { console.log('AI-foto service op poort', port); resume(); seedRoutes(); });
 }
 module.exports = app;
