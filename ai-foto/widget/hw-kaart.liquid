@@ -298,8 +298,13 @@
         el.appendChild(im);
       }
       marker = new maplibregl.Marker({ element: el, anchor: p.anchor, draggable: true }).setLngLat([state.loc.lng, state.loc.lat]).addTo(map);
-      el.style.cursor = 'grab';
-      marker.on('dragend', function () { var l = marker.getLngLat(); state.loc = { lng: l.lng, lat: l.lat }; changed(); });
+      el.style.cursor = 'grab'; el.style.touchAction = 'none';
+      // Pin vasthouden: de pagina scrolt dan niet mee (anders beweegt alles langzaam mee op de telefoon).
+      var lock = function (e) { if (e.cancelable) e.preventDefault(); };
+      el.addEventListener('touchstart', function () { stageEl.style.touchAction = 'none'; document.addEventListener('touchmove', lock, { passive: false }); }, { passive: true });
+      var unlock = function () { stageEl.style.touchAction = ''; document.removeEventListener('touchmove', lock, { passive: false }); };
+      el.addEventListener('touchend', unlock); el.addEventListener('touchcancel', unlock);
+      marker.on('dragend', function () { unlock(); var l = marker.getLngLat(); state.loc = { lng: l.lng, lat: l.lat }; changed(); });
     }
 
     // ----- plaats/land tekst -----
