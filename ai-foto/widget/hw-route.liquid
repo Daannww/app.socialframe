@@ -62,6 +62,7 @@
     <button type="button" class="hw-route-mode" data-color="#111111" aria-pressed="true">Zwart</button>
     <button type="button" class="hw-route-mode" data-color="#D32F2F" aria-pressed="false">Rood</button>
     <button type="button" class="hw-route-mode" data-color="#1E6FD9" aria-pressed="false">Blauw</button>
+    <label class="hw-route-mode hw-route-custom" data-hw-r-customwrap aria-pressed="false"><span class="hw-route-swatch" data-hw-r-swatch></span>Eigen kleur<input type="color" value="#1E6FD9" data-hw-r-custom aria-label="Kies een eigen kleur voor de route"></label>
   </div>
 
   <div class="hw-route-status" data-hw-r-status role="status" aria-live="polite"></div>
@@ -90,6 +91,9 @@
   .hw-route-modes{display:flex;flex-wrap:wrap;gap:8px}
   .hw-route-mode{border:1.5px solid #D0D0D0;border-radius:999px;background:#fff !important;color:#222 !important;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
   .hw-route-mode[aria-pressed="true"]{border-color:#111;background:#111 !important;color:#fff !important}
+  .hw-route-custom{display:inline-flex;align-items:center;gap:8px;position:relative;overflow:hidden}
+  .hw-route-custom input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;border:0;padding:0}
+  .hw-route-swatch{display:inline-block;width:16px;height:16px;border-radius:50%;border:1.5px solid #999;background:conic-gradient(#e53935,#fdd835,#43a047,#1e88e5,#8e24aa,#e53935)}
   .hw-route-filebtn{display:flex;align-items:center;gap:8px;margin-top:6px;max-width:100%;min-width:0;cursor:pointer}
   .hw-route-filebtn-b{flex:none;border:1.5px solid #D0D0D0;border-radius:999px;padding:6px 12px;font-size:13px;background:#fff;color:#222}
   .hw-route-filebtn-n{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;color:#777}
@@ -304,14 +308,19 @@
     if (window.ResizeObserver) new ResizeObserver(function () { drawTexts(); }).observe(stageEl);
     if (document.fonts && document.fonts.load) loadFonts().then(drawTexts, function () {});
 
+    var customWrap = $('[data-hw-r-customwrap]'), customEl = $('[data-hw-r-custom]'), swatchEl = $('[data-hw-r-swatch]');
+    function setColor(c, fromCustom) {
+      state.color = c;
+      root.querySelectorAll('[data-color]').forEach(function (x) { x.setAttribute('aria-pressed', !fromCustom && x.dataset.color === c ? 'true' : 'false'); });
+      customWrap.setAttribute('aria-pressed', fromCustom ? 'true' : 'false');
+      if (fromCustom) swatchEl.style.background = c; else swatchEl.style.background = '';
+      if (map && map.getLayer('route-line')) map.setPaintProperty('route-line', 'line-color', state.color);
+      changed();
+    }
     root.querySelectorAll('[data-color]').forEach(function (b) {
-      b.addEventListener('click', function () {
-        state.color = b.dataset.color;
-        root.querySelectorAll('[data-color]').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
-        if (map && map.getLayer('route-line')) map.setPaintProperty('route-line', 'line-color', state.color);
-        changed();
-      });
+      b.addEventListener('click', function () { setColor(b.dataset.color, false); });
     });
+    customEl.addEventListener('input', function () { setColor(customEl.value, true); });
     function applyExtras(m) {
       var set = function (ids, on) { ids.forEach(function (id) { if (m.getLayer(id)) m.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none'); }); };
       set(['l_city', 'l_town', 'l_village', 'l_small'], state.labels); set(['l_street'], state.streets); set(['building'], state.buildings);
