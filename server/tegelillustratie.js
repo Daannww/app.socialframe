@@ -20,12 +20,23 @@ const ONTWERPEN = [
     // met liefde, vrolijkheid en zonneschijn."
     herken: /dat\s*dit\s*huis\s*gevuld\s*mag\s*zijn\s*met\s*liefde/i,
     assetBestand: 'dat-dit-huis-gevuld-met-liefde.jpg'
+  },
+  {
+    id: 'pornstar-martini',
+    // Titel in Shopify: "Tegeltje met Recept – Pornstar Martini" (de
+    // "Tegeltje met Recept"-familie, vandaar de uitgebreide poort-check in
+    // matchTegelIllustratieOntwerp hieronder). Vaste, volledig gekleurde
+    // receptillustratie op een witte achtergrond; de klant kiest alleen het
+    // formaat (10x10 of 13x13). Asset is gerenderd uit het aangeleverde EPS
+    // (Pornstars_martini_recept.eps, 100x100mm) op 1575x1575px.
+    herken: /pornstar\s*martini/i,
+    assetBestand: 'pornstar-martini.jpg'
   }
 ];
 
 function matchTegelIllustratieOntwerp(li) {
   const titel = li.title || '';
-  if (!/tegeltje met tekst/i.test(titel)) return null;
+  if (!/tegeltje met (tekst|recept)/i.test(titel)) return null;
   return ONTWERPEN.find(o => o.herken.test(titel)) || null;
 }
 
