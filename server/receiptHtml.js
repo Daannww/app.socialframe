@@ -206,6 +206,7 @@ async function buildReceiptHtml(order, serverBasisUrl) {
     const isHandgeschrevenKaartje = /handgeschreven\s*kaartje/i.test(li.title || '');
     const propsHtml = isCadeautjeInpakken ? '' : (li.properties || [])
       .filter(p => !/autopictura/i.test(p.name) && !/autopictura/i.test(p.value))
+      .filter(p => !/^\s*(_?AI (afbeelding|drukbestand|job)|Uw personalisatie)/i.test(p.name || ''))
       .filter(p => !isHandgeschrevenKaartje)
       .map(p => `${escapeHtml(p.name)}: ${escapeHtml(p.value)}`)
       .join('<br>');
@@ -252,8 +253,8 @@ async function buildReceiptHtml(order, serverBasisUrl) {
     `;
 
   const allPhotoLinks = order.photo_links || [];
-  const autopicturaPhotos = allPhotoLinks.filter(l => /autopictura/i.test(l));
-  const otherPhotos = allPhotoLinks.filter(l => !/autopictura/i.test(l));
+  const autopicturaPhotos = allPhotoLinks.filter(l => /autopictura|\/files\/[a-f0-9]{32}-print\.jpg/i.test(l));
+  const otherPhotos = allPhotoLinks.filter(l => !/autopictura|\/files\/[a-f0-9]{32}-print\.jpg/i.test(l));
   const photosForReceipt = [...autopicturaPhotos, ...(otherPhotos.length ? [otherPhotos[0]] : [])];
 
   // Server-side ophalen en als base64 inbedden (zie fotoAlsDataUri hierboven)

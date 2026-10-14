@@ -17,7 +17,9 @@ const INVENTORY_RULES = [
   { name: 'Tegeltjes 13x13', test: (text) => /tegel/i.test(text) && /13\s*x\s*13/i.test(text) },
   { name: 'Metalen houder', test: (text) => /metalen[\s-]?houder/i.test(text) },
   { name: 'Lijst 10x10', test: (text) => /lijst/i.test(text) && /10\s*x\s*10/i.test(text) },
-  { name: 'Lijst 13x13cm', test: (text) => /lijst/i.test(text) && /13\s*x\s*13/i.test(text) }
+  { name: 'Lijst 13x13cm', test: (text) => /lijst/i.test(text) && /13\s*x\s*13/i.test(text) },
+  // Los product (SKU SFCD). Het artikel wordt automatisch aangemaakt bij de eerste Shopify-voorraadsync.
+  { name: 'Luxe cadeauverpakking', test: (text) => /luxe\s*cadeau-?verpakking/i.test(text) }
 ];
 
 // Bepaalt, voor een order met line_items, hoeveel van elk voorraadartikel

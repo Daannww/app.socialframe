@@ -30,6 +30,7 @@ const { generateFotoTegelGepersonaliseerdPdf, extractFotoTegelGepersonaliseerdIt
 const { sendReviewEmail } = require('./reviewEmail');
 const { stuurTweeFactorCode, tweeFactorIsGeconfigureerd } = require('./twoFactorEmail');
 const SqliteSessionStore = require('./sqliteSessionStore');
+const { pushStockToShopify, schedulePush: scheduleStockPush } = require('./shopifyStock');
 const { registreerAgentRoutes, registreerDashboardRoutes } = require('./schrijfmachine');
 
 const app = express();
@@ -619,7 +620,17 @@ app.post('/api/inventory', (req, res) => {
       const stock = parseInt(item.stock, 10);
       if (item.id && !isNaN(stock)) setInventoryStock(item.id, stock);
     });
+    scheduleStockPush(getInventory, addInventoryItem);
     res.json(getInventory());
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Voorraad van gedeelde SKU's (lijsten, metalen houder) naar Shopify sturen. ?dry=1 = alleen tonen wat er zou veranderen.
+app.post('/api/inventory/shopify-sync', requireAdmin, async (req, res) => {
+  try {
+    res.json(await pushStockToShopify(getInventory, { dry: req.query.dry === '1', force: true, tekst: req.query.tekst === '1', addItem: addInventoryItem }));
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -699,7 +710,7 @@ app.get('/api/download', async (req, res) => {
   }
 });
 
-// --- Eén drukwerkbestand (PDF) downloaden op het juiste formaat — alleen voor autopictura-links ---
+// --- Eén drukwerkbestand (PDF) downloaden op het juiste formaat — alleen voor autopictura-/AI-foto-links ---
 app.get('/api/print-files/single-pdf', requireAdmin, async (req, res) => {
   const link = req.query.link;
   const widthCm = parseFloat(req.query.widthCm) || 10;
@@ -707,7 +718,7 @@ app.get('/api/print-files/single-pdf', requireAdmin, async (req, res) => {
   const filename = (req.query.filename || 'drukwerkbestand.pdf').replace(/[\\/:*?"<>|]/g, '-');
 
   if (!link) return res.status(400).json({ error: 'link is verplicht' });
-  if (!/autopictura/i.test(link) && !/cdn\.shopify\.com/i.test(link) && !/posterlyapp\.io/i.test(link)) {
+  if (!/autopictura|\/files\/[a-f0-9]{32}-print\.jpg/i.test(link) && !/cdn\.shopify\.com/i.test(link) && !/posterlyapp\.io/i.test(link)) {
     return res.status(400).json({ error: 'Dit endpoint is alleen voor autopictura-links, Shopify CDN-foto-uploads, of Posterly-links.' });
   }
 
@@ -1016,7 +1027,7 @@ app.get('/api/print-files/pdf-zip', requireAdmin, async (req, res) => {
       }));
 
     const targets = selectedOrders.filter(o =>
-      o.photo_links.some(l => /autopictura/i.test(l)) ||
+      o.photo_links.some(l => /autopictura|\/files\/[a-f0-9]{32}-print\.jpg/i.test(l)) ||
       extractMusicFrameItemsFromOrder({ line_items: o.line_items }).length > 0 ||
       extractFotoTegelPhotoUrls(o.line_items).length > 0 ||
       extractPosterlyPhotoUrls(o.line_items).length > 0 ||
@@ -1479,7 +1490,7 @@ async function runScheduledPrintFilesExport() {
     photo_links: JSON.parse(o.photo_links_json || '[]')
   }));
   const targets = allOrders.filter(o =>
-    o.photo_links.some(l => /autopictura/i.test(l)) ||
+    o.photo_links.some(l => /autopictura|\/files\/[a-f0-9]{32}-print\.jpg/i.test(l)) ||
     extractMusicFrameItemsFromOrder({ line_items: o.line_items }).length > 0 ||
     extractFotoTegelPhotoUrls(o.line_items).length > 0 ||
     extractPosterlyPhotoUrls(o.line_items).length > 0 ||
@@ -1526,6 +1537,7 @@ cron.schedule('*/5 * * * *', async () => {
     console.log('[sync] start automatische sync...');
     const result = await syncOrders();
     console.log(`[sync] klaar: ${result.totalNew} nieuwe orders, ${result.totalSeen} verwerkt`);
+    if (result.totalNew > 0) scheduleStockPush(getInventory, addInventoryItem);
   } catch (e) {
     console.error('[sync] fout tijdens automatische sync:', e.message);
   }

@@ -705,7 +705,7 @@ function renderModal(order) {
   };
   const baseFilename = String(order.order_number || order.shopify_order_id).replace(/[\\/:*?"<>|]/g, '-');
 
-  const autopicturaLinksInOrder = (order.photo_links || []).filter(l => /autopictura/i.test(l));
+  const autopicturaLinksInOrder = (order.photo_links || []).filter(l => /autopictura|\/files\/[a-f0-9]{32}-print\.jpg/i.test(l));
   // Posterly-links tellen mee als "tegel-link" voor de drukwerkbestand-knop,
   // precies zoals bij autopictura (zelfde knop, zelfde doorlopende
   // nummering bij meerdere) — zie ook appendPrintFilesToArchive in index.js.
@@ -2015,8 +2015,8 @@ function buildReceiptHtml(order) {
         return allPhotoLinksRaw.filter(link => eigenschapTeksten.some(tekst => tekst.includes(link)));
       })()
     : allPhotoLinksRaw;
-  const autopicturaPhotos = allPhotoLinks.filter(l => /autopictura/i.test(l));
-  const otherPhotos = allPhotoLinks.filter(l => !/autopictura/i.test(l));
+  const autopicturaPhotos = allPhotoLinks.filter(l => /autopictura|\/files\/[a-f0-9]{32}-print\.jpg/i.test(l));
+  const otherPhotos = allPhotoLinks.filter(l => !/autopictura|\/files\/[a-f0-9]{32}-print\.jpg/i.test(l));
   const photosForReceipt = [...autopicturaPhotos, ...(otherPhotos.length ? [otherPhotos[0]] : [])];
 
   const photoHtml = photosForReceipt.map(link => `
