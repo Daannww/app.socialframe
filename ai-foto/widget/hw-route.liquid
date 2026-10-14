@@ -83,7 +83,7 @@
   .hw-route-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   .hw-route-stage{position:relative;width:100%;aspect-ratio:1/1;margin-top:18px;border:1.5px solid #E2E2E2;border-radius:6px;overflow:hidden;background:#fff;touch-action:pan-y}
   .hw-route-map{position:absolute !important;left:0;top:0;width:100%;height:100%}
-  .hw-route-fade{position:absolute;left:0;right:0;bottom:0;height:36%;pointer-events:none;background:linear-gradient(to bottom,rgba(255,255,255,0) 0%,rgba(255,255,255,.35) 30%,rgba(255,255,255,.8) 55%,#fff 72%,#fff 100%)}
+  .hw-route-fade{position:absolute;left:0;right:0;bottom:0;height:46%;pointer-events:none;background:linear-gradient(to bottom,rgba(255,255,255,0) 0%,rgba(255,255,255,.35) 30%,rgba(255,255,255,.8) 55%,#fff 72%,#fff 100%)}
   .hw-route-text{position:absolute;left:0;top:0;right:0;bottom:0;text-align:center;pointer-events:none;color:#111}
   .hw-route-text div{position:absolute;left:0;right:0;white-space:nowrap}
   .hw-route-modes{display:flex;flex-wrap:wrap;gap:8px}
@@ -259,6 +259,7 @@
       if (m.getSource('route')) { m.getSource('route').setData(routeJson()); m.getSource('ends').setData(endsJson()); m.setPaintProperty('route-line', 'line-color', state.color); return; }
       m.addSource('route', { type: 'geojson', data: routeJson() });
       m.addSource('ends', { type: 'geojson', data: endsJson() });
+      m.addLayer({ id: 'map-wash', type: 'background', paint: { 'background-color': '#FFFFFF', 'background-opacity': 0.45 } });
       m.addLayer({ id: 'route-casing', type: 'line', source: 'route', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#FFFFFF', 'line-width': lw * 1.9, 'line-opacity': 0.9 } });
       m.addLayer({ id: 'route-line', type: 'line', source: 'route', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': state.color, 'line-width': lw } });
       m.addLayer({ id: 'ends-dot', type: 'circle', source: 'ends', paint: { 'circle-radius': lw * 1.7, 'circle-color': ['match', ['get', 'k'], 'start', '#FFFFFF', '#111111'], 'circle-stroke-color': '#111111', 'circle-stroke-width': lw * 0.55 } });
@@ -333,6 +334,8 @@
       selectEl.replaceChildren();
       var o0 = document.createElement('option'); o0.value = ''; o0.textContent = list.length ? 'Kies een wedstrijd…' : 'Nog geen wedstrijden beschikbaar'; selectEl.appendChild(o0);
       list.forEach(function (r) { var o = document.createElement('option'); o.value = r.id; o.textContent = r.name + (r.distance_km ? ' (' + fmtKm(r.distance_km) + ')' : ''); selectEl.appendChild(o); });
+      var def = list.filter(function (r) { return r.id === 'seed-enschede_marathon'; })[0];
+      if (def && !selectEl.value) { selectEl.value = def.id; selectEl.dispatchEvent(new Event('change')); }
     }).catch(function () { selectEl.firstChild.textContent = 'Wedstrijden konden niet worden geladen'; });
     selectEl.addEventListener('change', function () {
       if (!selectEl.value) return;
@@ -368,9 +371,9 @@
     // ----- drukbestand maken (in de browser) en uploaden -----
     function drawTop(ctx, size, W) {
       var k = size / W;
-      var g = ctx.createLinearGradient(0, size * 0.64, 0, size);
+      var g = ctx.createLinearGradient(0, size * 0.54, 0, size);
       g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.3, 'rgba(255,255,255,.35)'); g.addColorStop(0.55, 'rgba(255,255,255,.8)'); g.addColorStop(0.72, 'rgba(255,255,255,1)'); g.addColorStop(1, 'rgba(255,255,255,1)');
-      ctx.fillStyle = g; ctx.fillRect(0, size * 0.64, size, size * 0.36);
+      ctx.fillStyle = g; ctx.fillRect(0, size * 0.54, size, size * 0.46);
       ctx.fillStyle = '#111'; ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';
       layoutText(values(), W).forEach(function (L) {
         ctx.font = fontCss(L.def, L.px * k);
