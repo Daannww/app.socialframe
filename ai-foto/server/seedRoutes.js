@@ -28,7 +28,15 @@ const LIST = [
   ['kustmarathon_zeeland', 'Kustmarathon Zeeland', 'Marathon', 'Zeeland', 'Netherlands'],
   ['berlin_marathon', 'Berlin Marathon', 'Marathon', 'Berlin', 'Germany'],
   ['eindhoven_half_marathon', 'Eindhoven Half Marathon', 'Half Marathon', 'Eindhoven', 'Netherlands'],
-  ['enschede_half_marathon', 'Enschede Half Marathon', 'Half Marathon', 'Enschede', 'Netherlands']
+  ['enschede_half_marathon', 'Enschede Half Marathon', 'Half Marathon', 'Enschede', 'Netherlands'],
+  ['venloop_5km', 'Venloop 5 KM', '5 KM', 'Venlo', 'Netherlands'],
+  ['venloop_10km', 'Venloop 10 KM', '10 KM', 'Venlo', 'Netherlands'],
+  ['venloop_half_marathon', 'Venloop Half Marathon', 'Half Marathon', 'Venlo', 'Netherlands'],
+  ['zevenheuvelennacht_7km', 'Zevenheuvelennacht 7 KM', '7 KM', 'Nijmegen', 'Netherlands'],
+  ['zevenheuvelenloop_15km', 'Zevenheuvelenloop 15 KM', '15 KM', 'Nijmegen', 'Netherlands'],
+  ['rotterdam_10km', 'Rotterdam 10 KM', '10 KM', 'Rotterdam', 'Netherlands'],
+  ['rotterdam_city_run_4_2km', 'Rotterdam City Run 4,2 KM', 'City Run', 'Rotterdam', 'Netherlands'],
+  ['new_york_city_marathon', 'New York City Marathon', 'Marathon', 'New York', 'United States']
 ];
 
 function seedRoutes() {
