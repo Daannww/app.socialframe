@@ -63,8 +63,8 @@ addColumn('jobs', 'last_reused_at', 'TEXT');
 const DEFAULT_SETTINGS = {
   variants: '1',                // aantal varianten per poging; de klant kiest er één (1 = geen keuze, max 3)
   text_max: '40',               // maximaal aantal tekens dat een klant mag invullen
-  max_attempts: '50',           // pogingen per klant (browser/client_id) per 24 uur
-  max_attempts_ip: '100',       // pogingen per IP-adres per 24 uur (hoger, want gezinnen/kantoren delen een IP)
+  max_attempts: '5',            // pogingen per klant (browser/client_id) per 24 uur
+  max_attempts_ip: '12',        // pogingen per IP-adres per 24 uur (hoger, want gezinnen/kantoren delen een IP)
   upscale_model: 'fal-ai/recraft/upscale/crisp',   // goedkoop (±$0,004 per stuk); clarity-upscaler was ±30x duurder
   tegel_px: '1600',             // 13x13 cm @ ~300 dpi = 1535 px
   poster_long_px: '2800',       // 70x50 cm @ ~100 dpi
