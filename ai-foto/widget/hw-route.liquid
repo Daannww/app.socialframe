@@ -159,7 +159,7 @@
 
   // ---- tekst onderaan: maten en posities volgen het ontwerp (tegel van 10 cm) ----
   // Lettertypes: Peyton Display (Bold/Light/ExtraLight) en Helvetica Neue Medium. Staan de bestanden niet op de server, dan valt het terug op een vergelijkbaar lettertype.
-  var FONT_BASE = 'https://ai-foto.socialframe.nl/fonts/';
+  var FONT_BASE = 'https://ai-foto.socialframe.nl/fonts/', FONT_V = '?v=2';
   var SERIF = '"HW Peyton", "Playfair Display", Georgia, serif', SANS = '"HW Helvetica", "Helvetica Neue", Helvetica, Arial, sans-serif';
   var LINES = {
     sport:   { fam: SERIF, w: 300, k: 0.0718, base: 0.7698, ls: 0 },
@@ -190,7 +190,7 @@
   (function () {
     var st = document.createElement('style'), css = '';
     [['HW Peyton', 700, 'PeytonDisplay-Bold'], ['HW Peyton', 300, 'PeytonDisplay-Light'], ['HW Peyton', 200, 'PeytonDisplay-ExtraLight'], ['HW Helvetica', 500, 'HelveticaNeue-Medium']].forEach(function (f) {
-      css += '@font-face{font-family:"' + f[0] + '";font-weight:' + f[1] + ';font-display:swap;src:url(' + FONT_BASE + f[2] + '.woff2) format("woff2"),url(' + FONT_BASE + f[2] + '.woff) format("woff"),url(' + FONT_BASE + f[2] + '.otf) format("opentype"),url(' + FONT_BASE + f[2] + '.ttf) format("truetype")}';
+      css += '@font-face{font-family:"' + f[0] + '";font-weight:' + f[1] + ';font-display:swap;src:url(' + FONT_BASE + f[2] + '.woff2' + FONT_V + ') format("woff2"),url(' + FONT_BASE + f[2] + '.woff' + FONT_V + ') format("woff"),url(' + FONT_BASE + f[2] + '.otf' + FONT_V + ') format("opentype"),url(' + FONT_BASE + f[2] + '.ttf' + FONT_V + ') format("truetype")}';
     });
     st.textContent = css; document.head.appendChild(st);
   })();
