@@ -1,0 +1,473 @@
+{%- comment -%}
+  Sport-/routetegeltje: klant kiest een wedstrijdroute (of uploadt een eigen GPX-bestand), zet er titel, naam en tijd onder en bestelt.
+  Zet dit in een Custom Liquid-blok op de productpagina van het sporttegeltje.
+{%- endcomment -%}
+{%- assign hw_route_api = 'https://ai-foto.socialframe.nl' -%}
+
+<div class="hw-route" data-hw-route data-api="{{ hw_route_api }}">
+  <div class="hw-route-heading">Personaliseren</div>
+
+  <div class="hw-route-label">Kies jouw route</div>
+  <select class="hw-route-input" data-hw-r-select aria-label="Kies een wedstrijd"><option value="">Wedstrijden laden…</option></select>
+  <div class="hw-route-or">of upload je eigen route</div>
+  <label class="hw-route-filebtn"><span class="hw-route-filebtn-b">GPX-bestand kiezen</span><span class="hw-route-filebtn-n" data-hw-r-fname>Geen bestand gekozen</span><input type="file" accept=".gpx,application/gpx+xml,text/xml,application/xml" data-hw-r-file hidden></label>
+  <div class="hw-route-hint">Je GPX-bestand blijft op je eigen apparaat; alleen het kaartje wordt opgeslagen. Te exporteren uit Strava, Garmin, Komoot of je sporthorloge.</div>
+
+  <div class="hw-route-stage" data-hw-r-stage>
+    <div class="hw-route-map" data-hw-r-map></div>
+    <div class="hw-route-fade"></div>
+    <div class="hw-route-text" data-hw-r-textbox></div>
+  </div>
+
+  <label class="hw-route-label" for="hw-route-title">Titel</label>
+  <input type="text" class="hw-route-input" id="hw-route-title" data-hw-r-title maxlength="40" autocomplete="off" placeholder="Bijvoorbeeld: Marathon Rotterdam 2026">
+
+  <label class="hw-route-label" for="hw-route-sub">Naam en datum</label>
+  <input type="text" class="hw-route-input" id="hw-route-sub" data-hw-r-sub maxlength="40" autocomplete="off" placeholder="Bijvoorbeeld: Jan de Vries · 12 april 2026">
+
+  <div class="hw-route-row">
+    <div>
+      <label class="hw-route-label" for="hw-route-time">Tijd</label>
+      <input type="text" class="hw-route-input" id="hw-route-time" data-hw-r-time maxlength="14" autocomplete="off" placeholder="3:45:12">
+    </div>
+    <div>
+      <label class="hw-route-label" for="hw-route-dist">Afstand</label>
+      <input type="text" class="hw-route-input" id="hw-route-dist" data-hw-r-dist maxlength="14" autocomplete="off" placeholder="42,2 km">
+    </div>
+  </div>
+
+  <div class="hw-route-label">Extra op de kaart:</div>
+  <div class="hw-route-modes">
+    <button type="button" class="hw-route-mode" data-extra="labels" aria-pressed="true">Plaatsnamen</button>
+    <button type="button" class="hw-route-mode" data-extra="streets" aria-pressed="false">Straatnamen</button>
+    <button type="button" class="hw-route-mode" data-extra="buildings" aria-pressed="false">Gebouwen</button>
+  </div>
+
+  <div class="hw-route-label">Lettertype:</div>
+  <div class="hw-route-modes">
+    <button type="button" class="hw-route-mode" data-font="classic" aria-pressed="true">Klassiek</button>
+    <button type="button" class="hw-route-mode" data-font="modern" aria-pressed="false">Modern</button>
+  </div>
+
+  <div class="hw-route-label">Kleur van de route:</div>
+  <div class="hw-route-modes">
+    <button type="button" class="hw-route-mode" data-color="#D32F2F" aria-pressed="true">Rood</button>
+    <button type="button" class="hw-route-mode" data-color="#111111" aria-pressed="false">Zwart</button>
+    <button type="button" class="hw-route-mode" data-color="#1E6FD9" aria-pressed="false">Blauw</button>
+  </div>
+
+  <div class="hw-route-status" data-hw-r-status role="status" aria-live="polite"></div>
+  <div class="hw-route-demo" data-hw-r-demo hidden>
+    <button type="button" class="hw-route-demobtn" data-hw-r-demobtn>Test: maak printbestand</button>
+    <div data-hw-r-demoout></div>
+  </div>
+</div>
+
+<style>
+  .hw-route{font-family:inherit;font-size:14px;color:#333;border:1.5px solid #E2E2E2;border-radius:24px;background:#fff;padding:22px 18px 20px;margin:1.75rem 0 1rem;box-sizing:border-box}
+  .hw-route *{box-sizing:border-box}
+  .hw-route-heading{font-family:inherit;font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#111;margin:0 0 16px}
+  .hw-route-label{display:block;font-size:14px;font-weight:700;color:#121212;margin:18px 0 8px}
+  .hw-route-heading + .hw-route-label{margin-top:0}
+  .hw-route-input{width:100%;padding:13px 14px;border:1.5px solid #8A8A8A;border-radius:12px;font:inherit;font-size:16px;color:#222;background:#fff}
+  .hw-route-or{margin:12px 0 4px;font-size:13px;color:#777}
+  .hw-route-hint{margin-top:8px;font-size:12px;color:#777}
+  .hw-route-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .hw-route-stage{position:relative;width:100%;aspect-ratio:1/1;margin-top:18px;border:1.5px solid #E2E2E2;border-radius:6px;overflow:hidden;background:#fff;touch-action:pan-y}
+  .hw-route-map{position:absolute !important;left:0;top:0;width:100%;height:100%}
+  .hw-route-fade{position:absolute;left:0;right:0;bottom:0;height:36%;pointer-events:none;background:linear-gradient(to bottom,rgba(255,255,255,0) 0%,rgba(255,255,255,.35) 30%,rgba(255,255,255,.8) 55%,#fff 72%,#fff 100%)}
+  .hw-route-text{position:absolute;left:0;top:0;right:0;bottom:0;text-align:center;pointer-events:none;color:#111}
+  .hw-route-text div{position:absolute;left:0;right:0;white-space:nowrap}
+  .hw-route-modes{display:flex;flex-wrap:wrap;gap:8px}
+  .hw-route-mode{border:1.5px solid #D0D0D0;border-radius:999px;background:#fff !important;color:#222 !important;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+  .hw-route-mode[aria-pressed="true"]{border-color:#111;background:#111 !important;color:#fff !important}
+  .hw-route-filebtn{display:flex;align-items:center;gap:8px;margin-top:6px;max-width:100%;min-width:0;cursor:pointer}
+  .hw-route-filebtn-b{flex:none;border:1.5px solid #D0D0D0;border-radius:999px;padding:6px 12px;font-size:13px;background:#fff;color:#222}
+  .hw-route-filebtn-n{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;color:#777}
+  .hw-route-status{margin-top:12px;font-size:13px;color:#555;min-height:18px}
+  .hw-route-status.err{color:#b3261e}
+  .hw-route-demo{margin-top:14px;padding-top:12px;border-top:1px dashed #ccc}
+  .hw-route-demobtn{border:1.5px solid #111;border-radius:999px;background:#fff;padding:10px 18px;font:inherit;font-size:14px;font-weight:600;cursor:pointer}
+  .hw-route-demo img{max-width:100%;margin-top:10px;border:1px solid #ddd}
+  .hw-route .maplibregl-ctrl-group button{width:36px;height:36px}
+</style>
+
+<script>
+(function () {
+  var MAPLIBRE_JS = 'https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.js';
+  var MAPLIBRE_CSS = 'https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.css';
+  var FONT_CSS = 'https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,500&family=Montserrat:wght@500;700&display=swap';
+  var TILES = 'https://tiles.openfreemap.org/planet';
+  var GLYPHS = 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf';
+  var BG = '#FFFFFF', WATER = '#C9C9C9', ROAD_MINOR = '#8A8A8A', ROAD_MID = '#6A6A6A', ROAD_MAJOR = '#4A4A4A';
+  var PRINT_PX = 1600;
+
+  function addCss(href) { if (document.querySelector('link[href="' + href + '"]')) return; var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = href; document.head.appendChild(l); }
+  function addJs(src) {
+    return new Promise(function (ok, fail) {
+      if (window.maplibregl) return ok();
+      var ex = document.querySelector('script[data-hw-maplibre]');
+      if (ex) { ex.addEventListener('load', function () { ok(); }); ex.addEventListener('error', fail); return; }
+      var s = document.createElement('script'); s.src = src; s.async = true; s.setAttribute('data-hw-maplibre', '');
+      s.onload = function () { ok(); }; s.onerror = fail; document.head.appendChild(s);
+    });
+  }
+  addCss(MAPLIBRE_CSS); addCss(FONT_CSS);
+
+  // ---- kaartstijl (OpenStreetMap-data via OpenFreeMap): lichtgrijs, zodat de route er uit springt ----
+  function roadW(a, b, c, d) { return ['interpolate', ['linear'], ['zoom'], 10, a, 13, b, 16, c, 20, d]; }
+  function buildStyle(o) {
+    var vis = function (on) { return { visibility: on ? 'visible' : 'none' }; };
+    var inList = function (list) { return ['match', ['get', 'class'], list, true, false]; };
+    var notTunnel = ['!=', ['get', 'brunnel'], 'tunnel'];
+    var nameField = ['coalesce', ['get', 'name:nl'], ['get', 'name']];
+    var lbl = function (id, classes, minzoom, sizes) {
+      return { id: id, type: 'symbol', source: 'omt', 'source-layer': 'place', minzoom: minzoom, layout: Object.assign(vis(o.labels), { 'text-field': nameField, 'text-font': ['Noto Sans Regular'], 'text-size': sizes, 'text-max-width': 7, 'text-padding': 6 }),
+        filter: inList(classes), paint: { 'text-color': '#555555', 'text-halo-color': 'rgba(255,255,255,.9)', 'text-halo-width': 1.5 } };
+    };
+    return {
+      version: 8, glyphs: GLYPHS,
+      sources: { omt: { type: 'vector', url: TILES } },
+      layers: [
+        { id: 'bg', type: 'background', paint: { 'background-color': BG } },
+        { id: 'water', type: 'fill', source: 'omt', 'source-layer': 'water', paint: { 'fill-color': WATER } },
+        { id: 'waterway', type: 'line', source: 'omt', 'source-layer': 'waterway', paint: { 'line-color': WATER, 'line-width': roadW(0.4, 0.8, 1.6, 6) } },
+        { id: 'building', type: 'fill', source: 'omt', 'source-layer': 'building', minzoom: 13, layout: vis(o.buildings), paint: { 'fill-color': '#EAEAEA', 'fill-outline-color': '#D8D8D8' } },
+        { id: 'r_minor', type: 'line', source: 'omt', 'source-layer': 'transportation', minzoom: 11, layout: { 'line-cap': 'butt', 'line-join': 'round' },
+          filter: ['all', notTunnel, inList(['minor', 'service', 'track'])], paint: { 'line-color': ROAD_MINOR, 'line-width': roadW(0.5, 0.7, 1.6, 6) } },
+        { id: 'r_mid', type: 'line', source: 'omt', 'source-layer': 'transportation', layout: { 'line-join': 'round' },
+          filter: ['all', notTunnel, inList(['tertiary', 'secondary'])], paint: { 'line-color': ROAD_MID, 'line-width': roadW(0.8, 1.2, 2.8, 9) } },
+        { id: 'r_major', type: 'line', source: 'omt', 'source-layer': 'transportation', layout: { 'line-join': 'round' },
+          filter: ['all', notTunnel, inList(['primary', 'trunk', 'motorway'])], paint: { 'line-color': ROAD_MAJOR, 'line-width': roadW(1.2, 1.8, 4.2, 12) } },
+        { id: 'l_street', type: 'symbol', source: 'omt', 'source-layer': 'transportation_name', minzoom: 14.5, layout: Object.assign(vis(o.streets), { 'symbol-placement': 'line', 'text-field': nameField, 'text-font': ['Noto Sans Regular'], 'text-size': ['interpolate', ['linear'], ['zoom'], 14.5, 9, 18, 13], 'text-letter-spacing': 0.02 }),
+          paint: { 'text-color': '#555555', 'text-halo-color': 'rgba(255,255,255,.95)', 'text-halo-width': 1.6 } },
+        lbl('l_city', ['city'], 4, ['interpolate', ['linear'], ['zoom'], 4, 12, 12, 20]),
+        lbl('l_town', ['town'], 6, ['interpolate', ['linear'], ['zoom'], 6, 11, 13, 17]),
+        lbl('l_village', ['village', 'suburb'], 9, ['interpolate', ['linear'], ['zoom'], 9, 10, 14, 15]),
+        lbl('l_small', ['hamlet', 'neighbourhood', 'quarter'], 12, ['interpolate', ['linear'], ['zoom'], 12, 9.5, 16, 13])
+      ]
+    };
+  }
+
+  // ---- tekst onderaan: zelfde indeling op de kaart en in het drukbestand ----
+  var FONTS = {
+    classic: { tFam: '"Playfair Display", Georgia, serif', tW: 700, tStyle: 'normal', tK: 0.050, sFam: '"Playfair Display", Georgia, serif', sW: 500, sStyle: 'italic', sK: 0.028, upper: false, lsEm: 0.06, base: 0.915 },
+    modern: { tFam: 'Montserrat, Arial, sans-serif', tW: 700, tStyle: 'normal', tK: 0.038, sFam: 'Montserrat, Arial, sans-serif', sW: 500, sStyle: 'normal', sK: 0.019, upper: true, lsEm: 0.24, base: 0.93 }
+  };
+  var TEXT_BASE = 0.895;   // onderste regel: 1 cm boven de onderkant van een tegel van 10 cm
+  var mctx = document.createElement('canvas').getContext('2d');
+  function textWidth(str, px, weight, style, ls, fam) {
+    mctx.font = style + ' ' + weight + ' ' + px + 'px ' + fam;
+    var w = 0; for (var i = 0; i < str.length; i++) w += mctx.measureText(str[i]).width + (i < str.length - 1 ? ls : 0);
+    return w;
+  }
+  // Regels van onder naar boven: [tijd + afstand] / [naam + datum] / [titel]
+  function layoutText(title, sub, stats, W, F) {
+    if (F.upper) { title = title.toUpperCase(); sub = sub.toUpperCase(); stats = stats.toUpperCase(); }
+    var maxW = W * 0.88, lines = [];
+    var tPx = W * F.tK;
+    while (title && tPx > W * 0.022 && textWidth(title, tPx, F.tW, F.tStyle, 0, F.tFam) > maxW) tPx -= 1;
+    var sPx = W * F.sK, sLs = sPx * F.lsEm;
+    var fit = function (s) { var px = W * F.sK, ls = px * F.lsEm; while (s && px > W * 0.013 && textWidth(s, px, F.sW, F.sStyle, ls, F.sFam) > maxW) { px -= 1; ls = px * F.lsEm; } return { px: px, ls: ls }; };
+    var base = W * TEXT_BASE;
+    var gapS = W * 0.036, gapT = W * 0.040;
+    if (stats) { var f1 = fit(stats); lines.push({ kind: 's', text: stats, px: f1.px, ls: f1.ls, base: base }); base -= gapS; }
+    if (sub) { var f2 = fit(sub); lines.push({ kind: 's', text: sub, px: f2.px, ls: f2.ls, base: base }); base -= gapT; }
+    else if (stats) { base -= gapT - gapS; }
+    if (title) lines.push({ kind: 't', text: title, px: tPx, ls: 0, base: base });
+    return lines;
+  }
+  function loadFonts() {
+    if (!(document.fonts && document.fonts.load)) return Promise.resolve();
+    return Promise.all([document.fonts.load('700 40px "Playfair Display"'), document.fonts.load('italic 500 40px "Playfair Display"'), document.fonts.load('700 40px Montserrat'), document.fonts.load('500 40px Montserrat')]);
+  }
+  function drawSpaced(ctx, str, cx, y, ls) {
+    var total = 0, ws = [];
+    for (var i = 0; i < str.length; i++) { var w = ctx.measureText(str[i]).width; ws.push(w); total += w + (i < str.length - 1 ? ls : 0); }
+    var x = cx - total / 2;
+    for (var j = 0; j < str.length; j++) { ctx.fillText(str[j], x, y); x += ws[j] + ls; }
+  }
+
+  // ---- GPX in de browser lezen (verlaat het apparaat niet) ----
+  function parseGpx(xml) {
+    var doc = new DOMParser().parseFromString(xml, 'text/xml');
+    if (doc.getElementsByTagName('parsererror').length) return [];
+    var nodes = doc.getElementsByTagName('trkpt');
+    if (!nodes.length) nodes = doc.getElementsByTagName('rtept');
+    var pts = [];
+    for (var i = 0; i < nodes.length; i++) {
+      var lat = parseFloat(nodes[i].getAttribute('lat')), lon = parseFloat(nodes[i].getAttribute('lon'));
+      if (isFinite(lat) && isFinite(lon) && Math.abs(lat) <= 90 && Math.abs(lon) <= 180) pts.push([lon, lat]);
+    }
+    if (pts.length > 3000) { var step = pts.length / 3000, out = []; for (var k = 0; k < 3000; k++) out.push(pts[Math.floor(k * step)]); out.push(pts[pts.length - 1]); pts = out; }
+    return pts;
+  }
+  function distKm(pts) {
+    var R = 6371, d = 0, rad = Math.PI / 180;
+    for (var i = 1; i < pts.length; i++) {
+      var a = pts[i - 1], b = pts[i], dLat = (b[1] - a[1]) * rad, dLon = (b[0] - a[0]) * rad;
+      var h = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(a[1] * rad) * Math.cos(b[1] * rad) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      d += 2 * R * Math.asin(Math.sqrt(h));
+    }
+    return d;
+  }
+  function fmtKm(km) { return (Math.round(km * 10) / 10).toString().replace('.', ',') + ' km'; }
+
+  function initOne(root) {
+    if (root.dataset.hwRInit) return; root.dataset.hwRInit = '1';
+    var API = (root.dataset.api || '').replace(/\/$/, '');
+    var $ = function (s) { return root.querySelector(s); };
+    var selectEl = $('[data-hw-r-select]'), fileEl = $('[data-hw-r-file]'), mapEl = $('[data-hw-r-map]'), stageEl = $('[data-hw-r-stage]'), textBox = $('[data-hw-r-textbox]');
+    var titleEl = $('[data-hw-r-title]'), subEl = $('[data-hw-r-sub]'), timeEl = $('[data-hw-r-time]'), distEl = $('[data-hw-r-dist]'), statusEl = $('[data-hw-r-status]');
+    var state = { font: 'classic', labels: true, streets: false, buildings: false, color: '#D32F2F', route: null, routeName: '', source: '', result: null, busy: false, pass: false };
+    var map = null, mapReady = false;
+    function say(t, err) { statusEl.textContent = t || ''; statusEl.className = 'hw-route-status' + (err ? ' err' : ''); }
+    function changed() { state.result = null; }
+
+    var clientId;
+    try { clientId = localStorage.getItem('hw_ai_client'); } catch (e) {}
+    if (!clientId) { clientId = 'c' + Math.random().toString(36).slice(2) + Date.now().toString(36); try { localStorage.setItem('hw_ai_client', clientId); } catch (e) {} }
+
+    // ----- routelaag (zelfde tekening op de kaart en in het drukbestand) -----
+    function routeJson() { return { type: 'Feature', geometry: { type: 'LineString', coordinates: state.route || [] } }; }
+    function endsJson() {
+      var r = state.route; if (!r || r.length < 2) return { type: 'FeatureCollection', features: [] };
+      return { type: 'FeatureCollection', features: [
+        { type: 'Feature', properties: { k: 'start' }, geometry: { type: 'Point', coordinates: r[0] } },
+        { type: 'Feature', properties: { k: 'end' }, geometry: { type: 'Point', coordinates: r[r.length - 1] } }] };
+    }
+    function addRoute(m, W) {
+      var lw = Math.max(3, W * 0.011);
+      if (m.getSource('route')) { m.getSource('route').setData(routeJson()); m.getSource('ends').setData(endsJson()); m.setPaintProperty('route-line', 'line-color', state.color); return; }
+      m.addSource('route', { type: 'geojson', data: routeJson() });
+      m.addSource('ends', { type: 'geojson', data: endsJson() });
+      m.addLayer({ id: 'route-casing', type: 'line', source: 'route', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#FFFFFF', 'line-width': lw * 1.9, 'line-opacity': 0.9 } });
+      m.addLayer({ id: 'route-line', type: 'line', source: 'route', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': state.color, 'line-width': lw } });
+      m.addLayer({ id: 'ends-dot', type: 'circle', source: 'ends', paint: { 'circle-radius': lw * 1.7, 'circle-color': ['match', ['get', 'k'], 'start', '#FFFFFF', '#111111'], 'circle-stroke-color': '#111111', 'circle-stroke-width': lw * 0.55 } });
+    }
+    function fit(m) {
+      if (!state.route || state.route.length < 2) return;
+      var b = new maplibregl.LngLatBounds(state.route[0], state.route[0]);
+      state.route.forEach(function (p) { b.extend(p); });
+      var W = stageEl.clientWidth;
+      m.fitBounds(b, { padding: { top: W * 0.08, left: W * 0.09, right: W * 0.09, bottom: W * 0.34 }, duration: 0, maxZoom: 17 });
+    }
+
+    // ----- teksten -----
+    function statsText() { var t = timeEl.value.trim(), d = distEl.value.trim(); return [t, d].filter(Boolean).join('   |   '); }
+    function drawTexts() {
+      var W = stageEl.clientWidth; if (!W) return;
+      var F = FONTS[state.font], lines = layoutText(titleEl.value.trim(), subEl.value.trim(), statsText(), W, F);
+      textBox.replaceChildren();
+      lines.forEach(function (L) {
+        var d = document.createElement('div'); d.textContent = L.text;
+        var t = L.kind === 't';
+        d.style.fontFamily = t ? F.tFam : F.sFam; d.style.fontWeight = t ? F.tW : F.sW; d.style.fontStyle = t ? F.tStyle : F.sStyle;
+        d.style.fontSize = L.px + 'px'; d.style.lineHeight = '1'; d.style.letterSpacing = L.ls + 'px'; d.style.paddingLeft = L.ls + 'px';
+        d.style.top = (L.base - L.px * F.base) + 'px';
+        textBox.appendChild(d);
+      });
+    }
+    [titleEl, subEl, timeEl, distEl].forEach(function (el) { el.addEventListener('input', function () { drawTexts(); changed(); }); });
+    if (window.ResizeObserver) new ResizeObserver(function () { drawTexts(); }).observe(stageEl);
+    if (document.fonts && document.fonts.load) loadFonts().then(drawTexts, function () {});
+
+    root.querySelectorAll('[data-font]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        state.font = b.dataset.font;
+        root.querySelectorAll('[data-font]').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+        drawTexts(); changed();
+      });
+    });
+    root.querySelectorAll('[data-color]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        state.color = b.dataset.color;
+        root.querySelectorAll('[data-color]').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+        if (map && map.getLayer('route-line')) map.setPaintProperty('route-line', 'line-color', state.color);
+        changed();
+      });
+    });
+    function applyExtras(m) {
+      var set = function (ids, on) { ids.forEach(function (id) { if (m.getLayer(id)) m.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none'); }); };
+      set(['l_city', 'l_town', 'l_village', 'l_small'], state.labels); set(['l_street'], state.streets); set(['building'], state.buildings);
+    }
+    root.querySelectorAll('[data-extra]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var k = b.dataset.extra; state[k] = !state[k]; b.setAttribute('aria-pressed', state[k] ? 'true' : 'false');
+        if (map) applyExtras(map);
+        changed();
+      });
+    });
+
+    // ----- route kiezen -----
+    function setRoute(pts, name, km, source) {
+      state.route = pts; state.routeName = name; state.source = source;
+      titleEl.value = name || titleEl.value;
+      distEl.value = km ? fmtKm(km) : distEl.value;
+      drawTexts(); changed(); say('');
+      if (map && mapReady) { addRoute(map, stageEl.clientWidth); fit(map); }
+    }
+    fetch(API + '/api/routes').then(function (r) { return r.json(); }).then(function (d) {
+      var list = d.routes || [];
+      selectEl.replaceChildren();
+      var o0 = document.createElement('option'); o0.value = ''; o0.textContent = list.length ? 'Kies een wedstrijd…' : 'Nog geen wedstrijden beschikbaar'; selectEl.appendChild(o0);
+      list.forEach(function (r) { var o = document.createElement('option'); o.value = r.id; o.textContent = r.name + (r.distance_km ? ' (' + fmtKm(r.distance_km) + ')' : ''); selectEl.appendChild(o); });
+    }).catch(function () { selectEl.firstChild.textContent = 'Wedstrijden konden niet worden geladen'; });
+    selectEl.addEventListener('change', function () {
+      if (!selectEl.value) return;
+      fileEl.value = ''; $('[data-hw-r-fname]').textContent = 'Geen bestand gekozen';
+      say('Route laden…');
+      fetch(API + '/api/routes/' + encodeURIComponent(selectEl.value)).then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || 'Route laden mislukt'); return j; }); })
+        .then(function (j) { setRoute(j.points, j.name, j.distance_km, 'Vaste route: ' + j.name); }, function (e) { say(e.message, true); });
+    });
+    fileEl.addEventListener('change', function () {
+      var f = fileEl.files && fileEl.files[0]; if (!f) return;
+      $('[data-hw-r-fname]').textContent = f.name; selectEl.value = '';
+      if (f.size > 25 * 1024 * 1024) { say('Dit bestand is te groot.', true); return; }
+      var fr = new FileReader();
+      fr.onload = function () {
+        var pts = parseGpx(String(fr.result || ''));
+        if (pts.length < 5) { say('In dit bestand staat geen route. Kies een GPX-bestand.', true); return; }
+        setRoute(pts, f.name.replace(/\.gpx$/i, '').replace(/[_-]+/g, ' ').slice(0, 40), distKm(pts), 'Eigen GPX');
+      };
+      fr.onerror = function () { say('Dit bestand kan niet worden gelezen.', true); };
+      fr.readAsText(f);
+    });
+
+    // ----- kaart starten -----
+    function startMap() {
+      map = new maplibregl.Map({ container: mapEl, style: buildStyle(state), center: [5.3, 52.1], zoom: 7, attributionControl: false, cooperativeGestures: true, dragRotate: false, pitchWithRotate: false, maxZoom: 18, minZoom: 3, fadeDuration: 0 });
+      map.touchZoomRotate.disableRotation();
+      map.on('moveend', changed);
+      map.once('load', function () { mapReady = true; addRoute(map, stageEl.clientWidth); fit(map); say(''); });
+      drawTexts();
+    }
+    addJs(MAPLIBRE_JS).then(startMap, function () { say('De kaart kon niet worden geladen. Controleer je verbinding en ververs de pagina.', true); });
+
+    // ----- drukbestand maken (in de browser) en uploaden -----
+    function drawTop(ctx, size, W) {
+      var k = size / W;
+      var g = ctx.createLinearGradient(0, size * 0.64, 0, size);
+      g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.3, 'rgba(255,255,255,.35)'); g.addColorStop(0.55, 'rgba(255,255,255,.8)'); g.addColorStop(0.72, 'rgba(255,255,255,1)'); g.addColorStop(1, 'rgba(255,255,255,1)');
+      ctx.fillStyle = g; ctx.fillRect(0, size * 0.64, size, size * 0.36);
+      var F = FONTS[state.font], lines = layoutText(titleEl.value.trim(), subEl.value.trim(), statsText(), W, F);
+      ctx.fillStyle = '#111'; ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';
+      lines.forEach(function (L) {
+        var t = L.kind === 't';
+        ctx.font = (t ? F.tStyle : F.sStyle) + ' ' + (t ? F.tW : F.sW) + ' ' + (L.px * k) + 'px ' + (t ? F.tFam : F.sFam);
+        drawSpaced(ctx, L.text, size / 2, L.base * k, L.ls * k);
+      });
+    }
+    function renderPrint() {
+      var W = stageEl.clientWidth, size = PRINT_PX, pr = size / W;
+      var host = document.createElement('div'); host.style.cssText = 'position:fixed;left:-20000px;top:0;width:' + W + 'px;height:' + W + 'px;pointer-events:none';
+      document.body.appendChild(host);
+      var c = map.getCenter();
+      var m2 = new maplibregl.Map({ container: host, style: buildStyle(state), center: [c.lng, c.lat], zoom: map.getZoom(), interactive: false, attributionControl: false, pixelRatio: pr, fadeDuration: 0, preserveDrawingBuffer: true });
+      return new Promise(function (ok, fail) {
+        var done = false, t = setTimeout(function () { if (!done) { done = true; m2.remove(); host.remove(); fail(new Error('De kaart laadde te langzaam, probeer het opnieuw.')); } }, 25000);
+        m2.once('load', function () {
+          addRoute(m2, W);
+          m2.once('idle', function () {
+            if (done) return;
+            var tries = 0;
+            (function waitTiles() {
+              if (done) return;
+              if (!m2.areTilesLoaded() && tries++ < 60) return setTimeout(waitTiles, 250);
+              done = true; clearTimeout(t);
+              var cnv = document.createElement('canvas'); cnv.width = size; cnv.height = size;
+              var ctx = cnv.getContext('2d');
+              ctx.fillStyle = BG; ctx.fillRect(0, 0, size, size);
+              ctx.drawImage(m2.getCanvas(), 0, 0, size, size);
+              drawTop(ctx, size, W);
+              m2.remove(); host.remove();
+              cnv.toBlob(function (b) { b ? ok(b) : fail(new Error('Afbeelding maken mislukt.')); }, 'image/jpeg', 0.92);
+            })();
+          });
+        });
+      });
+    }
+    function buildAndUpload() {
+      if (state.busy) return Promise.reject(new Error('busy'));
+      if (!map || !mapReady) return Promise.reject(new Error('De kaart is nog niet geladen.'));
+      if (!state.route) return Promise.reject(new Error('Kies eerst een route.'));
+      state.busy = true;
+      return loadFonts().catch(function () {}).then(renderPrint).then(function (blob) {
+        var fd = new FormData();
+        fd.append('image', blob, 'route.jpg'); fd.append('client_id', clientId);
+        fd.append('place', titleEl.value.trim()); fd.append('country', subEl.value.trim()); fd.append('style', 'route');
+        return fetch(API + '/api/map/print', { method: 'POST', body: fd }).then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || 'Opslaan mislukt'); return j; }); });
+      }).then(function (j) {
+        state.busy = false;
+        state.result = { job_id: j.job_id, preview_url: j.preview_url, print_url: j.print_url, design: 'Route – ' + (state.routeName || 'eigen route') };
+        return state.result;
+      }, function (e) { state.busy = false; throw e; });
+    }
+
+    // ----- winkelwagen -----
+    function getForms() {
+      var f = document.querySelectorAll('.product-form .form');
+      if (f.length) return f;
+      var fb = document.querySelector('form[data-type="add-to-cart-form"]');
+      return fb ? [fb] : [];
+    }
+    function setProps(r) {
+      getForms().forEach(function (form) {
+        form.querySelectorAll('[data-hw-r-prop]').forEach(function (el) { el.remove(); });
+        var P = {
+          'properties[Uw personalisatie]': r.preview_url, 'properties[Stijl]': r.design,
+          'properties[Route]': state.source, 'properties[Titel]': titleEl.value.trim(), 'properties[Naam en datum]': subEl.value.trim(),
+          'properties[Tijd]': timeEl.value.trim(), 'properties[Afstand]': distEl.value.trim(),
+          'properties[Lettertype]': state.font === 'modern' ? 'Modern' : 'Klassiek',
+          'properties[_AI drukbestand]': r.print_url, 'properties[_AI job]': r.job_id
+        };
+        Object.keys(P).forEach(function (n) { if (!P[n]) return; var i = document.createElement('input'); i.type = 'hidden'; i.name = n; i.value = P[n]; i.setAttribute('data-hw-r-prop', ''); form.appendChild(i); });
+      });
+    }
+    var toastEl = null, toastTimer = null;
+    function toast(anchor, msg, ms) {
+      if (!toastEl) {
+        toastEl = document.createElement('div'); toastEl.setAttribute('role', 'alert');
+        toastEl.style.cssText = 'position:fixed;z-index:99999;background:#fff;color:#444;font:500 15px/1.3 inherit;font-family:inherit;padding:14px 20px;border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,.22);text-align:center;max-width:90vw;pointer-events:none;transform:translate(-50%,-50%);transition:opacity .25s';
+        document.body.appendChild(toastEl);
+      }
+      var r = anchor.getBoundingClientRect();
+      toastEl.textContent = msg; toastEl.style.left = (r.left + r.width / 2) + 'px'; toastEl.style.top = (r.top + r.height / 2) + 'px';
+      toastEl.style.opacity = '1'; toastEl.style.display = 'block';
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () { toastEl.style.opacity = '0'; setTimeout(function () { toastEl.style.display = 'none'; }, 260); }, ms || 2500);
+    }
+    function intercept(e, target) {
+      if (state.pass) return;
+      if (root.hidden || root.offsetParent === null) return;
+      if (!target || !target.closest || !target.closest('.product-form, form[data-type="add-to-cart-form"]')) return;
+      var btn = target.matches && target.matches('button, input') ? target : (target.querySelector && target.querySelector('button[type="submit"], button[name="add"]')) || target;
+      if (state.result) { setProps(state.result); return; }
+      e.preventDefault(); e.stopImmediatePropagation();
+      if (state.busy) { toast(btn, 'Even geduld, je drukbestand wordt gemaakt…', 2500); return; }
+      if (!state.route) { toast(btn, 'Kies eerst een route.', 3000); return; }
+      toast(btn, 'Even geduld, je drukbestand wordt gemaakt…', 30000);
+      buildAndUpload().then(function (r) {
+        setProps(r); toast(btn, 'Klaar!', 600);
+        state.pass = true; btn.click(); setTimeout(function () { state.pass = false; }, 2000);
+      }, function (err) { if (err && err.message !== 'busy') toast(btn, err.message || 'Er ging iets mis, probeer het opnieuw.', 3500); });
+    }
+    document.addEventListener('submit', function (e) { intercept(e, e.target); }, true);
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest && e.target.closest('button[type="submit"], button[name="add"], input[type="submit"]');
+      if (btn) intercept(e, btn);
+    }, true);
+
+    // ----- testknop (alleen op de demo-pagina) -----
+    if (root.dataset.demo) {
+      $('[data-hw-r-demo]').hidden = false;
+      $('[data-hw-r-demobtn]').addEventListener('click', function () {
+        var out = $('[data-hw-r-demoout]'); out.textContent = 'Bezig…';
+        buildAndUpload().then(function (r) { out.innerHTML = '<div>Klaar: <a target="_blank" href="' + r.print_url + '">drukbestand</a></div><img src="' + r.preview_url + '" alt="">'; }, function (err) { out.textContent = 'Fout: ' + err.message; });
+      });
+    }
+    window.__hwRoute = { state: state, buildAndUpload: buildAndUpload, getMap: function () { return map; }, setRoute: setRoute };
+  }
+  document.querySelectorAll('[data-hw-route]').forEach(initOne);
+})();
+</script>
