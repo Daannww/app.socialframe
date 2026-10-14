@@ -26,6 +26,13 @@ small{color:var(--mut)}
 <div class="card" id="editor" hidden></div>
 <div class="card"><h2>Instellingen</h2><div class="row" id="settings"></div><p><button id="saveSet">Opslaan</button></p>
 <small>Tegel: 1600 px ≈ 300 dpi op 13x13 cm. Poster: lange zijde in px, 2800 px ≈ 100 dpi op 70 cm. Pogingen = per klant per 24 uur.</small></div>
+<div class="card"><h2>Routes (sporttegeltje)</h2>
+<p style="font-size:13px;color:var(--mut)">Upload een GPX-bestand van een wedstrijd (bv. Marathon Rotterdam 2026). Klanten kiezen de route op de productpagina.</p>
+<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:12px">
+<div><label>Naam</label><input id="rt-name" placeholder="Marathon Rotterdam 2026"></div>
+<div><label>GPX-bestand</label><input type="file" id="rt-file" accept=".gpx,application/gpx+xml,text/xml"></div>
+<div><button type="button" id="rt-add">Route toevoegen</button></div></div>
+<div id="rt-list"></div></div>
 <div class="card"><h2>Activiteit (laatste 24 uur, per IP)</h2><div id="activity"></div></div>
 <div class="card"><h2>Generaties terugvinden</h2>
 <div id="jf" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:12px">
@@ -152,4 +159,27 @@ function edit(x){
 $('#new').onclick=()=>edit();
 $('#saveSet').onclick=async()=>{const b={};document.querySelectorAll('#settings input').forEach(i=>b[i.name]=i.value);await api('/admin/api/settings',json('PUT',b));say('Instellingen opgeslagen')};
 load();
+
+async function loadRoutes(){
+ const l=$('#rt-list');l.replaceChildren();
+ const r=await api('/admin/api/routes');
+ if(!r.routes.length)l.append(el('p',{textContent:'Nog geen routes.'}));
+ r.routes.forEach(x=>{
+  const row=el('div',{style:'display:flex;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px;flex-wrap:wrap'},
+   el('b',{textContent:x.name}),el('span',{className:'tag',textContent:(x.distance_km||0).toFixed(1)+' km'}),el('span',{className:'tag',textContent:x.active?'zichtbaar':'verborgen'}));
+  const tg=el('button',{type:'button',className:'sec',textContent:x.active?'Verbergen':'Tonen'});
+  tg.onclick=async()=>{await api('/admin/api/routes/'+x.id,json('PUT',{active:!x.active}));loadRoutes()};
+  const rn=el('button',{type:'button',className:'sec',textContent:'Hernoemen'});
+  rn.onclick=async()=>{const n=prompt('Nieuwe naam',x.name);if(n){await api('/admin/api/routes/'+x.id,json('PUT',{name:n}));loadRoutes()}};
+  const dl=el('button',{type:'button',className:'sec',textContent:'Verwijderen'});
+  dl.onclick=async()=>{if(confirm('Route "'+x.name+'" verwijderen?')){await api('/admin/api/routes/'+x.id,{method:'DELETE'});loadRoutes()}};
+  row.append(tg,rn,dl);l.append(row);
+ });
+}
+$('#rt-add').onclick=async()=>{
+ const f=$('#rt-file').files[0];if(!f)return say('Kies eerst een GPX-bestand');
+ const fd=new FormData();fd.append('gpx',f);fd.append('name',$('#rt-name').value.trim());
+ try{const r=await api('/admin/api/routes',{method:'POST',body:fd});say('Toegevoegd: '+r.name+' ('+r.distance_km+' km)');$('#rt-name').value='';$('#rt-file').value='';loadRoutes()}catch(e){say(e.message)}
+};
+loadRoutes().catch(()=>{});
 </script></body></html>

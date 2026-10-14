@@ -10,6 +10,7 @@ const path = require('path');
 const sharp = require('sharp');
 const img = require('./image');
 const { db, getSetting, setSetting, allSettings } = require('./db');
+const routesLib = require('./routes');
 const { finalizeVariant, promptFor, enqueue, resume, rid, FILES, ORIGINALS } = require('./pipeline');
 
 const app = express();
@@ -137,6 +138,24 @@ app.post('/api/map/print', mapLimiter, (req, res, next) => (looksLikeBot(req) ? 
     console.error(e);
     res.status(500).json({ error: 'Er ging iets mis, probeer het opnieuw.' });
   }
+});
+
+// ---------- Routes (sporttegeltje) ----------
+app.get('/api/routes', (req, res) => {
+  res.json({ routes: db.prepare('SELECT id, name, distance_km FROM routes WHERE active=1 ORDER BY sort, name').all()
+    .map((r) => ({ id: r.id, name: r.name, distance_km: Math.round((r.distance_km || 0) * 10) / 10 })) });
+});
+app.get('/api/routes/:id', (req, res) => {
+  const r = db.prepare('SELECT * FROM routes WHERE id=? AND active=1').get(String(req.params.id || ''));
+  if (!r) return res.status(404).json({ error: 'Route niet gevonden.' });
+  res.set('Cache-Control', 'public, max-age=300').json({ id: r.id, name: r.name, distance_km: Math.round((r.distance_km || 0) * 10) / 10, points: JSON.parse(r.points_json) });
+});
+
+// Demo-pagina voor de routewidget (zonder winkelwagen).
+app.get('/route-demo', (req, res) => {
+  const widget = fs.readFileSync(path.join(__dirname, '..', 'widget', 'hw-route.liquid'), 'utf8')
+    .replace(/\{%-?\s*comment\s*-?%\}[\s\S]*?\{%-?\s*endcomment\s*-?%\}/g, '').replace(/\{%-?[\s\S]*?-?%\}/g, '').replace('data-hw-route ', 'data-hw-route data-demo="1" ').replace(/data-api="[^"]*"/, `data-api="${BASE}"`);
+  res.set({ 'X-Robots-Tag': 'noindex', 'Access-Control-Allow-Origin': '*' }).type('html').send(`<!doctype html><html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Route-demo</title><style>body{font-family:Montserrat,system-ui,sans-serif;max-width:520px;margin:20px auto;padding:0 12px}</style></head><body>${widget}</body></html>`);
 });
 
 // Demo-pagina om de kaartwidget te testen (zonder winkelwagen). Niet door zoekmachines te indexeren.
@@ -384,6 +403,33 @@ app.delete('/admin/api/designs/:id/reference', (req, res) => {
   db.prepare("UPDATE designs SET ref_file='' WHERE id=?").run(req.params.id);
   res.json({ ok: true });
 });
+// Routes beheren: GPX uploaden, naam en volgorde aanpassen, verbergen of verwijderen.
+app.get('/admin/api/routes', (req, res) => {
+  res.json({ routes: db.prepare('SELECT id, name, distance_km, active, sort, created_at FROM routes ORDER BY sort, name').all() });
+});
+app.post('/admin/api/routes', upload.single('gpx'), (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'Kies een GPX-bestand.' });
+    const pts = routesLib.parseGpx(req.file.buffer.toString('utf8'));
+    if (pts.length < 5) return res.status(400).json({ error: 'In dit bestand zitten geen routepunten (GPX verwacht).' });
+    const name = String(req.body.name || req.file.originalname.replace(/\.gpx$/i, '')).replace(/[\u0000-\u001f<>]/g, ' ').trim().slice(0, 80);
+    if (!name) return res.status(400).json({ error: 'Geef de route een naam.' });
+    const simple = routesLib.simplify(pts, 3, 2500);
+    const id = rid();
+    db.prepare('INSERT INTO routes(id,name,distance_km,points_json,sort) VALUES(?,?,?,?,?)').run(id, name, routesLib.distanceKm(pts), JSON.stringify(simple), parseInt(req.body.sort, 10) || 0);
+    res.json({ id, name, distance_km: Math.round(routesLib.distanceKm(pts) * 10) / 10, points: pts.length, saved_points: simple.length });
+  } catch (e) { console.error(e); res.status(500).json({ error: 'Route opslaan mislukt.' }); }
+});
+app.put('/admin/api/routes/:id', (req, res) => {
+  const b = req.body || {}, r = db.prepare('SELECT id FROM routes WHERE id=?').get(req.params.id);
+  if (!r) return res.status(404).json({ error: 'Niet gevonden' });
+  if (typeof b.name === 'string' && b.name.trim()) db.prepare('UPDATE routes SET name=? WHERE id=?').run(b.name.replace(/[\u0000-\u001f<>]/g, ' ').trim().slice(0, 80), r.id);
+  if (b.active !== undefined) db.prepare('UPDATE routes SET active=? WHERE id=?').run(b.active ? 1 : 0, r.id);
+  if (b.sort !== undefined) db.prepare('UPDATE routes SET sort=? WHERE id=?').run(parseInt(b.sort, 10) || 0, r.id);
+  res.json({ ok: true });
+});
+app.delete('/admin/api/routes/:id', (req, res) => { db.prepare('DELETE FROM routes WHERE id=?').run(req.params.id); res.json({ ok: true }); });
+
 app.put('/admin/api/settings', (req, res) => {
   for (const k of Object.keys(allSettings())) if (req.body[k] !== undefined) setSetting(k, req.body[k]);
   res.json(allSettings());

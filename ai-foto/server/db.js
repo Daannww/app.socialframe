@@ -40,6 +40,10 @@ CREATE TABLE IF NOT EXISTS jobs (
 );
 CREATE INDEX IF NOT EXISTS jobs_client ON jobs(client_id, created_at);
 CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT);
+CREATE TABLE IF NOT EXISTS routes (
+  id TEXT PRIMARY KEY, name TEXT NOT NULL, distance_km REAL, points_json TEXT NOT NULL, active INTEGER DEFAULT 1,
+  sort INTEGER DEFAULT 0, created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
 `);
 
 function addColumn(table, col, def) {
