@@ -302,6 +302,24 @@ function registreerDashboardRoutes(app) {
     res.json({ ok: true });
   });
 
+  // Sjabloon en/of handschrift van een kaartje wijzigen (niet terwijl hij geschreven wordt).
+  app.post('/api/schrijfmachine/jobs/:id/instellingen', (req, res) => {
+    try {
+      const { sjabloon, lettertype } = req.body || {};
+      const job = db.prepare('SELECT status FROM schrijf_jobs WHERE id = ?').get(req.params.id);
+      if (!job) return res.status(404).json({ error: 'Kaartje niet gevonden' });
+      if (job.status === 'bezig') return res.status(409).json({ error: 'Dit kaartje wordt nu geschreven' });
+      if (sjabloon !== undefined && !SJABLONEN[sjabloon]) return res.status(400).json({ error: 'Onbekend sjabloon' });
+      if (lettertype !== undefined && !LETTERTYPES.includes(lettertype)) return res.status(400).json({ error: 'Onbekend lettertype' });
+      db.prepare(`UPDATE schrijf_jobs SET sjabloon = COALESCE(?, sjabloon), lettertype = COALESCE(?, lettertype),
+                  updated_at = datetime('now') WHERE id = ?`)
+        .run(sjabloon === undefined ? null : sjabloon, lettertype === undefined ? null : lettertype, req.params.id);
+      res.json({ ok: true });
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
   app.delete('/api/schrijfmachine/jobs/:id', (req, res) => {
     try {
       const job = db.prepare('SELECT status FROM schrijf_jobs WHERE id = ?').get(req.params.id);
