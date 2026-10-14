@@ -25,7 +25,10 @@ const LIST = [
   ['eindhoven_5km', 'Eindhoven 5 KM', '5 KM', 'Eindhoven', 'Netherlands'],
   ['eindhoven_urban_walk_25km', 'Eindhoven Urban Walk 2,5 KM', 'Urban Walk', 'Eindhoven', 'Netherlands'],
   ['eindhoven_urban_walk_15km', 'Eindhoven Urban Walk 1,5 KM', 'Urban Walk', 'Eindhoven', 'Netherlands'],
-  ['kustmarathon_zeeland', 'Kustmarathon Zeeland', 'Marathon', 'Zeeland', 'Netherlands']
+  ['kustmarathon_zeeland', 'Kustmarathon Zeeland', 'Marathon', 'Zeeland', 'Netherlands'],
+  ['berlin_marathon', 'Berlin Marathon', 'Marathon', 'Berlin', 'Germany'],
+  ['eindhoven_half_marathon', 'Eindhoven Half Marathon', 'Half Marathon', 'Eindhoven', 'Netherlands'],
+  ['enschede_half_marathon', 'Enschede Half Marathon', 'Half Marathon', 'Enschede', 'Netherlands']
 ];
 
 function seedRoutes() {
