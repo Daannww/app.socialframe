@@ -124,6 +124,22 @@ require('./db').setSetting('max_attempts', '4'); require('./db').setSetting('max
   const old = await (await fetch(B + '/admin/api/jobs?from=2001-01-01T00:00&to=2001-01-02T00:00', { headers: auth })).json();
   assert.equal(old.total, 0);
   assert.equal((await fetch(B + '/admin/api/jobs')).status, 401);
+  // Foto's vanaf telefoon (QR)
+  const ps = await (await fetch(B + '/api/phone/session', { method: 'POST' })).json();
+  assert(/^[a-z0-9]{12}$/.test(ps.code));
+  assert.equal((await (await fetch(B + '/api/phone/' + ps.code)).json()).seq, 0);
+  assert.equal((await fetch(B + '/api/phone/' + ps.code + '/photo')).status, 404);                   // nog geen foto
+  assert.equal((await fetch(B + '/m/' + ps.code)).status, 200);                                        // telefoonpagina
+  assert.equal((await fetch(B + '/m/niettebestaand1')).status, 404);
+  const qr = await fetch(B + '/api/phone/' + ps.code + '/qr.svg'); assert.equal(qr.status, 200); assert((await qr.text()).includes('<svg'));
+  const pfd = new FormData(); pfd.append('photo', new Blob([photo], { type: 'image/jpeg' }), 'p.jpg');
+  assert.equal((await fetch(B + '/api/phone/' + ps.code + '/upload', { method: 'POST', body: pfd })).status, 200);
+  assert.equal((await (await fetch(B + '/api/phone/' + ps.code)).json()).seq, 1);
+  const got = await fetch(B + '/api/phone/' + ps.code + '/photo'); assert.equal(got.status, 200);
+  assert.equal((await sharp(Buffer.from(await got.arrayBuffer())).metadata()).format, 'jpeg');
+  const badPhone = new FormData(); badPhone.append('photo', new Blob(['geen foto'], { type: 'image/jpeg' }), 'x.jpg');
+  assert.equal((await fetch(B + '/api/phone/' + ps.code + '/upload', { method: 'POST', body: badPhone })).status, 400);
+  assert.equal((await fetch(B + '/api/phone/abcdefghijkl/upload', { method: 'POST', body: pfd })).status, 404);  // onbekende code
   console.log('ALLE TESTS OK');
   srv.close(); fake.close(); process.exit(0);
 })().catch((e) => { console.error('FOUT', e); process.exit(1); });

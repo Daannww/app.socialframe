@@ -34,6 +34,15 @@
     <span class="hw-ai-uptext" data-hw-ai-filelabel>Klik hier om je foto te uploaden</span>
   </label>
 
+  <div class="hw-ai-phone" data-hw-ai-phone>
+    <button type="button" class="hw-ai-phonebtn" data-hw-ai-phonebtn aria-expanded="false">Foto vanaf je telefoon of tablet?</button>
+    <div class="hw-ai-phonebox" data-hw-ai-phonebox hidden>
+      <div class="hw-ai-phonetext">Scan de QR-code en upload je foto.</div>
+      <img class="hw-ai-qr" data-hw-ai-qr alt="QR-code om een foto vanaf je telefoon te uploaden" width="180" height="180">
+      <div class="hw-ai-phonestatus" data-hw-ai-phonestatus role="status" aria-live="polite"></div>
+    </div>
+  </div>
+
   <div class="hw-ai-cropstage" data-hw-ai-cropstage hidden>
     <div class="hw-ai-cropwrap" data-hw-ai-cropwrap>
       <img data-hw-ai-cropimg alt="">
@@ -87,6 +96,14 @@
   .hw-ai-orient{display:flex;gap:18px;margin:0 0 18px}
   .hw-ai-upload{display:flex;flex-direction:row;align-items:center;justify-content:center;gap:10px;min-height:48px;border:1.5px dashed #CFCFCF;border-radius:999px;padding:8px 14px;text-align:center;cursor:pointer;background:#fff;margin-bottom:12px;margin-top:6px;color:#777;overflow:hidden}
   .hw-ai-upload:hover{border-color:#999}
+  .hw-ai-phone{margin:0 0 12px;text-align:center}
+  .hw-ai-phonebtn{background:none !important;border:0;padding:4px 6px;font:inherit;font-size:13px;font-weight:600;color:#111 !important;text-decoration:underline;cursor:pointer}
+  .hw-ai-phonebox{margin-top:8px;padding:14px;border:1.5px solid #E2E2E2;border-radius:16px;background:#fff}
+  .hw-ai-phonetext{font-size:14px;color:#555;margin-bottom:10px}
+  .hw-ai-qr{display:block;margin:0 auto;width:180px;height:180px;border:1px solid #E2E2E2;border-radius:10px;background:#fff}
+  .hw-ai-phonestatus{margin-top:10px;font-size:13px;color:#777;min-height:18px}
+  .hw-ai-phonestatus.ok{color:#1b6e2f;font-weight:600}
+
   .hw-ai-plus{font-size:22px;line-height:1;color:#999;font-weight:300}
   .hw-ai-uptext{font-size:14px}
   .hw-ai-uptext{display:flex;flex-direction:column;align-items:flex-start;min-width:0;text-align:left}
@@ -399,6 +416,44 @@
     }
     refresh();
   });
+  // Foto's vanaf telefoon of tablet: QR-code -> telefoon stuurt een foto -> hier komt hij in het uploadveld.
+  (function () {
+    var wrap = $('[data-hw-ai-phone]'), btn = $('[data-hw-ai-phonebtn]'), box = $('[data-hw-ai-phonebox]'), qrImg = $('[data-hw-ai-qr]'), pst = $('[data-hw-ai-phonestatus]');
+    if (!wrap) return;
+    // Op een telefoon of tablet kies je gewoon direct een foto; de QR-code is voor de computer.
+    try { if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) { wrap.hidden = true; return; } } catch (e) {}
+    var session = null, timer = null, lastSeq = 0, started = 0;
+    function pmsg(t, ok) { pst.textContent = t || ''; pst.className = 'hw-ai-phonestatus' + (ok ? ' ok' : ''); }
+    function stop() { clearInterval(timer); timer = null; }
+    function fetchPhoto(code, seq) {
+      fetch(API + '/api/phone/' + code + '/photo').then(function (r) { if (!r.ok) throw new Error(); return r.blob(); }).then(function (b) {
+        var f = new File([b], 'foto-van-telefoon.jpg', { type: 'image/jpeg' });
+        var dt = new DataTransfer(); dt.items.add(f); fileEl.files = dt.files;
+        fileEl.dispatchEvent(new Event('change', { bubbles: true }));
+        lastSeq = seq; pmsg('Foto ontvangen! Wil je een andere foto? Kies er nog een op je telefoon.', true);
+      }).catch(function () { pmsg('Ontvangen, maar ophalen lukte niet. Probeer het nog eens.'); });
+    }
+    function tick() {
+      if (!session) return;
+      if (Date.now() - started > 29 * 60 * 1000) { stop(); session = null; pmsg('Deze QR-code is verlopen. Klik hierboven om een nieuwe te maken.'); return; }
+      fetch(API + '/api/phone/' + session).then(function (r) { if (!r.ok) throw new Error('gone'); return r.json(); }).then(function (j) {
+        if (j.seq > lastSeq) fetchPhoto(session, j.seq);
+      }).catch(function (e) { if (e && e.message === 'gone') { stop(); session = null; pmsg('Deze QR-code is verlopen. Klik hierboven om een nieuwe te maken.'); } });
+    }
+    function open() {
+      box.hidden = false; btn.setAttribute('aria-expanded', 'true'); pmsg('Even geduld…');
+      fetch(API + '/api/phone/session', { method: 'POST' }).then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || 'Mislukt'); return j; }); })
+        .then(function (j) {
+          session = j.code; lastSeq = 0; started = Date.now();
+          qrImg.src = API + '/api/phone/' + j.code + '/qr.svg';
+          pmsg('Wachten op je foto…');
+          stop(); timer = setInterval(tick, 2000);
+        }).catch(function (e) { pmsg(e.message || 'Er ging iets mis, probeer het opnieuw.'); });
+    }
+    function close() { stop(); session = null; box.hidden = true; btn.setAttribute('aria-expanded', 'false'); }
+    btn.addEventListener('click', function () { if (box.hidden || !session) open(); else close(); });
+  })();
+
   function count() {
     var left = (textEl.maxLength > 0 ? textEl.maxLength : 40) - textEl.value.length;
     countEl.textContent = left + ' tekens over';

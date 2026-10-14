@@ -142,6 +142,9 @@ app.post('/api/map/print', mapLimiter, (req, res, next) => (looksLikeBot(req) ? 
   }
 });
 
+// Foto's vanaf de telefoon (QR-code)
+app.use(require('./phone')({ looksLikeBot, base: BASE }));
+
 // ---------- Routes (sporttegeltje) ----------
 app.get('/api/routes', (req, res) => {
   res.json({ routes: db.prepare('SELECT id, name, sport, place, country, distance_km FROM routes WHERE active=1 ORDER BY sort, name').all()
