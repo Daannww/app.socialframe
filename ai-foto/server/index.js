@@ -32,6 +32,7 @@ app.use('/api', cors({ origin: (o, cb) => cb(null, originAllowed(o)) }));
 app.use(express.json({ limit: '1mb' }));
 
 // Publieke bestanden: alleen print/preview/voorbeeld (onraadbare namen), nooit originelen.
+app.use('/fonts', (req, res, next) => { res.set('Access-Control-Allow-Origin', '*'); next(); }, express.static(path.join(__dirname, '..', 'fonts'), { maxAge: '30d' }));
 app.use('/files', express.static(FILES, { maxAge: '30d', immutable: true }));
 
 // ---------- Publieke API (productpagina) ----------
@@ -142,13 +143,13 @@ app.post('/api/map/print', mapLimiter, (req, res, next) => (looksLikeBot(req) ? 
 
 // ---------- Routes (sporttegeltje) ----------
 app.get('/api/routes', (req, res) => {
-  res.json({ routes: db.prepare('SELECT id, name, distance_km FROM routes WHERE active=1 ORDER BY sort, name').all()
-    .map((r) => ({ id: r.id, name: r.name, distance_km: Math.round((r.distance_km || 0) * 10) / 10 })) });
+  res.json({ routes: db.prepare('SELECT id, name, sport, place, country, distance_km FROM routes WHERE active=1 ORDER BY sort, name').all()
+    .map((r) => ({ id: r.id, name: r.name, sport: r.sport || '', place: r.place || '', country: r.country || '', distance_km: Math.round((r.distance_km || 0) * 10) / 10 })) });
 });
 app.get('/api/routes/:id', (req, res) => {
   const r = db.prepare('SELECT * FROM routes WHERE id=? AND active=1').get(String(req.params.id || ''));
   if (!r) return res.status(404).json({ error: 'Route niet gevonden.' });
-  res.set('Cache-Control', 'public, max-age=300').json({ id: r.id, name: r.name, distance_km: Math.round((r.distance_km || 0) * 10) / 10, points: JSON.parse(r.points_json) });
+  res.set('Cache-Control', 'public, max-age=300').json({ id: r.id, name: r.name, sport: r.sport || '', place: r.place || '', country: r.country || '', distance_km: Math.round((r.distance_km || 0) * 10) / 10, points: JSON.parse(r.points_json) });
 });
 
 // Demo-pagina voor de routewidget (zonder winkelwagen).
@@ -405,8 +406,9 @@ app.delete('/admin/api/designs/:id/reference', (req, res) => {
 });
 // Routes beheren: GPX uploaden, naam en volgorde aanpassen, verbergen of verwijderen.
 app.get('/admin/api/routes', (req, res) => {
-  res.json({ routes: db.prepare('SELECT id, name, distance_km, active, sort, created_at FROM routes ORDER BY sort, name').all() });
+  res.json({ routes: db.prepare('SELECT id, name, sport, place, country, distance_km, active, sort, created_at FROM routes ORDER BY sort, name').all() });
 });
+const cleanRt = (v) => String(v || '').replace(/[\u0000-\u001f<>]/g, ' ').trim().slice(0, 40);
 app.post('/admin/api/routes', upload.single('gpx'), (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'Kies een GPX-bestand.' });
@@ -416,7 +418,7 @@ app.post('/admin/api/routes', upload.single('gpx'), (req, res) => {
     if (!name) return res.status(400).json({ error: 'Geef de route een naam.' });
     const simple = routesLib.simplify(pts, 3, 2500);
     const id = rid();
-    db.prepare('INSERT INTO routes(id,name,distance_km,points_json,sort) VALUES(?,?,?,?,?)').run(id, name, routesLib.distanceKm(pts), JSON.stringify(simple), parseInt(req.body.sort, 10) || 0);
+    db.prepare('INSERT INTO routes(id,name,sport,place,country,distance_km,points_json,sort) VALUES(?,?,?,?,?,?,?,?)').run(id, name, cleanRt(req.body.sport), cleanRt(req.body.place), cleanRt(req.body.country), routesLib.distanceKm(pts), JSON.stringify(simple), parseInt(req.body.sort, 10) || 0);
     res.json({ id, name, distance_km: Math.round(routesLib.distanceKm(pts) * 10) / 10, points: pts.length, saved_points: simple.length });
   } catch (e) { console.error(e); res.status(500).json({ error: 'Route opslaan mislukt.' }); }
 });
@@ -424,6 +426,7 @@ app.put('/admin/api/routes/:id', (req, res) => {
   const b = req.body || {}, r = db.prepare('SELECT id FROM routes WHERE id=?').get(req.params.id);
   if (!r) return res.status(404).json({ error: 'Niet gevonden' });
   if (typeof b.name === 'string' && b.name.trim()) db.prepare('UPDATE routes SET name=? WHERE id=?').run(b.name.replace(/[\u0000-\u001f<>]/g, ' ').trim().slice(0, 80), r.id);
+  for (const k of ['sport', 'place', 'country']) if (typeof b[k] === 'string') db.prepare(`UPDATE routes SET ${k}=? WHERE id=?`).run(cleanRt(b[k]), r.id);
   if (b.active !== undefined) db.prepare('UPDATE routes SET active=? WHERE id=?').run(b.active ? 1 : 0, r.id);
   if (b.sort !== undefined) db.prepare('UPDATE routes SET sort=? WHERE id=?').run(parseInt(b.sort, 10) || 0, r.id);
   res.json({ ok: true });

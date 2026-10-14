@@ -49,6 +49,9 @@ CREATE TABLE IF NOT EXISTS routes (
 function addColumn(table, col, def) {
   if (!db.prepare(`PRAGMA table_info(${table})`).all().some((c) => c.name === col)) db.exec(`ALTER TABLE ${table} ADD COLUMN ${col} ${def}`);
 }
+addColumn('routes', 'sport', "TEXT DEFAULT ''");
+addColumn('routes', 'place', "TEXT DEFAULT ''");
+addColumn('routes', 'country', "TEXT DEFAULT ''");
 addColumn('designs', 'slug', "TEXT DEFAULT ''");              // korte naam voor de productinstelling (metafield)
 addColumn('designs', 'prompt_with_text', "TEXT DEFAULT ''");   // andere prompt als de klant tekst invult ({{tekst}})
 addColumn('designs', 'text_required', 'INTEGER DEFAULT 0');   // klant moet tekst invullen

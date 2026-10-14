@@ -30,6 +30,9 @@ small{color:var(--mut)}
 <p style="font-size:13px;color:var(--mut)">Upload een GPX-bestand van een wedstrijd (bv. Marathon Rotterdam 2026). Klanten kiezen de route op de productpagina.</p>
 <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:12px">
 <div><label>Naam</label><input id="rt-name" placeholder="Marathon Rotterdam 2026"></div>
+<div><label>Soort (bv. Marathon)</label><input id="rt-sport" placeholder="Marathon"></div>
+<div><label>Plaats</label><input id="rt-place" placeholder="Enschede"></div>
+<div><label>Land</label><input id="rt-country" placeholder="Netherlands"></div>
 <div><label>GPX-bestand</label><input type="file" id="rt-file" accept=".gpx,application/gpx+xml,text/xml"></div>
 <div><button type="button" id="rt-add">Route toevoegen</button></div></div>
 <div id="rt-list"></div></div>
@@ -166,20 +169,22 @@ async function loadRoutes(){
  if(!r.routes.length)l.append(el('p',{textContent:'Nog geen routes.'}));
  r.routes.forEach(x=>{
   const row=el('div',{style:'display:flex;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px;flex-wrap:wrap'},
-   el('b',{textContent:x.name}),el('span',{className:'tag',textContent:(x.distance_km||0).toFixed(1)+' km'}),el('span',{className:'tag',textContent:x.active?'zichtbaar':'verborgen'}));
+   el('b',{textContent:x.name}),el('span',{className:'tag',textContent:(x.distance_km||0).toFixed(1)+' km'}),el('span',{className:'tag',textContent:x.active?'zichtbaar':'verborgen'}),el('span',{className:'tag',textContent:[x.sport,x.place,x.country].filter(Boolean).join(' / ')||'geen teksten'}));
   const tg=el('button',{type:'button',className:'sec',textContent:x.active?'Verbergen':'Tonen'});
   tg.onclick=async()=>{await api('/admin/api/routes/'+x.id,json('PUT',{active:!x.active}));loadRoutes()};
   const rn=el('button',{type:'button',className:'sec',textContent:'Hernoemen'});
   rn.onclick=async()=>{const n=prompt('Nieuwe naam',x.name);if(n){await api('/admin/api/routes/'+x.id,json('PUT',{name:n}));loadRoutes()}};
   const dl=el('button',{type:'button',className:'sec',textContent:'Verwijderen'});
   dl.onclick=async()=>{if(confirm('Route "'+x.name+'" verwijderen?')){await api('/admin/api/routes/'+x.id,{method:'DELETE'});loadRoutes()}};
-  row.append(tg,rn,dl);l.append(row);
+  const tx=el('button',{type:'button',className:'sec',textContent:'Teksten'});
+  tx.onclick=async()=>{const a=prompt('Soort (bv. Marathon)',x.sport||'');if(a===null)return;const b=prompt('Plaats',x.place||'');if(b===null)return;const c=prompt('Land',x.country||'');if(c===null)return;await api('/admin/api/routes/'+x.id,json('PUT',{sport:a,place:b,country:c}));loadRoutes()};
+  row.append(tg,rn,tx,dl);l.append(row);
  });
 }
 $('#rt-add').onclick=async()=>{
  const f=$('#rt-file').files[0];if(!f)return say('Kies eerst een GPX-bestand');
- const fd=new FormData();fd.append('gpx',f);fd.append('name',$('#rt-name').value.trim());
- try{const r=await api('/admin/api/routes',{method:'POST',body:fd});say('Toegevoegd: '+r.name+' ('+r.distance_km+' km)');$('#rt-name').value='';$('#rt-file').value='';loadRoutes()}catch(e){say(e.message)}
+ const fd=new FormData();fd.append('gpx',f);fd.append('name',$('#rt-name').value.trim());['sport','place','country'].forEach(k=>fd.append(k,$('#rt-'+k).value.trim()));
+ try{const r=await api('/admin/api/routes',{method:'POST',body:fd});say('Toegevoegd: '+r.name+' ('+r.distance_km+' km)');$('#rt-name').value='';['sport','place','country'].forEach(k=>$('#rt-'+k).value='');$('#rt-file').value='';loadRoutes()}catch(e){say(e.message)}
 };
 loadRoutes().catch(()=>{});
 </script></body></html>

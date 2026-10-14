@@ -19,40 +19,48 @@
     <div class="hw-route-text" data-hw-r-textbox></div>
   </div>
 
-  <label class="hw-route-label" for="hw-route-title">Titel</label>
-  <input type="text" class="hw-route-input" id="hw-route-title" data-hw-r-title maxlength="40" autocomplete="off" placeholder="Bijvoorbeeld: Marathon Rotterdam 2026">
+  <label class="hw-route-label" for="hw-route-sport">Soort wedstrijd</label>
+  <input type="text" class="hw-route-input" id="hw-route-sport" data-hw-r-sport maxlength="24" autocomplete="off" placeholder="Bijvoorbeeld: Marathon">
 
-  <label class="hw-route-label" for="hw-route-sub">Naam en datum</label>
-  <input type="text" class="hw-route-input" id="hw-route-sub" data-hw-r-sub maxlength="40" autocomplete="off" placeholder="Bijvoorbeeld: Jan de Vries · 12 april 2026">
+  <label class="hw-route-label" for="hw-route-place">Plaats</label>
+  <input type="text" class="hw-route-input" id="hw-route-place" data-hw-r-place maxlength="24" autocomplete="off" placeholder="Bijvoorbeeld: Enschede">
+
+  <label class="hw-route-label" for="hw-route-country">Land</label>
+  <input type="text" class="hw-route-input" id="hw-route-country" data-hw-r-country maxlength="24" autocomplete="off" placeholder="Bijvoorbeeld: Netherlands">
+
+  <div class="hw-route-row">
+    <div>
+      <label class="hw-route-label" for="hw-route-nr">Startnummer</label>
+      <input type="text" class="hw-route-input" id="hw-route-nr" data-hw-r-nr maxlength="8" autocomplete="off" placeholder="5440">
+    </div>
+    <div>
+      <label class="hw-route-label" for="hw-route-name">Naam</label>
+      <input type="text" class="hw-route-input" id="hw-route-name" data-hw-r-name maxlength="24" autocomplete="off" placeholder="Jan Vliet">
+    </div>
+  </div>
 
   <div class="hw-route-row">
     <div>
       <label class="hw-route-label" for="hw-route-time">Tijd</label>
-      <input type="text" class="hw-route-input" id="hw-route-time" data-hw-r-time maxlength="14" autocomplete="off" placeholder="3:45:12">
+      <input type="text" class="hw-route-input" id="hw-route-time" data-hw-r-time maxlength="10" autocomplete="off" placeholder="03:45:08">
     </div>
     <div>
-      <label class="hw-route-label" for="hw-route-dist">Afstand</label>
-      <input type="text" class="hw-route-input" id="hw-route-dist" data-hw-r-dist maxlength="14" autocomplete="off" placeholder="42,2 km">
+      <label class="hw-route-label" for="hw-route-pace">Tempo (min/km)</label>
+      <input type="text" class="hw-route-input" id="hw-route-pace" data-hw-r-pace maxlength="8" autocomplete="off" placeholder="05:37">
     </div>
   </div>
 
   <div class="hw-route-label">Extra op de kaart:</div>
   <div class="hw-route-modes">
     <button type="button" class="hw-route-mode" data-extra="labels" aria-pressed="true">Plaatsnamen</button>
-    <button type="button" class="hw-route-mode" data-extra="streets" aria-pressed="false">Straatnamen</button>
-    <button type="button" class="hw-route-mode" data-extra="buildings" aria-pressed="false">Gebouwen</button>
-  </div>
-
-  <div class="hw-route-label">Lettertype:</div>
-  <div class="hw-route-modes">
-    <button type="button" class="hw-route-mode" data-font="classic" aria-pressed="true">Klassiek</button>
-    <button type="button" class="hw-route-mode" data-font="modern" aria-pressed="false">Modern</button>
+    <button type="button" class="hw-route-mode" data-extra="streets" aria-pressed="true">Straatnamen</button>
+    <button type="button" class="hw-route-mode" data-extra="buildings" aria-pressed="true">Gebouwen</button>
   </div>
 
   <div class="hw-route-label">Kleur van de route:</div>
   <div class="hw-route-modes">
-    <button type="button" class="hw-route-mode" data-color="#D32F2F" aria-pressed="true">Rood</button>
-    <button type="button" class="hw-route-mode" data-color="#111111" aria-pressed="false">Zwart</button>
+    <button type="button" class="hw-route-mode" data-color="#111111" aria-pressed="true">Zwart</button>
+    <button type="button" class="hw-route-mode" data-color="#D32F2F" aria-pressed="false">Rood</button>
     <button type="button" class="hw-route-mode" data-color="#1E6FD9" aria-pressed="false">Blauw</button>
   </div>
 
@@ -99,7 +107,7 @@
   var FONT_CSS = 'https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,500&family=Montserrat:wght@500;700&display=swap';
   var TILES = 'https://tiles.openfreemap.org/planet';
   var GLYPHS = 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf';
-  var BG = '#FFFFFF', WATER = '#C9C9C9', ROAD_MINOR = '#8A8A8A', ROAD_MID = '#6A6A6A', ROAD_MAJOR = '#4A4A4A';
+  var BG = '#FFFFFF', WATER = '#C9C9C9', ROAD_MINOR = '#4A4A4A', ROAD_MID = '#333333', ROAD_MAJOR = '#1E1E1E';
   var PRINT_PX = 1600;
 
   function addCss(href) { if (document.querySelector('link[href="' + href + '"]')) return; var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = href; document.head.appendChild(l); }
@@ -114,7 +122,7 @@
   }
   addCss(MAPLIBRE_CSS); addCss(FONT_CSS);
 
-  // ---- kaartstijl (OpenStreetMap-data via OpenFreeMap): lichtgrijs, zodat de route er uit springt ----
+  // ---- kaartstijl (OpenStreetMap-data via OpenFreeMap): zelfde stijl als het landkaart-tegeltje ----
   function roadW(a, b, c, d) { return ['interpolate', ['linear'], ['zoom'], 10, a, 13, b, 16, c, 20, d]; }
   function buildStyle(o) {
     var vis = function (on) { return { visibility: on ? 'visible' : 'none' }; };
@@ -123,7 +131,7 @@
     var nameField = ['coalesce', ['get', 'name:nl'], ['get', 'name']];
     var lbl = function (id, classes, minzoom, sizes) {
       return { id: id, type: 'symbol', source: 'omt', 'source-layer': 'place', minzoom: minzoom, layout: Object.assign(vis(o.labels), { 'text-field': nameField, 'text-font': ['Noto Sans Regular'], 'text-size': sizes, 'text-max-width': 7, 'text-padding': 6 }),
-        filter: inList(classes), paint: { 'text-color': '#555555', 'text-halo-color': 'rgba(255,255,255,.9)', 'text-halo-width': 1.5 } };
+        filter: inList(classes), paint: { 'text-color': '#3A3A3A', 'text-halo-color': 'rgba(255,255,255,.9)', 'text-halo-width': 1.5 } };
     };
     return {
       version: 8, glyphs: GLYPHS,
@@ -132,15 +140,15 @@
         { id: 'bg', type: 'background', paint: { 'background-color': BG } },
         { id: 'water', type: 'fill', source: 'omt', 'source-layer': 'water', paint: { 'fill-color': WATER } },
         { id: 'waterway', type: 'line', source: 'omt', 'source-layer': 'waterway', paint: { 'line-color': WATER, 'line-width': roadW(0.4, 0.8, 1.6, 6) } },
-        { id: 'building', type: 'fill', source: 'omt', 'source-layer': 'building', minzoom: 13, layout: vis(o.buildings), paint: { 'fill-color': '#EAEAEA', 'fill-outline-color': '#D8D8D8' } },
+        { id: 'building', type: 'fill', source: 'omt', 'source-layer': 'building', minzoom: 13, layout: vis(o.buildings), paint: { 'fill-color': '#E4E4E4', 'fill-outline-color': '#CFCFCF' } },
         { id: 'r_minor', type: 'line', source: 'omt', 'source-layer': 'transportation', minzoom: 11, layout: { 'line-cap': 'butt', 'line-join': 'round' },
-          filter: ['all', notTunnel, inList(['minor', 'service', 'track'])], paint: { 'line-color': ROAD_MINOR, 'line-width': roadW(0.5, 0.7, 1.6, 6) } },
+          filter: ['all', notTunnel, inList(['minor', 'service', 'track'])], paint: { 'line-color': ROAD_MINOR, 'line-width': roadW(0.6, 0.8, 2.0, 7) } },
         { id: 'r_mid', type: 'line', source: 'omt', 'source-layer': 'transportation', layout: { 'line-join': 'round' },
-          filter: ['all', notTunnel, inList(['tertiary', 'secondary'])], paint: { 'line-color': ROAD_MID, 'line-width': roadW(0.8, 1.2, 2.8, 9) } },
+          filter: ['all', notTunnel, inList(['tertiary', 'secondary'])], paint: { 'line-color': ROAD_MID, 'line-width': roadW(1.0, 1.5, 3.4, 11) } },
         { id: 'r_major', type: 'line', source: 'omt', 'source-layer': 'transportation', layout: { 'line-join': 'round' },
-          filter: ['all', notTunnel, inList(['primary', 'trunk', 'motorway'])], paint: { 'line-color': ROAD_MAJOR, 'line-width': roadW(1.2, 1.8, 4.2, 12) } },
+          filter: ['all', notTunnel, inList(['primary', 'trunk', 'motorway'])], paint: { 'line-color': ROAD_MAJOR, 'line-width': roadW(1.6, 2.3, 5.2, 15) } },
         { id: 'l_street', type: 'symbol', source: 'omt', 'source-layer': 'transportation_name', minzoom: 14.5, layout: Object.assign(vis(o.streets), { 'symbol-placement': 'line', 'text-field': nameField, 'text-font': ['Noto Sans Regular'], 'text-size': ['interpolate', ['linear'], ['zoom'], 14.5, 9, 18, 13], 'text-letter-spacing': 0.02 }),
-          paint: { 'text-color': '#555555', 'text-halo-color': 'rgba(255,255,255,.95)', 'text-halo-width': 1.6 } },
+          paint: { 'text-color': '#3A3A3A', 'text-halo-color': 'rgba(255,255,255,.95)', 'text-halo-width': 1.6 } },
         lbl('l_city', ['city'], 4, ['interpolate', ['linear'], ['zoom'], 4, 12, 12, 20]),
         lbl('l_town', ['town'], 6, ['interpolate', ['linear'], ['zoom'], 6, 11, 13, 17]),
         lbl('l_village', ['village', 'suburb'], 9, ['interpolate', ['linear'], ['zoom'], 9, 10, 14, 15]),
@@ -149,37 +157,47 @@
     };
   }
 
-  // ---- tekst onderaan: zelfde indeling op de kaart en in het drukbestand ----
-  var FONTS = {
-    classic: { tFam: '"Playfair Display", Georgia, serif', tW: 700, tStyle: 'normal', tK: 0.050, sFam: '"Playfair Display", Georgia, serif', sW: 500, sStyle: 'italic', sK: 0.028, upper: false, lsEm: 0.06, base: 0.915 },
-    modern: { tFam: 'Montserrat, Arial, sans-serif', tW: 700, tStyle: 'normal', tK: 0.038, sFam: 'Montserrat, Arial, sans-serif', sW: 500, sStyle: 'normal', sK: 0.019, upper: true, lsEm: 0.24, base: 0.93 }
+  // ---- tekst onderaan: maten en posities volgen het ontwerp (tegel van 10 cm) ----
+  // Lettertypes: Peyton Display (Bold/Light/ExtraLight) en Helvetica Neue Medium. Staan de bestanden niet op de server, dan valt het terug op een vergelijkbaar lettertype.
+  var FONT_BASE = 'https://ai-foto.socialframe.nl/fonts/';
+  var SERIF = '"HW Peyton", "Playfair Display", Georgia, serif', SANS = '"HW Helvetica", "Helvetica Neue", Helvetica, Arial, sans-serif';
+  var LINES = {
+    sport:   { fam: SERIF, w: 300, k: 0.0718, base: 0.7698, ls: 0 },
+    place:   { fam: SERIF, w: 700, k: 0.0853, base: 0.8410, ls: 0 },
+    country: { fam: SERIF, w: 200, k: 0.0287, base: 0.8735, target: 0.170 },
+    stats:   { fam: SANS,  w: 500, k: 0.02533, base: 0.9145, ls: 0 }
   };
-  var TEXT_BASE = 0.895;   // onderste regel: 1 cm boven de onderkant van een tegel van 10 cm
+  function fontCss(def, px) { return def.w + ' ' + px + 'px ' + def.fam; }
   var mctx = document.createElement('canvas').getContext('2d');
-  function textWidth(str, px, weight, style, ls, fam) {
-    mctx.font = style + ' ' + weight + ' ' + px + 'px ' + fam;
+  function textWidth(str, px, def, ls) {
+    mctx.font = fontCss(def, px);
     var w = 0; for (var i = 0; i < str.length; i++) w += mctx.measureText(str[i]).width + (i < str.length - 1 ? ls : 0);
     return w;
   }
-  // Regels van onder naar boven: [tijd + afstand] / [naam + datum] / [titel]
-  function layoutText(title, sub, stats, W, F) {
-    if (F.upper) { title = title.toUpperCase(); sub = sub.toUpperCase(); stats = stats.toUpperCase(); }
-    var maxW = W * 0.88, lines = [];
-    var tPx = W * F.tK;
-    while (title && tPx > W * 0.022 && textWidth(title, tPx, F.tW, F.tStyle, 0, F.tFam) > maxW) tPx -= 1;
-    var sPx = W * F.sK, sLs = sPx * F.lsEm;
-    var fit = function (s) { var px = W * F.sK, ls = px * F.lsEm; while (s && px > W * 0.013 && textWidth(s, px, F.sW, F.sStyle, ls, F.sFam) > maxW) { px -= 1; ls = px * F.lsEm; } return { px: px, ls: ls }; };
-    var base = W * TEXT_BASE;
-    var gapS = W * 0.036, gapT = W * 0.040;
-    if (stats) { var f1 = fit(stats); lines.push({ kind: 's', text: stats, px: f1.px, ls: f1.ls, base: base }); base -= gapS; }
-    if (sub) { var f2 = fit(sub); lines.push({ kind: 's', text: sub, px: f2.px, ls: f2.ls, base: base }); base -= gapT; }
-    else if (stats) { base -= gapT - gapS; }
-    if (title) lines.push({ kind: 't', text: title, px: tPx, ls: 0, base: base });
-    return lines;
+  // geeft de regels met grootte, letterafstand en baseline (alles relatief aan de breedte W)
+  function layoutText(v, W) {
+    var out = [], maxW = W * 0.88;
+    [['sport', v.sport], ['place', (v.place || '').toUpperCase()], ['country', v.country ? '-' + v.country.toUpperCase() + '-' : ''], ['stats', v.stats]].forEach(function (p) {
+      var key = p[0], text = p[1]; if (!text) return;
+      var d = LINES[key], px = W * d.k, ls = d.ls || 0;
+      if (d.target) { var nat = textWidth(text, px, d, 0); ls = Math.max(0, (W * d.target - nat) / Math.max(1, text.length - 1)); }
+      var guard = 0;
+      while (px > W * 0.012 && textWidth(text, px, d, ls) > maxW && guard++ < 200) { px -= 0.5; if (d.target) ls = Math.max(0, ls * 0.97); }
+      out.push({ key: key, text: text, px: px, ls: ls, base: W * d.base, def: d });
+    });
+    return out;
   }
+  (function () {
+    var st = document.createElement('style'), css = '';
+    [['HW Peyton', 700, 'PeytonDisplay-Bold'], ['HW Peyton', 300, 'PeytonDisplay-Light'], ['HW Peyton', 200, 'PeytonDisplay-ExtraLight'], ['HW Helvetica', 500, 'HelveticaNeue-Medium']].forEach(function (f) {
+      css += '@font-face{font-family:"' + f[0] + '";font-weight:' + f[1] + ';font-display:swap;src:url(' + FONT_BASE + f[2] + '.woff2) format("woff2"),url(' + FONT_BASE + f[2] + '.woff) format("woff"),url(' + FONT_BASE + f[2] + '.otf) format("opentype"),url(' + FONT_BASE + f[2] + '.ttf) format("truetype")}';
+    });
+    st.textContent = css; document.head.appendChild(st);
+  })();
   function loadFonts() {
     if (!(document.fonts && document.fonts.load)) return Promise.resolve();
-    return Promise.all([document.fonts.load('700 40px "Playfair Display"'), document.fonts.load('italic 500 40px "Playfair Display"'), document.fonts.load('700 40px Montserrat'), document.fonts.load('500 40px Montserrat')]);
+    var one = function (q) { return document.fonts.load(q).catch(function () {}); };
+    return Promise.all([one('700 40px "HW Peyton"'), one('300 40px "HW Peyton"'), one('200 40px "HW Peyton"'), one('500 40px "HW Helvetica"'), one('700 40px "Playfair Display"')]);
   }
   function drawSpaced(ctx, str, cx, y, ls) {
     var total = 0, ws = [];
@@ -218,8 +236,8 @@
     var API = (root.dataset.api || '').replace(/\/$/, '');
     var $ = function (s) { return root.querySelector(s); };
     var selectEl = $('[data-hw-r-select]'), fileEl = $('[data-hw-r-file]'), mapEl = $('[data-hw-r-map]'), stageEl = $('[data-hw-r-stage]'), textBox = $('[data-hw-r-textbox]');
-    var titleEl = $('[data-hw-r-title]'), subEl = $('[data-hw-r-sub]'), timeEl = $('[data-hw-r-time]'), distEl = $('[data-hw-r-dist]'), statusEl = $('[data-hw-r-status]');
-    var state = { font: 'classic', labels: true, streets: false, buildings: false, color: '#D32F2F', route: null, routeName: '', source: '', result: null, busy: false, pass: false };
+    var F = {}; ['sport', 'place', 'country', 'nr', 'name', 'time', 'pace'].forEach(function (k) { F[k] = $('[data-hw-r-' + k + ']'); }); var statusEl = $('[data-hw-r-status]');
+    var state = { labels: true, streets: true, buildings: true, color: '#111111', km: 0, paceDirty: false, route: null, routeName: '', source: '', result: null, busy: false, pass: false };
     var map = null, mapReady = false;
     function say(t, err) { statusEl.textContent = t || ''; statusEl.className = 'hw-route-status' + (err ? ' err' : ''); }
     function changed() { state.result = null; }
@@ -250,35 +268,39 @@
       var b = new maplibregl.LngLatBounds(state.route[0], state.route[0]);
       state.route.forEach(function (p) { b.extend(p); });
       var W = stageEl.clientWidth;
-      m.fitBounds(b, { padding: { top: W * 0.08, left: W * 0.09, right: W * 0.09, bottom: W * 0.34 }, duration: 0, maxZoom: 17 });
+      m.fitBounds(b, { padding: { top: W * 0.07, left: W * 0.08, right: W * 0.08, bottom: W * 0.31 }, duration: 0, maxZoom: 17 });
     }
 
     // ----- teksten -----
-    function statsText() { var t = timeEl.value.trim(), d = distEl.value.trim(); return [t, d].filter(Boolean).join('   |   '); }
+    function values() {
+      var who = [F.nr.value.trim() ? '#' + F.nr.value.trim().replace(/^#/, '') : '', F.name.value.trim()].filter(Boolean).join(' ');
+      return { sport: F.sport.value.trim(), place: F.place.value.trim(), country: F.country.value.trim(), stats: [who, F.time.value.trim(), F.pace.value.trim()].filter(Boolean).join(' | ') };
+    }
     function drawTexts() {
       var W = stageEl.clientWidth; if (!W) return;
-      var F = FONTS[state.font], lines = layoutText(titleEl.value.trim(), subEl.value.trim(), statsText(), W, F);
       textBox.replaceChildren();
-      lines.forEach(function (L) {
+      layoutText(values(), W).forEach(function (L) {
         var d = document.createElement('div'); d.textContent = L.text;
-        var t = L.kind === 't';
-        d.style.fontFamily = t ? F.tFam : F.sFam; d.style.fontWeight = t ? F.tW : F.sW; d.style.fontStyle = t ? F.tStyle : F.sStyle;
-        d.style.fontSize = L.px + 'px'; d.style.lineHeight = '1'; d.style.letterSpacing = L.ls + 'px'; d.style.paddingLeft = L.ls + 'px';
-        d.style.top = (L.base - L.px * F.base) + 'px';
+        d.style.font = fontCss(L.def, L.px); d.style.lineHeight = '1'; d.style.letterSpacing = L.ls + 'px'; d.style.paddingLeft = L.ls + 'px';
+        d.style.top = (L.base - L.px * 0.8) + 'px';
         textBox.appendChild(d);
       });
     }
-    [titleEl, subEl, timeEl, distEl].forEach(function (el) { el.addEventListener('input', function () { drawTexts(); changed(); }); });
+    // tempo automatisch uit tijd en afstand, tot de klant het zelf invult
+    function parseTime(t) { var p = t.split(':').map(Number); if (p.some(function (x) { return !isFinite(x); }) || p.length < 2 || p.length > 3) return 0; return p.length === 3 ? p[0] * 3600 + p[1] * 60 + p[2] : p[0] * 60 + p[1]; }
+    function autoPace() {
+      if (state.paceDirty || !state.km) return;
+      var sec = parseTime(F.time.value.trim()); if (!sec) { F.pace.value = ''; return; }
+      var pk = Math.round(sec / state.km), m = Math.floor(pk / 60), r = pk % 60;
+      F.pace.value = (m < 10 ? '0' : '') + m + ':' + (r < 10 ? '0' : '') + r;
+    }
+    ['sport', 'place', 'country', 'nr', 'name', 'pace'].forEach(function (k) {
+      F[k].addEventListener('input', function () { if (k === 'pace') state.paceDirty = !!F.pace.value.trim(); drawTexts(); changed(); });
+    });
+    F.time.addEventListener('input', function () { autoPace(); drawTexts(); changed(); });
     if (window.ResizeObserver) new ResizeObserver(function () { drawTexts(); }).observe(stageEl);
     if (document.fonts && document.fonts.load) loadFonts().then(drawTexts, function () {});
 
-    root.querySelectorAll('[data-font]').forEach(function (b) {
-      b.addEventListener('click', function () {
-        state.font = b.dataset.font;
-        root.querySelectorAll('[data-font]').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
-        drawTexts(); changed();
-      });
-    });
     root.querySelectorAll('[data-color]').forEach(function (b) {
       b.addEventListener('click', function () {
         state.color = b.dataset.color;
@@ -300,11 +322,10 @@
     });
 
     // ----- route kiezen -----
-    function setRoute(pts, name, km, source) {
-      state.route = pts; state.routeName = name; state.source = source;
-      titleEl.value = name || titleEl.value;
-      distEl.value = km ? fmtKm(km) : distEl.value;
-      drawTexts(); changed(); say('');
+    function setRoute(pts, name, km, source, meta) {
+      state.route = pts; state.routeName = name; state.source = source; state.km = km || 0;
+      if (meta) { F.sport.value = meta.sport || ''; F.place.value = meta.place || ''; F.country.value = meta.country || ''; }
+      autoPace(); drawTexts(); changed(); say('');
       if (map && mapReady) { addRoute(map, stageEl.clientWidth); fit(map); }
     }
     fetch(API + '/api/routes').then(function (r) { return r.json(); }).then(function (d) {
@@ -318,7 +339,7 @@
       fileEl.value = ''; $('[data-hw-r-fname]').textContent = 'Geen bestand gekozen';
       say('Route laden…');
       fetch(API + '/api/routes/' + encodeURIComponent(selectEl.value)).then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || 'Route laden mislukt'); return j; }); })
-        .then(function (j) { setRoute(j.points, j.name, j.distance_km, 'Vaste route: ' + j.name); }, function (e) { say(e.message, true); });
+        .then(function (j) { setRoute(j.points, j.name, j.distance_km, 'Vaste route: ' + j.name, j); }, function (e) { say(e.message, true); });
     });
     fileEl.addEventListener('change', function () {
       var f = fileEl.files && fileEl.files[0]; if (!f) return;
@@ -328,7 +349,7 @@
       fr.onload = function () {
         var pts = parseGpx(String(fr.result || ''));
         if (pts.length < 5) { say('In dit bestand staat geen route. Kies een GPX-bestand.', true); return; }
-        setRoute(pts, f.name.replace(/\.gpx$/i, '').replace(/[_-]+/g, ' ').slice(0, 40), distKm(pts), 'Eigen GPX');
+        setRoute(pts, f.name.replace(/\.gpx$/i, '').replace(/[_-]+/g, ' ').slice(0, 40), distKm(pts), 'Eigen GPX', null);
       };
       fr.onerror = function () { say('Dit bestand kan niet worden gelezen.', true); };
       fr.readAsText(f);
@@ -350,11 +371,9 @@
       var g = ctx.createLinearGradient(0, size * 0.64, 0, size);
       g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.3, 'rgba(255,255,255,.35)'); g.addColorStop(0.55, 'rgba(255,255,255,.8)'); g.addColorStop(0.72, 'rgba(255,255,255,1)'); g.addColorStop(1, 'rgba(255,255,255,1)');
       ctx.fillStyle = g; ctx.fillRect(0, size * 0.64, size, size * 0.36);
-      var F = FONTS[state.font], lines = layoutText(titleEl.value.trim(), subEl.value.trim(), statsText(), W, F);
       ctx.fillStyle = '#111'; ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';
-      lines.forEach(function (L) {
-        var t = L.kind === 't';
-        ctx.font = (t ? F.tStyle : F.sStyle) + ' ' + (t ? F.tW : F.sW) + ' ' + (L.px * k) + 'px ' + (t ? F.tFam : F.sFam);
+      layoutText(values(), W).forEach(function (L) {
+        ctx.font = fontCss(L.def, L.px * k);
         drawSpaced(ctx, L.text, size / 2, L.base * k, L.ls * k);
       });
     }
@@ -395,7 +414,7 @@
       return loadFonts().catch(function () {}).then(renderPrint).then(function (blob) {
         var fd = new FormData();
         fd.append('image', blob, 'route.jpg'); fd.append('client_id', clientId);
-        fd.append('place', titleEl.value.trim()); fd.append('country', subEl.value.trim()); fd.append('style', 'route');
+        fd.append('place', [F.sport.value.trim(), F.place.value.trim()].filter(Boolean).join(' ')); fd.append('country', F.country.value.trim()); fd.append('style', 'route');
         return fetch(API + '/api/map/print', { method: 'POST', body: fd }).then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || 'Opslaan mislukt'); return j; }); });
       }).then(function (j) {
         state.busy = false;
@@ -416,9 +435,8 @@
         form.querySelectorAll('[data-hw-r-prop]').forEach(function (el) { el.remove(); });
         var P = {
           'properties[Uw personalisatie]': r.preview_url, 'properties[Stijl]': r.design,
-          'properties[Route]': state.source, 'properties[Titel]': titleEl.value.trim(), 'properties[Naam en datum]': subEl.value.trim(),
-          'properties[Tijd]': timeEl.value.trim(), 'properties[Afstand]': distEl.value.trim(),
-          'properties[Lettertype]': state.font === 'modern' ? 'Modern' : 'Klassiek',
+          'properties[Route]': state.source, 'properties[Soort]': F.sport.value.trim(), 'properties[Plaats]': F.place.value.trim(), 'properties[Land]': F.country.value.trim(),
+          'properties[Startnummer]': F.nr.value.trim(), 'properties[Naam]': F.name.value.trim(), 'properties[Tijd]': F.time.value.trim(), 'properties[Tempo]': F.pace.value.trim(),
           'properties[_AI drukbestand]': r.print_url, 'properties[_AI job]': r.job_id
         };
         Object.keys(P).forEach(function (n) { if (!P[n]) return; var i = document.createElement('input'); i.type = 'hidden'; i.name = n; i.value = P[n]; i.setAttribute('data-hw-r-prop', ''); form.appendChild(i); });
