@@ -61,7 +61,7 @@ addColumn('jobs', 'reuse_count', 'INTEGER DEFAULT 0');
 addColumn('jobs', 'last_reused_at', 'TEXT');
 
 const DEFAULT_SETTINGS = {
-  variants: '2',                // aantal varianten per poging; de klant kiest er één (1 = geen keuze, max 3)
+  variants: '1',                // aantal varianten per poging; de klant kiest er één (1 = geen keuze, max 3)
   text_max: '40',               // maximaal aantal tekens dat een klant mag invullen
   max_attempts: '50',           // pogingen per klant (browser/client_id) per 24 uur
   max_attempts_ip: '100',       // pogingen per IP-adres per 24 uur (hoger, want gezinnen/kantoren delen een IP)
