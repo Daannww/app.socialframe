@@ -7,6 +7,7 @@ const routesLib = require('./routes');
 
 const DIR = path.join(__dirname, '..', 'seed-routes');
 const LIST = [
+  ['rotterdam_marathon', 'Rotterdam Marathon', 'Marathon', 'Rotterdam', 'Netherlands'],
   ['enschede_marathon', 'Enschede Marathon', 'Marathon', 'Enschede', 'Netherlands'],
   ['munich_marathon', 'Munich Marathon', 'Marathon', 'Munich', 'Germany'],
   ['munich_half_marathon', 'Munich Half Marathon', 'Half Marathon', 'Munich', 'Germany'],
