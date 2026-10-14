@@ -36,7 +36,8 @@ const LIST = [
   ['zevenheuvelenloop_15km', 'Zevenheuvelenloop 15 KM', '15KM', 'Nijmegen', 'Netherlands'],
   ['rotterdam_10km', 'Rotterdam 10 KM', '10KM', 'Rotterdam', 'Netherlands'],
   ['rotterdam_city_run_4_2km', 'Rotterdam City Run 4,2 KM', 'City Run', 'Rotterdam', 'Netherlands'],
-  ['new_york_city_marathon', 'New York City Marathon', 'Marathon', 'New York', 'United States']
+  ['new_york_city_marathon', 'New York City Marathon', 'Marathon', 'New York', 'United States'],
+  ['malaga_marathon', 'Málaga Marathon', 'Marathon', 'Málaga', 'Spain']
 ];
 
 function seedRoutes() {
