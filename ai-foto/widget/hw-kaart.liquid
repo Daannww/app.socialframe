@@ -299,6 +299,8 @@
       }
       marker = new maplibregl.Marker({ element: el, anchor: p.anchor, draggable: true }).setLngLat([state.loc.lng, state.loc.lat]).addTo(map);
       el.style.cursor = 'grab'; el.style.touchAction = 'none';
+      // groter aanraakgebied rond de pin (onzichtbaar), zodat hij op een telefoon makkelijk te pakken is
+      var hit = document.createElement('div'); hit.style.cssText = 'position:absolute;left:-18px;right:-18px;top:-18px;bottom:-12px;border-radius:50%;touch-action:none'; el.appendChild(hit);
       // Pin vasthouden: de pagina scrolt dan niet mee (anders beweegt alles langzaam mee op de telefoon).
       var lock = function (e) { if (e.cancelable) e.preventDefault(); };
       el.addEventListener('touchstart', function () { stageEl.style.touchAction = 'none'; document.addEventListener('touchmove', lock, { passive: false }); }, { passive: true });
