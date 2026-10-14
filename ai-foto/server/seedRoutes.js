@@ -18,7 +18,14 @@ const LIST = [
   ['bogota_half_marathon', 'Bogotá Half Marathon', 'Half Marathon', 'Bogotá', 'Colombia'],
   ['bogota_10km', 'Bogotá 10 KM', '10 KM', 'Bogotá', 'Colombia'],
   ['houilles_10km', 'Houilles 10 KM', '10 KM', 'Houilles', 'France'],
-  ['houilles_5km', 'Houilles 5 KM', '5 KM', 'Houilles', 'France']
+  ['houilles_5km', 'Houilles 5 KM', '5 KM', 'Houilles', 'France'],
+  ['amsterdam_marathon', 'Amsterdam Marathon', 'Marathon', 'Amsterdam', 'Netherlands'],
+  ['eindhoven_marathon', 'Eindhoven Marathon', 'Marathon', 'Eindhoven', 'Netherlands'],
+  ['eindhoven_quarter_marathon', 'Eindhoven Quarter Marathon', 'Quarter Marathon', 'Eindhoven', 'Netherlands'],
+  ['eindhoven_5km', 'Eindhoven 5 KM', '5 KM', 'Eindhoven', 'Netherlands'],
+  ['eindhoven_urban_walk_25km', 'Eindhoven Urban Walk 2,5 KM', 'Urban Walk', 'Eindhoven', 'Netherlands'],
+  ['eindhoven_urban_walk_15km', 'Eindhoven Urban Walk 1,5 KM', 'Urban Walk', 'Eindhoven', 'Netherlands'],
+  ['kustmarathon_zeeland', 'Kustmarathon Zeeland', 'Marathon', 'Zeeland', 'Netherlands']
 ];
 
 function seedRoutes() {
