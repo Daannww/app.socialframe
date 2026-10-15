@@ -37,13 +37,18 @@ async function locationId(q) {
   return l.id;
 }
 
+// Zoekt per SKU de voorraad-items (heeft alleen read_inventory nodig, geen product-rechten).
+// Vorm blijft gelijk aan een variant, zodat de rest van de code hetzelfde werkt; titels zijn leeg (tekstherkenning vervalt).
 async function allVariants(q, loc) {
-  const out = []; let after = null;
-  for (let page = 0; page < 40; page++) {
-    const d = await q(`query($a:String,$l:ID!){ productVariants(first:200, after:$a){ pageInfo{ hasNextPage endCursor } nodes{ title sku product{ title } inventoryItem{ id tracked inventoryLevel(locationId:$l){ quantities(names:["available"]){ quantity } } } } } }`, { a: after, l: loc });
-    out.push(...d.productVariants.nodes);
-    if (!d.productVariants.pageInfo.hasNextPage) break;
-    after = d.productVariants.pageInfo.endCursor;
+  const out = [];
+  for (const m of SKU_MAP) {
+    let after = null;
+    for (let page = 0; page < 20; page++) {
+      const d = await q(`query($a:String,$q:String!,$l:ID!){ inventoryItems(first:100, after:$a, query:$q){ pageInfo{ hasNextPage endCursor } nodes{ id sku tracked inventoryLevel(locationId:$l){ quantities(names:["available"]){ quantity } } } } }`, { a: after, q: `sku:${m.sku}`, l: loc });
+      for (const it of d.inventoryItems.nodes) if (it.sku === m.sku) out.push({ title: '', sku: it.sku, product: { title: '' }, inventoryItem: it });
+      if (!d.inventoryItems.pageInfo.hasNextPage) break;
+      after = d.inventoryItems.pageInfo.endCursor;
+    }
   }
   return out;
 }

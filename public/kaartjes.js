@@ -325,6 +325,8 @@
       toonKaartKlaar();
       toonBezig(jobs.find(x => x.status === 'bezig') || null);
       const body = $('kaartJobs');
+      const act = document.activeElement;
+      if (act && act.tagName === 'SELECT' && body.contains(act)) return; // gebruiker kiest net iets
       if (!jobs.length) {
         body.innerHTML = '<tr><td colspan="6" class="empty-row">Nog geen kaartjes.</td></tr>';
         return;
@@ -348,7 +350,12 @@
         return `<tr>
           <td>${j.order_number ? '#' + esc(j.order_number) : '—'}</td>
           <td>${esc(j.naam || '—')}</td>
-          <td>${esc(sj ? sj.naam : j.sjabloon)}<div class="kaartjes-klein">${esc(j.lettertype)}</div></td>
+          <td>${j.status === 'bezig'
+            ? `${esc(sj ? sj.naam : j.sjabloon)}<div class="kaartjes-klein">${esc(j.lettertype)}</div>`
+            : `<select class="kaart-rij-select" data-instelling="sjabloon" data-id="${j.id}" title="Sjabloon wijzigen">${
+                Object.entries(info.sjablonen).map(([id, s]) => `<option value="${id}"${id === j.sjabloon ? ' selected' : ''}>${esc(s.naam)}</option>`).join('')}</select>
+               <select class="kaart-rij-select kaart-rij-klein" data-instelling="lettertype" data-id="${j.id}" title="Handschrift wijzigen">${
+                info.lettertypes.map(l => `<option${l === j.lettertype ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select>`}</td>
           <td class="kaartjes-tekstcel" title="${esc(j.tekst)}">${esc(j.tekst.replace(/\n+/g, ' · '))}</td>
           <td><span class="badge ${cls}">${label}</span>${j.fout ? `<div class="kaartjes-fout">${esc(j.fout)}</div>` : ''}</td>
           <td class="kaartjes-acties">${acties.join('')}</td>
@@ -546,6 +553,19 @@
     $('kaartSchrijf').addEventListener('click', () => maakJob(true));
     $('kaartBewaar').addEventListener('click', () => maakJob(false));
     $('kaartJobs').addEventListener('click', jobActie);
+    $('kaartJobs').addEventListener('change', async e => {
+      const sel = e.target.closest('select[data-instelling]');
+      if (!sel) return;
+      sel.disabled = true;
+      try {
+        await post(`/api/schrijfmachine/jobs/${sel.dataset.id}/instellingen`, { [sel.dataset.instelling]: sel.value });
+        sel.blur();
+        await laadJobs();
+      } catch (err) {
+        if (!(err instanceof Uitgelogd)) alert('Kon niet wijzigen: ' + err.message);
+        sel.disabled = false;
+      }
+    });
     $('kaartPauzeKnop').addEventListener('click', () => {
       if (!bezigJob) return;
       geefOpdracht(bezigJob.gepauzeerd || bezigJob.opdracht === 'pauze' ? 'hervat' : 'pauze');
