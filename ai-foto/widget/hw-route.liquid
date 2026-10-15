@@ -25,8 +25,16 @@
   <label class="hw-route-label" for="hw-route-place">Plaats</label>
   <input type="text" class="hw-route-input" id="hw-route-place" data-hw-r-place maxlength="24" autocomplete="off" placeholder="Bijvoorbeeld: Enschede">
 
-  <label class="hw-route-label" for="hw-route-country">Land</label>
-  <input type="text" class="hw-route-input" id="hw-route-country" data-hw-r-country maxlength="24" autocomplete="off" placeholder="Bijvoorbeeld: Netherlands">
+  <div class="hw-route-row">
+    <div>
+      <label class="hw-route-label" for="hw-route-country">Land</label>
+      <input type="text" class="hw-route-input" id="hw-route-country" data-hw-r-country maxlength="24" autocomplete="off" placeholder="Bijvoorbeeld: Netherlands">
+    </div>
+    <div>
+      <label class="hw-route-label" for="hw-route-year">Jaar</label>
+      <input type="text" class="hw-route-input" id="hw-route-year" data-hw-r-year inputmode="numeric" maxlength="4" autocomplete="off" placeholder="2026">
+    </div>
+  </div>
 
   <div class="hw-route-row">
     <div>
@@ -242,7 +250,7 @@
     var API = (root.dataset.api || '').replace(/\/$/, '');
     var $ = function (s) { return root.querySelector(s); };
     var selectEl = $('[data-hw-r-select]'), fileEl = $('[data-hw-r-file]'), mapEl = $('[data-hw-r-map]'), stageEl = $('[data-hw-r-stage]'), textBox = $('[data-hw-r-textbox]');
-    var F = {}; ['sport', 'place', 'country', 'nr', 'name', 'time', 'pace'].forEach(function (k) { F[k] = $('[data-hw-r-' + k + ']'); }); var statusEl = $('[data-hw-r-status]');
+    var F = {}; ['sport', 'place', 'country', 'year', 'nr', 'name', 'time', 'pace'].forEach(function (k) { F[k] = $('[data-hw-r-' + k + ']'); }); var statusEl = $('[data-hw-r-status]');
     var state = { labels: true, streets: true, buildings: true, color: '#111111', km: 0, paceDirty: false, route: null, routeName: '', source: '', result: null, busy: false, pass: false };
     var map = null, mapReady = false;
     function say(t, err) { statusEl.textContent = t || ''; statusEl.className = 'hw-route-status' + (err ? ' err' : ''); }
@@ -281,7 +289,7 @@
     // ----- teksten -----
     function values() {
       var who = [F.nr.value.trim() ? '#' + F.nr.value.trim().replace(/^#/, '') : '', F.name.value.trim()].filter(Boolean).join(' ');
-      return { sport: F.sport.value.trim(), place: F.place.value.trim(), country: F.country.value.trim(), stats: [who, F.time.value.trim(), F.pace.value.trim()].filter(Boolean).join(' | ') };
+      return { sport: F.sport.value.trim(), place: F.place.value.trim(), country: F.country.value.trim(), stats: [F.year.value.trim(), who, F.time.value.trim(), F.pace.value.trim()].filter(Boolean).join(' | ') };
     }
     function drawTexts() {
       var W = stageEl.clientWidth; if (!W) return;
@@ -301,7 +309,7 @@
       var pk = Math.round(sec / state.km), m = Math.floor(pk / 60), r = pk % 60;
       F.pace.value = (m < 10 ? '0' : '') + m + ':' + (r < 10 ? '0' : '') + r;
     }
-    ['sport', 'place', 'country', 'nr', 'name', 'pace'].forEach(function (k) {
+    ['sport', 'place', 'country', 'year', 'nr', 'name', 'pace'].forEach(function (k) {
       F[k].addEventListener('input', function () { if (k === 'pace') state.paceDirty = !!F.pace.value.trim(); drawTexts(); changed(); });
     });
     F.time.addEventListener('input', function () { autoPace(); drawTexts(); changed(); });
@@ -449,7 +457,7 @@
         form.querySelectorAll('[data-hw-r-prop]').forEach(function (el) { el.remove(); });
         var P = {
           'properties[Uw personalisatie]': r.preview_url, 'properties[Stijl]': r.design,
-          'properties[Route]': state.source, 'properties[Soort]': F.sport.value.trim(), 'properties[Plaats]': F.place.value.trim(), 'properties[Land]': F.country.value.trim(),
+          'properties[Route]': state.source, 'properties[Soort]': F.sport.value.trim(), 'properties[Plaats]': F.place.value.trim(), 'properties[Land]': F.country.value.trim(), 'properties[Jaar]': F.year.value.trim(),
           'properties[Startnummer]': F.nr.value.trim(), 'properties[Naam]': F.name.value.trim(), 'properties[Tijd]': F.time.value.trim(), 'properties[Tempo]': F.pace.value.trim(),
           'properties[_AI drukbestand]': r.print_url, 'properties[_AI job]': r.job_id
         };
