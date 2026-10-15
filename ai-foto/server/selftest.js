@@ -42,10 +42,10 @@ require('./db').setSetting('max_attempts', '4'); require('./db').setSetting('max
   const t = await gen('tegel', 'landscape', 'client-aaaa1111');
   assert.equal(t.status, 'done', JSON.stringify(t));
   let m = await sharp(Buffer.from(await (await fetch(t.print_url)).arrayBuffer())).metadata();
-  assert.equal(m.width, 1600); assert.equal(m.height, 1600); assert.equal(m.density, 300);
+  assert.equal(m.width, 2000); assert.equal(m.height, 2000); assert.equal(m.density, 300);
   assert.equal(calls[0].input.aspect_ratio, '1:1');
   assert(calls[0].input.image_url.startsWith('data:image/jpeg;base64,'));
-  // 1024 < 1600 -> upscaler moet erbij zijn gekomen
+  // 1024 < 2000 -> upscaler moet erbij zijn gekomen
   assert.equal(calls[1].model, 'fal-ai/recraft/upscale/crisp');
 
   const p = await gen('poster', 'landscape', 'client-aaaa1111');

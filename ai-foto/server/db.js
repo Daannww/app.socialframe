@@ -73,7 +73,7 @@ const DEFAULT_SETTINGS = {
   max_attempts: '5',            // pogingen per klant (browser/client_id) per 24 uur
   max_attempts_ip: '12',        // pogingen per IP-adres per 24 uur (hoger, want gezinnen/kantoren delen een IP)
   upscale_model: 'fal-ai/recraft/upscale/crisp',   // goedkoop (±$0,004 per stuk); clarity-upscaler was ±30x duurder
-  tegel_px: '1600',             // 13x13 cm @ ~300 dpi = 1535 px
+  tegel_px: '2000',             // 13x13 cm @ 300 dpi = 1535 px; 2000 = ±390 dpi, ruim scherp (kaart/route worden op deze maat getekend)
   poster_long_px: '2800',       // 70x50 cm @ ~100 dpi
   retention_days: '180',
 };
@@ -85,6 +85,11 @@ const setSetting = (k, v) =>
   db.prepare('INSERT INTO settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value').run(k, String(v));
 const allSettings = () => Object.fromEntries(Object.keys(DEFAULT_SETTINGS).map((k) => [k, getSetting(k)]));
 
+// Eenmalig: tegelresolutie van 1600 (of lager) naar 2000 voor scherpere kaart/route-tegels.
+if (!db.prepare("SELECT 1 FROM settings WHERE key='mig_tegel_2000'").get()) {
+  db.prepare("UPDATE settings SET value='2000' WHERE key='tegel_px' AND CAST(value AS INTEGER) <= 1600").run();
+  setSetting('mig_tegel_2000', '1');
+}
 // Eenmalig: een eerder opgeslagen clarity-upscaler (±30x duurder) terugzetten naar de goedkope standaard.
 if (!db.prepare("SELECT 1 FROM settings WHERE key='mig_upscale_crisp'").get()) {
   db.prepare("UPDATE settings SET value=? WHERE key='upscale_model' AND value LIKE '%clarity%'").run(DEFAULT_SETTINGS.upscale_model);

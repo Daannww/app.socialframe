@@ -121,7 +121,7 @@
   var TILES = 'https://tiles.openfreemap.org/planet';
   var GLYPHS = 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf';
   var BG = '#FFFFFF', WATER = '#C9C9C9', ROAD_MINOR = '#4A4A4A', ROAD_MID = '#333333', ROAD_MAJOR = '#1E1E1E';
-  var PRINT_PX = 1600;
+  var PRINT_PX = 2000;   // wordt overschreven door de resolutie-instelling uit de admin
 
   function addCss(href) { if (document.querySelector('link[href="' + href + '"]')) return; var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = href; document.head.appendChild(l); }
   function addJs(src) {
@@ -248,6 +248,7 @@
   function initOne(root) {
     if (root.dataset.hwRInit) return; root.dataset.hwRInit = '1';
     var API = (root.dataset.api || '').replace(/\/$/, '');
+    fetch(API + '/api/map/config').then(function (r) { return r.json(); }).then(function (c) { var n = parseInt(c && c.print_px, 10); if (n >= 1200 && n <= 3200) PRINT_PX = n; }).catch(function () {});
     var $ = function (s) { return root.querySelector(s); };
     var selectEl = $('[data-hw-r-select]'), fileEl = $('[data-hw-r-file]'), mapEl = $('[data-hw-r-map]'), stageEl = $('[data-hw-r-stage]'), textBox = $('[data-hw-r-textbox]');
     var F = {}; ['sport', 'place', 'country', 'year', 'nr', 'name', 'time', 'pace'].forEach(function (k) { F[k] = $('[data-hw-r-' + k + ']'); }); var statusEl = $('[data-hw-r-status]');

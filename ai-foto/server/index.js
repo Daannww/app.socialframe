@@ -117,6 +117,7 @@ app.post('/api/generate', genLimiter, (req, res, next) => (looksLikeBot(req) ? r
 // Landkaart-tegeltje: de browser van de klant maakt het beeld (kaart + tekst + pin); wij maken er het drukbestand van.
 const mapLimiter = rateLimit({ windowMs: 60 * 60 * 1000, limit: 30, standardHeaders: true, legacyHeaders: false, keyGenerator: (req) => clientIp(req), validate: false,
   message: { error: 'Te veel pogingen, probeer het later opnieuw.' } });
+app.get('/api/map/config', (req, res) => res.set('Cache-Control', 'public, max-age=60').json({ print_px: Math.min(3200, Math.max(1200, parseInt(getSetting('tegel_px'), 10) || 2000)) }));
 app.post('/api/map/print', mapLimiter, (req, res, next) => (looksLikeBot(req) ? res.status(403).json({ error: 'Dit verzoek is geweigerd.' }) : next()), upload.single('image'), async (req, res) => {
   try {
     const clientId = String(req.body.client_id || '').slice(0, 64);
