@@ -15,8 +15,6 @@ const LIST = [
   ['oslo_marathon', 'Oslo Marathon', 'Marathon', 'Oslo', 'Norway'],
   ['oslo_half_marathon', 'Oslo Halve Marathon', 'Halve Marathon', 'Oslo', 'Norway'],
   ['oslo_10km', 'Oslo 10 KM', '10KM', 'Oslo', 'Norway'],
-  ['bogota_half_marathon', 'Bogotá Halve Marathon', 'Halve Marathon', 'Bogotá', 'Colombia'],
-  ['bogota_10km', 'Bogotá 10 KM', '10KM', 'Bogotá', 'Colombia'],
   ['houilles_10km', 'Houilles 10 KM', '10KM', 'Houilles', 'France'],
   ['houilles_5km', 'Houilles 5 KM', '5KM', 'Houilles', 'France'],
   ['amsterdam_marathon', 'Amsterdam Marathon', 'Marathon', 'Amsterdam', 'Netherlands'],
@@ -57,6 +55,10 @@ function seedRoutes() {
       done.push(file); n++;
     } catch (e) { console.error('[seed-routes]', file, e.message); }
   });
+  if (!getSetting('seed_bogota_removed')) {
+    try { db.prepare("DELETE FROM routes WHERE id IN ('seed-bogota_half_marathon','seed-bogota_10km')").run(); setSetting('seed_bogota_removed', '1'); }
+    catch (e) { console.error('[seed-routes] bogota', e.message); }
+  }
   if (!getSetting('seed_km_rename')) {
     try {
       db.prepare("UPDATE routes SET sport=REPLACE(sport,' KM','KM') WHERE id LIKE 'seed-%' AND sport LIKE '% KM'").run();
