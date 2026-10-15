@@ -25,7 +25,7 @@ small{color:var(--mut)}
 <div class="card"><h2>Ontwerpen</h2><div id="designs"></div><p><button id="new">+ Nieuw ontwerp</button></p></div>
 <div class="card" id="editor" hidden></div>
 <div class="card"><h2>Instellingen</h2><div class="row" id="settings"></div><p><button id="saveSet">Opslaan</button></p>
-<small>Tegel: 1600 px ≈ 300 dpi op 13x13 cm. Poster: lange zijde in px, 2800 px ≈ 100 dpi op 70 cm. Pogingen = per klant per 24 uur.</small></div>
+<small>Hogere resolutie = scherper, maar de afbeelding wordt dan vaker opgeschaald (kost iets meer per afbeelding) en het bestand wordt groter. Pogingen = per klant per 24 uur. Een nieuwe resolutie geldt voor nieuwe afbeeldingen, niet voor al gemaakte.</small></div>
 <div class="card"><h2>Routes (sporttegeltje)</h2>
 <p style="font-size:13px;color:var(--mut)">Upload een GPX-bestand van een wedstrijd (bv. Marathon Rotterdam 2026). Klanten kiezen de route op de productpagina.</p>
 <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:12px">
@@ -64,7 +64,19 @@ function render(){
   el('span',{className:'tag',textContent:x.products==='*'?'alle producten':x.products}),el('span',{className:'tag',textContent:x.active?'actief':'uit'}));
   h.onclick=()=>edit(x);d.append(h,el('hr',{style:'border:0;border-top:1px solid var(--line)'}))});
  const s=$('#settings');s.replaceChildren();
- Object.entries(S.settings).forEach(([k,v])=>{s.append(el('div',{},el('label',{textContent:k}),el('input',{name:k,value:v})))});
+ const dpi=(px,cm)=>Math.round(px/(cm/2.54));
+ const RES={
+  tegel_px:{label:'Resolutie tegel (pixels, vierkant)',hint:v=>`${v} x ${v} px = ${dpi(v,10)} dpi op 10x10 cm, ${dpi(v,13)} dpi op 13x13 cm (300 dpi is scherp)`},
+  poster_long_px:{label:'Resolutie poster (pixels, lange zijde)',hint:v=>`${v} px = ${dpi(v,70)} dpi op de lange zijde van 70x50 cm (100 dpi is gebruikelijk voor posters)`}};
+ const res=el('div',{style:'flex:1 1 100%;display:grid;gap:14px;margin-bottom:6px'});
+ Object.entries(RES).forEach(([k,r])=>{
+  if(S.settings[k]===undefined)return;
+  const h=el('small',{});const inp=el('input',{name:k,value:S.settings[k],type:'number',min:'400',max:'8000',step:'100',style:'max-width:160px'});
+  const upd=()=>{const v=parseInt(inp.value,10);h.textContent=v>0?r.hint(v):''};inp.oninput=upd;upd();
+  res.append(el('div',{},el('label',{textContent:r.label}),inp,el('br'),h));
+ });
+ s.append(res);
+ Object.entries(S.settings).forEach(([k,v])=>{if(RES[k])return;s.append(el('div',{},el('label',{textContent:k}),el('input',{name:k,value:v})))});
  const ac=$('#activity');ac.replaceChildren();
  if(!(S.activity||[]).length)ac.append(el('p',{textContent:'Nog geen activiteit.'}));
  (S.activity||[]).forEach(x=>ac.append(el('div',{style:'padding:6px 0;border-bottom:1px solid var(--line);font-size:13px'},

@@ -438,7 +438,13 @@ app.put('/admin/api/routes/:id', (req, res) => {
 app.delete('/admin/api/routes/:id', (req, res) => { db.prepare('DELETE FROM routes WHERE id=?').run(req.params.id); res.json({ ok: true }); });
 
 app.put('/admin/api/settings', (req, res) => {
-  for (const k of Object.keys(allSettings())) if (req.body[k] !== undefined) setSetting(k, req.body[k]);
+  const LIMITS = { tegel_px: [400, 6000], poster_long_px: [800, 10000] };   // voorkomt vergissingen die de server vastlopen
+  for (const k of Object.keys(allSettings())) {
+    if (req.body[k] === undefined) continue;
+    let v = req.body[k];
+    if (LIMITS[k]) { const n = parseInt(v, 10); if (!Number.isFinite(n)) continue; v = Math.min(LIMITS[k][1], Math.max(LIMITS[k][0], n)); }
+    setSetting(k, v);
+  }
   res.json(allSettings());
 });
 // Testknop: genereert zonder poginglimiet.
