@@ -178,12 +178,22 @@ async function generateFotoTegelGepersonaliseerdPdf(data) {
   // --- De foto: cover-fit bijgesneden tot het gemeten fotovak, GEEN
   // afgeronde hoeken (het voorbeeldbestand heeft een rechte rechthoek) en
   // GEEN kleurcorrectie-truc nodig (net als bij "Foto tegel met 3 foto's"). ---
+  // Heeft de klant GEEN naam/datum ingevuld (bv. het nieuwe product "jouw
+  // foto op een tegel", waar eventuele tekst al IN de foto zelf zit), dan is
+  // er niets om onder de foto te zetten en blijft het polaroid-vak met lege
+  // onderrand over — de foto (en de tekst erin) werd daardoor afgesneden en
+  // de onderkant van de tegel bleef blanco. In dat geval: foto
+  // beeldvullend over de HELE tegel.
+  const heeftTekst = Boolean((data.naam || '').trim() || (data.datumregel || '').trim());
   if (data.photoUrl) {
-    const breedteMm = FOTO_VAK.breedteMm * schaal;
-    const hoogteMm = FOTO_VAK.hoogteMm * schaal;
+    const vak = heeftTekst
+      ? FOTO_VAK
+      : { xMm: 0, topMm: 0, breedteMm: REFERENTIE_MM, hoogteMm: REFERENTIE_MM };
+    const breedteMm = vak.breedteMm * schaal;
+    const hoogteMm = vak.hoogteMm * schaal;
     const { image } = await embedPhotoCoverRectGeenAntiGaten(doc, data.photoUrl, breedteMm, hoogteMm);
-    const xPt = FOTO_VAK.xMm * schaal * MM;
-    const yPt = fromTopMm(FOTO_VAK.topMm + FOTO_VAK.hoogteMm, schaal); // onderkant van het vak (drawImage-oorsprong is linksonder)
+    const xPt = vak.xMm * schaal * MM;
+    const yPt = fromTopMm(vak.topMm + vak.hoogteMm, schaal); // onderkant van het vak (drawImage-oorsprong is linksonder)
     page.drawImage(image, { x: xPt, y: yPt, width: breedteMm * MM, height: hoogteMm * MM });
   }
 
