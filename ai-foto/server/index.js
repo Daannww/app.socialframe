@@ -309,6 +309,9 @@ app.get('/admin/api/jobs/:id/original', async (req, res) => {
   } catch (e) { res.status(500).json({ error: 'Kon het origineel niet laden.' }); }
 });
 
+// TIJDELIJK: sjabloonbestand voor Shopify-import (wordt direct na gebruik verwijderd).
+app.get('/__theme/:t', (req, res) => { const f = path.join(__dirname, '..', 'tmp-theme', path.basename(String(req.params.t)).replace(/[^a-f0-9.json]/g, '')); fs.existsSync(f) ? res.type('text/plain').send(fs.readFileSync(f, 'utf8')) : res.status(404).end(); });
+
 // Alle generaties doorzoeken: periode (UTC-tijden, de browser rekent om), stijl, status, tekst.
 app.get('/admin/api/jobs', (req, res) => {
   const w = ['1=1']; const a = [];
