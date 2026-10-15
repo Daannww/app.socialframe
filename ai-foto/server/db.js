@@ -85,4 +85,10 @@ const setSetting = (k, v) =>
   db.prepare('INSERT INTO settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value').run(k, String(v));
 const allSettings = () => Object.fromEntries(Object.keys(DEFAULT_SETTINGS).map((k) => [k, getSetting(k)]));
 
+// Eenmalig: een eerder opgeslagen clarity-upscaler (±30x duurder) terugzetten naar de goedkope standaard.
+if (!db.prepare("SELECT 1 FROM settings WHERE key='mig_upscale_crisp'").get()) {
+  db.prepare("UPDATE settings SET value=? WHERE key='upscale_model' AND value LIKE '%clarity%'").run(DEFAULT_SETTINGS.upscale_model);
+  setSetting('mig_upscale_crisp', '1');
+}
+
 module.exports = { db, DATA_DIR, getSetting, setSetting, allSettings, DEFAULT_SETTINGS };
