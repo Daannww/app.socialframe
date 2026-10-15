@@ -420,8 +420,8 @@
   (function () {
     var wrap = $('[data-hw-ai-phone]'), btn = $('[data-hw-ai-phonebtn]'), box = $('[data-hw-ai-phonebox]'), qrImg = $('[data-hw-ai-qr]'), pst = $('[data-hw-ai-phonestatus]');
     if (!wrap) return;
-    // Op een telefoon of tablet kies je gewoon direct een foto; de QR-code is voor de computer.
-    try { if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) { wrap.hidden = true; return; } } catch (e) {}
+    // Op een telefoon (klein scherm) kies je gewoon direct een foto; computers en tablets zien de QR-optie.
+    try { if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 600) { wrap.hidden = true; return; } } catch (e) {}
     var session = null, timer = null, lastSeq = 0, started = 0;
     function pmsg(t, ok) { pst.textContent = t || ''; pst.className = 'hw-ai-phonestatus' + (ok ? ' ok' : ''); }
     function stop() { clearInterval(timer); timer = null; }

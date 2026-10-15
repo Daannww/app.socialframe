@@ -26,8 +26,8 @@ button:disabled{opacity:.4}.msg{margin-top:14px;font-size:15px}.err{color:#b3261
 
 const mobilePage = (code) => page('Foto versturen', `<h1>Foto versturen</h1><p>Kies een foto van je telefoon of tablet. Hij verschijnt direct op je computer.</p>
 <label class="pick" for="f">Foto kiezen of maken<small>Uit je galerij of met de camera</small></label>
-<input type="file" id="f" accept="image/*" hidden><img id="pv" alt="" hidden>
-<button id="go" disabled>Verstuur naar mijn computer</button><div class="msg" id="msg" role="status"></div>
+<input type="file" id="f" accept="image/*" hidden>
+<button id="go" disabled>Verstuur naar mijn computer</button><div class="msg" id="msg" role="status"></div><img id="pv" alt="" hidden style="margin-top:14px">
 <script>(function(){var f=document.getElementById('f'),go=document.getElementById('go'),pv=document.getElementById('pv'),msg=document.getElementById('msg');
 function say(t,c){msg.textContent=t||'';msg.className='msg '+(c||'');}
 f.addEventListener('change',function(){var x=f.files[0];say('');go.disabled=!x;if(x){try{pv.src=URL.createObjectURL(x);pv.hidden=false;}catch(e){}}});
