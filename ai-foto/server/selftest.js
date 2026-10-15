@@ -97,7 +97,7 @@ require('./db').setSetting('max_attempts', '4'); require('./db').setSetting('max
   assert.equal((await post('/api/jobs/' + two.job_id + '/choose', { client_id: 'client-cccc3333', index: 5 })).status, 400);
   const pick = await (await post('/api/jobs/' + two.job_id + '/choose', { client_id: 'client-cccc3333', index: 1 })).json();
   m = await sharp(Buffer.from(await (await fetch(pick.print_url)).arrayBuffer())).metadata();
-  assert.equal(m.width, 1600);
+  assert.equal(m.width, 2000);
   const h1 = await (await fetch(B + '/api/history?client_id=client-cccc3333&profile=tegel')).json();
   assert.equal(h1.items.length, 1);
   // na kiezen: andere variant weg kan, gekozen variant weg kan ook (alleen uit het zicht; drukbestand blijft bewaard)
