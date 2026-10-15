@@ -298,6 +298,17 @@ app.use('/admin', express.static(path.join(__dirname, '..', 'public')));
 
 const adminDesign = (d) => ({ ...d, example_url: fileUrl(d.example_file), ref_url: d.ref_file ? `/admin/api/designs/${d.id}/reference?v=${encodeURIComponent(d.ref_file)}` : '' });
 
+// Originele klantfoto: alleen voor de beheerder (staat achter adminAuth), als verkleind plaatje.
+app.get('/admin/api/jobs/:id/original', async (req, res) => {
+  try {
+    const j = db.prepare('SELECT original_file FROM jobs WHERE id=?').get(String(req.params.id || ''));
+    const f = j && j.original_file ? path.join(ORIGINALS, path.basename(j.original_file)) : null;
+    if (!f || !fs.existsSync(f)) return res.status(404).json({ error: 'Origineel niet (meer) beschikbaar.' });
+    const buf = req.query.full ? fs.readFileSync(f) : await sharp(f).resize(400, 400, { fit: 'inside' }).jpeg({ quality: 82 }).toBuffer();
+    res.set({ 'Cache-Control': 'private, max-age=300', 'Content-Type': 'image/jpeg', 'X-Robots-Tag': 'noindex' }).send(buf);
+  } catch (e) { res.status(500).json({ error: 'Kon het origineel niet laden.' }); }
+});
+
 // Alle generaties doorzoeken: periode (UTC-tijden, de browser rekent om), stijl, status, tekst.
 app.get('/admin/api/jobs', (req, res) => {
   const w = ['1=1']; const a = [];
@@ -321,7 +332,8 @@ app.get('/admin/api/jobs', (req, res) => {
       return { id: j.id, created_at: j.created_at, status: j.status, error: j.error, design_name: j.design_name, profile: j.profile, custom_text: j.custom_text, ip: j.ip, country: j.country,
         chosen: j.chosen, print_w: j.print_w, print_h: j.print_h,
         variants: vs.map((v, i) => ({ i, deleted: !!v.deleted, preview_url: fileUrl(v.preview_file), print_url: fileUrl(v.print_file) })),
-        preview_url: fileUrl(j.preview_file), print_url: fileUrl(j.print_file) };
+        preview_url: fileUrl(j.preview_file), print_url: fileUrl(j.print_file),
+        original_url: j.original_file && fs.existsSync(path.join(ORIGINALS, path.basename(j.original_file))) ? `/admin/api/jobs/${j.id}/original` : null };
     });
   res.json({ total, offset, jobs: rows });
 });

@@ -108,8 +108,9 @@ async function searchJobs(reset){
   if(day!==lastDay){lastDay=day;list.append(el('h3',{style:'margin:14px 0 6px;font-size:14px;text-transform:capitalize',textContent:day}));grid=el('div',{className:'jgrid jobs'});list.append(grid)}
   const vs=x.variants.filter(v=>!v.deleted&&v.preview_url);
   const thumbs=vs.length?vs.map(v=>el('a',{href:v.print_url||v.preview_url,target:'_blank',title:'Variant '+(v.i+1)+(x.chosen===v.i?' (gekozen)':'')},el('img',{src:v.preview_url,style:'width:64px;height:64px;object-fit:cover;border-radius:6px;margin-right:4px;'+(x.chosen===v.i?'outline:2px solid #2e7d32':'')}))):(x.preview_url?[el('a',{href:x.print_url||x.preview_url,target:'_blank'},el('img',{src:x.preview_url,style:'width:64px;height:64px;object-fit:cover;border-radius:6px'}))]:[el('span',{textContent:x.status==='error'?(x.error||'fout'):x.status})]);
+  const orig=x.original_url?el('a',{href:x.original_url+'?full=1',target:'_blank',title:'Originele foto van de klant'},el('img',{src:x.original_url,style:'width:64px;height:64px;object-fit:cover;border-radius:6px;margin-right:10px;border:2px dashed #999;box-sizing:border-box'})):null;
   grid.append(el('div',{style:'grid-column:1/-1;display:flex;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)'},
-   el('b',{style:'min-width:44px',textContent:fmtTime(d)}),el('div',{style:'display:flex'},...thumbs),
+   el('b',{style:'min-width:44px',textContent:fmtTime(d)}),...(orig?[orig]:[]),el('div',{style:'display:flex'},...thumbs),
    el('div',{style:'font-size:12px;color:var(--mut)',textContent:`${x.design_name||'?'} · ${x.profile}${x.chosen!=null?' · gekozen':''}${x.custom_text?` · "${x.custom_text}"`:''}${x.country?' · '+x.country:''}${x.ip?' · '+x.ip:''}`})))});
  jobsOffset+=r.jobs.length;
  $('#jcount').textContent=`${r.total} generaties gevonden${r.total>jobsOffset?`, ${jobsOffset} getoond`:''}`;
