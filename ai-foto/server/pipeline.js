@@ -22,7 +22,7 @@ function promptFor(design, text) {
   const t = (text || '').trim();
   if (!t || !design.prompt_with_text) return design.prompt;
   const tpl = design.prompt_with_text;
-  const re = /\{\{\s*(CUSTOM_TEXT|tekst)\s*\}\}/gi;
+  const re = /\{\{?\s*(custom[ _-]?text|tekst)\s*\}?\}/gi;   // {{CUSTOM_TEXT}}, {custom text}, {tekst}, ...
   return re.test(tpl) ? tpl.replace(re, () => `"${t}"`) : `${tpl} Tekst: "${t}"`;
 }
 
