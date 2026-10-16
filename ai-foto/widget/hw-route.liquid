@@ -19,6 +19,21 @@
     <div class="hw-route-text" data-hw-r-textbox></div>
   </div>
 
+  <div class="hw-route-label">Extra op de kaart:</div>
+  <div class="hw-route-modes">
+    <button type="button" class="hw-route-mode" data-extra="labels" aria-pressed="true">Plaatsnamen</button>
+    <button type="button" class="hw-route-mode" data-extra="streets" aria-pressed="true">Straatnamen</button>
+    <button type="button" class="hw-route-mode" data-extra="buildings" aria-pressed="true">Gebouwen</button>
+  </div>
+
+  <div class="hw-route-label">Kleur van de route:</div>
+  <div class="hw-route-modes">
+    <button type="button" class="hw-route-mode" data-color="#111111" aria-pressed="true">Zwart</button>
+    <button type="button" class="hw-route-mode" data-color="#D32F2F" aria-pressed="false">Rood</button>
+    <button type="button" class="hw-route-mode" data-color="#1E6FD9" aria-pressed="false">Blauw</button>
+    <label class="hw-route-mode hw-route-custom" data-hw-r-customwrap aria-pressed="false"><span class="hw-route-swatch" data-hw-r-swatch></span>Eigen kleur<input type="color" value="#1E6FD9" data-hw-r-custom aria-label="Kies een eigen kleur voor de route"></label>
+  </div>
+
   <label class="hw-route-label" for="hw-route-sport">Soort wedstrijd</label>
   <input type="text" class="hw-route-input" id="hw-route-sport" data-hw-r-sport maxlength="24" autocomplete="off" placeholder="Bijvoorbeeld: Marathon">
 
@@ -56,21 +71,6 @@
       <label class="hw-route-label" for="hw-route-pace">Tempo (min/km)</label>
       <input type="text" class="hw-route-input" id="hw-route-pace" data-hw-r-pace maxlength="8" autocomplete="off" placeholder="05:37">
     </div>
-  </div>
-
-  <div class="hw-route-label">Extra op de kaart:</div>
-  <div class="hw-route-modes">
-    <button type="button" class="hw-route-mode" data-extra="labels" aria-pressed="true">Plaatsnamen</button>
-    <button type="button" class="hw-route-mode" data-extra="streets" aria-pressed="true">Straatnamen</button>
-    <button type="button" class="hw-route-mode" data-extra="buildings" aria-pressed="true">Gebouwen</button>
-  </div>
-
-  <div class="hw-route-label">Kleur van de route:</div>
-  <div class="hw-route-modes">
-    <button type="button" class="hw-route-mode" data-color="#111111" aria-pressed="true">Zwart</button>
-    <button type="button" class="hw-route-mode" data-color="#D32F2F" aria-pressed="false">Rood</button>
-    <button type="button" class="hw-route-mode" data-color="#1E6FD9" aria-pressed="false">Blauw</button>
-    <label class="hw-route-mode hw-route-custom" data-hw-r-customwrap aria-pressed="false"><span class="hw-route-swatch" data-hw-r-swatch></span>Eigen kleur<input type="color" value="#1E6FD9" data-hw-r-custom aria-label="Kies een eigen kleur voor de route"></label>
   </div>
 
   <div class="hw-route-status" data-hw-r-status role="status" aria-live="polite"></div>
