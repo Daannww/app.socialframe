@@ -185,10 +185,11 @@ app.get('/api/map/mockup/:id.webp', async (req, res) => {
 });
 
 // Batchpagina: maakt per stad het drukbestand (zoals de kaartwidget) en zet het in de tegel-mockup. Niet te indexeren.
-const MOCK_CITIES = [['Amsterdam', 4.8952, 52.3702], ['Rotterdam', 4.4777, 51.9244], ['Den Haag', 4.3007, 52.0705], ['Utrecht', 5.1214, 52.0907], ['Eindhoven', 5.4697, 51.4416],
-  ['Groningen', 6.5665, 53.2194], ['Tilburg', 5.0913, 51.5555], ['Almere', 5.2647, 52.3508], ['Breda', 4.776, 51.589], ['Nijmegen', 5.8528, 51.8126], ['Arnhem', 5.8987, 51.9851],
-  ['Haarlem', 4.6462, 52.3874], ['Enschede', 6.8937, 52.2215], ['Apeldoorn', 5.9699, 52.2112], ['Amersfoort', 5.3878, 52.1561], ['Zwolle', 6.083, 52.5168], ['Leiden', 4.497, 52.1601],
-  ['Maastricht', 5.6909, 50.8514], ['Dordrecht', 4.69, 51.8133], ['Delft', 4.3571, 52.0116], ['Den Bosch', 5.3047, 51.6978]];
+// [stad, lengte, breedte, km die het kaartbeeld breed moet zijn]: grote steden ruim (heel centrum), kleinere steden (bijna) de hele stad
+const MOCK_CITIES = [['Amsterdam', 4.9, 52.365, 7.5], ['Rotterdam', 4.4777, 51.9244, 8], ['Den Haag', 4.3007, 52.0705, 8], ['Utrecht', 5.1214, 52.0907, 6], ['Eindhoven', 5.4697, 51.4416, 6],
+  ['Groningen', 6.5665, 53.2194, 5.5], ['Tilburg', 5.0913, 51.5555, 5.5], ['Almere', 5.2647, 52.3508, 7], ['Breda', 4.776, 51.589, 5], ['Nijmegen', 5.8528, 51.8126, 6], ['Arnhem', 5.8987, 51.9851, 6],
+  ['Haarlem', 4.6462, 52.3874, 4.5], ['Enschede', 6.8937, 52.2215, 5], ['Apeldoorn', 5.9699, 52.2112, 6], ['Amersfoort', 5.3878, 52.1561, 4.5], ['Zwolle', 6.083, 52.5168, 4.5], ['Leiden', 4.497, 52.1601, 4.5],
+  ['Maastricht', 5.6909, 50.8514, 5], ['Dordrecht', 4.69, 51.8133, 4.5], ['Delft', 4.3571, 52.0116, 4], ['Den Bosch', 5.3047, 51.6978, 4.5]];
 app.get('/kaart-mockups', (req, res) => {
   const widget = fs.readFileSync(path.join(__dirname, '..', 'widget', 'hw-kaart.liquid'), 'utf8')
     .replace(/\{%-?\s*comment\s*-?%\}[\s\S]*?\{%-?\s*endcomment\s*-?%\}/g, '').replace(/\{%-?[\s\S]*?-?%\}/g, '').replace('data-hw-kaart ', 'data-hw-kaart data-demo="1" ').replace(/data-api="[^"]*"/, `data-api="${BASE}"`)
@@ -202,7 +203,8 @@ function slug(s){return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-
 btn.onclick=function(){ btn.disabled=true; ready().then(function(k){ var chain=Promise.resolve();
   CITIES.forEach(function(c,i){ chain=chain.then(function(){
     st.textContent='Bezig: '+c[0]+' ('+(i+1)+'/'+CITIES.length+')';
-    k.pick({lng:c[1],lat:c[2],city:c[0],country:COUNTRY,zoom:13.5});
+    var W=k.getMap().getContainer().clientWidth||400, z=Math.log2(78271.5*Math.cos(c[2]*Math.PI/180)*W/(c[3]*1000));
+    k.pick({lng:c[1],lat:c[2],city:c[0],country:COUNTRY,zoom:z});
     return wait(2500).then(function(){return k.buildAndUpload();}).then(function(r){
       return fetch(API+'/api/map/mockup/'+r.job_id+'.webp').then(function(x){ if(!x.ok) throw new Error('mockup'); return x.blob(); });
     }).then(function(b){ var u=URL.createObjectURL(b), name='landkaart-tegeltje-'+slug(c[0])+'.webp';
