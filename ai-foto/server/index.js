@@ -169,8 +169,21 @@ app.get('/kaart-demo', (req, res) => {
   const widget = fs.readFileSync(path.join(__dirname, '..', 'widget', 'hw-kaart.liquid'), 'utf8')
     .replace(/\{%-?\s*comment\s*-?%\}[\s\S]*?\{%-?\s*endcomment\s*-?%\}/g, '').replace(/\{%-?[\s\S]*?-?%\}/g, '').replace('data-hw-kaart ', 'data-hw-kaart data-demo="1" ').replace(/data-api="[^"]*"/, `data-api="${BASE}"`)
     .replace(/data-google-key="[^"]*"/, 'data-google-key=""');
-  const gal = '';
-  res.set({ 'X-Robots-Tag': 'noindex', 'Access-Control-Allow-Origin': '*' }).type('html').send(`<!doctype html><html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Kaart-demo</title><style>body{font-family:Montserrat,system-ui,sans-serif;max-width:520px;margin:20px auto;padding:0 12px}</style></head><body>${gal}${widget}</body></html>`);
+  // Extra knoppen (alleen op deze demo-pagina): zet de kaart zelf goed en download dan het drukbestand en/of de tegel-mockup (webp).
+  const gal = `<div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0"><button type="button" id="dl-print" style="padding:12px 16px;font:600 14px inherit;font-family:inherit;cursor:pointer">Download drukbestand (jpg)</button><button type="button" id="dl-mock" style="padding:12px 16px;font:600 14px inherit;font-family:inherit;cursor:pointer">Download mockup (webp)</button></div><div id="dl-st" style="font-size:13px;margin-bottom:8px"></div>`;
+  const dlScript = `<script>(function(){
+var st=document.getElementById('dl-st');
+function slug(s){return (s||'tegel').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'tegel';}
+function save(blob,name){var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();}
+function go(kind){var k=window.__hwKaart; if(!k||!k.getMap()){st.textContent='De kaart is nog niet geladen.';return;}
+  var city=(document.querySelector('[data-hw-k-city]')||{}).value, base=${JSON.stringify(BASE)}; st.textContent='Bezig met maken…';
+  k.buildAndUpload().then(function(r){ var u=kind==='print'?r.print_url:base+'/api/map/mockup/'+r.job_id+'.webp';
+    return fetch(u).then(function(x){if(!x.ok)throw new Error('download mislukt');return x.blob();}).then(function(b){save(b,'landkaart-tegeltje-'+slug(city)+(kind==='print'?'-drukbestand.jpg':'-mockup.webp'));st.textContent='Klaar.';});
+  }).catch(function(e){st.textContent='Fout: '+(e&&e.message||e);});}
+document.getElementById('dl-print').onclick=function(){go('print');};
+document.getElementById('dl-mock').onclick=function(){go('mock');};
+})();</script>`;
+  res.set({ 'X-Robots-Tag': 'noindex', 'Access-Control-Allow-Origin': '*' }).type('html').send(`<!doctype html><html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Kaart-demo</title><style>body{font-family:Montserrat,system-ui,sans-serif;max-width:520px;margin:20px auto;padding:0 12px}</style></head><body>${widget}${gal}${dlScript}</body></html>`);
 });
 
 // Tegel-mockup: het drukbestand van een kaart-job achter de tegel-foto, als webp.
