@@ -18,6 +18,7 @@ const LIST = [
   ['houilles_10km', 'Houilles 10 KM', '10KM', 'Houilles', 'France'],
   ['houilles_5km', 'Houilles 5 KM', '5KM', 'Houilles', 'France'],
   ['amsterdam_marathon', 'Amsterdam Marathon', 'Marathon', 'Amsterdam', 'Netherlands'],
+  ['amsterdam_half_marathon', 'Amsterdam Halve Marathon', 'Halve Marathon', 'Amsterdam', 'Netherlands'],
   ['eindhoven_marathon', 'Eindhoven Marathon', 'Marathon', 'Eindhoven', 'Netherlands'],
   ['eindhoven_quarter_marathon', 'Eindhoven Quarter Marathon', 'Quarter Marathon', 'Eindhoven', 'Netherlands'],
   ['eindhoven_5km', 'Eindhoven 5 KM', '5KM', 'Eindhoven', 'Netherlands'],
