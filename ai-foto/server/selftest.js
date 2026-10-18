@@ -60,7 +60,8 @@ require('./db').setSetting('max_attempts', '4'); require('./db').setSetting('max
   const prompts = calls.filter((c) => c.input.prompt).map((c) => c.input.prompt);
   const lastPrompt = prompts[prompts.length - 1];
   assert(lastPrompt.startsWith('aquarel met de tekst "') && !lastPrompt.includes('<'), lastPrompt);
-  assert.equal(prompts[prompts.length - 2], 'maak er een aquarel van'); // zonder tekst: gewone prompt
+  assert(prompts[prompts.length - 2].startsWith('maak er een aquarel van') && !prompts[prompts.length - 2].includes('aquarel met de tekst')); // zonder tekst: gewone prompt (+ vaste beschermtekst)
+  assert(lastPrompt.includes('never invent a face')); // beschermtekst zit achter elke prompt
   const rec = await (await fetch(B + '/api/recent?client_id=client-aaaa1111&profile=tegel')).json();
   assert(rec.items.length >= 2 && rec.items[0].variants.length >= 1 && rec.items[0].variants[0].preview_url); // pogingen blijven na refresh
   const recOther = await (await fetch(B + '/api/recent?client_id=client-zzzz9999&profile=tegel')).json();

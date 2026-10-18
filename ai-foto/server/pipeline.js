@@ -77,7 +77,8 @@ async function process_(job) {
 
   let extra = {};
   try { extra = JSON.parse(design.extra_json || '{}'); } catch { /* negeren */ }
-  const prompt = promptFor(design, job.custom_text);
+  const guard = String(settings.prompt_guard || '').trim();
+  const prompt = promptFor(design, job.custom_text) + (guard ? ' ' + guard : '');
   const base = {
     prompt,
     image_url: `data:image/jpeg;base64,${prepared.buffer.toString('base64')}`,

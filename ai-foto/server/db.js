@@ -76,6 +76,8 @@ const DEFAULT_SETTINGS = {
   tegel_px: '2000',             // 13x13 cm @ 300 dpi = 1535 px; 2000 = ±390 dpi, ruim scherp (kaart/route worden op deze maat getekend)
   poster_long_px: '2800',       // 70x50 cm @ ~100 dpi
   retention_days: '180',
+  // Wordt achter elke prompt gezet (leeg = uit). Voorkomt verzonnen gezichten/personen bij foto's waar iemand van achteren of zonder gezicht staat.
+  prompt_guard: 'Strictly follow the customer photo and draw exactly what is in it, with the same camera viewpoint and composition. Keep exactly the same people, the same number of people and their pose. If a person is seen from behind, in profile, or no face is clearly visible, draw them the same way and never invent a face. If the photo contains no people (for example a building, landscape, animal or object), draw that real subject and never add or invent any person or face. Never add, remove or replace anything important. Keep clothing, text and numbers exactly as in the photo.',
 };
 const getSetting = (k) => {
   const r = db.prepare('SELECT value FROM settings WHERE key=?').get(k);
