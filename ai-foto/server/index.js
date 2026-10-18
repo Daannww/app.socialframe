@@ -173,6 +173,50 @@ app.get('/kaart-demo', (req, res) => {
   res.set({ 'X-Robots-Tag': 'noindex', 'Access-Control-Allow-Origin': '*' }).type('html').send(`<!doctype html><html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Kaart-demo</title><style>body{font-family:Montserrat,system-ui,sans-serif;max-width:520px;margin:20px auto;padding:0 12px}</style></head><body>${gal}${widget}</body></html>`);
 });
 
+// Tegel-mockup: het drukbestand van een kaart-job achter de tegel-foto, als webp.
+app.get('/api/map/mockup/:id.webp', async (req, res) => {
+  try {
+    const j = db.prepare("SELECT print_file FROM jobs WHERE id=? AND profile='kaart'").get(String(req.params.id || ''));
+    const f = j && j.print_file && path.join(FILES, path.basename(j.print_file));
+    if (!f || !fs.existsSync(f)) return res.status(404).json({ error: 'Niet gevonden.' });
+    const buf = await require('./mockup').tegelMockup(f);
+    res.set({ 'Cache-Control': 'public, max-age=3600', 'Access-Control-Allow-Origin': '*' }).type('image/webp').send(buf);
+  } catch (e) { console.error(e); res.status(500).json({ error: 'Mockup maken mislukt.' }); }
+});
+
+// Batchpagina: maakt per stad het drukbestand (zoals de kaartwidget) en zet het in de tegel-mockup. Niet te indexeren.
+const MOCK_CITIES = [['Amsterdam', 4.8952, 52.3702], ['Rotterdam', 4.4777, 51.9244], ['Den Haag', 4.3007, 52.0705], ['Utrecht', 5.1214, 52.0907], ['Eindhoven', 5.4697, 51.4416],
+  ['Groningen', 6.5665, 53.2194], ['Tilburg', 5.0913, 51.5555], ['Almere', 5.2647, 52.3508], ['Breda', 4.776, 51.589], ['Nijmegen', 5.8528, 51.8126], ['Arnhem', 5.8987, 51.9851],
+  ['Haarlem', 4.6462, 52.3874], ['Enschede', 6.8937, 52.2215], ['Apeldoorn', 5.9699, 52.2112], ['Amersfoort', 5.3878, 52.1561], ['Zwolle', 6.083, 52.5168], ['Leiden', 4.497, 52.1601],
+  ['Maastricht', 5.6909, 50.8514], ['Dordrecht', 4.69, 51.8133], ['Delft', 4.3571, 52.0116], ['Den Bosch', 5.3047, 51.6978]];
+app.get('/kaart-mockups', (req, res) => {
+  const widget = fs.readFileSync(path.join(__dirname, '..', 'widget', 'hw-kaart.liquid'), 'utf8')
+    .replace(/\{%-?\s*comment\s*-?%\}[\s\S]*?\{%-?\s*endcomment\s*-?%\}/g, '').replace(/\{%-?[\s\S]*?-?%\}/g, '').replace('data-hw-kaart ', 'data-hw-kaart data-demo="1" ').replace(/data-api="[^"]*"/, `data-api="${BASE}"`)
+    .replace(/data-google-key="[^"]*"/, 'data-google-key=""');
+  const script = `<script>(function(){
+var CITIES=${JSON.stringify(MOCK_CITIES)}, COUNTRY='Nederland', API=${JSON.stringify(BASE)};
+var btn=document.getElementById('mk-go'), all=document.getElementById('mk-all'), list=document.getElementById('mk-list'), st=document.getElementById('mk-st'), made=[];
+function wait(ms){return new Promise(function(r){setTimeout(r,ms);});}
+function ready(){return new Promise(function(ok){(function t(){var k=window.__hwKaart; if(k&&k.getMap()) ok(k); else setTimeout(t,300);})();});}
+function slug(s){return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');}
+btn.onclick=function(){ btn.disabled=true; ready().then(function(k){ var chain=Promise.resolve();
+  CITIES.forEach(function(c,i){ chain=chain.then(function(){
+    st.textContent='Bezig: '+c[0]+' ('+(i+1)+'/'+CITIES.length+')';
+    k.pick({lng:c[1],lat:c[2],city:c[0],country:COUNTRY,zoom:13.5});
+    return wait(2500).then(function(){return k.buildAndUpload();}).then(function(r){
+      return fetch(API+'/api/map/mockup/'+r.job_id+'.webp').then(function(x){ if(!x.ok) throw new Error('mockup'); return x.blob(); });
+    }).then(function(b){ var u=URL.createObjectURL(b), name='landkaart-tegeltje-'+slug(c[0])+'.webp';
+      made.push({u:u,name:name}); var d=document.createElement('div'); d.style.cssText='width:31%;min-width:160px';
+      d.innerHTML='<img src="'+u+'" style="width:100%;border-radius:6px"><a download="'+name+'" href="'+u+'" style="display:block;font-size:13px;margin-top:4px">'+c[0]+' downloaden</a>'; list.appendChild(d);
+    }).catch(function(e){ var d=document.createElement('div'); d.textContent=c[0]+': mislukt ('+(e&&e.message||e)+')'; d.style.color='#b00'; list.appendChild(d); });
+  });});
+  return chain; }).then(function(){ st.textContent='Klaar: '+made.length+' van '+CITIES.length+' gemaakt.'; all.hidden=!made.length; btn.disabled=false; }); };
+all.onclick=function(){ made.reduce(function(p,m){ return p.then(function(){ var a=document.createElement('a'); a.href=m.u; a.download=m.name; document.body.appendChild(a); a.click(); a.remove(); return wait(400); }); },Promise.resolve()); };
+})();</script>`;
+  const ui = '<div style="margin:16px 0"><button id="mk-go" style="padding:12px 18px;font:600 15px inherit;font-family:inherit;cursor:pointer">Maak alle tegel-mockups (' + MOCK_CITIES.length + ' steden)</button> <button id="mk-all" hidden style="padding:12px 18px;font:600 15px inherit;font-family:inherit;cursor:pointer">Alles downloaden</button><div id="mk-st" style="margin:8px 0;font-size:14px"></div><div id="mk-list" style="display:flex;flex-wrap:wrap;gap:12px"></div></div>';
+  res.set({ 'X-Robots-Tag': 'noindex', 'Access-Control-Allow-Origin': '*' }).type('html').send(`<!doctype html><html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Tegel-mockups</title><style>body{font-family:Montserrat,system-ui,sans-serif;max-width:900px;margin:20px auto;padding:0 12px}.mkw{max-width:420px;opacity:.5}</style></head><body>${ui}<div class="mkw">${widget}</div>${script}</body></html>`);
+});
+
 // Eenvoudige botfilter: geen/zeer korte user-agent of bekende scripts/headless-browsers.
 function looksLikeBot(req) {
   const ua = String(req.headers['user-agent'] || '');
