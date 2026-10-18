@@ -271,13 +271,19 @@
     }
     function addRoute(m, W) {
       var lw = Math.max(3, W * 0.011);
-      if (m.getSource('route')) { m.getSource('route').setData(routeJson()); m.getSource('ends').setData(endsJson()); m.setPaintProperty('route-line', 'line-color', state.color); return; }
+      if (m.getSource('route')) { m.getSource('route').setData(routeJson()); m.getSource('ends').setData(endsJson()); m.setPaintProperty('route-line', 'line-color', state.color); setEndColors(m); return; }
       m.addSource('route', { type: 'geojson', data: routeJson() });
       m.addSource('ends', { type: 'geojson', data: endsJson() });
       m.addLayer({ id: 'map-wash', type: 'background', paint: { 'background-color': '#FFFFFF', 'background-opacity': 0.45 } });
       m.addLayer({ id: 'route-casing', type: 'line', source: 'route', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#FFFFFF', 'line-width': lw * 1.9, 'line-opacity': 0.9 } });
       m.addLayer({ id: 'route-line', type: 'line', source: 'route', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': state.color, 'line-width': lw } });
-      m.addLayer({ id: 'ends-dot', type: 'circle', source: 'ends', paint: { 'circle-radius': lw * 1.7, 'circle-color': ['match', ['get', 'k'], 'start', '#FFFFFF', '#111111'], 'circle-stroke-color': '#111111', 'circle-stroke-width': lw * 0.55 } });
+      m.addLayer({ id: 'ends-dot', type: 'circle', source: 'ends', paint: { 'circle-radius': lw * 1.7, 'circle-color': ['match', ['get', 'k'], 'start', '#FFFFFF', state.color], 'circle-stroke-color': state.color, 'circle-stroke-width': lw * 0.55 } });
+    }
+    // Start (wit) en finish (gevuld) krijgen dezelfde kleur als de route
+    function setEndColors(m) {
+      if (!m.getLayer('ends-dot')) return;
+      m.setPaintProperty('ends-dot', 'circle-color', ['match', ['get', 'k'], 'start', '#FFFFFF', state.color]);
+      m.setPaintProperty('ends-dot', 'circle-stroke-color', state.color);
     }
     function fit(m) {
       if (!state.route || state.route.length < 2) return;
@@ -323,7 +329,7 @@
       root.querySelectorAll('[data-color]').forEach(function (x) { x.setAttribute('aria-pressed', !fromCustom && x.dataset.color === c ? 'true' : 'false'); });
       customWrap.setAttribute('aria-pressed', fromCustom ? 'true' : 'false');
       if (fromCustom) swatchEl.style.background = c; else swatchEl.style.background = '';
-      if (map && map.getLayer('route-line')) map.setPaintProperty('route-line', 'line-color', state.color);
+      if (map && map.getLayer('route-line')) { map.setPaintProperty('route-line', 'line-color', state.color); setEndColors(map); }
       changed();
     }
     root.querySelectorAll('[data-color]').forEach(function (b) {
