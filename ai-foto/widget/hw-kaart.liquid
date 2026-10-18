@@ -162,7 +162,9 @@
         lbl('l_city', ['city'], 4, ['interpolate', ['linear'], ['zoom'], 4, 12, 12, 20]),
         lbl('l_town', ['town'], 6, ['interpolate', ['linear'], ['zoom'], 6, 11, 13, 17]),
         lbl('l_village', ['village', 'suburb'], 9, ['interpolate', ['linear'], ['zoom'], 9, 10, 14, 15]),
-        lbl('l_small', ['hamlet', 'neighbourhood', 'quarter'], 12, ['interpolate', ['linear'], ['zoom'], 12, 9.5, 16, 13])
+        lbl('l_small', ['hamlet', 'neighbourhood', 'quarter'], 12, ['interpolate', ['linear'], ['zoom'], 12, 9.5, 16, 13]),
+        // lichte witte waas over de hele kaart (zelfde als het marathon-tegeltje): zachtere wegen, minder hard
+        { id: 'map-wash', type: 'background', paint: { 'background-color': '#FFFFFF', 'background-opacity': 0.45 } }
       ]
     };
   }
