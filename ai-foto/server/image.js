@@ -22,7 +22,7 @@ function targetSize(profile, orientation, settings) {
 
 // Foto van de klant: draaien volgens EXIF, bijsnijden naar de verhouding, max 1536 px lang
 // (genoeg voor het AI-model, houdt de upload klein).
-async function prepareInput(buffer, profile, orientation, crop) {
+async function prepareInput(buffer, profile, orientation, crop, opts = {}) {
   const [rw, rh] = PROFILES[profile].ratio(orientation);
   const ratio = rw / rh;
   const rotated = await sharp(buffer).rotate().toBuffer({ resolveWithObject: true });
@@ -43,11 +43,15 @@ async function prepareInput(buffer, profile, orientation, crop) {
   const longTarget = 1536;
   const w = rw >= rh ? longTarget : Math.round((longTarget * rw) / rh);
   const h = rw >= rh ? Math.round((longTarget * rh) / rw) : longTarget;
+  // Geen uitsnede gekozen: de héle foto blijft zichtbaar (witte randen), in plaats van links/rechts of boven/onder af te snijden.
+  const meta = await sharp(src).metadata();
+  const srcRatio = meta.width / meta.height;
+  const padded = !!opts.whole && !(crop && crop.w > 0 && crop.h > 0) && Math.abs(srcRatio / ratio - 1) > 0.04;
   const out = await sharp(src)
-    .resize(w, h, { fit: 'cover', position: sharp.strategy.attention })
+    .resize(w, h, padded ? { fit: 'contain', background: '#ffffff' } : { fit: 'cover', position: sharp.strategy.attention })
     .jpeg({ quality: 92 })
     .toBuffer();
-  return { buffer: out, w, h, srcW: W, srcH: H };
+  return { buffer: out, w, h, srcW: W, srcH: H, padded };
 }
 
 // Eindbestand: exact de doelafmeting (bijsnijden als het model net een andere verhouding gaf),

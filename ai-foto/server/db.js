@@ -77,6 +77,7 @@ const DEFAULT_SETTINGS = {
   poster_long_px: '2800',       // 70x50 cm @ ~100 dpi
   retention_days: '180',
   // Wordt achter elke prompt gezet (leeg = uit). Voorkomt verzonnen gezichten/personen bij foto's waar iemand van achteren of zonder gezicht staat.
+  foto_hele_tonen: 'ja', // 'ja': hele foto in beeld (witte randen) als de klant geen uitsnede kiest; 'nee': bijsnijden naar vierkant/7:5
   prompt_guard: 'Strictly follow the customer photo and draw exactly what is in it, with the same camera viewpoint and composition. Keep exactly the same people, the same number of people and their pose. If a person is seen from behind, in profile, or no face is clearly visible, draw them the same way and never invent a face. If the photo contains no people (for example a building, landscape, animal or object), draw that real subject and never add or invent any person or face. Never add, remove or replace anything important. Keep clothing, text and numbers exactly as in the photo.',
 };
 const getSetting = (k) => {

@@ -73,14 +73,15 @@ async function process_(job) {
   const original = fs.readFileSync(path.join(ORIGINALS, job.original_file));
   let crop = null;
   try { crop = job.crop_json ? JSON.parse(job.crop_json) : null; } catch { /* negeren */ }
-  const prepared = await img.prepareInput(original, job.profile, job.orientation, crop);
+  const prepared = await img.prepareInput(original, job.profile, job.orientation, crop, { whole: String(settings.foto_hele_tonen || 'ja') !== 'nee' });
 
   let extra = {};
   try { extra = JSON.parse(design.extra_json || '{}'); } catch { /* negeren */ }
   const guard = String(settings.prompt_guard || '').trim();
   const prompt = promptFor(design, job.custom_text) + (guard ? ' ' + guard : '');
+  const wholeNote = prepared.padded ? ' The customer photo sits on a white canvas with white margins: keep the ENTIRE photo content in frame (nothing cut off or cropped at any edge), keep its proportions, and leave the surrounding space as clean plain background.' : '';
   const base = {
-    prompt,
+    prompt: prompt + wholeNote,
     image_url: `data:image/jpeg;base64,${prepared.buffer.toString('base64')}`,
     num_images: 1,
     output_format: 'jpeg',
