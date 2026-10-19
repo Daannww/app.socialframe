@@ -12,7 +12,12 @@ const SKU_MAP = [
   { sku: 'SFTL10', item: 'Lijst 10x10', test: t => /lijst/i.test(t) && /10\s*x\s*10/i.test(t) },
   { sku: 'SFTL13', item: 'Lijst 13x13cm', test: t => /lijst/i.test(t) && /13\s*x\s*13/i.test(t) },
   { sku: 'SFTMHD', item: 'Metalen houder', test: t => /metalen[\s-]?houder/i.test(t) },
-  { sku: 'SFCD', item: 'Luxe cadeauverpakking', test: t => /luxe\s*cadeau-?verpakking/i.test(t), create: true }
+  { sku: 'SFCD', item: 'Luxe cadeauverpakking', test: t => /luxe\s*cadeau-?verpakking/i.test(t), create: true },
+  // Led-verlichting: gedeelde SKU's over veel producten. Het voorraadartikel heet gewoon de SKU (zie inventory.js: artikelnaam =
+  // SKU van de orderregel). Alleen op SKU gekoppeld (test altijd false). Bestaat het artikel nog niet, dan wordt het aangemaakt
+  // met de huidige Shopify-voorraad; bestaat het al, dan geldt het getal in het voorraadtabblad (dus eerst goed zetten!).
+  { sku: 'SFLED20', item: 'SFLED20', test: () => false, create: true },
+  { sku: 'SFLEDRGB', item: 'SFLEDRGB', test: () => false, create: true }
 ];
 
 function enabled() { return process.env.SHOPIFY_STOCK_SYNC === '1'; }
