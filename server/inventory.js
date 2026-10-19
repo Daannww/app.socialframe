@@ -41,7 +41,13 @@ function computeDeductionsForOrder(order, items) {
 
     itemNames.forEach(name => {
       const rule = INVENTORY_RULES.find(r => r.name === name);
-      const matches = rule ? rule.test(text) : text.toLowerCase().includes(name.toLowerCase());
+      // Zelf toegevoegd artikel: telt mee als de naam (1) EXACT gelijk is aan
+      // de SKU van de orderregel (bv. artikel "SFTMH"), of (2) letterlijk in
+      // de producttekst voorkomt. SKU-vergelijking is bewust exact (geen
+      // deelstring), anders zou "SFTMH" ook "SFTMHD" meepakken.
+      const sku = String(li.sku || '').trim().toLowerCase();
+      const skuMatch = sku !== '' && sku === String(name).trim().toLowerCase();
+      const matches = rule ? rule.test(text) : (skuMatch || text.toLowerCase().includes(name.toLowerCase()));
       if (matches) {
         deductions[name] = (deductions[name] || 0) + (li.quantity || 1);
       }
