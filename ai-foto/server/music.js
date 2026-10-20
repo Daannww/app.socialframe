@@ -28,7 +28,8 @@ function toUri(s) {
 
 let token = null;   // { value, exp }
 async function spotifyToken() {
-  const id = process.env.SPOTIFY_CLIENT_ID, secret = process.env.SPOTIFY_CLIENT_SECRET;
+  const clean = (v) => String(v || '').trim().replace(/^['"]|['"]$/g, '');
+  const id = clean(process.env.SPOTIFY_CLIENT_ID), secret = clean(process.env.SPOTIFY_CLIENT_SECRET);
   if (!id || !secret) return null;
   if (token && token.exp > Date.now() + 30000) return token.value;
   const r = await fetch('https://accounts.spotify.com/api/token', {
@@ -36,7 +37,7 @@ async function spotifyToken() {
     headers: { Authorization: 'Basic ' + Buffer.from(`${id}:${secret}`).toString('base64'), 'Content-Type': 'application/x-www-form-urlencoded' },
     body: 'grant_type=client_credentials',
   });
-  if (!r.ok) throw new Error('spotify token ' + r.status);
+  if (!r.ok) throw new Error('spotify token ' + r.status + ' ' + (await r.text().catch(() => '')).slice(0, 200) + ` (id ${id.length} tekens, secret ${secret.length} tekens)`);
   const j = await r.json();
   token = { value: j.access_token, exp: Date.now() + (j.expires_in || 3600) * 1000 };
   return token.value;
