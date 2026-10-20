@@ -183,9 +183,6 @@ app.get('/widget/muziek.html', (req, res) => {
   res.set({ 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'public, max-age=60' }).type('html').send(html);
 });
 
-// TIJDELIJK: thema-sjabloon voor import in het draft-thema (wordt daarna weer verwijderd).
-app.get('/widget/theme/product.spotify.json', (req, res) => res.type('application/json').send(fs.readFileSync(path.join(__dirname, '..', 'widget', 'theme', 'product.spotify.json'), 'utf8')));
-
 // Demo-pagina voor de routewidget (zonder winkelwagen).
 app.get('/route-demo', (req, res) => {
   const widget = fs.readFileSync(path.join(__dirname, '..', 'widget', 'hw-route.liquid'), 'utf8')
