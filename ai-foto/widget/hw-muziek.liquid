@@ -305,6 +305,13 @@
       b.addEventListener('click', function () {
         var k = b.dataset.mzSet; S[k] = b.dataset.v;
         root.querySelectorAll('[data-mz-set="' + k + '"]').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+        if (k === 'bg') { // donkere achtergrond -> witte tekst, lichte achtergrond -> zwarte tekst (anders is niets te lezen)
+          var want = /zwart/i.test(S.bg) ? 'Witte tekst' : 'Zwarte tekst';
+          if (S.tekst !== want) {
+            S.tekst = want;
+            root.querySelectorAll('[data-mz-set="tekst"]').forEach(function (x) { x.setAttribute('aria-pressed', x.dataset.v === want ? 'true' : 'false'); });
+          }
+        }
         $('[data-mz-qrwrap]').hidden = S.code !== 'qr'; $('[data-mz-songwrap]').hidden = S.code === 'geen';
         refreshCodes(); changed();
       });
