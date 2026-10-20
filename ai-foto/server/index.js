@@ -55,12 +55,14 @@ app.get('/api/designs', (req, res) => {
   res.json({ designs: rows.map(publicDesign), attempts_left: left, max_attempts: maxA, text_max: parseInt(getSetting('text_max'), 10) });
 });
 
-const genLimiter = rateLimit({ windowMs: 60 * 60 * 1000, limit: 20, standardHeaders: true, legacyHeaders: false, keyGenerator: (req) => clientIp(req), validate: false,
+const genLimiter = rateLimit({ windowMs: 60 * 60 * 1000, limit: 20, standardHeaders: true, legacyHeaders: false, keyGenerator: (req) => clientIp(req), skip: (req) => unlimitedIp(clientIp(req)), validate: false,
   message: { error: 'Te veel pogingen, probeer het later opnieuw.' } });
 
 // Limiet geldt op browsersessie EN op IP-adres: pas als beide gewisseld worden, begint iemand opnieuw.
+const unlimitedIp = (ip) => String(getSetting('onbeperkt_ips') || '').split(/[\s,;]+/).filter(Boolean).some((x) => x === ip || (x.endsWith('.') && String(ip || '').startsWith(x)));   // 'a.b.c.d' of voorvoegsel 'a.b.'
 function attemptsLeft(clientId, ip) {
   const max = parseInt(getSetting('max_attempts'), 10);
+  if (unlimitedIp(ip)) return max;   // eigen IP-adressen: nooit beperkt
   const maxIp = parseInt(getSetting('max_attempts_ip'), 10) || max * 3;
   const byIp = db.prepare("SELECT COUNT(*) c FROM jobs WHERE ip=? AND client_id!='admin-test' AND profile!='kaart' AND created_at > datetime('now','-1 day') AND status!='error'").get(ip || '').c;
   return Math.max(0, Math.min(max - attemptsUsed(clientId), maxIp - byIp));
@@ -115,7 +117,7 @@ app.post('/api/generate', genLimiter, (req, res, next) => (looksLikeBot(req) ? r
 });
 
 // Landkaart-tegeltje: de browser van de klant maakt het beeld (kaart + tekst + pin); wij maken er het drukbestand van.
-const mapLimiter = rateLimit({ windowMs: 60 * 60 * 1000, limit: 30, standardHeaders: true, legacyHeaders: false, keyGenerator: (req) => clientIp(req), validate: false,
+const mapLimiter = rateLimit({ windowMs: 60 * 60 * 1000, limit: 30, standardHeaders: true, legacyHeaders: false, keyGenerator: (req) => clientIp(req), skip: (req) => unlimitedIp(clientIp(req)), validate: false,
   message: { error: 'Te veel pogingen, probeer het later opnieuw.' } });
 app.get('/api/map/config', (req, res) => res.set('Cache-Control', 'public, max-age=60').json({ print_px: Math.min(3200, Math.max(1200, parseInt(getSetting('tegel_px'), 10) || 2000)) }));
 app.post('/api/map/print', mapLimiter, (req, res, next) => (looksLikeBot(req) ? res.status(403).json({ error: 'Dit verzoek is geweigerd.' }) : next()), upload.single('image'), async (req, res) => {

@@ -79,6 +79,7 @@ const DEFAULT_SETTINGS = {
   // Wordt achter elke prompt gezet (leeg = uit). Voorkomt verzonnen gezichten/personen bij foto's waar iemand van achteren of zonder gezicht staat.
   veiligheidsfilter: 'uit', // fal-veiligheidsfilter: 'uit' (standaard) of 'aan'
   foto_hele_tonen: 'ja', // 'ja': hele foto in beeld (witte randen) als de klant geen uitsnede kiest; 'nee': bijsnijden naar vierkant/7:5
+  onbeperkt_ips: '152.233.12.241',   // IP-adressen zonder limiet (komma-gescheiden; 'a.b.' met punt aan het eind = hele reeks)
   controle_onderwerp: 'aan',      // vision-controle: toont het resultaat hetzelfde onderwerp als de foto? Zo niet: automatisch opnieuw
   controle_pogingen: '3',
   controle_model: 'google/gemini-2.0-flash-001',
