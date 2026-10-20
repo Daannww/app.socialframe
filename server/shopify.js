@@ -33,6 +33,31 @@ function aiPrintLinkOfLine(li) {
 // veld) landen op Shopify's eigen CDN, soms zonder duidelijke/herkenbare extensie in de URL.
 const SHOPIFY_CDN_UPLOAD_REGEX = /(https?:\/\/cdn\.shopify\.com\/s\/files\/[^\s"'<>]+)/gi;
 
+// Koppelt AI-foto's aan bestellingen: elke regel met eigenschap "_AI job" geeft (job-id, bestelnummer) door aan de ai-foto-service,
+// zodat je in de admin daar ziet bij welke bestelling een foto hoort. Mislukt dit, dan gaat de order-sync gewoon door.
+function aiJobLinksOfOrder(order) {
+  const out = [];
+  for (const li of (order.line_items || [])) {
+    for (const p of (li.properties || [])) {
+      if (/^_?AI job$/i.test((p.name || '').trim())) {
+        const id = String(p.value || '').trim();
+        if (/^[a-f0-9]{16,64}$/i.test(id)) out.push({ job_id: id, order_name: order.name || ('#' + order.order_number) });
+      }
+    }
+  }
+  return out;
+}
+async function sendAiJobLinks(links) {
+  const secret = process.env.ORDER_LINK_SECRET;
+  if (!links.length || !secret) return;
+  const base = (process.env.AI_FOTO_URL || 'https://ai-foto.socialframe.nl').replace(/\/+$/, '');
+  try {
+    await axios.post(base + '/api/order-link', { orders: links }, { headers: { 'x-link-secret': secret }, timeout: 15000 });
+  } catch (e) {
+    console.error('[ai-foto] bestelnummers doorgeven mislukt:', e.message);
+  }
+}
+
 function client() {
   if (!STORE || !TOKEN) {
     throw new Error('SHOPIFY_STORE en SHOPIFY_ACCESS_TOKEN moeten ingesteld zijn in .env');
@@ -427,6 +452,7 @@ async function syncOrders() {
 
   let totalNew = 0;
   let totalSeen = 0;
+  const aiLinks = [];
   let lastId = sinceId ? Number(sinceId) : null;
 
   // Shopify's REST API pagineert via since_id
@@ -473,6 +499,7 @@ async function syncOrders() {
           console.error('[kaartje] kon geen concept-kaartje aanmaken voor nieuwe order:', e.message);
         }
       }
+      try { aiLinks.push(...aiJobLinksOfOrder(order)); } catch { /* negeren */ }
       totalSeen++;
       lastId = order.id;
     }
@@ -482,6 +509,8 @@ async function syncOrders() {
     params = { status: 'open', limit: 250, since_id: lastId };
   }
 
+  await sendAiJobLinks(aiLinks);
+
   if (lastId) setMeta('last_since_id', String(lastId));
   setMeta('first_sync_done', 'true');
   setMeta('last_sync_at', new Date().toISOString());
@@ -489,4 +518,4 @@ async function syncOrders() {
   return { totalNew, totalSeen, syncedAt: new Date().toISOString() };
 }
 
-module.exports = { syncOrders, extractSpotifyLinks, extractPhotoLinks, mapOrder, isFotoTegelLineItem, extractFotoTegelPhotoUrls, extractPosterlyPhotoUrls, extractTileItemsFromOrder, isAutoFrameLineItem, getAutoFrameVariant, extractAutoFrameData, extractAutoFrameItemsFromOrder, isHandgeschrevenKaartjeLineItem, extractHandgeschrevenKaartjeBoodschap };
+module.exports = { aiJobLinksOfOrder, syncOrders, extractSpotifyLinks, extractPhotoLinks, mapOrder, isFotoTegelLineItem, extractFotoTegelPhotoUrls, extractPosterlyPhotoUrls, extractTileItemsFromOrder, isAutoFrameLineItem, getAutoFrameVariant, extractAutoFrameData, extractAutoFrameItemsFromOrder, isHandgeschrevenKaartjeLineItem, extractHandgeschrevenKaartjeBoodschap };
