@@ -228,7 +228,7 @@
     var fb = document.querySelector('form[data-type="add-to-cart-form"]');
     return fb ? [fb] : [];
   }
-  // Gegevens die bij de bestelling komen. "AI herbestelling" staat er alleen bij een hergebruikte afbeelding.
+  // Gegevens die bij de bestelling komen. "_Herbestelling" (verborgen voor de klant) staat er alleen bij een hergebruikte afbeelding.
   function setProps(on) {
     getForms().forEach(function (form) {
       form.querySelectorAll('[data-hw-ai-prop]').forEach(function (el) { el.remove(); });
@@ -240,8 +240,8 @@
         'properties[_AI drukbestand]': r.print_url,
         'properties[_AI job]': r.job_id
       };
-      if (r.text) props['properties[AI tekst]'] = r.text;
-      if (r.reused) props['properties[AI herbestelling]'] = 'Ja, bestaande afbeelding van ' + fmtDate(r.created_at) + ' (job ' + r.job_id.slice(0, 8) + ')';
+      if (r.text) props['properties[Tekst]'] = r.text;
+      if (r.reused) props['properties[_Herbestelling]'] = 'Ja, bestaande afbeelding van ' + fmtDate(r.created_at) + ' (job ' + r.job_id.slice(0, 8) + ')';
       Object.keys(props).forEach(function (name) {
         var i = document.createElement('input');
         i.type = 'hidden'; i.name = name; i.value = props[name];
