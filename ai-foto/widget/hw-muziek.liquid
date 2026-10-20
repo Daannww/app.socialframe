@@ -45,8 +45,9 @@
     <div class="hw-mz-sugg" data-mz-sugg hidden></div>
   </div>
   <div class="hw-mz-small" data-mz-tracknote></div>
-  <div class="hw-mz-small">Lukt zoeken niet? Plak de Spotify-link (in Spotify: Delen &gt; Link kopiëren):</div>
-  <div data-mz-linkwrap>
+  <button type="button" class="hw-mz-linkbtn" data-mz-linktoggle aria-expanded="false">Lukt zoeken niet? Plak een Spotify-link &#9662;</button>
+  <div data-mz-linkwrap hidden>
+    <div class="hw-mz-small">In Spotify: Delen &gt; Link kopiëren.</div>
     <input type="text" class="hw-mz-input" data-mz-link autocomplete="off" placeholder="https://open.spotify.com/track/…">
   </div>
 
@@ -78,6 +79,11 @@
   <div class="hw-mz-modes">
     <button type="button" class="hw-mz-mode" data-mz-set="heart" data-v="Rood" aria-pressed="true">Rood</button>
     <button type="button" class="hw-mz-mode" data-mz-set="heart" data-v="Tekst" aria-pressed="false">Zelfde kleur als de tekst</button>
+  </div>
+
+  <div data-mz-holderwrap hidden>
+    <div class="hw-mz-label">6. Kies een houder</div>
+    <div class="hw-mz-holders" data-mz-holders></div>
   </div>
 
   <div class="hw-mz-status" data-mz-status role="status" aria-live="polite"></div>
@@ -119,6 +125,13 @@
   .hw-mz-sugg img{width:40px;height:40px;border-radius:4px;object-fit:cover;flex:none}
   .hw-mz-sugg small{display:block;color:#777;font-size:12px}
   .hw-mz-linkbtn{border:0;background:none;color:#555;text-decoration:underline;font:inherit;font-size:13px;padding:6px 0;cursor:pointer}
+  .hw-mz-holders{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+  .hw-mz-holder{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;border:1.5px solid #D0D0D0;border-radius:14px;background:#fff !important;color:#222 !important;padding:10px 8px;font:inherit;font-size:12.5px;line-height:1.3;cursor:pointer}
+  .hw-mz-holder img{width:100%;max-width:96px;aspect-ratio:1/1;object-fit:cover;border-radius:10px;background:#f4f4f4}
+  .hw-mz-holder .hw-mz-none{width:100%;max-width:96px;aspect-ratio:1/1;border-radius:10px;background:#f4f4f4;display:flex;align-items:center;justify-content:center;font-size:26px;color:#999}
+  .hw-mz-holder b{font-weight:600}
+  .hw-mz-holder small{color:#666;font-size:12px}
+  .hw-mz-holder[aria-pressed="true"]{border-color:#111;box-shadow:0 0 0 1px #111}
   .hw-mz-status{margin-top:14px;font-size:13px;color:#555;min-height:18px}
   .hw-mz-status.err{color:#b3261e}
 </style>
@@ -318,6 +331,8 @@
       });
     });
     [r1El, r2El, t0El, t1El, dotEl, qrLinkEl].forEach(function (el) { el.addEventListener('input', function () { refreshCodes(); changed(); }); });
+    $('[data-mz-linktoggle]').addEventListener('click', function () { var w = $('[data-mz-linkwrap]'); w.hidden = !w.hidden; this.setAttribute('aria-expanded', w.hidden ? 'false' : 'true'); if (!w.hidden) linkEl.focus(); });
+    function openLink() { var w = $('[data-mz-linkwrap]'); w.hidden = false; $('[data-mz-linktoggle]').setAttribute('aria-expanded', 'true'); }
     var lt = null;
     linkEl.addEventListener('input', function () {
       clearTimeout(lt);
@@ -356,7 +371,7 @@
             });
             suggEl.hidden = !suggEl.children.length;
             if (!suggEl.children.length) say('Geen nummers gevonden.');
-          }, function (e) { say(e.message, true); });
+          }, function (e) { say(e.message, true); openLink(); });
       }, 350);
     });
     document.addEventListener('click', function (ev) { if (!root.contains(ev.target)) suggEl.hidden = true; });
@@ -476,6 +491,64 @@
       window.addEventListener('scroll', req, { passive: true });
       window.addEventListener('resize', function () { topOff = headerOffset(); req(); });
       update();
+    })();
+
+    // ----- houders als visuele keuze (stuurt de variantkiezer van het thema aan) -----
+    (function () {
+      var wrap = $('[data-mz-holderwrap]'), box = $('[data-mz-holders]');
+      var m = location.pathname.match(/\/products\/([^\/?#]+)/); if (!m) return;
+      var CDN = 'https://cdn.shopify.com/s/files/1/0543/1132/1781/files/';
+      var IMGS = [
+        [/led/i, CDN + 'Led-verlichting.png?v=1712734599'],
+        [/marmer/i, CDN + 'Socialframe_-_marmerlook.png?v=1732050804'],
+        [/pootjes/i, CDN + 'SOCIAL_-_kunststof_pootjes.png?v=1633857786'],
+        [/ophang/i, CDN + 'ophangsysteem.jpg?v=1645886442'],
+        [/houten/i, CDN + 'preview_houten-houder.webp?v=1766761028']
+      ];
+      function imgFor(v) { for (var i = 0; i < IMGS.length; i++) if (IMGS[i][0].test(v)) return IMGS[i][1]; return ''; }
+      function nz(x) { return String(x == null ? '' : x).replace(/\s+/g, ' ').trim(); }
+      function money(c) { try { return new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(c / 100); } catch (e) { return '\u20ac ' + (c / 100).toFixed(2); } }
+      fetch('/products/' + m[1] + '.js').then(function (r) { return r.json(); }).then(function (prod) {
+        if (!prod.options || prod.options.length < 2) return;
+        var hIdx = -1; prod.options.forEach(function (o, i) { if (/houder/i.test(o.name || o)) hIdx = i; });
+        if (hIdx < 0) return;
+        var sIdx = hIdx === 0 ? 1 : 0;
+        var holders = []; prod.variants.forEach(function (v) { var h = v.options[hIdx]; if (holders.indexOf(nz(h)) < 0) holders.push(nz(h)); });
+        function selects() {
+          var all = Array.prototype.slice.call(document.querySelectorAll('select')), hs = null, ss = null;
+          all.forEach(function (sel) {
+            var vals = Array.prototype.map.call(sel.options, function (o) { return nz(o.value); });
+            if (!hs && vals.indexOf('Geen') >= 0 && vals.some(function (v) { return holders.indexOf(v) >= 0; })) hs = sel;
+            else if (!ss && vals.some(function (v) { return /klein|normaal|extra groot/i.test(v); })) ss = sel;
+          });
+          return { h: hs, s: ss };
+        }
+        var hidden = false;
+        function render() {
+          var sel = selects(); if (!sel.h) return;
+          if (!hidden) { hidden = true; sel.h.style.display = 'none'; var lb = sel.h.id ? document.querySelector('label[for="' + sel.h.id + '"]') : null; if (lb) lb.style.display = 'none'; }
+          var size = sel.s ? sel.s.value : prod.variants[0].options[sIdx];
+          var vs = prod.variants.filter(function (v) { return nz(v.options[sIdx]) === nz(size) && v.available !== false; });
+          var base = null; vs.forEach(function (v) { if (v.options[hIdx] === 'Geen') base = v.price; });
+          if (base === null && vs.length) base = vs[0].price;
+          box.innerHTML = '';
+          vs.forEach(function (v) {
+            var name = v.options[hIdx], b = document.createElement('button'); b.type = 'button'; b.className = 'hw-mz-holder'; b.setAttribute('aria-pressed', nz(sel.h.value) === nz(name) ? 'true' : 'false');
+            var im = imgFor(name);
+            if (name === 'Geen') { var n = document.createElement('div'); n.className = 'hw-mz-none'; n.textContent = '\u2205'; b.appendChild(n); }
+            else if (im) { var i = document.createElement('img'); i.src = im; i.alt = ''; i.loading = 'lazy'; b.appendChild(i); }
+            var t = document.createElement('b'); t.textContent = name === 'Geen' ? 'Geen houder' : name; b.appendChild(t);
+            var d = v.price - base, pr = document.createElement('small'); pr.textContent = name === 'Geen' ? 'Standaard' : (d > 0 ? '+ ' + money(d) : 'Gratis'); b.appendChild(pr);
+            b.addEventListener('click', function () { var op = Array.prototype.filter.call(sel.h.options, function (o) { return nz(o.value) === nz(name); })[0]; sel.h.value = op ? op.value : name; sel.h.dispatchEvent(new Event('input', { bubbles: true })); sel.h.dispatchEvent(new Event('change', { bubbles: true })); render(); });
+            box.appendChild(b);
+          });
+          // staat de gekozen houder niet bij dit formaat, kies dan "Geen"
+          if (vs.length && !vs.some(function (v) { return nz(v.options[hIdx]) === nz(sel.h.value); })) { sel.h.value = 'Geen'; sel.h.dispatchEvent(new Event('change', { bubbles: true })); }
+          wrap.hidden = !vs.length;
+        }
+        document.addEventListener('change', function (e) { if (e.target && e.target.tagName === 'SELECT') setTimeout(render, 50); });
+        setTimeout(render, 300); setTimeout(render, 1500);
+      }).catch(function () {});
     })();
 
     schedule();
