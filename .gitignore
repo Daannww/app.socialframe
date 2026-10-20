@@ -4,3 +4,4 @@ orders.db
 orders.db-*
 exports/
 .env.example
+ai-foto/data/
