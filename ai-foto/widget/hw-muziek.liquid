@@ -14,7 +14,18 @@
   </div>
   <div class="hw-mz-hint">Sleep over de foto om hem te verplaatsen.</div>
 
-  <div class="hw-mz-label">1. Kies je foto</div>
+  <div class="hw-mz-label">1. Kies je code</div>
+  <div class="hw-mz-modes">
+    <button type="button" class="hw-mz-mode" data-mz-set="code" data-v="spotify" aria-pressed="true">Spotify-code</button>
+    <button type="button" class="hw-mz-mode" data-mz-set="code" data-v="qr" aria-pressed="false">QR-code</button>
+    <button type="button" class="hw-mz-mode" data-mz-set="code" data-v="geen" aria-pressed="false">Geen code</button>
+  </div>
+  <div data-mz-qrwrap hidden>
+    <div class="hw-mz-small">De QR-code opent standaard je nummer. Eigen link? Vul die hier in:</div>
+    <input type="text" class="hw-mz-input" data-mz-qrlink autocomplete="off" placeholder="Eigen link (optioneel)">
+  </div>
+
+  <div class="hw-mz-label">2. Kies je foto</div>
   <label class="hw-mz-filebtn"><span class="hw-mz-b">Foto kiezen</span><span class="hw-mz-n" data-mz-fname>Geen foto gekozen</span><input type="file" accept="image/*" data-mz-file hidden></label>
   <div class="hw-mz-row" data-mz-zoomrow hidden><span class="hw-mz-small">Inzoomen</span><input type="range" min="100" max="300" value="100" data-mz-zoom></div>
   <div class="hw-mz-modes">
@@ -22,7 +33,8 @@
     <button type="button" class="hw-mz-mode" data-mz-set="filter" data-v="Zwart-wit" aria-pressed="false">Zwart-wit</button>
   </div>
 
-  <div class="hw-mz-label">2. Zoek je nummer</div>
+  <div data-mz-songwrap>
+  <div class="hw-mz-label">3. Zoek je nummer</div>
   <div class="hw-mz-searchwrap">
     <input type="text" class="hw-mz-input" data-mz-search autocomplete="off" placeholder="Titel of artiest">
     <div class="hw-mz-sugg" data-mz-sugg hidden></div>
@@ -33,7 +45,9 @@
     <input type="text" class="hw-mz-input" data-mz-link autocomplete="off" placeholder="https://open.spotify.com/track/…">
   </div>
 
-  <div class="hw-mz-label">3. Tekst</div>
+  </div>
+
+  <div class="hw-mz-label">4. Tekst</div>
   <input type="text" class="hw-mz-input" data-mz-r1 maxlength="60" autocomplete="off" placeholder="Regel 1 (bijv. de titel)">
   <input type="text" class="hw-mz-input hw-mz-gap" data-mz-r2 maxlength="60" autocomplete="off" placeholder="Regel 2 (bijv. de artiest, optioneel)">
   <div class="hw-mz-two">
@@ -42,21 +56,11 @@
   </div>
   <div class="hw-mz-row"><span class="hw-mz-small">Bolletje</span><input type="range" min="0" max="100" value="20" data-mz-dot></div>
 
-  <div class="hw-mz-label">4. Stijl</div>
+  <div class="hw-mz-label">5. Stijl</div>
   <div class="hw-mz-small">Tekstkleur</div>
   <div class="hw-mz-modes">
     <button type="button" class="hw-mz-mode" data-mz-set="tekst" data-v="Zwarte tekst" aria-pressed="true">Zwarte tekst</button>
     <button type="button" class="hw-mz-mode" data-mz-set="tekst" data-v="Witte tekst" aria-pressed="false">Witte tekst</button>
-  </div>
-  <div class="hw-mz-small">Code</div>
-  <div class="hw-mz-modes">
-    <button type="button" class="hw-mz-mode" data-mz-set="code" data-v="spotify" aria-pressed="true">Spotify-code</button>
-    <button type="button" class="hw-mz-mode" data-mz-set="code" data-v="qr" aria-pressed="false">QR-code</button>
-    <button type="button" class="hw-mz-mode" data-mz-set="code" data-v="geen" aria-pressed="false">Geen code</button>
-  </div>
-  <div data-mz-qrwrap hidden>
-    <div class="hw-mz-small">De QR-code opent standaard je nummer. Eigen link? Vul die hier in:</div>
-    <input type="text" class="hw-mz-input" data-mz-qrlink autocomplete="off" placeholder="Eigen link (optioneel)">
   </div>
   <div class="hw-mz-small">Achtergrond</div>
   <div class="hw-mz-modes">
@@ -294,7 +298,7 @@
       b.addEventListener('click', function () {
         var k = b.dataset.mzSet; S[k] = b.dataset.v;
         root.querySelectorAll('[data-mz-set="' + k + '"]').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
-        $('[data-mz-qrwrap]').hidden = S.code !== 'qr';
+        $('[data-mz-qrwrap]').hidden = S.code !== 'qr'; $('[data-mz-songwrap]').hidden = S.code === 'geen';
         refreshCodes(); changed();
       });
     });
