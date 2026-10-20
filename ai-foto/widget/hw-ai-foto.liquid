@@ -228,8 +228,20 @@
     var fb = document.querySelector('form[data-type="add-to-cart-form"]');
     return fb ? [fb] : [];
   }
+  // Tot er een ontwerp gekozen is: knop "In winkelwagen" gedimd en snelle afrekenknoppen (Apple Pay, Nu kopen) verborgen.
+  function gate() {
+    var open = !!state.result;
+    getForms().forEach(function (form) {
+      form.querySelectorAll('button[type="submit"], button[name="add"], input[type="submit"]').forEach(function (b) {
+        if (b.closest('.shopify-payment-button')) return;
+        b.style.opacity = open ? '' : '.45'; b.setAttribute('aria-disabled', open ? 'false' : 'true');
+      });
+      form.querySelectorAll('.shopify-payment-button, [data-shopify="payment-button"], shopify-buy-it-now-button, shopify-accelerated-checkout').forEach(function (el) { el.style.display = open ? '' : 'none'; });
+    });
+  }
   // Gegevens die bij de bestelling komen. "_Herbestelling" (verborgen voor de klant) staat er alleen bij een hergebruikte afbeelding.
   function setProps(on) {
+    gate();
     getForms().forEach(function (form) {
       form.querySelectorAll('[data-hw-ai-prop]').forEach(function (el) { el.remove(); });
       if (!on) return;
@@ -636,6 +648,7 @@
     var btn = e.target.closest && e.target.closest('button[type="submit"], button[name="add"], input[type="submit"]');
     if (btn) blockIfNoResult(e, btn);
   }, true);
+  gate(); var gateN = 0, gateT = setInterval(function () { gate(); if (++gateN > 15) clearInterval(gateT); }, 1000);
   }
   document.querySelectorAll('[data-hw-ai]').forEach(function (r, i) { initOne(r, i); });
 })();
