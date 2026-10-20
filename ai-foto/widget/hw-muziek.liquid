@@ -1,0 +1,440 @@
+{%- comment -%}
+  Muziekframe live-generator: klant kiest een foto en een nummer (Spotify-zoeken), past tekst/kleuren aan en ziet de plaat live
+  met Spotify-code of QR-code. Schrijft dezelfde eigenschappen als de Zepto-personalizer, de orderapp blijft ongewijzigd.
+  Zet dit in een Custom Liquid-blok op de productpagina van het muziekframe (en haal daar de Zepto-personalizer weg).
+{%- endcomment -%}
+{%- assign hw_mz_api = 'https://ai-foto.socialframe.nl' -%}
+
+<div class="hw-mz" data-hw-mz data-api="{{ hw_mz_api }}">
+  <div class="hw-mz-heading">Personaliseren</div>
+
+  <div class="hw-mz-stage" data-mz-stage>
+    <canvas class="hw-mz-canvas" data-mz-canvas width="800" height="1200"></canvas>
+    <div class="hw-mz-drag" data-mz-drag title="Sleep om de foto te verplaatsen"></div>
+  </div>
+  <div class="hw-mz-hint">Sleep over de foto om hem te verplaatsen.</div>
+
+  <div class="hw-mz-label">1. Kies je foto</div>
+  <label class="hw-mz-filebtn"><span class="hw-mz-b">Foto kiezen</span><span class="hw-mz-n" data-mz-fname>Geen foto gekozen</span><input type="file" accept="image/*" data-mz-file hidden></label>
+  <div class="hw-mz-row" data-mz-zoomrow hidden><span class="hw-mz-small">Inzoomen</span><input type="range" min="100" max="300" value="100" data-mz-zoom></div>
+  <div class="hw-mz-modes">
+    <button type="button" class="hw-mz-mode" data-mz-set="filter" data-v="Kleur" aria-pressed="true">Kleur</button>
+    <button type="button" class="hw-mz-mode" data-mz-set="filter" data-v="Zwart-wit" aria-pressed="false">Zwart-wit</button>
+  </div>
+
+  <div class="hw-mz-label">2. Zoek je nummer</div>
+  <div class="hw-mz-searchwrap">
+    <input type="text" class="hw-mz-input" data-mz-search autocomplete="off" placeholder="Titel of artiest">
+    <div class="hw-mz-sugg" data-mz-sugg hidden></div>
+  </div>
+  <div class="hw-mz-small" data-mz-tracknote></div>
+  <button type="button" class="hw-mz-linkbtn" data-mz-linktoggle>Of plak een Spotify-link</button>
+  <div data-mz-linkwrap hidden>
+    <input type="text" class="hw-mz-input" data-mz-link autocomplete="off" placeholder="https://open.spotify.com/track/…">
+  </div>
+
+  <div class="hw-mz-label">3. Tekst</div>
+  <input type="text" class="hw-mz-input" data-mz-r1 maxlength="60" autocomplete="off" placeholder="Regel 1 (bijv. de titel)">
+  <input type="text" class="hw-mz-input hw-mz-gap" data-mz-r2 maxlength="60" autocomplete="off" placeholder="Regel 2 (bijv. de artiest, optioneel)">
+  <div class="hw-mz-two">
+    <div><div class="hw-mz-small">Begintijd</div><input type="text" class="hw-mz-input" data-mz-t0 maxlength="12" autocomplete="off" value="0:00"></div>
+    <div><div class="hw-mz-small">Eindtijd</div><input type="text" class="hw-mz-input" data-mz-t1 maxlength="12" autocomplete="off" placeholder="3:45"></div>
+  </div>
+  <div class="hw-mz-row"><span class="hw-mz-small">Bolletje</span><input type="range" min="0" max="100" value="20" data-mz-dot></div>
+
+  <div class="hw-mz-label">4. Stijl</div>
+  <div class="hw-mz-small">Tekstkleur</div>
+  <div class="hw-mz-modes">
+    <button type="button" class="hw-mz-mode" data-mz-set="tekst" data-v="Zwarte tekst" aria-pressed="true">Zwarte tekst</button>
+    <button type="button" class="hw-mz-mode" data-mz-set="tekst" data-v="Witte tekst" aria-pressed="false">Witte tekst</button>
+  </div>
+  <div class="hw-mz-small">Code</div>
+  <div class="hw-mz-modes">
+    <button type="button" class="hw-mz-mode" data-mz-set="code" data-v="spotify" aria-pressed="true">Spotify-code</button>
+    <button type="button" class="hw-mz-mode" data-mz-set="code" data-v="qr" aria-pressed="false">QR-code</button>
+    <button type="button" class="hw-mz-mode" data-mz-set="code" data-v="geen" aria-pressed="false">Geen code</button>
+  </div>
+  <div data-mz-qrwrap hidden>
+    <div class="hw-mz-small">De QR-code opent standaard je nummer. Eigen link? Vul die hier in:</div>
+    <input type="text" class="hw-mz-input" data-mz-qrlink autocomplete="off" placeholder="Eigen link (optioneel)">
+  </div>
+  <div class="hw-mz-small">Achtergrond</div>
+  <div class="hw-mz-modes">
+    <button type="button" class="hw-mz-mode" data-mz-set="bg" data-v="Wit" aria-pressed="true">Wit</button>
+    <button type="button" class="hw-mz-mode" data-mz-set="bg" data-v="Zwart" aria-pressed="false">Zwart</button>
+    <button type="button" class="hw-mz-mode" data-mz-set="bg" data-v="Marmerwit" aria-pressed="false">Marmer wit</button>
+    <button type="button" class="hw-mz-mode" data-mz-set="bg" data-v="Marmerzwart" aria-pressed="false">Marmer zwart</button>
+  </div>
+  <div class="hw-mz-small">Hartje</div>
+  <div class="hw-mz-modes">
+    <button type="button" class="hw-mz-mode" data-mz-set="heart" data-v="Rood" aria-pressed="true">Rood</button>
+    <button type="button" class="hw-mz-mode" data-mz-set="heart" data-v="Zwart" aria-pressed="false">Zwart</button>
+    <button type="button" class="hw-mz-mode" data-mz-set="heart" data-v="Wit" aria-pressed="false">Wit</button>
+    <button type="button" class="hw-mz-mode" data-mz-set="heart" data-v="Geen" aria-pressed="false">Geen</button>
+  </div>
+
+  <div class="hw-mz-status" data-mz-status role="status" aria-live="polite"></div>
+</div>
+
+<style>
+  .hw-mz{font-family:inherit;font-size:14px;color:#333;border:1.5px solid #E2E2E2;border-radius:24px;background:#fff;padding:22px 18px 20px;margin:1.75rem 0 1rem;box-sizing:border-box}
+  .hw-mz *{box-sizing:border-box}
+  .hw-mz-heading{font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#111;margin:0 0 16px}
+  .hw-mz-stage{position:relative;width:100%;max-width:420px;margin:0 auto;aspect-ratio:2/3;border:1.5px solid #E2E2E2;border-radius:6px;overflow:hidden;background:#fff}
+  .hw-mz-canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
+  .hw-mz-drag{position:absolute;left:10%;top:5.2%;width:80%;height:53.333%;touch-action:none;cursor:grab}
+  .hw-mz-drag:active{cursor:grabbing}
+  .hw-mz-hint{text-align:center;font-size:12px;color:#777;margin-top:6px}
+  .hw-mz-label{display:block;font-size:14px;font-weight:700;color:#121212;margin:20px 0 8px}
+  .hw-mz-small{font-size:12px;color:#666;margin:10px 0 4px}
+  .hw-mz-input{width:100%;padding:12px 14px;border:1.5px solid #8A8A8A;border-radius:12px;font:inherit;font-size:16px;color:#222;background:#fff}
+  .hw-mz-gap{margin-top:8px}
+  .hw-mz-two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .hw-mz-row{display:flex;align-items:center;gap:12px;margin-top:10px}
+  .hw-mz-row input{flex:1}
+  .hw-mz-row .hw-mz-small{margin:0;min-width:64px}
+  .hw-mz-filebtn{display:flex;align-items:center;gap:8px;max-width:100%;min-width:0;cursor:pointer}
+  .hw-mz-b{flex:none;border:1.5px solid #D0D0D0;border-radius:999px;padding:7px 14px;font-size:13px;background:#fff;color:#222}
+  .hw-mz-n{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;color:#777}
+  .hw-mz-modes{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px}
+  .hw-mz-mode{border:1.5px solid #D0D0D0;border-radius:999px;background:#fff !important;color:#222 !important;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+  .hw-mz-mode[aria-pressed="true"]{border-color:#111;background:#111 !important;color:#fff !important}
+  .hw-mz-searchwrap{position:relative}
+  .hw-mz-sugg{position:absolute;z-index:30;left:0;right:0;top:100%;margin-top:4px;background:#fff;border:1px solid #D0D0D0;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.14);overflow:hidden;max-height:340px;overflow-y:auto}
+  .hw-mz-sugg button{display:flex;gap:10px;align-items:center;width:100%;text-align:left;border:0;background:#fff;padding:8px 12px;font:inherit;font-size:14px;color:#222;cursor:pointer;border-bottom:1px solid #F0F0F0}
+  .hw-mz-sugg button:last-child{border-bottom:0}
+  .hw-mz-sugg button:hover,.hw-mz-sugg button:focus{background:#F5F5F5;outline:0}
+  .hw-mz-sugg img{width:40px;height:40px;border-radius:4px;object-fit:cover;flex:none}
+  .hw-mz-sugg small{display:block;color:#777;font-size:12px}
+  .hw-mz-linkbtn{border:0;background:none;color:#555;text-decoration:underline;font:inherit;font-size:13px;padding:6px 0;cursor:pointer}
+  .hw-mz-status{margin-top:14px;font-size:13px;color:#555;min-height:18px}
+  .hw-mz-status.err{color:#b3261e}
+</style>
+
+<script>
+(function () {
+  var FONT_CSS = 'https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap';
+  var PX = 4;                               // pixels per mm op het canvas (200x300 mm => 800x1200)
+  var PT = 0.352778 * PX;                   // 1 punt in canvas-pixels (de icoon-paden staan in punten)
+  var ZONE = { x: 20, top: 15.6, size: 160 };
+  var RED = '#de2638';
+
+  function loadFontsCss() {
+    if (document.getElementById('hw-mz-fonts')) return;
+    var l = document.createElement('link'); l.id = 'hw-mz-fonts'; l.rel = 'stylesheet'; l.href = FONT_CSS; document.head.appendChild(l);
+  }
+  function fontsReady() {
+    if (!(document.fonts && document.fonts.load)) return Promise.resolve();
+    return Promise.all([document.fonts.load('700 40px Montserrat'), document.fonts.load('400 40px Montserrat')]);
+  }
+
+  function initOne(root) {
+    if (root.dataset.hwMzInit) return; root.dataset.hwMzInit = '1';
+    loadFontsCss();
+    var API = (root.dataset.api || '').replace(/\/$/, '');
+    var $ = function (s) { return root.querySelector(s); };
+    var canvas = $('[data-mz-canvas]'), ctx = canvas.getContext('2d');
+    var statusEl = $('[data-mz-status]'), suggEl = $('[data-mz-sugg]'), searchEl = $('[data-mz-search]');
+    var r1El = $('[data-mz-r1]'), r2El = $('[data-mz-r2]'), t0El = $('[data-mz-t0]'), t1El = $('[data-mz-t1]'), dotEl = $('[data-mz-dot]');
+    var linkEl = $('[data-mz-link]'), qrLinkEl = $('[data-mz-qrlink]'), zoomEl = $('[data-mz-zoom]');
+
+    var S = { filter: 'Kleur', tekst: 'Zwarte tekst', code: 'spotify', bg: 'Wit', heart: 'Rood', track: null,
+              photo: null, zoom: 1, ox: 0, oy: 0, result: null, busy: false, pass: false, searchOk: true };
+    var layout = null, bgImgs = {}, codeImg = null, codeKey = '', qrImg = null, qrKey = '';
+    var raf = 0;
+
+    function say(t, err) { statusEl.textContent = t || ''; statusEl.className = 'hw-mz-status' + (err ? ' err' : ''); }
+    function changed() { S.result = null; schedule(); }
+    function schedule() { if (!raf) raf = requestAnimationFrame(function () { raf = 0; draw(); }); }
+
+    // ----- gegevens ophalen -----
+    fetch(API + '/api/music/layout').then(function (r) { return r.json(); }).then(function (j) {
+      layout = j.paths; S.searchOk = !!j.search;
+      if (!S.searchOk) { $('[data-mz-linkwrap]').hidden = false; $('[data-mz-linktoggle]').hidden = true; searchEl.placeholder = 'Zoeken is nu niet beschikbaar, plak hieronder een Spotify-link'; searchEl.disabled = true; }
+      schedule();
+    }).catch(function () { say('Het ontwerp kon niet geladen worden. Ververs de pagina.', true); });
+    ['marmerwit', 'marmerzwart'].forEach(function (n) {
+      fetch(API + '/api/music/bg/' + n).then(function (r) { return r.blob(); }).then(function (b) { return createImageBitmap(b); })
+        .then(function (bm) { bgImgs[n] = bm; schedule(); }).catch(function () {});
+    });
+    fontsReady().then(schedule, schedule);
+
+    function svgImage(url) {
+      return fetch(url).then(function (r) { if (!r.ok) throw new Error('x'); return r.text(); }).then(function (t) {
+        return new Promise(function (res, rej) {
+          var u = URL.createObjectURL(new Blob([t], { type: 'image/svg+xml' }));
+          var im = new Image(); im.onload = function () { res(im); }; im.onerror = rej; im.src = u;
+        });
+      });
+    }
+    function white() { return S.tekst === 'Witte tekst'; }
+    function codeLink() { return (S.track && S.track.url) || linkEl.value.trim(); }
+    function qrText() { return qrLinkEl.value.trim() || codeLink(); }
+    function refreshCodes() {
+      if (S.code === 'spotify' && codeLink()) {
+        var w = white(), key = codeLink() + '|' + w;
+        if (key !== codeKey) {
+          codeKey = key; codeImg = null;
+          svgImage(API + '/api/music/code.svg?link=' + encodeURIComponent(codeLink()) + '&bg=' + (w ? '000000' : 'ffffff') + '&fg=' + (w ? 'white' : 'black'))
+            .then(function (im) { if (codeKey === key) { codeImg = im; schedule(); } }, function () { if (codeKey === key) { codeImg = 'fout'; schedule(); } });
+        }
+      }
+      if (S.code === 'qr' && qrText()) {
+        var k2 = qrText();
+        if (k2 !== qrKey) {
+          qrKey = k2; qrImg = null;
+          svgImage(API + '/api/music/qr.svg?text=' + encodeURIComponent(k2))
+            .then(function (im) { if (qrKey === k2) { qrImg = im; schedule(); } }, function () {});
+        }
+      }
+    }
+
+    // ----- tekenen -----
+    function fitFont(text, weight, pt, maxPx, minPt) {
+      var size = pt;
+      while (size > minPt) { ctx.font = weight + ' ' + (size * PT) + 'px Montserrat, Arial, sans-serif'; if (ctx.measureText(text).width <= maxPx) break; size -= 0.5; }
+      ctx.font = weight + ' ' + (size * PT) + 'px Montserrat, Arial, sans-serif';
+    }
+    function icon(name, color, shiftMm) {
+      var p = layout[name]; if (!p) return;
+      ctx.save(); ctx.translate(p.pageXMm * PX, (p.pageTopMm + (shiftMm || 0)) * PX); ctx.scale(PT, PT);
+      ctx.fillStyle = color; ctx.fill(new Path2D(p.d)); ctx.restore();
+    }
+    function photoRect() {
+      if (!S.photo) return null;
+      var z = ZONE.size * PX, iw = S.photo.naturalWidth, ih = S.photo.naturalHeight;
+      var sc = Math.max(z / iw, z / ih) * S.zoom, w = iw * sc, h = ih * sc;
+      var maxX = Math.max(0, (w - z) / 2), maxY = Math.max(0, (h - z) / 2);
+      S.ox = Math.max(-maxX, Math.min(maxX, S.ox)); S.oy = Math.max(-maxY, Math.min(maxY, S.oy));
+      return { x: (z - w) / 2 + S.ox, y: (z - h) / 2 + S.oy, w: w, h: h, z: z };
+    }
+    function drawPhotoTo(c, outSize) {
+      var r = photoRect(); if (!r) return;
+      var k = outSize / r.z;
+      c.drawImage(S.photo, r.x * k, r.y * k, r.w * k, r.h * k);
+    }
+    function gray(c, size) {
+      var d = c.getImageData(0, 0, size, size), a = d.data;
+      for (var i = 0; i < a.length; i += 4) { var g = a[i] * 0.299 + a[i + 1] * 0.587 + a[i + 2] * 0.114; a[i] = a[i + 1] = a[i + 2] = g; }
+      c.putImageData(d, 0, 0);
+    }
+    function draw() {
+      if (!layout) return;
+      var W = canvas.width, H = canvas.height, wt = white(), col = wt ? '#fffffd' : '#000000';
+      ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, W, H);
+      var bg = S.bg;
+      if (bg === 'Wit') { ctx.fillStyle = '#fffffd'; ctx.fillRect(0, 0, W, H); }
+      else if (bg === 'Zwart') { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H); }
+      else {
+        var im = bgImgs[bg === 'Marmerwit' ? 'marmerwit' : 'marmerzwart'];
+        ctx.fillStyle = bg === 'Marmerwit' ? '#f2f2f2' : '#111'; ctx.fillRect(0, 0, W, H);
+        if (im) ctx.drawImage(im, 0, 0, W, H);
+      }
+      var zx = ZONE.x * PX, zy = ZONE.top * PX, z = ZONE.size * PX;
+      if (S.photo) {
+        var off = document.createElement('canvas'); off.width = z; off.height = z; var oc = off.getContext('2d');
+        drawPhotoTo(oc, z); if (S.filter === 'Zwart-wit') gray(oc, z);
+        ctx.drawImage(off, zx, zy);
+      } else {
+        ctx.fillStyle = wt ? 'rgba(255,255,255,.12)' : 'rgba(0,0,0,.07)'; ctx.fillRect(zx, zy, z, z);
+        ctx.fillStyle = wt ? 'rgba(255,255,255,.7)' : 'rgba(0,0,0,.45)'; ctx.font = '700 ' + (6 * PX) + 'px Montserrat, Arial, sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('Jouw foto', W / 2, zy + z / 2 + 2 * PX); ctx.textAlign = 'left';
+      }
+      var maxW = (layout.heart.pageXMm - 3 - 19.7) * PX;
+      ctx.fillStyle = col; ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';
+      var r1 = r1El.value.trim(), r2 = r2El.value.trim(), t0 = t0El.value.trim(), t1 = t1El.value.trim();
+      if (r1) { fitFont(r1, '700', 27.8, maxW, 6); ctx.fillText(r1, 19.7 * PX, (189.7 + 9.8) * PX); }
+      if (r2) { fitFont(r2, '400', 28, maxW, 6); ctx.fillText(r2, 19.7 * PX, (203.1 + 9.9) * PX); }
+      var hc = { Rood: RED, Zwart: '#000000', Wit: '#fffffd' }[S.heart];
+      if (hc) icon('heart', hc);
+      icon('timeline_bar', col);
+      var bar = layout.timeline_bar, pct = +dotEl.value;
+      ctx.fillStyle = col;
+      ctx.beginPath(); ctx.arc((bar.pageXMm + bar.widthMm * pct / 100) * PX, (bar.pageTopMm + bar.heightMm / 2) * PX, 3.75 * PX, 0, Math.PI * 2); ctx.fill();
+      if (t0) { fitFont(t0, '700', 17.2, 70 * PX, 8); ctx.textAlign = 'left'; ctx.fillText(t0, 19.8 * PX, (230.5 + 6.1) * PX); }
+      if (t1) { fitFont(t1, '700', 17.2, 70 * PX, 8); ctx.textAlign = 'right'; ctx.fillText(t1, (200 - 19.8) * PX, (230.5 + 6.1) * PX); ctx.textAlign = 'left'; }
+      var shift = S.code === 'spotify' ? -8.73 : 2.824;
+      ['shuffle_1', 'shuffle_2', 'shuffle_3', 'prev', 'play_triangle', 'play_circle', 'next', 'repeat_1', 'repeat_2'].forEach(function (n) { icon(n, col, shift); });
+      if (S.code === 'spotify') {
+        var bx = 43.55 * PX, by = 261.32 * PX, bw = 113 * PX, bh = 28.25 * PX;
+        if (codeImg && codeImg !== 'fout') {
+          ctx.save(); ctx.globalCompositeOperation = wt ? 'screen' : 'multiply'; ctx.drawImage(codeImg, bx, by, bw, bh); ctx.restore();
+        } else {
+          ctx.save(); ctx.strokeStyle = col; ctx.globalAlpha = .5; ctx.setLineDash([8, 6]); ctx.strokeRect(bx, by, bw, bh);
+          ctx.setLineDash([]); ctx.fillStyle = col; ctx.font = '400 ' + (4 * PX) + 'px Montserrat, Arial, sans-serif'; ctx.textAlign = 'center';
+          ctx.fillText(codeImg === 'fout' ? 'Spotify-code niet gevonden' : 'Kies een nummer voor de Spotify-code', bx + bw / 2, by + bh / 2 + 1.5 * PX); ctx.restore();
+        }
+      } else if (S.code === 'qr') {
+        var qx = 161.925 * PX, qy = 247.011 * PX, qs = 20 * PX;
+        ctx.fillStyle = '#ffffff'; ctx.fillRect(qx, qy, qs, qs);
+        if (qrImg) ctx.drawImage(qrImg, qx, qy, qs, qs);
+      }
+    }
+
+    // ----- foto kiezen / verplaatsen -----
+    $('[data-mz-file]').addEventListener('change', function (e) {
+      var f = e.target.files && e.target.files[0]; if (!f) return;
+      $('[data-mz-fname]').textContent = f.name;
+      var u = URL.createObjectURL(f), im = new Image();
+      im.onload = function () { S.photo = im; S.zoom = 1; S.ox = S.oy = 0; zoomEl.value = 100; $('[data-mz-zoomrow]').hidden = false; say(''); changed(); };
+      im.onerror = function () { say('Deze foto kan niet gelezen worden. Kies een JPG of PNG.', true); };
+      im.src = u;
+    });
+    zoomEl.addEventListener('input', function () { S.zoom = zoomEl.value / 100; changed(); });
+    var drag = $('[data-mz-drag]'), dp = null;
+    drag.addEventListener('pointerdown', function (e) { if (!S.photo) return; dp = { x: e.clientX, y: e.clientY, ox: S.ox, oy: S.oy }; drag.setPointerCapture(e.pointerId); });
+    drag.addEventListener('pointermove', function (e) {
+      if (!dp) return; var k = canvas.width / canvas.getBoundingClientRect().width;
+      S.ox = dp.ox + (e.clientX - dp.x) * k; S.oy = dp.oy + (e.clientY - dp.y) * k; changed();
+    });
+    ['pointerup', 'pointercancel'].forEach(function (n) { drag.addEventListener(n, function () { dp = null; }); });
+
+    // ----- keuzeknoppen en velden -----
+    root.querySelectorAll('[data-mz-set]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var k = b.dataset.mzSet; S[k] = b.dataset.v;
+        root.querySelectorAll('[data-mz-set="' + k + '"]').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+        $('[data-mz-qrwrap]').hidden = S.code !== 'qr';
+        refreshCodes(); changed();
+      });
+    });
+    [r1El, r2El, t0El, t1El, dotEl, qrLinkEl].forEach(function (el) { el.addEventListener('input', function () { refreshCodes(); changed(); }); });
+    $('[data-mz-linktoggle]').addEventListener('click', function () { $('[data-mz-linkwrap]').hidden = false; this.hidden = true; linkEl.focus(); });
+    var lt = null;
+    linkEl.addEventListener('input', function () {
+      clearTimeout(lt);
+      lt = setTimeout(function () {
+        var v = linkEl.value.trim(); if (!/spotify/i.test(v)) { S.track = null; refreshCodes(); changed(); return; }
+        say('Nummer ophalen…');
+        fetch(API + '/api/music/track?link=' + encodeURIComponent(v)).then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || 'Link niet herkend.'); return j; }); })
+          .then(function (j) { say(''); pickTrack(j.track, true); }, function (e) { say(e.message, true); });
+      }, 500);
+    });
+
+    // ----- nummer zoeken -----
+    function pickTrack(t, fromLink) {
+      S.track = t;
+      r1El.value = t.title || r1El.value; r2El.value = t.artist || r2El.value;
+      if (t.duration) t1El.value = t.duration;
+      if (!t0El.value.trim()) t0El.value = '0:00';
+      $('[data-mz-tracknote]').textContent = 'Gekozen: ' + t.title + (t.artist ? ' – ' + t.artist : '');
+      suggEl.hidden = true; if (!fromLink) searchEl.value = '';
+      refreshCodes(); changed();
+    }
+    var st = null;
+    searchEl.addEventListener('input', function () {
+      clearTimeout(st); var q = searchEl.value.trim();
+      if (q.length < 2) { suggEl.hidden = true; return; }
+      st = setTimeout(function () {
+        fetch(API + '/api/music/search?q=' + encodeURIComponent(q)).then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || 'Zoeken lukt nu niet.'); return j; }); })
+          .then(function (j) {
+            suggEl.innerHTML = ''; say('');
+            (j.tracks || []).slice(0, 8).forEach(function (t) {
+              var b = document.createElement('button'); b.type = 'button';
+              if (t.image) { var im = document.createElement('img'); im.src = t.image; im.alt = ''; b.appendChild(im); }
+              var d = document.createElement('div'); d.textContent = t.title; var sm = document.createElement('small'); sm.textContent = t.artist + (t.duration ? ' · ' + t.duration : ''); d.appendChild(sm); b.appendChild(d);
+              b.addEventListener('click', function () { pickTrack(t); });
+              suggEl.appendChild(b);
+            });
+            suggEl.hidden = !suggEl.children.length;
+            if (!suggEl.children.length) say('Geen nummers gevonden.');
+          }, function (e) { say(e.message, true); });
+      }, 350);
+    });
+    document.addEventListener('click', function (ev) { if (!root.contains(ev.target)) suggEl.hidden = true; });
+
+    // ----- opslaan en winkelwagen -----
+    function signature() { return JSON.stringify([S.filter, S.tekst, S.code, S.bg, S.heart, S.zoom, S.ox, S.oy, r1El.value, r2El.value, t0El.value, t1El.value, dotEl.value, codeLink(), qrText(), S.photo && S.photo.src]); }
+    function validate() {
+      if (!S.photo) return 'Kies eerst een foto.';
+      if (!r1El.value.trim()) return 'Vul Regel 1 in (bijv. de titel van het nummer).';
+      if (S.code !== 'geen' && !(S.code === 'qr' ? qrText() : codeLink())) return S.code === 'qr' ? 'Kies een nummer of vul een link voor de QR-code in.' : 'Kies een nummer voor de Spotify-code.';
+      if (S.code === 'spotify' && codeImg === 'fout') return 'Deze Spotify-link werkt niet. Kies een ander nummer.';
+      return '';
+    }
+    function post(path, field, blob, name) {
+      var fd = new FormData(); fd.append(field, blob, name);
+      return fetch(API + path, { method: 'POST', body: fd }).then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || 'Opslaan mislukt'); return j; }); });
+    }
+    function toBlob(c, q) { return new Promise(function (res) { c.toBlob(res, 'image/jpeg', q); }); }
+    function build() {
+      var sig = signature();
+      if (S.result && S.result.sig === sig) return Promise.resolve(S.result);
+      S.busy = true;
+      var side = Math.max(800, Math.min(2400, Math.max(S.photo.naturalWidth, S.photo.naturalHeight)));
+      var crop = document.createElement('canvas'); crop.width = crop.height = side;
+      var cc = crop.getContext('2d'); cc.fillStyle = '#fff'; cc.fillRect(0, 0, side, side); drawPhotoTo(cc, side);
+      return fontsReady().then(function () { draw(); return Promise.all([toBlob(crop, 0.92), toBlob(canvas, 0.85)]); }).then(function (b) {
+        return Promise.all([post('/api/music/photo', 'photo', b[0], 'foto.jpg'), post('/api/music/preview', 'image', b[1], 'voorbeeld.jpg')]);
+      }).then(function (u) {
+        S.busy = false; S.result = { sig: sig, photo: u[0].url, preview: u[1].url }; return S.result;
+      }, function (e) { S.busy = false; throw e; });
+    }
+    function getForms() {
+      var f = document.querySelectorAll('.product-form .form'); if (f.length) return f;
+      var fb = document.querySelector('form[data-type="add-to-cart-form"]'); return fb ? [fb] : [];
+    }
+    function styleText() { return S.tekst + (S.code === 'spotify' ? ' & Spotify-code' : S.code === 'qr' ? ' & QR-code' : ''); }
+    function setProps(r) {
+      var P = {
+        'properties[Uw personalisatie]': r.preview,
+        'properties[Stijl van jouw socialframe]': styleText(),
+        'properties[Foto-filter]': S.filter,
+        'properties[Achtergrond kleur]': S.bg,
+        'properties[Kleur van het hartje]': S.heart,
+        'properties[Regel 1]': r1El.value.trim(),
+        'properties[Regel 2]': r2El.value.trim(),
+        'properties[Begintijd]': t0El.value.trim(),
+        'properties[Eindtijd]': t1El.value.trim(),
+        'properties[Positie bolletje tijdlijn]': dotEl.value + '%',
+        'properties[Upload hier jouw favoriete foto]': r.photo
+      };
+      var link = S.code === 'qr' ? qrText() : S.code === 'spotify' ? codeLink() : '';
+      if (link) P['properties[Link naar jouw favoriete nummer]'] = link;
+      getForms().forEach(function (form) {
+        form.querySelectorAll('[data-hw-mz-prop]').forEach(function (el) { el.remove(); });
+        Object.keys(P).forEach(function (n) { if (P[n] === '') return; var i = document.createElement('input'); i.type = 'hidden'; i.name = n; i.value = P[n]; i.setAttribute('data-hw-mz-prop', ''); form.appendChild(i); });
+      });
+    }
+    var toastEl = null, toastTimer = null;
+    function toast(anchor, msg, ms) {
+      if (!toastEl) {
+        toastEl = document.createElement('div'); toastEl.setAttribute('role', 'alert');
+        toastEl.style.cssText = 'position:fixed;z-index:99999;background:#fff;color:#444;font:500 15px/1.3 inherit;font-family:inherit;padding:14px 20px;border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,.22);text-align:center;max-width:90vw;pointer-events:none;transform:translate(-50%,-50%);transition:opacity .25s';
+        document.body.appendChild(toastEl);
+      }
+      var r = anchor.getBoundingClientRect();
+      toastEl.textContent = msg; toastEl.style.left = (r.left + r.width / 2) + 'px'; toastEl.style.top = (r.top + r.height / 2) + 'px';
+      toastEl.style.opacity = '1'; toastEl.style.display = 'block';
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () { toastEl.style.opacity = '0'; setTimeout(function () { toastEl.style.display = 'none'; }, 260); }, ms || 2500);
+    }
+    function intercept(e, target) {
+      if (S.pass) return;
+      if (root.hidden || root.offsetParent === null) return;
+      if (!target || !target.closest || !target.closest('.product-form, form[data-type="add-to-cart-form"]')) return;
+      var btn = target.matches && target.matches('button, input') ? target : (target.querySelector && target.querySelector('button[type="submit"], button[name="add"]')) || target;
+      if (S.result && S.result.sig === signature()) { setProps(S.result); return; }
+      e.preventDefault(); e.stopImmediatePropagation();
+      var bad = validate(); if (bad) { toast(btn, bad, 3500); return; }
+      if (S.busy) { toast(btn, 'Even geduld, je ontwerp wordt opgeslagen…', 2500); return; }
+      toast(btn, 'Even geduld, je ontwerp wordt opgeslagen…', 30000);
+      build().then(function (r) {
+        setProps(r); toast(btn, 'Klaar!', 600);
+        S.pass = true; btn.click(); setTimeout(function () { S.pass = false; }, 2000);
+      }, function (err) { toast(btn, (err && err.message) || 'Er ging iets mis, probeer het opnieuw.', 3500); });
+    }
+    document.addEventListener('submit', function (e) { intercept(e, e.target); }, true);
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest && e.target.closest('button[type="submit"], button[name="add"], input[type="submit"]');
+      if (btn) intercept(e, btn);
+    }, true);
+
+    schedule();
+  }
+
+  function boot() { document.querySelectorAll('[data-hw-mz]').forEach(initOne); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+  document.addEventListener('shopify:section:load', boot);
+})();
+</script>

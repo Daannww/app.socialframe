@@ -85,6 +85,19 @@ require('./db').setSetting('controle_onderwerp', 'uit'); require('./db').setSett
   assert.equal((await (await fetch(B + '/api/order-link', lnk)).json()).linked, 0);   // dubbel melden: geen dubbele regel
   const ord = await (await fetch(B + '/admin/api/jobs?status=ordered', { headers: auth })).json();
   assert(ord.jobs.length === 1 && ord.jobs[0].order_name === '#1234', JSON.stringify(ord.jobs.map((j) => j.order_name)));
+  // muziekframe-generator
+  const lay = await (await fetch(B + '/api/music/layout')).json();
+  assert(lay.paths.heart && lay.paths.timeline_bar && lay.search === false);
+  const qrs = await fetch(B + '/api/music/qr.svg?text=' + encodeURIComponent('https://open.spotify.com/track/abc'));
+  assert(qrs.status === 200 && (await qrs.text()).startsWith('<svg'));
+  assert.equal((await fetch(B + '/api/music/search?q=heaven')).status, 503);                 // zonder Spotify-sleutels: nette melding
+  assert.equal((await fetch(B + '/api/music/track?link=https://example.com/x')).status, 400); // geen Spotify-link
+  assert.equal((await fetch(B + '/api/music/code.svg?uri=nonsense')).status, 400);
+  const mfd = new FormData(); mfd.append('photo', new Blob([photo], { type: 'image/jpeg' }), 'f.jpg');
+  const mph = await (await fetch(B + '/api/music/photo', { method: 'POST', body: mfd })).json();
+  assert(/\/files\/[a-f0-9]{32}-music\.jpg$/.test(mph.url), JSON.stringify(mph));
+  assert.equal((await fetch(mph.url.replace('http://localhost:4599', B))).status, 200);
+  const bgz = await fetch(B + '/api/music/bg/marmerwit'); assert.equal(bgz.status, 200);
   const rec = await (await fetch(B + '/api/recent?client_id=client-aaaa1111&profile=tegel')).json();
   assert(rec.items.length >= 2 && rec.items[0].variants.length >= 1 && rec.items[0].variants[0].preview_url); // pogingen blijven na refresh
   const recOther = await (await fetch(B + '/api/recent?client_id=client-zzzz9999&profile=tegel')).json();
