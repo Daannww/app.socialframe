@@ -14,18 +14,7 @@
   </div>
   <div class="hw-mz-hint">Sleep over de foto om hem te verplaatsen.</div>
 
-  <div class="hw-mz-label">1. Kies je code</div>
-  <div class="hw-mz-modes">
-    <button type="button" class="hw-mz-mode" data-mz-set="code" data-v="spotify" aria-pressed="true">Spotify-code</button>
-    <button type="button" class="hw-mz-mode" data-mz-set="code" data-v="qr" aria-pressed="false">QR-code</button>
-    <button type="button" class="hw-mz-mode" data-mz-set="code" data-v="geen" aria-pressed="false">Geen code</button>
-  </div>
-  <div data-mz-qrwrap hidden>
-    <div class="hw-mz-small">De QR-code opent standaard je nummer. Eigen link? Vul die hier in:</div>
-    <input type="text" class="hw-mz-input" data-mz-qrlink autocomplete="off" placeholder="Eigen link (optioneel)">
-  </div>
-
-  <div class="hw-mz-label">2. Kies je foto</div>
+  <div class="hw-mz-label">1. Kies je foto</div>
   <label class="hw-mz-filebtn"><span class="hw-mz-b">Foto kiezen</span><span class="hw-mz-n" data-mz-fname>Geen foto gekozen</span><input type="file" accept="image/*" data-mz-file hidden></label>
   <div class="hw-mz-row" data-mz-zoomrow hidden><span class="hw-mz-small">Inzoomen</span><input type="range" min="100" max="300" value="100" data-mz-zoom></div>
   <div class="hw-mz-modes">
@@ -33,15 +22,27 @@
     <button type="button" class="hw-mz-mode" data-mz-set="filter" data-v="Zwart-wit" aria-pressed="false">Zwart-wit</button>
   </div>
 
-  <div data-mz-songwrap>
+  <div class="hw-mz-label">2. Kies je code</div>
+  <div class="hw-mz-modes">
+    <button type="button" class="hw-mz-mode" data-mz-set="code" data-v="spotify" aria-pressed="false">Spotify-code</button>
+    <button type="button" class="hw-mz-mode" data-mz-set="code" data-v="qr" aria-pressed="false">QR-code</button>
+    <button type="button" class="hw-mz-mode" data-mz-set="code" data-v="geen" aria-pressed="true">Geen code</button>
+  </div>
+  <div data-mz-qrwrap hidden>
+    <div class="hw-mz-small">De QR-code opent standaard je nummer. Eigen link? Vul die hier in:</div>
+    <input type="text" class="hw-mz-input" data-mz-qrlink autocomplete="off" placeholder="Eigen link (optioneel)">
+  </div>
+
+
+  <div data-mz-songwrap hidden>
   <div class="hw-mz-label">3. Zoek je nummer</div>
   <div class="hw-mz-searchwrap">
     <input type="text" class="hw-mz-input" data-mz-search autocomplete="off" placeholder="Titel of artiest">
     <div class="hw-mz-sugg" data-mz-sugg hidden></div>
   </div>
   <div class="hw-mz-small" data-mz-tracknote></div>
-  <button type="button" class="hw-mz-linkbtn" data-mz-linktoggle>Of plak een Spotify-link</button>
-  <div data-mz-linkwrap hidden>
+  <div class="hw-mz-small">Lukt zoeken niet? Plak de Spotify-link (in Spotify: Delen &gt; Link kopiëren):</div>
+  <div data-mz-linkwrap>
     <input type="text" class="hw-mz-input" data-mz-link autocomplete="off" placeholder="https://open.spotify.com/track/…">
   </div>
 
@@ -142,7 +143,7 @@
     var r1El = $('[data-mz-r1]'), r2El = $('[data-mz-r2]'), t0El = $('[data-mz-t0]'), t1El = $('[data-mz-t1]'), dotEl = $('[data-mz-dot]');
     var linkEl = $('[data-mz-link]'), qrLinkEl = $('[data-mz-qrlink]'), zoomEl = $('[data-mz-zoom]');
 
-    var S = { filter: 'Kleur', tekst: 'Zwarte tekst', code: 'spotify', bg: 'Wit', heart: 'Rood', track: null,
+    var S = { filter: 'Kleur', tekst: 'Zwarte tekst', code: 'geen', bg: 'Wit', heart: 'Rood', track: null,
               photo: null, zoom: 1, ox: 0, oy: 0, result: null, busy: false, pass: false, searchOk: true };
     var layout = null, bgImgs = {}, codeImg = null, codeKey = '', qrImg = null, qrKey = '';
     var raf = 0;
@@ -154,7 +155,7 @@
     // ----- gegevens ophalen -----
     fetch(API + '/api/music/layout').then(function (r) { return r.json(); }).then(function (j) {
       layout = j.paths; S.searchOk = !!j.search;
-      if (!S.searchOk) { $('[data-mz-linkwrap]').hidden = false; $('[data-mz-linktoggle]').hidden = true; searchEl.placeholder = 'Zoeken is nu niet beschikbaar, plak hieronder een Spotify-link'; searchEl.disabled = true; }
+      if (!S.searchOk) { searchEl.placeholder = 'Zoeken is nu niet beschikbaar, plak hieronder een Spotify-link'; searchEl.disabled = true; }
       schedule();
     }).catch(function () { say('Het ontwerp kon niet geladen worden. Ververs de pagina.', true); });
     ['marmerwit', 'marmerzwart'].forEach(function (n) {
@@ -303,7 +304,6 @@
       });
     });
     [r1El, r2El, t0El, t1El, dotEl, qrLinkEl].forEach(function (el) { el.addEventListener('input', function () { refreshCodes(); changed(); }); });
-    $('[data-mz-linktoggle]').addEventListener('click', function () { $('[data-mz-linkwrap]').hidden = false; this.hidden = true; linkEl.focus(); });
     var lt = null;
     linkEl.addEventListener('input', function () {
       clearTimeout(lt);
