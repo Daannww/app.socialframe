@@ -77,6 +77,14 @@ require('./db').setSetting('controle_onderwerp', 'uit'); require('./db').setSett
   const badChk = await gen('tegel', 'landscape', 'client-chk00001');
   assert.equal(badChk.status, 'error');
   require('./db').setSetting('controle_onderwerp', 'uit');
+  // bestelnummer koppelen (orderapp -> ai-foto)
+  process.env.ORDER_LINK_SECRET = 'geheim';
+  assert.equal((await fetch(B + '/api/order-link', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })).status, 401);
+  const lnk = { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-link-secret': 'geheim' }, body: JSON.stringify({ orders: [{ job_id: t.job_id || t.id, order_name: '#1234' }, { job_id: 'bestaatniet', order_name: '#1' }] }) };
+  assert.equal((await (await fetch(B + '/api/order-link', lnk)).json()).linked, 1);
+  assert.equal((await (await fetch(B + '/api/order-link', lnk)).json()).linked, 0);   // dubbel melden: geen dubbele regel
+  const ord = await (await fetch(B + '/admin/api/jobs?status=ordered', { headers: auth })).json();
+  assert(ord.jobs.length === 1 && ord.jobs[0].order_name === '#1234', JSON.stringify(ord.jobs.map((j) => j.order_name)));
   const rec = await (await fetch(B + '/api/recent?client_id=client-aaaa1111&profile=tegel')).json();
   assert(rec.items.length >= 2 && rec.items[0].variants.length >= 1 && rec.items[0].variants[0].preview_url); // pogingen blijven na refresh
   const recOther = await (await fetch(B + '/api/recent?client_id=client-zzzz9999&profile=tegel')).json();

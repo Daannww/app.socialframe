@@ -37,6 +37,22 @@ app.use('/fonts', (req, res, next) => { res.set('Access-Control-Allow-Origin', '
 app.use('/files', express.static(FILES, { maxAge: '30d', immutable: true }));
 
 // ---------- Publieke API (productpagina) ----------
+// De orderapp meldt hier welk bestelnummer bij welke foto hoort (geheim via ORDER_LINK_SECRET). Body: { orders: [{ job_id, order_name, print }] }
+app.post('/api/order-link', (req, res) => {
+  const secret = process.env.ORDER_LINK_SECRET;
+  if (!secret || req.get('x-link-secret') !== secret) return res.status(401).json({ error: 'niet toegestaan' });
+  let n = 0;
+  for (const o of (Array.isArray(req.body && req.body.orders) ? req.body.orders : []).slice(0, 200)) {
+    const name = String(o.order_name || '').slice(0, 40), id = String(o.job_id || '').replace(/[^a-f0-9]/gi, '').slice(0, 64);
+    if (!name || !id) continue;
+    const cur = db.prepare('SELECT order_name FROM jobs WHERE id=?').get(id);
+    if (!cur) continue;
+    const list = String(cur.order_name || '').split(', ').filter(Boolean);
+    if (!list.includes(name)) { list.push(name); db.prepare('UPDATE jobs SET order_name=? WHERE id=?').run(list.join(', '), id); n++; }
+  }
+  res.json({ linked: n });
+});
+
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 15 * 1024 * 1024 } });
 
 const publicDesign = (d) => ({ id: d.id, slug: d.slug, name: d.name, description: d.description, example_url: fileUrl(d.example_file),
@@ -379,11 +395,12 @@ app.get('/admin/api/jobs', (req, res) => {
   if (to) { w.push('j.created_at <= ?'); a.push(to.length === 16 ? to + ':59' : to); }
   if (parseInt(req.query.design, 10)) { w.push('j.design_id = ?'); a.push(parseInt(req.query.design, 10)); }
   const st = String(req.query.status || '');
-  if (st === 'chosen') w.push('j.chosen IS NOT NULL');
+  if (st === 'ordered') w.push("j.order_name IS NOT NULL AND j.order_name != ''");
+  else if (st === 'chosen') w.push('j.chosen IS NOT NULL');
   else if (st === 'error') w.push("j.status = 'error'");
   else if (st === 'done') w.push("j.status = 'done'");
   const q = String(req.query.q || '').trim();
-  if (q) { w.push("(j.custom_text LIKE ? OR j.ip LIKE ? OR j.id LIKE ?)"); a.push(`%${q}%`, `%${q}%`, `%${q}%`); }
+  if (q) { w.push("(j.custom_text LIKE ? OR j.ip LIKE ? OR j.id LIKE ? OR j.order_name LIKE ?)"); a.push(`%${q}%`, `%${q}%`, `%${q}%`, `%${q}%`); }
   const where = w.join(' AND ');
   const total = db.prepare(`SELECT COUNT(*) c FROM jobs j WHERE ${where}`).get(...a).c;
   const offset = Math.max(0, parseInt(req.query.offset, 10) || 0);
@@ -391,7 +408,7 @@ app.get('/admin/api/jobs', (req, res) => {
     .map((j) => {
       const vs = parseVariants(j);
       return { id: j.id, created_at: j.created_at, status: j.status, error: j.error, design_name: j.design_name, profile: j.profile, custom_text: j.custom_text, ip: j.ip, country: j.country,
-        chosen: j.chosen, print_w: j.print_w, print_h: j.print_h,
+        chosen: j.chosen, print_w: j.print_w, print_h: j.print_h, order_name: j.order_name || '',
         variants: vs.map((v, i) => ({ i, deleted: !!v.deleted, preview_url: fileUrl(v.preview_file), print_url: fileUrl(v.print_file) })),
         preview_url: fileUrl(j.preview_file), print_url: fileUrl(j.print_file),
         original_url: j.original_file && fs.existsSync(path.join(ORIGINALS, path.basename(j.original_file))) ? `/admin/api/jobs/${j.id}/original` : null };

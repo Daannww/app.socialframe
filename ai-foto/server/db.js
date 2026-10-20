@@ -52,6 +52,7 @@ function addColumn(table, col, def) {
 addColumn('routes', 'sport', "TEXT DEFAULT ''");
 addColumn('routes', 'place', "TEXT DEFAULT ''");
 addColumn('routes', 'country', "TEXT DEFAULT ''");
+addColumn('jobs', 'order_name', "TEXT DEFAULT ''");           // Shopify-bestelnummer zodra de foto is besteld
 addColumn('designs', 'slug', "TEXT DEFAULT ''");              // korte naam voor de productinstelling (metafield)
 addColumn('designs', 'prompt_with_text', "TEXT DEFAULT ''");   // andere prompt als de klant tekst invult ({{tekst}})
 addColumn('designs', 'text_required', 'INTEGER DEFAULT 0');   // klant moet tekst invullen

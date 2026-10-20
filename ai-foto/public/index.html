@@ -42,7 +42,7 @@ small{color:var(--mut)}
 <div><label>Van (datum en tijd)</label><input type="datetime-local" id="jf-from"></div>
 <div><label>Tot</label><input type="datetime-local" id="jf-to"></div>
 <div><label>Stijl</label><select id="jf-design"><option value="">Alle stijlen</option></select></div>
-<div><label>Status</label><select id="jf-status"><option value="">Alles</option><option value="chosen">Gekozen door klant</option><option value="done">Klaar</option><option value="error">Fout</option></select></div>
+<div><label>Status</label><select id="jf-status"><option value="">Alles</option><option value="ordered">Besteld (met bestelnummer)</option><option value="chosen">Gekozen door klant</option><option value="done">Klaar</option><option value="error">Fout</option></select></div>
 <div><label>Tekst of IP</label><input id="jf-q" placeholder="zoeken"></div>
 <div><button type="button" id="jf-go">Zoeken</button> <button type="button" class="sec" id="jf-today">Vandaag</button> <button type="button" class="sec" id="jf-reset">Wissen</button></div>
 </div>
@@ -111,7 +111,7 @@ async function searchJobs(reset){
   const orig=x.original_url?el('a',{href:x.original_url+'?full=1',target:'_blank',title:'Originele foto van de klant'},el('img',{src:x.original_url,style:'width:64px;height:64px;object-fit:cover;border-radius:6px;margin-right:10px;border:2px dashed #999;box-sizing:border-box'})):null;
   grid.append(el('div',{style:'grid-column:1/-1;display:flex;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)'},
    el('b',{style:'min-width:44px',textContent:fmtTime(d)}),...(orig?[orig]:[]),el('div',{style:'display:flex'},...thumbs),
-   el('div',{style:'font-size:12px;color:var(--mut)',textContent:`${x.design_name||'?'} · ${x.profile}${x.chosen!=null?' · gekozen':''}${x.custom_text?` · "${x.custom_text}"`:''}${x.country?' · '+x.country:''}${x.ip?' · '+x.ip:''}`})))});
+   el('div',{style:'font-size:12px;color:var(--mut)'},...(x.order_name?[el('b',{style:'background:#2e7d32;color:#fff;border-radius:6px;padding:2px 8px;margin-right:8px;font-size:13px',textContent:'Besteld '+x.order_name})]:[]),document.createTextNode(`${x.design_name||'?'} · ${x.profile}${x.chosen!=null?' · gekozen':''}${x.custom_text?` · "${x.custom_text}"`:''}${x.country?' · '+x.country:''}${x.ip?' · '+x.ip:''}`))))});
  jobsOffset+=r.jobs.length;
  $('#jcount').textContent=`${r.total} generaties gevonden${r.total>jobsOffset?`, ${jobsOffset} getoond`:''}`;
  $('#jmore').hidden=jobsOffset>=r.total;
