@@ -32,19 +32,23 @@ const FAL_RATIO = { tegel: '1:1', landscape: '3:2', portrait: '2:3' };
 // Controle: laat een goedkoop vision-model beoordelen of het resultaat hetzelfde onderwerp toont als de foto van de klant
 // (bv. hond blijft hond, geen verzonnen personen). Bij twijfel of een fout in de controle: gewoon doorlaten.
 async function subjectMatches(photoDataUrl, resultBuf, settings) {
-  try {
-    const out = await fal.run('fal-ai/any-llm/vision', {
-      model: settings.controle_model || 'google/gemini-2.0-flash-001',
-      prompt: 'Image 1 is a customer photo. Image 2 is an AI-made drawing/artwork based on it. Does image 2 show the SAME main subject(s) as image 1: same kind of subject (person/people, pet, building, object), the same number of people or animals, and clearly the same scene? A different art style is expected and fine. Answer with exactly one word: YES or NO.',
-      image_urls: [photoDataUrl, `data:image/jpeg;base64,${resultBuf.toString('base64')}`],
-    }, { timeoutMs: 60000 });
-    const txt = String((out && (out.output || out.text)) || '').trim().toUpperCase();
-    if (txt.startsWith('NO')) return false;
-    return true;
-  } catch (e) {
-    console.warn('onderwerp-controle overgeslagen:', e.message);
-    return true;
+  // Eerst het ingestelde model, daarna een paar bekende alternatieven (modelnamen op fal/OpenRouter wisselen wel eens).
+  const models = [settings.controle_vision_model, 'google/gemini-2.5-flash', 'google/gemini-flash-1.5', 'openai/gpt-4o-mini'].filter((m, i, a) => m && a.indexOf(m) === i);
+  const input = {
+    prompt: 'Image 1 is a customer photo. Image 2 is an AI-made drawing/artwork based on it. Does image 2 show the SAME main subject(s) as image 1: same kind of subject (person/people, pet, building, object), the same number of people or animals, and clearly the same scene (for example a person in a kayak must still be a recognizable person in a kayak, not an abstract pattern)? A different art style is expected and fine, and so are decorative corner ornaments or text. Answer with exactly one word: YES or NO.',
+    image_urls: [photoDataUrl, `data:image/jpeg;base64,${resultBuf.toString('base64')}`],
+  };
+  for (const model of models) {
+    try {
+      const out = await fal.run('fal-ai/any-llm/vision', { ...input, model }, { timeoutMs: 60000 });
+      const txt = String((out && (out.output || out.text)) || '').trim().toUpperCase();
+      if (!txt) continue;
+      return !txt.startsWith('NO');
+    } catch (e) {
+      console.warn(`onderwerp-controle: model ${model} werkt niet (${String(e.message).slice(0, 120)})`);
+    }
   }
+  return true;   // geen enkel model gelukt: resultaat gewoon doorlaten
 }
 
 async function makeVariant({ design, input, target, job, photo, settings }) {

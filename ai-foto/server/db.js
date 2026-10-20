@@ -83,7 +83,7 @@ const DEFAULT_SETTINGS = {
   onbeperkt_ips: '152.233.12.241',   // IP-adressen zonder limiet (komma-gescheiden; 'a.b.' met punt aan het eind = hele reeks)
   controle_onderwerp: 'aan',      // vision-controle: toont het resultaat hetzelfde onderwerp als de foto? Zo niet: automatisch opnieuw
   controle_pogingen: '3',
-  controle_model: 'google/gemini-2.0-flash-001',
+  controle_vision_model: 'google/gemini-2.5-flash',
   prompt_guard: 'Strictly follow the customer photo and draw exactly what is in it, with the same camera viewpoint and composition. Keep exactly the same people, the same number of people and their pose. If a person is seen from behind, in profile, or no face is clearly visible, draw them the same way and never invent a face. If the photo contains no people (for example a building, landscape, animal or object), draw that real subject and never add or invent any person or face. Never add, remove or replace anything important. Keep clothing, text and numbers exactly as in the photo.',
 };
 const getSetting = (k) => {
