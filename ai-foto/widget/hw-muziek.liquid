@@ -18,7 +18,7 @@
   </div>
   </div>
 
-  <div class="hw-mz-label">1. Kies je foto</div>
+  <div class="hw-mz-label">1. Kies je foto <span class="hw-mz-req">(verplicht)</span></div>
   <label class="hw-mz-filebtn"><span class="hw-mz-b">Foto kiezen</span><span class="hw-mz-n" data-mz-fname>Geen foto gekozen</span><input type="file" accept="image/*" data-mz-file hidden></label>
   <div class="hw-mz-row" data-mz-zoomrow hidden><span class="hw-mz-small">Inzoomen</span><input type="range" min="100" max="300" value="100" data-mz-zoom></div>
   <div class="hw-mz-modes">
@@ -52,8 +52,8 @@
 
   </div>
 
-  <div class="hw-mz-label">4. Tekst</div>
-  <input type="text" class="hw-mz-input" data-mz-r1 maxlength="60" autocomplete="off" placeholder="Regel 1 (bijv. de titel)">
+  <div class="hw-mz-label">4. Tekst <span class="hw-mz-req">(Regel 1 is verplicht)</span></div>
+  <input type="text" class="hw-mz-input" data-mz-r1 maxlength="60" autocomplete="off" value="LOVE YOU!" placeholder="Regel 1 (verplicht)">
   <input type="text" class="hw-mz-input hw-mz-gap" data-mz-r2 maxlength="60" autocomplete="off" placeholder="Regel 2 (bijv. de artiest, optioneel)">
   <div class="hw-mz-two">
     <div><div class="hw-mz-small">Begintijd</div><input type="text" class="hw-mz-input" data-mz-t0 maxlength="12" autocomplete="off" value="0:00"></div>
@@ -97,6 +97,7 @@
   .hw-mz-sticky.is-stuck .hw-mz-hint{display:none}
   .hw-mz-sticky.is-stuck{box-shadow:0 6px 10px -8px rgba(0,0,0,.35)}
   .hw-mz-label{display:block;font-size:14px;font-weight:700;color:#121212;margin:20px 0 8px}
+  .hw-mz-req{font-weight:400;font-size:12px;color:#b3261e}
   .hw-mz-small{font-size:12px;color:#666;margin:10px 0 4px}
   .hw-mz-input{width:100%;padding:12px 14px;border:1.5px solid #8A8A8A;border-radius:12px;font:inherit;font-size:16px;color:#222;background:#fff}
   .hw-mz-gap{margin-top:8px}
@@ -364,7 +365,7 @@
     function signature() { return JSON.stringify([S.filter, S.tekst, S.code, S.bg, S.heart, S.zoom, S.ox, S.oy, r1El.value, r2El.value, t0El.value, t1El.value, dotEl.value, codeLink(), qrText(), S.photo && S.photo.src]); }
     function validate() {
       if (!S.photo) return 'Kies eerst een foto.';
-      if (!r1El.value.trim()) return 'Vul Regel 1 in (bijv. de titel van het nummer).';
+      if (!r1El.value.trim()) return 'Vul Regel 1 in.';
       if (S.code !== 'geen' && !(S.code === 'qr' ? qrText() : codeLink())) return S.code === 'qr' ? 'Kies een nummer of vul een link voor de QR-code in.' : 'Kies een nummer voor de Spotify-code.';
       if (S.code === 'spotify' && codeImg === 'fout') return 'Deze Spotify-link werkt niet. Kies een ander nummer.';
       return '';
