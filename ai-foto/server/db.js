@@ -79,6 +79,9 @@ const DEFAULT_SETTINGS = {
   // Wordt achter elke prompt gezet (leeg = uit). Voorkomt verzonnen gezichten/personen bij foto's waar iemand van achteren of zonder gezicht staat.
   veiligheidsfilter: 'uit', // fal-veiligheidsfilter: 'uit' (standaard) of 'aan'
   foto_hele_tonen: 'ja', // 'ja': hele foto in beeld (witte randen) als de klant geen uitsnede kiest; 'nee': bijsnijden naar vierkant/7:5
+  controle_onderwerp: 'aan',      // vision-controle: toont het resultaat hetzelfde onderwerp als de foto? Zo niet: automatisch opnieuw
+  controle_pogingen: '3',
+  controle_model: 'google/gemini-2.0-flash-001',
   prompt_guard: 'Strictly follow the customer photo and draw exactly what is in it, with the same camera viewpoint and composition. Keep exactly the same people, the same number of people and their pose. If a person is seen from behind, in profile, or no face is clearly visible, draw them the same way and never invent a face. If the photo contains no people (for example a building, landscape, animal or object), draw that real subject and never add or invent any person or face. Never add, remove or replace anything important. Keep clothing, text and numbers exactly as in the photo.',
 };
 const getSetting = (k) => {

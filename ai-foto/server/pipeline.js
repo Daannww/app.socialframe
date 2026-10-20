@@ -29,11 +29,38 @@ function promptFor(design, text) {
 const FAL_RATIO = { tegel: '1:1', landscape: '3:2', portrait: '2:3' };
 
 // Snel deel: alleen het AI-resultaat + voorbeeld. Vergroten/drukbestand gebeurt pas na de keuze (finalizeVariant).
-async function makeVariant({ design, input, target, job }) {
-  const out = await fal.run(design.model, input);
-  const url = fal.firstImageUrl(out);
-  if (!url) throw new Error('Model gaf geen afbeelding terug');
-  const buf = await download(url);
+// Controle: laat een goedkoop vision-model beoordelen of het resultaat hetzelfde onderwerp toont als de foto van de klant
+// (bv. hond blijft hond, geen verzonnen personen). Bij twijfel of een fout in de controle: gewoon doorlaten.
+async function subjectMatches(photoDataUrl, resultBuf, settings) {
+  try {
+    const out = await fal.run('fal-ai/any-llm/vision', {
+      model: settings.controle_model || 'google/gemini-2.0-flash-001',
+      prompt: 'Image 1 is a customer photo. Image 2 is an AI-made drawing/artwork based on it. Does image 2 show the SAME main subject(s) as image 1: same kind of subject (person/people, pet, building, object), the same number of people or animals, and clearly the same scene? A different art style is expected and fine. Answer with exactly one word: YES or NO.',
+      image_urls: [photoDataUrl, `data:image/jpeg;base64,${resultBuf.toString('base64')}`],
+    }, { timeoutMs: 60000 });
+    const txt = String((out && (out.output || out.text)) || '').trim().toUpperCase();
+    if (txt.startsWith('NO')) return false;
+    return true;
+  } catch (e) {
+    console.warn('onderwerp-controle overgeslagen:', e.message);
+    return true;
+  }
+}
+
+async function makeVariant({ design, input, target, job, photo, settings }) {
+  const check = String((settings && settings.controle_onderwerp) || 'aan') !== 'uit' && photo;
+  const tries = check ? Math.max(1, Math.min(4, parseInt(settings.controle_pogingen, 10) || 3)) : 1;
+  let buf = null;
+  for (let t = 0; t < tries; t++) {
+    const inp = t === 0 ? input : { ...input, ...(input.seed !== undefined ? { seed: Math.floor(Math.random() * 2147483647) } : {}) };
+    const out = await fal.run(design.model, inp);
+    const url = fal.firstImageUrl(out);
+    if (!url) throw new Error('Model gaf geen afbeelding terug');
+    buf = await download(url);
+    if (!check || await subjectMatches(photo, buf, settings)) break;
+    console.warn(`onderwerp-controle: resultaat wijkt af van de foto (poging ${t + 1}/${tries}, job ${job.id})`);
+    if (t === tries - 1) throw new Error('onderwerp wijkt af van de foto');
+  }
   const base = rid();
   const v = { raw_file: `${base}-raw.jpg`, preview_file: `${base}-preview.jpg`, print_file: null };
   fs.writeFileSync(path.join(ORIGINALS, v.raw_file), buf);
@@ -122,7 +149,7 @@ async function process_(job) {
   for (let i = 0; i < n; i++) {
     const input = { ...base };
     if (n > 1 && /flux/i.test(design.model) && input.seed === undefined) input.seed = Math.floor(Math.random() * 2147483647);
-    jobs.push(makeVariant({ design, input, target, job }));
+    jobs.push(makeVariant({ design, input, target, job, photo: `data:image/jpeg;base64,${prepared.buffer.toString('base64')}`, settings }));
   }
   const settled = await Promise.allSettled(jobs);
   const variants = settled.filter((r) => r.status === 'fulfilled').map((r) => r.value);

@@ -4,12 +4,13 @@ process.env.ADMIN_PASSWORD = 'pw'; process.env.PUBLIC_BASE_URL = 'http://localho
 const sharp = require('sharp'); const http = require('http'); const assert = require('assert');
 const fal = require('./fal'); const calls = [];
 let imgUrlBuf;
-fal.run = async (model, input) => { calls.push({ model, input }); return { images: [{ url: 'http://localhost:4598/fake.jpg' }] }; };
+const visionCalls = []; const visionAnswers = [];
+fal.run = async (model, input) => { if (/any-llm\/vision/.test(model)) { visionCalls.push(input); return { output: visionAnswers.length ? visionAnswers.shift() : 'YES' }; } calls.push({ model, input }); return { images: [{ url: 'http://localhost:4598/fake.jpg' }] }; };
 // Test-verzoeken doen alsof ze uit een gewone browser komen (de botfilter blokkeert 'node' als user-agent).
 const realFetch = global.fetch;
 global.fetch = (u, o = {}) => realFetch(u, { ...o, headers: { 'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/120 Safari/537.36', ...(o.headers || {}) } });
 const app = require('./index');
-require('./db').setSetting('max_attempts', '4'); require('./db').setSetting('max_attempts_ip', '12');
+require('./db').setSetting('controle_onderwerp', 'uit'); require('./db').setSetting('max_attempts', '4'); require('./db').setSetting('max_attempts_ip', '12');
 
 (async () => {
   imgUrlBuf = await sharp({ create: { width: 1024, height: 1024, channels: 3, background: '#c0392b' } }).jpeg().toBuffer();
@@ -62,6 +63,20 @@ require('./db').setSetting('max_attempts', '4'); require('./db').setSetting('max
   assert(lastPrompt.startsWith('aquarel met de tekst "') && !lastPrompt.includes('<'), lastPrompt);
   assert(prompts[prompts.length - 2].startsWith('maak er een aquarel van') && !prompts[prompts.length - 2].includes('aquarel met de tekst')); // zonder tekst: gewone prompt (+ vaste beschermtekst)
   assert(lastPrompt.includes('never invent a face')); // beschermtekst zit achter elke prompt
+  // onderwerp-controle: eerst NO (verkeerd onderwerp) -> automatisch opnieuw; daarna YES
+  require('./db').setSetting('controle_onderwerp', 'aan');
+  const genBefore = calls.filter((c) => c.input.prompt).length;
+  visionAnswers.push('NO', 'YES');
+  const chk = await gen('tegel', 'landscape', 'client-chk00001');
+  assert.equal(chk.status, 'done', JSON.stringify(chk));
+  assert.equal(calls.filter((c) => c.input.prompt).length - genBefore, 2);   // 2x gegenereerd
+  assert.equal(visionCalls.length, 2);
+  assert(visionCalls[0].image_urls.length === 2 && visionCalls[0].image_urls[0].startsWith('data:image/jpeg'));
+  // altijd NO -> mislukt (en telt niet als poging), geen wrak resultaat naar de klant
+  visionAnswers.push('NO', 'NO', 'NO');
+  const badChk = await gen('tegel', 'landscape', 'client-chk00001');
+  assert.equal(badChk.status, 'error');
+  require('./db').setSetting('controle_onderwerp', 'uit');
   const rec = await (await fetch(B + '/api/recent?client_id=client-aaaa1111&profile=tegel')).json();
   assert(rec.items.length >= 2 && rec.items[0].variants.length >= 1 && rec.items[0].variants[0].preview_url); // pogingen blijven na refresh
   const recOther = await (await fetch(B + '/api/recent?client_id=client-zzzz9999&profile=tegel')).json();
