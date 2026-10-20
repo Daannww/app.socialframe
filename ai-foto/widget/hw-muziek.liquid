@@ -191,8 +191,8 @@
             .then(function (im) { if (codeKey === key) { codeImg = im; schedule(); } }, function () { if (codeKey === key) { codeImg = 'fout'; schedule(); } });
         }
       }
-      if (S.code === 'qr' && qrText()) {
-        var k2 = qrText();
+      if (S.code === 'qr') {
+        var k2 = qrText() || 'https://www.socialframe.nl'; // zonder link: standaard QR-code als opvulling in het voorbeeld
         if (k2 !== qrKey) {
           qrKey = k2; qrImg = null;
           svgImage(API + '/api/music/qr.svg?text=' + encodeURIComponent(k2))
