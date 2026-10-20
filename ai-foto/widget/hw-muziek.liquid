@@ -77,9 +77,7 @@
   <div class="hw-mz-small">Hartje</div>
   <div class="hw-mz-modes">
     <button type="button" class="hw-mz-mode" data-mz-set="heart" data-v="Rood" aria-pressed="true">Rood</button>
-    <button type="button" class="hw-mz-mode" data-mz-set="heart" data-v="Zwart" aria-pressed="false">Zwart</button>
-    <button type="button" class="hw-mz-mode" data-mz-set="heart" data-v="Wit" aria-pressed="false">Wit</button>
-    <button type="button" class="hw-mz-mode" data-mz-set="heart" data-v="Geen" aria-pressed="false">Geen</button>
+    <button type="button" class="hw-mz-mode" data-mz-set="heart" data-v="Tekst" aria-pressed="false">Zelfde kleur als de tekst</button>
   </div>
 
   <div class="hw-mz-status" data-mz-status role="status" aria-live="polite"></div>
@@ -258,7 +256,7 @@
       var r1 = r1El.value.trim(), r2 = r2El.value.trim(), t0 = t0El.value.trim(), t1 = t1El.value.trim();
       if (r1) { fitFont(r1, '700', 27.8, maxW, 6); ctx.fillText(r1, 19.7 * PX, (189.7 + 9.8) * PX); }
       if (r2) { fitFont(r2, '400', 28, maxW, 6); ctx.fillText(r2, 19.7 * PX, (203.1 + 9.9) * PX); }
-      var hc = { Rood: RED, Zwart: '#000000', Wit: '#fffffd' }[S.heart];
+      var hc = S.heart === 'Rood' ? RED : col;
       if (hc) icon('heart', hc);
       icon('timeline_bar', col);
       var bar = layout.timeline_bar, pct = +dotEl.value;
@@ -393,7 +391,7 @@
         'properties[Stijl van jouw socialframe]': styleText(),
         'properties[Foto-filter]': S.filter,
         'properties[Achtergrond kleur]': S.bg,
-        'properties[Kleur van het hartje]': S.heart,
+        'properties[Kleur van het hartje]': S.heart === 'Rood' ? 'Rood' : (white() ? 'Wit' : 'Zwart'),
         'properties[Regel 1]': r1El.value.trim(),
         'properties[Regel 2]': r2El.value.trim(),
         'properties[Begintijd]': t0El.value.trim(),
