@@ -8,13 +8,14 @@
 <div class="hw-mz" data-hw-mz data-api="{{ hw_mz_api }}">
   <div class="hw-mz-heading">Personaliseren</div>
 
-  <div class="hw-mz-sentinel" data-mz-sentinel></div>
+  <div class="hw-mz-slot" data-mz-slot>
   <div class="hw-mz-sticky" data-mz-sticky>
   <div class="hw-mz-stage" data-mz-stage>
     <canvas class="hw-mz-canvas" data-mz-canvas width="800" height="1200"></canvas>
     <div class="hw-mz-drag" data-mz-drag title="Sleep om de foto te verplaatsen"></div>
   </div>
   <div class="hw-mz-hint">Sleep over de foto om hem te verplaatsen.</div>
+  </div>
   </div>
 
   <div class="hw-mz-label">1. Kies je foto</div>
@@ -88,8 +89,7 @@
   .hw-mz{font-family:inherit;font-size:14px;color:#333;border:1.5px solid #E2E2E2;border-radius:24px;background:#fff;padding:22px 18px 20px;margin:1.75rem 0 1rem;box-sizing:border-box}
   .hw-mz *{box-sizing:border-box}
   .hw-mz-heading{font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#111;margin:0 0 16px}
-  .hw-mz-sentinel{height:1px;margin-top:-1px}
-  .hw-mz-sticky{position:sticky;top:var(--hw-mz-top,0px);z-index:20;background:#fff;padding:6px 0 8px;text-align:center}
+  .hw-mz-sticky{z-index:20;box-sizing:border-box;background:#fff;padding:6px 0 8px;text-align:center}
   .hw-mz-stage{position:relative;width:min(100%,420px);transition:width .25s ease;margin:0 auto;aspect-ratio:2/3;border:1.5px solid #E2E2E2;border-radius:6px;overflow:hidden;background:#fff}
   .hw-mz-canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
   .hw-mz-drag{position:absolute;left:10%;top:5.2%;width:80%;height:53.333%;touch-action:none;cursor:grab}
@@ -443,9 +443,9 @@
     }, true);
 
 
-    // Voorbeeld blijft bovenaan hangen (en wordt kleiner) tijdens het scrollen
+    // Voorbeeld blijft bovenaan hangen (en wordt kleiner) tijdens het scrollen - met JS i.p.v. CSS-sticky, want dat werkt niet in elk thema
     (function () {
-      var sticky = $('[data-mz-sticky]'), sentinel = $('[data-mz-sentinel]');
+      var slot = $('[data-mz-slot]'), sticky = $('[data-mz-sticky]'), busy = false, topOff = 0, fixed = false;
       function headerOffset() {
         var h = 0, els = document.querySelectorAll('header, .site-header, [data-section-type="header"], .header');
         for (var i = 0; i < els.length; i++) {
@@ -454,13 +454,22 @@
         }
         return Math.round(h);
       }
-      function setTop() { var t = headerOffset(); sticky.style.setProperty('--hw-mz-top', t + 'px'); return t; }
-      var top = setTop();
-      if ('IntersectionObserver' in window) {
-        var io = new IntersectionObserver(function (e) { sticky.classList.toggle('is-stuck', !e[0].isIntersecting && e[0].boundingClientRect.top < 0); }, { rootMargin: '-' + (top + 1) + 'px 0px 0px 0px', threshold: 0 });
-        io.observe(sentinel);
+      function update() {
+        busy = false;
+        var sr = slot.getBoundingClientRect(), rr = root.getBoundingClientRect();
+        if (sr.top >= topOff || rr.bottom <= 0) {
+          if (fixed) { fixed = false; sticky.classList.remove('is-stuck'); sticky.style.cssText = ''; slot.style.height = ''; }
+          return;
+        }
+        if (!fixed) { slot.style.height = slot.offsetHeight + 'px'; fixed = true; sticky.classList.add('is-stuck'); }
+        var h = sticky.offsetHeight, t = Math.min(topOff, rr.bottom - h - 8);
+        sticky.style.cssText = 'position:fixed;left:' + sr.left + 'px;width:' + sr.width + 'px;top:' + t + 'px';
       }
-      window.addEventListener('resize', function () { setTop(); });
+      function req() { if (!busy) { busy = true; requestAnimationFrame(update); } }
+      topOff = headerOffset();
+      window.addEventListener('scroll', req, { passive: true });
+      window.addEventListener('resize', function () { topOff = headerOffset(); req(); });
+      update();
     })();
 
     schedule();
