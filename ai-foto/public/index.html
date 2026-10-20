@@ -165,7 +165,8 @@ function edit(x){
    fd.append('profile',pr.value==='tegel'?'tegel':'poster');fd.append('orientation',pr.value==='posterP'?'portrait':'landscape');
    out.textContent='Bezig…';try{const {job_id}=await api('/admin/api/test',{method:'POST',body:fd});
    for(;;){await new Promise(r=>setTimeout(r,2000));const j=await api('/api/jobs/'+job_id);
-    if(j.status==='done'){out.replaceChildren(el('a',{href:j.print_url,target:'_blank'},el('img',{src:j.preview_url,style:'max-width:320px;border-radius:8px'})));load();break}
+    if(j.status==='done'){const vs=(j.variants||[]).filter(v=>v&&v.preview_url);const shots=vs.length?vs.map(v=>v.preview_url):(j.preview_url?[j.preview_url]:[]);
+     out.replaceChildren(...(shots.length?shots.map(u=>el('a',{href:(shots.length===1&&j.print_url)||u,target:'_blank'},el('img',{src:u,style:'max-width:'+(shots.length>1?'200':'320')+'px;border-radius:8px;margin:0 6px 6px 0'}))):[el('span',{textContent:'Klaar, maar geen afbeelding gevonden'})]));load();break}
     if(j.status==='error'){out.textContent=j.error;load();break}}}catch(err){out.textContent=err.message}};
   form.append(el('hr'),el('label',{textContent:'Testen (telt niet mee voor de poginglimiet)'}),tf,pr,el('p',{},tb),out,
    el('p',{},el('button',{type:'button',className:'del',textContent:'Ontwerp verwijderen',onclick:async()=>{if(confirm('Verwijderen?')){await api('/admin/api/designs/'+x.id,{method:'DELETE'});e.hidden=true;load()}}})));
