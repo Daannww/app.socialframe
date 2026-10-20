@@ -63,6 +63,16 @@ async function finalizeVariant(job, v) {
   return v;
 }
 
+// Veiligheidsfilter van fal staat standaard UIT (familiefoto's zoals pasgeborenen werden onterecht geblokkeerd). Instelling 'veiligheidsfilter' = 'aan' zet het weer aan.
+// Een ontwerp kan dit zelf overschrijven via de extra parameters (extra_json).
+function safetyParams(model, settings) {
+  if (String(settings.veiligheidsfilter || 'uit') === 'aan') return {};
+  if (/gpt-image|openai/i.test(model)) return {};   // OpenAI-modellen hebben een eigen filter dat hier niet uit kan
+  const o = { enable_safety_checker: false };
+  if (/flux-pro|kontext/i.test(model)) o.safety_tolerance = '5';
+  return o;
+}
+
 async function process_(job) {
   const settings = allSettings();
   const design = db.prepare('SELECT * FROM designs WHERE id=?').get(job.design_id);
@@ -86,6 +96,7 @@ async function process_(job) {
     num_images: 1,
     output_format: 'jpeg',
     aspect_ratio: job.profile === 'tegel' ? FAL_RATIO.tegel : FAL_RATIO[job.orientation],
+    ...safetyParams(design.model, settings),
     ...extra,
   };
   if (design.negative_prompt) base.negative_prompt = design.negative_prompt;

@@ -265,7 +265,7 @@ app.get('/api/jobs/:id', (req, res) => {
   const max = parseInt(getSetting('max_attempts'), 10);
   res.json({
     status: j.status,
-    error: j.status === 'error' ? 'Het maken van de afbeelding is mislukt. Probeer het opnieuw.' : null,
+    error: j.status === 'error' ? (/content_policy|content checker/i.test(j.error || '') ? 'Deze foto kon helaas niet worden verwerkt. Probeer een andere foto of kies een andere uitsnede. Dit kost je geen poging.' : 'Het maken van de afbeelding is mislukt. Probeer het opnieuw.') : null,
     variants: parseVariants(j).map((v) => (v.deleted ? { deleted: true, preview_url: null } : { preview_url: fileUrl(v.preview_file) })),
     chosen: j.chosen,
     preview_url: fileUrl(j.preview_file),
