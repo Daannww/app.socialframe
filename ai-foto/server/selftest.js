@@ -88,6 +88,8 @@ require('./db').setSetting('controle_onderwerp', 'uit'); require('./db').setSett
   // muziekframe-generator
   const lay = await (await fetch(B + '/api/music/layout')).json();
   assert(lay.paths.heart && lay.paths.timeline_bar && lay.search === false);
+  const wj = await (await fetch(B + '/widget/muziek.html')).text();
+  assert(wj.includes('data-hw-mz') && !wj.includes('{%') && !wj.includes('{{'));
   const qrs = await fetch(B + '/api/music/qr.svg?text=' + encodeURIComponent('https://open.spotify.com/track/abc'));
   assert(qrs.status === 200 && (await qrs.text()).startsWith('<svg'));
   assert.equal((await fetch(B + '/api/music/search?q=heaven')).status, 503);                 // zonder Spotify-sleutels: nette melding

@@ -176,6 +176,13 @@ app.get('/api/routes/:id', (req, res) => {
   res.set('Cache-Control', 'public, max-age=300').json({ id: r.id, name: r.name, sport: r.sport || '', place: r.place || '', country: r.country || '', distance_km: Math.round((r.distance_km || 0) * 10) / 10, points: JSON.parse(r.points_json) });
 });
 
+// Muziekframe-widget als losse HTML (de theme-snippet laadt deze; aanpassingen gaan zo zonder thema-bewerking live).
+app.get('/widget/muziek.html', (req, res) => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'widget', 'hw-muziek.liquid'), 'utf8')
+    .replace(/\{%-?\s*comment\s*-?%\}[\s\S]*?\{%-?\s*endcomment\s*-?%\}/g, '').replace(/\{%-?[\s\S]*?-?%\}/g, '').replace(/data-api="[^"]*"/, `data-api="${BASE || 'https://ai-foto.socialframe.nl'}"`);
+  res.set({ 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'public, max-age=60' }).type('html').send(html);
+});
+
 // Demo-pagina voor de routewidget (zonder winkelwagen).
 app.get('/route-demo', (req, res) => {
   const widget = fs.readFileSync(path.join(__dirname, '..', 'widget', 'hw-route.liquid'), 'utf8')
