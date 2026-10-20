@@ -74,7 +74,7 @@ module.exports = ({ looksLikeBot, base, FILES }) => {
       const tk = await spotifyToken();
       if (!tk) return res.status(503).json({ error: 'Zoeken is nog niet ingesteld. Plak hieronder een Spotify-link.' });
       const sr = await fetch(`https://api.spotify.com/v1/search?type=track&limit=8&market=NL&q=${encodeURIComponent(q)}`, { headers: { Authorization: 'Bearer ' + tk } });
-      if (!sr.ok) { console.warn('[music] spotify search', sr.status); return res.status(502).json({ error: 'Zoeken lukt nu niet. Plak hieronder een Spotify-link.' }); }
+      if (!sr.ok) { console.warn('[music] spotify search', sr.status, (await sr.text().catch(() => '')).slice(0, 300)); return res.status(502).json({ error: 'Zoeken lukt nu niet. Plak hieronder een Spotify-link.' }); }
       const j = await sr.json();
       res.json({ tracks: cset(key, ((j.tracks && j.tracks.items) || []).map(mapTrack)) });
     } catch (e) { console.warn('[music] search', e.message); res.status(502).json({ error: 'Zoeken lukt nu niet. Plak hieronder een Spotify-link.' }); }
@@ -93,6 +93,7 @@ module.exports = ({ looksLikeBot, base, FILES }) => {
       if (tk) {
         const tr = await fetch(`https://api.spotify.com/v1/tracks/${id}?market=NL`, { headers: { Authorization: 'Bearer ' + tk } });
         if (tr.ok) return res.json({ track: cset(key, mapTrack(await tr.json())) });
+        console.warn('[music] spotify track', tr.status, (await tr.text().catch(() => '')).slice(0, 300));
       }
       const o = await fetch('https://open.spotify.com/oembed?url=' + encodeURIComponent(`https://open.spotify.com/track/${id}`));
       if (!o.ok) return res.status(404).json({ error: 'Dit nummer is niet gevonden. Controleer de link.' });
