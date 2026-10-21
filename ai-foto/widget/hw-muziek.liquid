@@ -10,11 +10,16 @@
 
   <div class="hw-mz-slot" data-mz-slot>
   <div class="hw-mz-sticky" data-mz-sticky>
+  <div class="hw-mz-scene" data-mz-scene>
+  <div class="hw-mz-ground"></div>
+  <div class="hw-mz-plate">
   <div class="hw-mz-stage" data-mz-stage>
     <canvas class="hw-mz-canvas" data-mz-canvas width="800" height="1200"></canvas>
     <div class="hw-mz-drag" data-mz-drag title="Sleep om de foto te verplaatsen"></div>
   </div>
   <img class="hw-mz-stand" data-mz-stand alt="" hidden>
+  </div>
+  </div>
   <div class="hw-mz-hint">Sleep over de foto om hem te verplaatsen.</div>
   </div>
   </div>
@@ -95,23 +100,24 @@
   .hw-mz *{box-sizing:border-box}
   .hw-mz-heading{font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#111;margin:0 0 16px}
   .hw-mz-sticky{z-index:20;box-sizing:border-box;background:#fff;padding:6px 0 8px;text-align:center}
-  .hw-mz-stage{position:relative;width:min(100%,420px);transition:width .25s ease;margin:0 auto;aspect-ratio:2/3;border:1.5px solid #E2E2E2;border-radius:6px;overflow:hidden;background:#fff}
+  .hw-mz-scene{position:relative;width:min(100%,520px);aspect-ratio:5/7;margin:0 auto;overflow:hidden;border-radius:6px;background:#ece7df center/cover no-repeat;transition:width .25s ease}
+  .hw-mz-ground{position:absolute;left:14%;width:72%;top:75.5%;height:5%;background:radial-gradient(ellipse at center,rgba(60,45,30,.38),rgba(60,45,30,0) 70%);filter:blur(3px)}
+  .hw-mz-plate{position:absolute;left:17%;width:66%;top:7%}
+  .hw-mz-stage{position:relative;width:100%;aspect-ratio:2/3;overflow:hidden;background:#fff;box-shadow:0 0 0 1px rgba(110,130,140,.3),6px 8px 16px rgba(60,45,30,.2)}
   .hw-mz-canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
-  /* glasplaat-look: dikte (gelaagde rand), glans en lichte randreflectie; alleen visueel, de canvas blijft ongewijzigd */
-  .hw-mz-stage{border:0;border-radius:0;box-shadow:0 6px 18px rgba(0,0,0,.15),0 0 0 1px #E2E2E2}
-  .hw-mz-stage::before{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;border-radius:inherit;
+  /* glasplaat-look: witte glasrand (dik linksboven, dun rechtsonder) en zachte glans; alleen visueel, de canvas blijft ongewijzigd */
+  .hw-mz-stage::before{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;
     background:linear-gradient(118deg,rgba(255,255,255,0) 18%,rgba(255,255,255,.10) 34%,rgba(255,255,255,.04) 46%,rgba(255,255,255,0) 54%,rgba(255,255,255,.06) 72%,rgba(255,255,255,0) 86%),
     linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,0) 18%)}
-  .hw-mz-stage::after{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;border-radius:inherit;
-    box-shadow:inset 0 0 0 1px rgba(255,255,255,.4),inset 1px 1px 2px rgba(255,255,255,.35),inset -1px -1px 2px rgba(0,0,0,.06)}
+  .hw-mz-stage::after{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;
+    border-style:solid;border-width:5px 2px 1px 4px;border-color:rgba(255,255,255,.95) rgba(255,255,255,.7) rgba(255,255,255,.45) rgba(255,255,255,.95);box-shadow:inset 0 0 0 1px rgba(120,150,165,.35)}
   .hw-mz-drag{z-index:4}
-  .hw-mz-stand{display:block;position:relative;z-index:5;width:min(100%,420px);margin:-5% auto 0;height:auto;transition:width .25s ease;background:transparent !important;border:0 !important;box-shadow:none !important;padding:0 !important;filter:none}
+  .hw-mz-stand{display:block;position:relative;z-index:5;width:100%;margin:-5% 0 0;height:auto;background:transparent !important;border:0 !important;box-shadow:none !important;padding:0 !important;filter:none}
   .hw-mz-stand[hidden]{display:none}
-  .hw-mz-sticky.is-stuck .hw-mz-stand{width:min(100%,calc(34vh * 2 / 3))}
   .hw-mz-drag{position:absolute;left:10%;top:5.2%;width:80%;height:53.333%;touch-action:none;cursor:grab}
   .hw-mz-drag:active{cursor:grabbing}
   .hw-mz-hint{text-align:center;font-size:12px;color:#777;margin-top:6px}
-  .hw-mz-sticky.is-stuck .hw-mz-stage{width:min(100%,calc(34vh * 2 / 3))}
+  .hw-mz-sticky.is-stuck .hw-mz-scene{width:min(100%,calc(34vh * 5 / 7))}
   .hw-mz-sticky.is-stuck .hw-mz-hint{display:none}
   .hw-mz-sticky.is-stuck{box-shadow:0 6px 10px -8px rgba(0,0,0,.35)}
   .hw-mz-label{display:block;font-size:14px;font-weight:700;color:#121212;margin:20px 0 8px}
@@ -345,6 +351,7 @@
     [r1El, r2El, t0El, t1El, dotEl, qrLinkEl].forEach(function (el) { el.addEventListener('input', function () { refreshCodes(); changed(); }); });
     $('[data-mz-linktoggle]').addEventListener('click', function () { var w = $('[data-mz-linkwrap]'); w.hidden = !w.hidden; this.setAttribute('aria-expanded', w.hidden ? 'false' : 'true'); if (!w.hidden) linkEl.focus(); });
     function openLink() { var w = $('[data-mz-linkwrap]'); w.hidden = false; $('[data-mz-linktoggle]').setAttribute('aria-expanded', 'true'); }
+    (function () { var sc = $('[data-mz-scene]'); if (sc) sc.style.backgroundImage = "url('" + root.getAttribute('data-api') + "/widget-img/scene.jpg?v=1')"; })();
     var lt = null;
     linkEl.addEventListener('input', function () {
       clearTimeout(lt);
