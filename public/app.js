@@ -1,4 +1,4 @@
-const STATUSES = ['wacht op drukwerkbestand', 'wacht op productie', 'verzonden', 'geannuleerd', 'onjuiste gegevens'];
+const STATUSES = ['wacht op betaling', 'wacht op drukwerkbestand', 'wacht op productie', 'verzonden', 'geannuleerd', 'onjuiste gegevens'];
 const PAGE_SIZE = 50;
 
 let currentFilter = '';
