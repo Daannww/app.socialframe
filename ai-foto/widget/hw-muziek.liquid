@@ -87,8 +87,13 @@
     <button type="button" class="hw-mz-mode" data-mz-set="heart" data-v="Tekst" aria-pressed="false">Zelfde kleur als de tekst</button>
   </div>
 
+  <div data-mz-sizewrap hidden>
+    <div class="hw-mz-label">6. Kies je formaat</div>
+    <div class="hw-mz-holders hw-mz-sizes" data-mz-sizes></div>
+  </div>
+
   <div data-mz-holderwrap hidden>
-    <div class="hw-mz-label">6. Kies een houder</div>
+    <div class="hw-mz-label">7. Kies een houder</div>
     <div class="hw-mz-holders" data-mz-holders></div>
   </div>
 
@@ -147,6 +152,11 @@
   .hw-mz-holder{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;border:1.5px solid #D0D0D0;border-radius:14px;background:#fff !important;color:#222 !important;padding:10px 8px;font:inherit;font-size:12.5px;line-height:1.3;cursor:pointer}
   .hw-mz-holder img{width:100%;max-width:96px;aspect-ratio:1/1;object-fit:cover;border-radius:10px;background:#f4f4f4}
   .hw-mz-holder .hw-mz-none{width:100%;max-width:96px;aspect-ratio:1/1;border-radius:10px;background:#f4f4f4;display:flex;align-items:center;justify-content:center;font-size:26px;color:#999}
+  .hw-mz-sizes{grid-template-columns:repeat(auto-fit,minmax(110px,1fr))}
+  .hw-mz-size{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;min-height:78px;border:1.5px solid #D0D0D0;border-radius:14px;background:#fff !important;color:#222 !important;padding:10px 8px;font:inherit;font-size:12.5px;line-height:1.3;cursor:pointer}
+  .hw-mz-size b{font-weight:600;font-size:14px}
+  .hw-mz-size small{color:#666;font-size:12px}
+  .hw-mz-size[aria-pressed="true"]{border-color:#111;box-shadow:0 0 0 1px #111}
   .hw-mz-holder b{font-weight:600}
   .hw-mz-holder small{color:#666;font-size:12px}
   .hw-mz-holder[aria-pressed="true"]{border-color:#111;box-shadow:0 0 0 1px #111}
@@ -542,10 +552,30 @@
           });
           return { h: hs, s: ss };
         }
-        var hidden = false;
+        var hidden = false, sizeWrap = $('[data-mz-sizewrap]'), sizeBox = $('[data-mz-sizes]');
+        function hideSel(el) { if (!el) return; el.style.display = 'none'; var lb = el.id ? document.querySelector('label[for="' + el.id + '"]') : null; if (lb) lb.style.display = 'none'; }
+        // formaten als eerste keuze; de variantkiezer van het thema wordt verborgen en door deze knoppen aangestuurd
+        function renderSizes(sel) {
+          if (!sel.s) { sizeWrap.hidden = true; return; }
+          var names = [];
+          prod.variants.forEach(function (v) { var n = nz(v.options[sIdx]); if (v.available !== false && names.indexOf(n) < 0) names.push(n); });
+          sizeBox.innerHTML = '';
+          names.forEach(function (name) {
+            var cheapest = null; prod.variants.forEach(function (v) { if (nz(v.options[sIdx]) === name && v.available !== false && (cheapest === null || v.price < cheapest)) cheapest = v.price; });
+            var m2 = name.match(/^(.*?)\s*\((.*?)\)\s*(.*)$/), title = m2 ? m2[1] : name, sub = m2 ? (m2[2] + (m2[3] ? ' ' + m2[3] : '')) : '';
+            var b = document.createElement('button'); b.type = 'button'; b.className = 'hw-mz-size'; b.setAttribute('aria-pressed', nz(sel.s.value) === name ? 'true' : 'false');
+            var t = document.createElement('b'); t.textContent = title; b.appendChild(t);
+            if (sub) { var u = document.createElement('small'); u.textContent = sub; b.appendChild(u); }
+            if (cheapest !== null) { var p2 = document.createElement('small'); p2.textContent = 'vanaf ' + money(cheapest); b.appendChild(p2); }
+            b.addEventListener('click', function () { var op = Array.prototype.filter.call(sel.s.options, function (o) { return nz(o.value) === name; })[0]; sel.s.value = op ? op.value : name; sel.s.dispatchEvent(new Event('input', { bubbles: true })); sel.s.dispatchEvent(new Event('change', { bubbles: true })); render(); });
+            sizeBox.appendChild(b);
+          });
+          sizeWrap.hidden = !names.length;
+        }
         function render() {
           var sel = selects(); if (!sel.h) return;
-          if (!hidden) { hidden = true; sel.h.style.display = 'none'; var lb = sel.h.id ? document.querySelector('label[for="' + sel.h.id + '"]') : null; if (lb) lb.style.display = 'none'; }
+          if (!hidden) { hidden = true; hideSel(sel.h); hideSel(sel.s); }
+          renderSizes(sel);
           var size = sel.s ? sel.s.value : prod.variants[0].options[sIdx];
           var vs = prod.variants.filter(function (v) { return nz(v.options[sIdx]) === nz(size) && v.available !== false; });
           var base = null; vs.forEach(function (v) { if (v.options[hIdx] === 'Geen') base = v.price; });
