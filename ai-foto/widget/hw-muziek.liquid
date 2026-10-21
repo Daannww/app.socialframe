@@ -14,6 +14,7 @@
     <canvas class="hw-mz-canvas" data-mz-canvas width="800" height="1200"></canvas>
     <div class="hw-mz-drag" data-mz-drag title="Sleep om de foto te verplaatsen"></div>
   </div>
+  <img class="hw-mz-stand" data-mz-stand alt="" hidden>
   <div class="hw-mz-hint">Sleep over de foto om hem te verplaatsen.</div>
   </div>
   </div>
@@ -104,6 +105,9 @@
   .hw-mz-stage::after{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;border-radius:inherit;
     box-shadow:inset 0 0 0 1px rgba(255,255,255,.4),inset 1px 1px 2px rgba(255,255,255,.35),inset -1px -1px 2px rgba(0,0,0,.06)}
   .hw-mz-drag{z-index:4}
+  .hw-mz-stand{display:block;position:relative;z-index:5;width:min(100%,420px);margin:-6.5% auto 0;height:auto;transition:width .25s ease;filter:drop-shadow(0 6px 8px rgba(0,0,0,.18))}
+  .hw-mz-stand[hidden]{display:none}
+  .hw-mz-sticky.is-stuck .hw-mz-stand{width:min(100%,calc(34vh * 2 / 3))}
   .hw-mz-drag{position:absolute;left:10%;top:5.2%;width:80%;height:53.333%;touch-action:none;cursor:grab}
   .hw-mz-drag:active{cursor:grabbing}
   .hw-mz-hint{text-align:center;font-size:12px;color:#777;margin-top:6px}
@@ -554,7 +558,11 @@
           if (vs.length && !vs.some(function (v) { return nz(v.options[hIdx]) === nz(sel.h.value); })) { sel.h.value = 'Geen'; sel.h.dispatchEvent(new Event('change', { bubbles: true })); }
           wrap.hidden = !vs.length;
         }
-        document.addEventListener('change', function (e) { if (e.target && e.target.tagName === 'SELECT') setTimeout(render, 50); });
+        var stand = $('[data-mz-stand]');
+        function updateStand() { var sel = selects(); var on = !!(sel.h && /houten/i.test(sel.h.value)); if (on && !stand.src) stand.src = document.querySelector('[data-hw-mz]').getAttribute('data-api') + '/widget-img/houten-standaard.png'; stand.hidden = !on; }
+        box.addEventListener('click', function () { setTimeout(updateStand, 80); });
+        document.addEventListener('change', function (e) { if (e.target && e.target.tagName === 'SELECT') setTimeout(function () { render(); updateStand(); }, 50); });
+        setTimeout(updateStand, 400); setTimeout(updateStand, 1600);
         setTimeout(render, 300); setTimeout(render, 1500);
       }).catch(function () {});
     })();

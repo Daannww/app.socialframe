@@ -34,6 +34,7 @@ app.use(express.json({ limit: '1mb' }));
 
 // Publieke bestanden: alleen print/preview/voorbeeld (onraadbare namen), nooit originelen.
 app.use('/fonts', (req, res, next) => { res.set('Access-Control-Allow-Origin', '*'); next(); }, express.static(path.join(__dirname, '..', 'fonts'), { maxAge: '30d' }));
+app.use('/widget-img', (req, res, next) => { res.set('Access-Control-Allow-Origin', '*'); next(); }, express.static(path.join(__dirname, '..', 'widget', 'img'), { maxAge: '1d' }));
 app.use('/files', express.static(FILES, { maxAge: '30d', immutable: true }));
 
 // ---------- Publieke API (productpagina) ----------
