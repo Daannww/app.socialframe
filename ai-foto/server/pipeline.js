@@ -17,13 +17,26 @@ async function download(url) {
   return Buffer.from(await r.arrayBuffer());
 }
 
+// Bij prompts met <<< >>>-markeringen (geboortetegel e.d.) moet de naam altijd op een eigen regel staan, ook als de klant
+// alles op één regel typt ("Emma 3,4 kg 51 cm 12-10-2026"). De naam = alles vóór het eerste woord met een cijfer; de rest komt eronder.
+function splitNameLine(t) {
+  if (t.includes('\n')) return t;
+  const w = t.split(' ');
+  const i = w.findIndex((x, n) => n > 0 && /\d/.test(x));
+  if (i < 1) return t;
+  return w.slice(0, i).join(' ') + '\n' + w.slice(i).join(' ');
+}
+
 // Met klanttekst en een tekst-prompt -> die gebruiken ({{CUSTOM_TEXT}} wordt vervangen; {{tekst}} werkt ook), anders de gewone prompt.
 function promptFor(design, text) {
   const t = (text || '').trim();
   if (!t || !design.prompt_with_text) return design.prompt;
   const tpl = design.prompt_with_text;
   const re = /\{\{?\s*(custom[ _-]?text|tekst)\s*\}?\}/gi;   // {{CUSTOM_TEXT}}, {custom text}, {tekst}, ...
-  return re.test(tpl) ? tpl.replace(re, () => `"${t}"`) : `${tpl} Tekst: "${t}"`;
+  if (!re.test(tpl)) return `${tpl} Tekst: "${t}"`;
+  re.lastIndex = 0;
+  const marked = /<<<\s*\{\{?\s*(custom[ _-]?text|tekst)/i.test(tpl);   // tekst staat al tussen markeringen: geen aanhalingstekens, wel regeleinde na de naam
+  return tpl.replace(re, () => (marked ? splitNameLine(t) : `"${t}"`));
 }
 
 const FAL_RATIO = { tegel: '1:1', landscape: '3:2', portrait: '2:3' };
