@@ -380,6 +380,8 @@ function adminAuth(req, res, next) {
   res.set('WWW-Authenticate', 'Basic realm="AI-foto admin"').status(401).send('Inloggen vereist');
 }
 app.use('/admin', adminAuth);
+// Sterrenbeeld-tegel: staat ná de inlog, want de router bevat ook /admin-routes (de publieke /api-routes werken gewoon)
+app.use(require('./sterrenbeeld')({ looksLikeBot }));
 app.use('/admin', express.static(path.join(__dirname, '..', 'public')));
 
 const adminDesign = (d) => ({ ...d, example_url: fileUrl(d.example_file), ref_url: d.ref_file ? `/admin/api/designs/${d.id}/reference?v=${encodeURIComponent(d.ref_file)}` : '' });
