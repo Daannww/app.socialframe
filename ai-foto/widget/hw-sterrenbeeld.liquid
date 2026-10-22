@@ -21,9 +21,9 @@
 
   <div class="hw-sb-label">3. Datum <span class="hw-sb-small">(optioneel, bijv. geboortedatum)</span></div>
   <div class="hw-sb-date">
-    <input type="text" inputmode="numeric" class="hw-sb-input" data-sb-d autocomplete="off" maxlength="2" placeholder="dd" aria-label="Dag">
-    <input type="text" inputmode="numeric" class="hw-sb-input" data-sb-m autocomplete="off" maxlength="2" placeholder="mm" aria-label="Maand">
-    <input type="text" inputmode="numeric" class="hw-sb-input" data-sb-y autocomplete="off" maxlength="4" placeholder="jjjj" aria-label="Jaar">
+    <input type="text" inputmode="numeric" class="hw-sb-input" data-sb-d autocomplete="off" maxlength="2" value="22" placeholder="dd" aria-label="Dag">
+    <input type="text" inputmode="numeric" class="hw-sb-input" data-sb-m autocomplete="off" maxlength="2" value="04" placeholder="mm" aria-label="Maand">
+    <input type="text" inputmode="numeric" class="hw-sb-input" data-sb-y autocomplete="off" maxlength="4" value="2026" placeholder="jjjj" aria-label="Jaar">
   </div>
   <div class="hw-sb-status" data-sb-status role="status" aria-live="polite"></div>
 </div>
@@ -92,7 +92,8 @@
     S.signs.forEach(function (s) {
       var o = document.createElement('option'); o.value = s.slug; o.textContent = s.nl + ' (' + s.period + ')'; signsEl.appendChild(o);
     });
-    if (S.signs.length) S.sign = S.signs[0].slug;
+    var def = S.signs.filter(function (x) { return x.slug === 'stier'; })[0] || S.signs[0];
+    if (def) { S.sign = def.slug; signsEl.value = def.slug; }
     signsEl.addEventListener('change', function () { S.sign = signsEl.value; refresh(); });
     refresh();
   }).catch(function () { say('De sterrenbeelden konden niet geladen worden. Ververs de pagina.', true); });
