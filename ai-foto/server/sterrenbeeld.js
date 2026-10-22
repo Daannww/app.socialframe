@@ -42,7 +42,7 @@ function promptFor(s) {
 
 // ---------- tekeningen beheren ----------
 const approvedFile = (slug) => path.join(DIR, `${slug}.png`);
-const hasArt = (slug) => fs.existsSync(approvedFile(slug));
+const hasArt = (slug) => !!bySlug[slug];
 const candidates = (slug) => fs.readdirSync(CAND).filter((f) => f.startsWith(slug + '-') && f.endsWith('.png')).sort();
 
 async function download(url) {
@@ -104,11 +104,80 @@ function parseDate(s) {
   return `${String(d).padStart(2, '0')} · ${String(mo).padStart(2, '0')} · ${y}`;
 }
 
+
+// ---------- echte sterrenbeelden: tekening uit sterrendata (handgetekende stijl) ----------
+const CON = JSON.parse(fs.readFileSync(path.join(__dirname, 'sterrenbeelden.json'), 'utf8'));
+function rng(seed) { let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+function starPath(cx, cy, r, rnd) {
+  const pts = []; const rot = rnd() * 1.2 - 0.6 - Math.PI / 2;
+  for (let i = 0; i < 10; i++) {
+    const rr = (i % 2 ? r * (0.42 + rnd() * 0.08) : r * (0.92 + rnd() * 0.16));
+    const a = rot + i * Math.PI / 5 + (rnd() - 0.5) * 0.12;
+    pts.push([cx + rr * Math.cos(a), cy + rr * Math.sin(a)]);
+  }
+  return 'M' + pts.map((p) => p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join('L') + 'Z';
+}
+function artSvg(slug, N = 1000) {
+  const c = CON[slug]; if (!c) throw new Error('Onbekend sterrenbeeld');
+  const idx = SIGNS.findIndex((s) => s.slug === slug);
+  const rnd = rng(1000 + idx * 77);
+  const R = N * 0.47, C = N / 2;
+  const d2r = Math.PI / 180, a0 = c.ra0 * d2r, d0 = c.de0 * d2r;
+  const proj = (ra, de) => {
+    const a = ra * d2r, d = de * d2r;
+    const k = 2 / (1 + Math.sin(d0) * Math.sin(d) + Math.cos(d0) * Math.cos(d) * Math.cos(a - a0));
+    return [-k * Math.cos(d) * Math.sin(a - a0), k * (Math.cos(d0) * Math.sin(d) - Math.sin(d0) * Math.cos(d) * Math.cos(a - a0))];
+  };
+  const L = c.lines.map((seg) => seg.map((p) => proj(p[0], p[1])));
+  const all = L.flat();
+  const xs = all.map((p) => p[0]), ys = all.map((p) => p[1]);
+  const mx = (Math.min(...xs) + Math.max(...xs)) / 2, my = (Math.min(...ys) + Math.max(...ys)) / 2;
+  const maxR = Math.max(...all.map((p) => Math.hypot(p[0] - mx, p[1] - my)));
+  const scale = Math.min((R * 0.68) / maxR, 62 * 57.3);
+  const T = (p) => [C + (p[0] - mx) * scale, C - (p[1] - my) * scale];
+  const magAt = {}; c.mags.forEach(([a, b, m]) => { magAt[a.toFixed(3) + ',' + b.toFixed(3)] = m; });
+  const nodes = []; // unieke sterren van de lijnfiguur
+  const key = (p) => p.k;
+  c.lines.forEach((seg) => seg.forEach((p) => { const k = p[0].toFixed(3) + ',' + p[1].toFixed(3); if (!nodes.find((n) => n.k === k)) { const q = T(proj(p[0], p[1])); nodes.push({ k, x: q[0], y: q[1], m: magAt[k] != null ? magAt[k] : 4 }); } }));
+  const nodeOf = (p) => nodes.find((n) => n.k === p[0].toFixed(3) + ',' + p[1].toFixed(3));
+  const rad = (m) => Math.max(16, Math.min(40, 16 + (4.6 - m) * 9));
+  let out = '';
+  // arcering: korte, licht gebogen streepjes, dichter naar de rand
+  let hatch = '';
+  for (let i = 0; i < 9000; i++) {
+    const t = Math.pow(rnd(), 0.55); // meer kans richting rand
+    const ang = rnd() * Math.PI * 2;
+    const rr = R * (0.18 + 0.82 * t);
+    const x = C + rr * Math.cos(ang), y = C + rr * Math.sin(ang);
+    if (Math.hypot(x - C, y - C) > R) continue;
+    const dens = (rr / R);
+    if (rnd() > 0.02 + Math.pow(dens, 3.2) * 1.1) continue;
+    const len = 18 + rnd() * 46, tilt = -0.22 + (rnd() - 0.5) * 0.18;
+    const x2 = x + len * Math.cos(tilt), y2 = y + len * Math.sin(tilt);
+    if (Math.hypot(x2 - C, y2 - C) > R * 1.0) continue;
+    hatch += `M${x.toFixed(1)} ${y.toFixed(1)}L${x2.toFixed(1)} ${y2.toFixed(1)}`;
+  }
+  out += `<path d="${hatch}" stroke="#1a1a1a" stroke-opacity=".7" stroke-width="1.2" fill="none" stroke-linecap="round"/>`;
+  // veldsterren
+  const fld = c.field.map((f) => ({ q: T(proj(f[0], f[1])), m: f[2] })).filter((f) => Math.hypot(f.q[0] - C, f.q[1] - C) < R * 0.93 && !nodes.some((n) => Math.hypot(n.x - f.q[0], n.y - f.q[1]) < 46)).sort((a, b) => a.m - b.m).slice(0, 38);
+  fld.forEach((f) => { const r = Math.max(2.4, 5.2 - (f.m - 2) * 0.9); out += `<circle cx="${f.q[0].toFixed(1)}" cy="${f.q[1].toFixed(1)}" r="${r.toFixed(1)}" fill="#1a1a1a"/>`; });
+  // lijnen
+  let ln = '';
+  c.lines.forEach((seg) => { for (let i = 0; i < seg.length - 1; i++) {
+    const a = nodeOf(seg[i]), b = nodeOf(seg[i + 1]); const dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy); if (d < 1) continue;
+    const ga = rad(a.m) + 3, gb = rad(b.m) + 3; if (d <= ga + gb) continue;
+    ln += `M${(a.x + dx / d * ga).toFixed(1)} ${(a.y + dy / d * ga).toFixed(1)}L${(b.x - dx / d * gb).toFixed(1)} ${(b.y - dy / d * gb).toFixed(1)}`; } });
+  out += `<path d="${ln}" stroke="#1a1a1a" stroke-width="3.2" stroke-linecap="round" fill="none"/>`;
+  nodes.forEach((n) => { out += `<path d="${starPath(n.x, n.y, rad(n.m), rnd)}" fill="#111" stroke="#111" stroke-width="2.2" stroke-linejoin="round"/>`; });
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${N}" height="${N}" viewBox="0 0 ${N} ${N}"><rect width="${N}" height="${N}" fill="#fff"/>${out}</svg>`;
+}
+const artBuffer = (slug, N = 1000) => sharp(Buffer.from(artSvg(slug, N))).png().toBuffer();
+
 // Tekent het hele ontwerp: tekening bovenin, naam en datum eronder. size = zijde in pixels (vierkant).
 async function render({ slug, name, date, size = 1500, art = null, format = 'jpeg' }) {
   const s = bySlug[slug];
   if (!s) throw new Error('Onbekend sterrenbeeld');
-  const artBuf = art || (hasArt(slug) ? fs.readFileSync(approvedFile(slug)) : null);
+  const artBuf = art || await artBuffer(slug, 1600);
   if (!artBuf) throw new Error('Van dit sterrenbeeld is nog geen goedgekeurde tekening');
   const nm = cleanName(name);
   if (nm && !NAME_OK.test(nm)) throw new Error('Gebruik alleen letters in de naam');
@@ -160,7 +229,7 @@ module.exports = ({ looksLikeBot }) => {
   // Tekening zelf (zonder tekst), voor de tegel-mockup
   r.get('/api/sterrenbeeld/art/:slug', (req, res) => {
     if (!bySlug[req.params.slug] || !hasArt(req.params.slug)) return res.status(404).end();
-    res.set({ 'Cache-Control': 'public, max-age=600', 'Access-Control-Allow-Origin': '*' }).sendFile(approvedFile(req.params.slug));
+    artBuffer(req.params.slug, 1200).then((b) => res.set({ 'Cache-Control': 'public, max-age=600', 'Access-Control-Allow-Origin': '*' }).type('png').send(b)).catch(() => res.status(500).end());
   });
 
   // Drukbestand (voor de orderapp en de beheerder), achter /admin dus met inlog
