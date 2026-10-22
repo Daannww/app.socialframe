@@ -106,7 +106,7 @@
   .hw-mz *{box-sizing:border-box}
   .hw-mz-heading{font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#111;margin:0 0 16px}
   .hw-mz-sticky{z-index:20;box-sizing:border-box;background:#fff;padding:6px 0 8px;text-align:center}
-  .hw-mz-scene{position:relative;width:min(100%,520px);aspect-ratio:41/50;margin:0 auto;overflow:hidden;border-radius:6px;background:#ece7df center top/cover no-repeat;transition:width .25s ease}
+  .hw-mz-scene{position:relative;width:min(100%,520px);aspect-ratio:41/50;margin:0 auto;overflow:hidden;border-radius:6px;background:#ece7df center top/cover no-repeat}
   .hw-mz-ground{position:absolute;left:14%;width:72%;top:86.6%;height:5.7%;background:radial-gradient(ellipse at center,rgba(60,45,30,.38),rgba(60,45,30,0) 70%);filter:blur(3px)}
   .hw-mz-plate{position:absolute;left:17%;width:66%;top:8%}
   .hw-mz-stage{position:relative;z-index:2;width:100%;aspect-ratio:2/3;overflow:hidden;background:#fff;box-shadow:0 0 0 1px rgba(110,130,140,.3),0 14px 12px -4px rgba(40,25,10,.5),8px 8px 18px rgba(60,45,30,.25)}
@@ -123,8 +123,6 @@
   .hw-mz-drag{position:absolute;left:10%;top:5.2%;width:80%;height:53.333%;touch-action:none;cursor:grab}
   .hw-mz-drag:active{cursor:grabbing}
   .hw-mz-hint{text-align:center;font-size:12px;color:#777;margin-top:6px}
-  .hw-mz-sticky.is-stuck .hw-mz-scene{width:min(100%,calc(34vh * 41 / 50))}
-  .hw-mz-sticky.is-stuck .hw-mz-hint{display:none}
   .hw-mz-sticky.is-stuck{box-shadow:none}
   .hw-mz-label{display:block;font-size:14px;font-weight:700;color:#121212;margin:20px 0 8px}
   .hw-mz-req{font-weight:400;font-size:12px;color:#b3261e}
@@ -514,7 +512,7 @@
 
     // Voorbeeld blijft bovenaan hangen (en wordt kleiner) tijdens het scrollen - met JS i.p.v. CSS-sticky, want dat werkt niet in elk thema
     (function () {
-      var slot = $('[data-mz-slot]'), sticky = $('[data-mz-sticky]'), busy = false, topOff = 0, fixed = false;
+      var slot = $('[data-mz-slot]'), sticky = $('[data-mz-sticky]'), busy = false, topOff = 0, fixed = false, full = null, small = 0, smallH = 0;
       function headerOffset() {
         var h = 0, els = document.querySelectorAll('header, .site-header, [data-section-type="header"], .header');
         for (var i = 0; i < els.length; i++) {
@@ -523,15 +521,31 @@
         }
         return Math.round(h);
       }
+      var scene = $('[data-mz-scene]'), hint = $('.hw-mz-hint');
+      // Het voorbeeld krimpt geleidelijk mee met het scrollen (en het vak eronder krimpt gelijk op), zodat er geen sprong en geen wit gat ontstaat
       function update() {
         busy = false;
         var sr = slot.getBoundingClientRect(), rr = root.getBoundingClientRect();
         if (sr.top >= topOff || rr.bottom <= 0) {
-          if (fixed) { fixed = false; sticky.classList.remove('is-stuck'); sticky.style.cssText = ''; slot.style.height = ''; }
+          if (fixed) { fixed = false; sticky.classList.remove('is-stuck'); sticky.style.cssText = ''; scene.style.width = ''; if (hint) hint.style.display = ''; slot.style.height = ''; }
           return;
         }
-        if (!fixed) { slot.style.height = slot.offsetHeight + 'px'; fixed = true; sticky.classList.add('is-stuck'); }
-        var h = sticky.offsetHeight, t = Math.min(topOff, rr.bottom - h - 8);
+        if (!fixed) {
+          fixed = true; sticky.classList.add('is-stuck');
+          var cs0 = getComputedStyle(scene);
+          full = { w: scene.offsetWidth, h: slot.offsetHeight };
+          small = Math.min(full.w, window.innerHeight * 0.34 * 41 / 50);
+          smallH = full.h - (full.w - small) * 50 / 41 - (hint ? hint.offsetHeight + 6 : 0);
+        }
+        var dist = Math.max(60, (full.h - smallH) * 1.6);
+        var p = Math.max(0, Math.min(1, (topOff - sr.top) / dist));
+        p = p * p * (3 - 2 * p); // zachte start en stop
+        var w = full.w + (small - full.w) * p;
+        scene.style.width = w + 'px';
+        if (hint) hint.style.display = p > 0.02 ? 'none' : '';
+        var hSticky = w * 50 / 41 + 14;
+        slot.style.height = Math.max(hSticky, full.h + (smallH - full.h) * p) + 'px';
+        var t = Math.min(topOff, rr.bottom - hSticky - 8);
         sticky.style.cssText = 'position:fixed;left:' + sr.left + 'px;width:' + sr.width + 'px;top:' + t + 'px';
       }
       function req() { if (!busy) { busy = true; requestAnimationFrame(update); } }
