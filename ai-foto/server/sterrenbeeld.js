@@ -192,10 +192,10 @@ async function render({ slug, name, date, size = 1500, art = null, format = 'jpe
   let nameSize = 170 * k;
   let np = nm ? textPath(f.name, nm, size / 2, 0, nameSize, 4 * k) : null;
   if (np && np.width > maxW) { nameSize *= maxW / np.width; }
-  const nameBase = Math.round(1255 * k);
+  const nameBase = Math.round(1235 * k);
   if (nm) np = textPath(f.name, nm, size / 2, nameBase, nameSize, 4 * k);
   const dateSize = 62 * k;
-  const dp = dt ? textPath(f.date, dt, size / 2, Math.round((nm ? 1390 : 1300) * k), dateSize, 7 * k) : null;
+  const dp = dt ? textPath(f.date, dt, size / 2, Math.round((nm ? 1345 : 1300) * k), dateSize, 7 * k) : null;
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><g fill="#1a1a1a">${np ? `<path d="${np.d}"/>` : ''}${dp ? `<path d="${dp.d}"/>` : ''}</g></svg>`;
   const artLayer = await sharp(artBuf).resize(artSize, artSize, { fit: 'contain', background: '#ffffff' }).flatten({ background: '#ffffff' }).toBuffer();
