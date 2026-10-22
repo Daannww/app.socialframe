@@ -226,6 +226,17 @@ module.exports = ({ looksLikeBot }) => {
     }
   });
 
+  // Voorbeeld in de tegel-mockup (bakstenen muur + plank, zelfde als de landkaart-tegels), webp
+  r.get('/api/sterrenbeeld/mockup', guard, lim(60, 60 * 1000), async (req, res) => {
+    try {
+      const flat = await render({ slug: String(req.query.sign || ''), name: req.query.name, date: req.query.date, size: 900 });
+      const buf = await require('./mockup').tegelMockup(flat, { width: 900, quality: 85 });
+      res.set({ 'Cache-Control': 'public, max-age=600', 'Access-Control-Allow-Origin': '*' }).type('image/webp').send(buf);
+    } catch (e) {
+      res.status(400).json({ error: e.message });
+    }
+  });
+
   // Tekening zelf (zonder tekst), voor de tegel-mockup
   r.get('/api/sterrenbeeld/art/:slug', (req, res) => {
     if (!bySlug[req.params.slug] || !hasArt(req.params.slug)) return res.status(404).end();

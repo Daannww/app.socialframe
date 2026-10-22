@@ -13,7 +13,10 @@ async function tegelMockup(printPath, { width = 1336, quality = 90 } = {}) {
   // kunstwerk met masker als alpha (alleen binnen het witte tegelvlak), daarna "multiply" zodat schaduw en randen van de foto blijven
   const layer = await sharp(art).removeAlpha().joinChannel(maskBuf, { raw: { width: BOX.width, height: BOX.height, channels: 1 } }).png().toBuffer();
   let out = sharp(mock).removeAlpha().composite([{ input: layer, left: BOX.left, top: BOX.top, blend: 'multiply' }]);
-  if (width && width !== 1336) out = out.resize(width);
+  if (width && width !== 1336) {   // sharp resized vóór het samenvoegen: eerst samenvoegen op volle grootte, dan pas verkleinen
+    const full = await out.png().toBuffer();
+    return sharp(full).resize(width).webp({ quality }).toBuffer();
+  }
   return out.webp({ quality }).toBuffer();
 }
 module.exports = { tegelMockup };

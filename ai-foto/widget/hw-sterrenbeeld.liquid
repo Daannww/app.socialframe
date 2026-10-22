@@ -33,7 +33,7 @@
   .hw-sb *{box-sizing:border-box}
   .hw-sb-heading{font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#111;margin:0 0 16px}
   .hw-sb-sticky{z-index:20;background:#fff;padding:6px 0 8px;text-align:center}
-  .hw-sb-tile{width:min(100%,460px);aspect-ratio:1/1;margin:0 auto;background:#fff;border-radius:4px;box-shadow:0 0 0 1px rgba(110,130,140,.25),5px 8px 18px rgba(60,45,30,.18);overflow:hidden;transition:width .25s ease}
+  .hw-sb-tile{width:min(100%,460px);aspect-ratio:1/1;margin:0 auto;background:#ece7df;border-radius:6px;overflow:hidden;transition:width .25s ease}
   .hw-sb-tile img{display:block;width:100%;height:100%;object-fit:cover}
   .hw-sb-sticky.is-stuck .hw-sb-tile{width:min(100%,32vh)}
   .hw-sb-sticky.is-stuck{box-shadow:0 6px 10px -8px rgba(0,0,0,.35)}
@@ -76,13 +76,14 @@
     if (d) u += '&date=' + encodeURIComponent(d);
     return u;
   }
+  function mockupUrl() { return previewUrl().replace('/api/sterrenbeeld/preview?', '/api/sterrenbeeld/mockup?'); }
   function refresh() {
     clearTimeout(tm);
     tm = setTimeout(function () {
       var d = dateStr();
       if (d === null) { say('Vul de datum in als dd, mm en jjjj.', true); return; }
       say('');
-      var u = previewUrl(); if (img.getAttribute('src') !== u) img.src = u;
+      var u = mockupUrl(); if (img.getAttribute('src') !== u) img.src = u;
     }, 250);
   }
   img.addEventListener('error', function () { say('Het voorbeeld kon niet geladen worden. Controleer de naam (alleen letters).', true); });
