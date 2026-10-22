@@ -202,7 +202,7 @@
     loadFontsCss();
     var API = (root.dataset.api || '').replace(/\/$/, '');
     var $ = function (s) { return root.querySelector(s); };
-    var canvas = $('[data-mz-canvas]'), ctx = canvas.getContext('2d');
+    var canvas = $('[data-mz-canvas]'), ctx = canvas.getContext('2d', { colorSpace: 'display-p3' });
     var stageEl = canvas.parentNode;
     var statusEl = $('[data-mz-status]'), suggEl = $('[data-mz-sugg]'), searchEl = $('[data-mz-search]');
     var r1El = $('[data-mz-r1]'), r2El = $('[data-mz-r2]'), t0El = $('[data-mz-t0]'), t1El = $('[data-mz-t1]'), dotEl = $('[data-mz-dot]');
@@ -321,7 +321,7 @@
       }
       var zx = ZONE.x * PX, zy = ZONE.top * PX, z = ZONE.size * PX;
       if (S.photo) {
-        var off = document.createElement('canvas'); off.width = z; off.height = z; var oc = off.getContext('2d');
+        var off = document.createElement('canvas'); off.width = z; off.height = z; var oc = off.getContext('2d', { colorSpace: 'display-p3' });
         drawPhotoTo(oc, z); if (S.filter === 'Zwart-wit') gray(oc, z);
         ctx.drawImage(off, zx, zy);
       } else {
