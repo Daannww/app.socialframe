@@ -5,7 +5,7 @@ const sharp = require('sharp'); const http = require('http'); const assert = req
 const fal = require('./fal'); const calls = [];
 let imgUrlBuf;
 const visionCalls = []; const visionAnswers = [];
-fal.run = async (model, input) => { if (/any-llm\/vision/.test(model)) { visionCalls.push(input); return { output: visionAnswers.length ? visionAnswers.shift() : 'YES' }; } calls.push({ model, input }); return { images: [{ url: 'http://localhost:4598/fake.jpg' }] }; };
+fal.run = async (model, input) => { if (/(any-llm|router)\/vision/.test(model)) { visionCalls.push(input); return { output: visionAnswers.length ? visionAnswers.shift() : 'YES' }; } calls.push({ model, input }); return { images: [{ url: 'http://localhost:4598/fake.jpg' }] }; };
 // Test-verzoeken doen alsof ze uit een gewone browser komen (de botfilter blokkeert 'node' als user-agent).
 const realFetch = global.fetch;
 global.fetch = (u, o = {}) => realFetch(u, { ...o, headers: { 'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/120 Safari/537.36', ...(o.headers || {}) } });

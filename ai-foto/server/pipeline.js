@@ -46,19 +46,19 @@ const FAL_RATIO = { tegel: '1:1', landscape: '3:2', portrait: '2:3' };
 // (bv. hond blijft hond, geen verzonnen personen). Bij twijfel of een fout in de controle: gewoon doorlaten.
 async function subjectMatches(photoDataUrl, resultBuf, settings) {
   // Eerst het ingestelde model, daarna een paar bekende alternatieven (modelnamen op fal/OpenRouter wisselen wel eens).
-  const models = [settings.controle_vision_model, 'google/gemini-2.5-flash', 'google/gemini-flash-1.5', 'openai/gpt-4o-mini'].filter((m, i, a) => m && a.indexOf(m) === i);
+  const models = [settings.controle_vision_model, 'google/gemini-2.5-flash', 'google/gemini-2.0-flash-001', 'openai/gpt-4o-mini'].filter((m, i, a) => m && a.indexOf(m) === i);
   const input = {
     prompt: 'Image 1 is a customer photo. Image 2 is an AI-made drawing/artwork based on it. Does image 2 show the SAME main subject(s) as image 1: same kind of subject (person/people, pet, building, object), the same number of people or animals, and clearly the same scene (for example a person in a kayak must still be a recognizable person in a kayak, not an abstract pattern)? A different art style is expected and fine, and so are decorative corner ornaments or text. Answer with exactly one word: YES or NO.',
     image_urls: [photoDataUrl, `data:image/jpeg;base64,${resultBuf.toString('base64')}`],
   };
   for (const model of models) {
     try {
-      const out = await fal.run('fal-ai/any-llm/vision', { ...input, model }, { timeoutMs: 60000 });
+      const out = await fal.run('openrouter/router/vision', { ...input, model, temperature: 0, max_tokens: 8 }, { timeoutMs: 60000 });
       const txt = String((out && (out.output || out.text)) || '').trim().toUpperCase();
       if (!txt) continue;
       return !txt.startsWith('NO');
     } catch (e) {
-      console.warn(`onderwerp-controle: model ${model} werkt niet (${String(e.message).slice(0, 120)})`);
+      console.warn(`onderwerp-controle: model ${model} werkt niet (${String(e.message).slice(0, 300)})`);
     }
   }
   return true;   // geen enkel model gelukt: resultaat gewoon doorlaten
