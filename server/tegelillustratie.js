@@ -31,12 +31,22 @@ const ONTWERPEN = [
     // (Pornstars_martini_recept.eps, 100x100mm) op 1575x1575px.
     herken: /pornstar\s*martini/i,
     assetBestand: 'pornstar-martini.jpg'
+  },
+  {
+    id: 'meisje-met-de-parel',
+    // Titel in Shopify: "WC Tegeltje – Meisje met de Parel" (derde titel-
+    // familie, vandaar de uitgebreide poort-check hieronder). Vaste, volledig
+    // gekleurde illustratie op witte achtergrond; de klant kiest alleen het
+    // formaat (10x10 of 13x13). Asset: aangeleverde afbeelding (1254px),
+    // opgeschaald naar 1575x1575 en bijna-wit naar zuiver wit gezet.
+    herken: /meisje\s*met\s*de\s*parel/i,
+    assetBestand: 'meisje-met-de-parel.jpg'
   }
 ];
 
 function matchTegelIllustratieOntwerp(li) {
   const titel = li.title || '';
-  if (!/tegeltje met (tekst|recept)/i.test(titel)) return null;
+  if (!/tegeltje met (tekst|recept)|wc\s*tegeltje/i.test(titel)) return null;
   return ONTWERPEN.find(o => o.herken.test(titel)) || null;
 }
 
