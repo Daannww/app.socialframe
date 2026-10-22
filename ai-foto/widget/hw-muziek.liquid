@@ -240,12 +240,13 @@
     function white() { return S.tekst === 'Witte tekst'; }
     function codeLink() { return (S.track && S.track.url) || linkEl.value.trim(); }
     function qrText() { return qrLinkEl.value.trim() || codeLink(); }
+    var DEFAULT_TRACK = 'https://open.spotify.com/track/4cOdK2wGLETKBW3PvgPWqT'; // standaardcode in het voorbeeld tot er een nummer of link is
     function refreshCodes() {
-      if (S.code === 'spotify' && codeLink()) {
-        var w = white(), key = codeLink() + '|' + w;
+      if (S.code === 'spotify') {
+        var pl = codeLink() || DEFAULT_TRACK, w = white(), key = pl + '|' + w;
         if (key !== codeKey) {
           codeKey = key; codeImg = null;
-          svgImage(API + '/api/music/code.svg?link=' + encodeURIComponent(codeLink()) + '&bg=' + (w ? '000000' : 'ffffff') + '&fg=' + (w ? 'white' : 'black'))
+          svgImage(API + '/api/music/code.svg?link=' + encodeURIComponent(pl) + '&bg=' + (w ? '000000' : 'ffffff') + '&fg=' + (w ? 'white' : 'black'))
             .then(function (im) { if (codeKey === key) { codeImg = im; schedule(); } }, function () { if (codeKey === key) { codeImg = 'fout'; schedule(); } });
         }
       }
@@ -644,16 +645,16 @@
           var vs = prod.variants.filter(function (v) { return nz(v.options[sIdx]) === nz(size) && v.available !== false; });
           var base = null; vs.forEach(function (v) { if (v.options[hIdx] === 'Geen') base = v.price; });
           if (base === null && vs.length) base = vs[0].price;
-          var xl = /extra groot/i.test(size), onlyWall = false;
-          if (xl) { var wallVs = vs.filter(function (v) { return /ophang/i.test(v.options[hIdx]); }); if (wallVs.length) { vs = wallVs; onlyWall = true; } }
+          var xl = /extra groot/i.test(size), onlyWall = false, synthWall = false;
+          if (xl) { var wallVs = vs.filter(function (v) { return /ophang/i.test(v.options[hIdx]); }); if (wallVs.length) { vs = wallVs; onlyWall = true; } else { var geenVs = vs.filter(function (v) { return nz(v.options[hIdx]) === 'Geen'; }); if (geenVs.length) { vs = geenVs; onlyWall = true; synthWall = true; } } }
           box.innerHTML = '';
           vs.forEach(function (v) {
             var name = v.options[hIdx], b = document.createElement('button'); b.type = 'button'; b.className = 'hw-mz-holder'; b.setAttribute('aria-pressed', nz(sel.h.value) === nz(name) ? 'true' : 'false');
-            var im = imgFor(name);
-            if (name === 'Geen') { var n = document.createElement('div'); n.className = 'hw-mz-none'; n.textContent = '\u2205'; b.appendChild(n); }
+            var im = imgFor(synthWall ? 'ophang' : name);
+            if (name === 'Geen' && !synthWall) { var n = document.createElement('div'); n.className = 'hw-mz-none'; n.textContent = '\u2205'; b.appendChild(n); }
             else if (im) { var i = document.createElement('img'); i.src = im; i.alt = ''; i.loading = 'lazy'; if (/pootjes/i.test(name)) i.style.objectPosition = '100% 50%'; b.appendChild(i); }
-            var t = document.createElement('b'); t.textContent = name === 'Geen' ? 'Geen houder' : name; b.appendChild(t);
-            var d = v.price - base, pr = document.createElement('small'); pr.textContent = name === 'Geen' ? 'Standaard' : (onlyWall ? 'Gratis' : d > 0 ? '+ ' + money(d) : 'Gratis'); b.appendChild(pr);
+            var t = document.createElement('b'); t.textContent = synthWall ? 'Muur ophangsysteem' : (name === 'Geen' ? 'Geen houder' : name); b.appendChild(t);
+            var d = v.price - base, pr = document.createElement('small'); pr.textContent = (name === 'Geen' && !synthWall) ? 'Standaard' : (onlyWall ? 'Gratis' : d > 0 ? '+ ' + money(d) : 'Gratis'); b.appendChild(pr);
             b.addEventListener('click', function () { var op = Array.prototype.filter.call(sel.h.options, function (o) { return nz(o.value) === nz(name); })[0]; sel.h.value = op ? op.value : name; sel.h.dispatchEvent(new Event('input', { bubbles: true })); sel.h.dispatchEvent(new Event('change', { bubbles: true })); render(); });
             box.appendChild(b);
           });
