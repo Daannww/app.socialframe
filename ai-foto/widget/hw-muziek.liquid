@@ -110,11 +110,11 @@
   .hw-mz-ground{position:absolute;left:14%;width:72%;top:86.6%;height:5.7%;background:radial-gradient(ellipse at center,rgba(60,45,30,.38),rgba(60,45,30,0) 70%);filter:blur(3px)}
   .hw-mz-plate{position:absolute;left:17%;width:66%;top:8%}
   .hw-mz-stage{position:relative;z-index:2;width:100%;aspect-ratio:2/3;overflow:hidden;background:#fff;box-shadow:0 0 0 1px rgba(110,130,140,.3),0 14px 12px -4px rgba(40,25,10,.5),8px 8px 18px rgba(60,45,30,.25)}
-  .hw-mz-stage.is-clear{background:linear-gradient(135deg,rgba(255,255,255,.20),rgba(255,255,255,.10) 55%,rgba(255,255,255,.16));-webkit-backdrop-filter:blur(.6px);backdrop-filter:blur(.6px);box-shadow:0 0 0 1.5px rgba(255,255,255,.88),3px 5px 12px rgba(60,45,30,.10)}
+  .hw-mz-stage.is-clear{background:linear-gradient(135deg,rgba(255,255,255,.20),rgba(255,255,255,.10) 55%,rgba(255,255,255,.16));-webkit-backdrop-filter:blur(.6px);backdrop-filter:blur(.6px);box-shadow:0 0 0 .75px rgba(255,255,255,.88),3px 5px 12px rgba(60,45,30,.10)}
   .hw-mz-canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
   /* geen witte glasrand meer: de plaat is volledig doorzichtig */
   .hw-mz-drag{z-index:4}
-  .hw-mz-stand{display:block;position:relative;z-index:1;width:105.3%;margin:-2% 0 0 -2.65%;height:auto;background:transparent !important;border:0 !important;box-shadow:none !important;padding:0 !important;filter:drop-shadow(0 5px 5px rgba(40,25,10,.38)) drop-shadow(0 12px 12px rgba(40,25,10,.22))}
+  .hw-mz-stand{display:block;position:relative;z-index:1;width:110%;margin:-2% 0 0 -5%;height:auto;background:transparent !important;border:0 !important;box-shadow:none !important;padding:0 !important;filter:drop-shadow(0 5px 5px rgba(40,25,10,.38)) drop-shadow(0 12px 12px rgba(40,25,10,.22))}
   .hw-mz-stand[hidden]{display:none}
   /* kunststof pootjes: voorste helft altijd voor de plaat, voetjes aan de rand van de plaat */
   .hw-mz-stand.is-feet{z-index:5;width:75.1%;margin:-13% 0 0 14%;filter:none}
@@ -378,7 +378,7 @@
     [r1El, r2El, t0El, t1El, dotEl, qrLinkEl].forEach(function (el) { el.addEventListener('input', function () { refreshCodes(); changed(); }); });
     $('[data-mz-linktoggle]').addEventListener('click', function () { var w = $('[data-mz-linkwrap]'); w.hidden = !w.hidden; this.setAttribute('aria-expanded', w.hidden ? 'false' : 'true'); if (!w.hidden) linkEl.focus(); });
     function openLink() { var w = $('[data-mz-linkwrap]'); w.hidden = false; $('[data-mz-linktoggle]').setAttribute('aria-expanded', 'true'); }
-    (function () { var sc = $('[data-mz-scene]'); if (sc) sc.style.backgroundImage = "url('" + root.getAttribute('data-api') + "/widget-img/scene.jpg?v=1')"; })();
+    (function () { var sc = $('[data-mz-scene]'); if (sc) sc.style.backgroundImage = "url('" + root.getAttribute('data-api') + "/widget-img/scene.jpg?v=2')"; })();
     var lt = null;
     linkEl.addEventListener('input', function () {
       clearTimeout(lt);
