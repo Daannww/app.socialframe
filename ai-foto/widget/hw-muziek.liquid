@@ -76,7 +76,8 @@
   </div>
   <div class="hw-mz-small">Achtergrond</div>
   <div class="hw-mz-modes">
-    <button type="button" class="hw-mz-mode" data-mz-set="bg" data-v="Wit" aria-pressed="true">Wit</button>
+    <button type="button" class="hw-mz-mode" data-mz-set="bg" data-v="Transparant" aria-pressed="true">Transparant</button>
+    <button type="button" class="hw-mz-mode" data-mz-set="bg" data-v="Wit" aria-pressed="false">Wit</button>
     <button type="button" class="hw-mz-mode" data-mz-set="bg" data-v="Zwart" aria-pressed="false">Zwart</button>
     <button type="button" class="hw-mz-mode" data-mz-set="bg" data-v="Marmerwit" aria-pressed="false">Marmer wit</button>
     <button type="button" class="hw-mz-mode" data-mz-set="bg" data-v="Marmerzwart" aria-pressed="false">Marmer zwart</button>
@@ -109,6 +110,7 @@
   .hw-mz-ground{position:absolute;left:14%;width:72%;top:75.5%;height:5%;background:radial-gradient(ellipse at center,rgba(60,45,30,.38),rgba(60,45,30,0) 70%);filter:blur(3px)}
   .hw-mz-plate{position:absolute;left:17%;width:66%;top:7%}
   .hw-mz-stage{position:relative;width:100%;aspect-ratio:2/3;overflow:hidden;background:#fff;box-shadow:0 0 0 1px rgba(110,130,140,.3),6px 8px 16px rgba(60,45,30,.2)}
+  .hw-mz-stage.is-clear{background:transparent;box-shadow:0 0 0 1px rgba(110,130,140,.3),4px 6px 14px rgba(60,45,30,.12)}
   .hw-mz-canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
   /* glasplaat-look: witte glasrand (dik linksboven, dun rechtsonder) en zachte glans; alleen visueel, de canvas blijft ongewijzigd */
   .hw-mz-stage::before{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;
@@ -187,11 +189,12 @@
     var API = (root.dataset.api || '').replace(/\/$/, '');
     var $ = function (s) { return root.querySelector(s); };
     var canvas = $('[data-mz-canvas]'), ctx = canvas.getContext('2d');
+    var stageEl = canvas.parentNode;
     var statusEl = $('[data-mz-status]'), suggEl = $('[data-mz-sugg]'), searchEl = $('[data-mz-search]');
     var r1El = $('[data-mz-r1]'), r2El = $('[data-mz-r2]'), t0El = $('[data-mz-t0]'), t1El = $('[data-mz-t1]'), dotEl = $('[data-mz-dot]');
     var linkEl = $('[data-mz-link]'), qrLinkEl = $('[data-mz-qrlink]'), zoomEl = $('[data-mz-zoom]');
 
-    var S = { filter: 'Kleur', tekst: 'Zwarte tekst', code: 'geen', bg: 'Wit', heart: 'Rood', track: null,
+    var S = { filter: 'Kleur', tekst: 'Zwarte tekst', code: 'geen', bg: 'Transparant', heart: 'Rood', track: null,
               photo: null, zoom: 1, ox: 0, oy: 0, result: null, busy: false, pass: false, searchOk: true };
     var layout = null, bgImgs = {}, codeImg = null, codeKey = '', qrImg = null, qrKey = '';
     var raf = 0;
@@ -276,7 +279,9 @@
       var W = canvas.width, H = canvas.height, wt = white(), col = wt ? '#fffffd' : '#000000';
       ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, W, H);
       var bg = S.bg;
-      if (bg === 'Wit') { ctx.fillStyle = '#fffffd'; ctx.fillRect(0, 0, W, H); }
+      stageEl.classList.toggle('is-clear', bg === 'Transparant');
+      if (bg === 'Transparant') { /* niets tekenen: de plaat is doorzichtig */ }
+      else if (bg === 'Wit') { ctx.fillStyle = '#fffffd'; ctx.fillRect(0, 0, W, H); }
       else if (bg === 'Zwart') { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H); }
       else {
         var im = bgImgs[bg === 'Marmerwit' ? 'marmerwit' : 'marmerzwart'];
