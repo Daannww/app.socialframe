@@ -616,7 +616,7 @@
         }
         var stand = $('[data-mz-stand]');
         function updateStand() {
-          var sel = selects(), hv = sel.h ? sel.h.value : '', wood = /houten/i.test(hv), feet = /pootjes/i.test(hv), on = wood || feet;
+          var sel = selects(), hv = sel.h ? sel.h.value : '', wood = /houten|\bled\b/i.test(hv), feet = /pootjes/i.test(hv), on = wood || feet;
           var api = document.querySelector('[data-hw-mz]').getAttribute('data-api') + '/widget-img/';
           var stg = $('[data-mz-stage]'), clear = !!(stg && stg.classList.contains('is-clear'));
           var want = wood ? 'houten-standaard.png?v=2' : (clear ? 'pootjes-transparant.webp?v=1' : 'pootjes-gekleurd.webp?v=1');
