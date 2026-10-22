@@ -119,12 +119,16 @@
   .hw-mz-stand{display:block;position:relative;z-index:1;width:110%;margin:-3.6% 0 0 -5%;height:auto;background:transparent !important;border:0 !important;box-shadow:none !important;padding:0 !important;filter:drop-shadow(0 5px 5px rgba(40,25,10,.38)) drop-shadow(0 12px 12px rgba(40,25,10,.22))}
   /* ledverlichting: donkerdere kamer, licht uit de sleuf, kabel naast de houder */
   .hw-mz-scene::before,.hw-mz-scene::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;opacity:0;transition:opacity .5s ease}
-  .hw-mz-scene::before{background:linear-gradient(180deg,rgba(10,12,22,.55),rgba(10,12,22,.68))}
-  .hw-mz-scene::after{background:radial-gradient(ellipse 46% 15% at 50% 89.5%,rgba(255,214,150,.55),rgba(255,214,150,0) 100%);mix-blend-mode:screen}
+  .hw-mz-scene::before{background:linear-gradient(180deg,rgba(6,6,10,.80),rgba(6,6,10,.88))}
+  .hw-mz-scene::after{background:radial-gradient(ellipse 46% 15% at 50% 89.5%,rgba(255,238,210,.38),rgba(255,238,210,0) 100%);mix-blend-mode:screen}
   .hw-mz-scene.is-led::before,.hw-mz-scene.is-led::after{opacity:1}
-  .hw-mz-glow{position:absolute;left:0;right:0;bottom:0;height:46%;z-index:3;pointer-events:none;opacity:0;transition:opacity .5s ease;mix-blend-mode:screen;background:linear-gradient(to top,rgba(255,236,200,.95) 0,rgba(255,226,170,.55) 8%,rgba(255,220,160,.22) 30%,rgba(255,220,160,0) 100%)}
+  .hw-mz-glow{position:absolute;left:0;right:0;bottom:0;height:34%;z-index:3;pointer-events:none;opacity:0;transition:opacity .5s ease;mix-blend-mode:screen;background:linear-gradient(to top,rgba(255,250,240,.85) 0,rgba(255,246,230,.38) 7%,rgba(255,244,225,.12) 28%,rgba(255,244,225,0) 100%)}
   .hw-mz-scene.is-led .hw-mz-glow{opacity:1}
-  .hw-mz-scene.is-led .hw-mz-stand:not(.is-feet){filter:brightness(.82) drop-shadow(0 5px 5px rgba(0,0,0,.45))}
+  /* verlichte randen van het acrylaat + donkere plaat zoals in het echt */
+  .hw-mz-scene.is-led .hw-mz-stage.is-clear{background:linear-gradient(135deg,rgba(0,0,0,.28),rgba(0,0,0,.18));-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:0 0 0 1.5px rgba(255,255,255,.96),0 0 9px 2px rgba(255,255,255,.6),0 0 26px 4px rgba(255,255,255,.22),inset 0 0 12px rgba(255,255,255,.4)}
+  .hw-mz-scene.is-led .hw-mz-stage:not(.is-clear){box-shadow:0 0 0 1px rgba(255,255,255,.7),0 0 14px 2px rgba(255,255,255,.3)}
+  .hw-mz-scene.is-led .hw-mz-canvas{filter:brightness(.82) contrast(1.05)}
+  .hw-mz-scene.is-led .hw-mz-stand:not(.is-feet){filter:brightness(.55) drop-shadow(0 5px 5px rgba(0,0,0,.6))}
   .hw-mz-cable{position:absolute;z-index:0;left:100%;top:96%;width:34%;height:auto;transform:translateY(-15%);pointer-events:none;filter:brightness(.85) drop-shadow(0 2px 2px rgba(0,0,0,.35))}
   .hw-mz-cable[hidden]{display:none}
   .hw-mz-stand[hidden]{display:none}
@@ -299,9 +303,11 @@
       for (var i = 0; i < a.length; i += 4) { var g = a[i] * 0.299 + a[i + 1] * 0.587 + a[i + 2] * 0.114; a[i] = a[i + 1] = a[i + 2] = g; }
       c.putImageData(d, 0, 0);
     }
+    function ledOn() { var sc = $('[data-mz-scene]'); return !!(sc && sc.classList.contains('is-led') && S.bg === 'Transparant'); }
+    try { var scLed = $('[data-mz-scene]'); if (scLed && window.MutationObserver) new MutationObserver(function () { draw(); }).observe(scLed, { attributes: true, attributeFilter: ['class'] }); } catch (e) {}
     function draw() {
       if (!layout) return;
-      var W = canvas.width, H = canvas.height, wt = white(), col = wt ? '#fffffd' : '#000000';
+      var W = canvas.width, H = canvas.height, wt = white() || ledOn(), col = wt ? '#fffffd' : '#000000';
       ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, W, H);
       var bg = S.bg;
       stageEl.classList.toggle('is-clear', bg === 'Transparant');
