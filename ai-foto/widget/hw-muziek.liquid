@@ -15,9 +15,11 @@
   <div class="hw-mz-plate">
   <div class="hw-mz-stage" data-mz-stage>
     <canvas class="hw-mz-canvas" data-mz-canvas width="800" height="1200"></canvas>
+    <div class="hw-mz-glow" data-mz-glow></div>
     <div class="hw-mz-drag" data-mz-drag title="Sleep om de foto te verplaatsen"></div>
   </div>
   <img class="hw-mz-stand" data-mz-stand alt="" hidden>
+  <img class="hw-mz-cable" data-mz-cable alt="" hidden>
   </div>
   </div>
   <div class="hw-mz-hint">Sleep over de foto om hem te verplaatsen.</div>
@@ -115,6 +117,16 @@
   /* geen witte glasrand meer: de plaat is volledig doorzichtig */
   .hw-mz-drag{z-index:4}
   .hw-mz-stand{display:block;position:relative;z-index:1;width:110%;margin:-2% 0 0 -5%;height:auto;background:transparent !important;border:0 !important;box-shadow:none !important;padding:0 !important;filter:drop-shadow(0 5px 5px rgba(40,25,10,.38)) drop-shadow(0 12px 12px rgba(40,25,10,.22))}
+  /* ledverlichting: donkerdere kamer, licht uit de sleuf, kabel naast de houder */
+  .hw-mz-scene::before,.hw-mz-scene::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;opacity:0;transition:opacity .5s ease}
+  .hw-mz-scene::before{background:linear-gradient(180deg,rgba(10,12,22,.55),rgba(10,12,22,.68))}
+  .hw-mz-scene::after{background:radial-gradient(ellipse 46% 15% at 50% 89.5%,rgba(255,214,150,.55),rgba(255,214,150,0) 100%);mix-blend-mode:screen}
+  .hw-mz-scene.is-led::before,.hw-mz-scene.is-led::after{opacity:1}
+  .hw-mz-glow{position:absolute;left:0;right:0;bottom:0;height:46%;z-index:3;pointer-events:none;opacity:0;transition:opacity .5s ease;mix-blend-mode:screen;background:linear-gradient(to top,rgba(255,236,200,.95) 0,rgba(255,226,170,.55) 8%,rgba(255,220,160,.22) 30%,rgba(255,220,160,0) 100%)}
+  .hw-mz-scene.is-led .hw-mz-glow{opacity:1}
+  .hw-mz-scene.is-led .hw-mz-stand:not(.is-feet){filter:brightness(.82) drop-shadow(0 5px 5px rgba(0,0,0,.45))}
+  .hw-mz-cable{position:absolute;z-index:0;left:100%;top:96%;width:34%;height:auto;transform:translateY(-15%);pointer-events:none;filter:brightness(.85) drop-shadow(0 2px 2px rgba(0,0,0,.35))}
+  .hw-mz-cable[hidden]{display:none}
   .hw-mz-stand[hidden]{display:none}
   /* kunststof pootjes: voorste helft altijd voor de plaat, voetjes aan de rand van de plaat */
   .hw-mz-stand.is-feet{z-index:5;width:75.1%;margin:-13% 0 0 14%;filter:none}
@@ -637,6 +649,9 @@
           if (on && stand.getAttribute('data-want') !== want) { stand.setAttribute('data-want', want); stand.src = api + want; }
           stand.classList.toggle('is-feet', feet);
           stand.hidden = !on;
+          var led = /\bled\b/i.test(hv), cab = $('[data-mz-cable]'), sc = $('[data-mz-scene]');
+          if (cab) { if (led && !cab.getAttribute('src')) cab.src = api + 'kabel.webp?v=1'; cab.hidden = !led; }
+          if (sc) sc.classList.toggle('is-led', led);
         }
         box.addEventListener('click', function () { setTimeout(updateStand, 80); });
         document.addEventListener('change', function (e) { if (e.target && e.target.tagName === 'SELECT') setTimeout(function () { render(); updateStand(); }, 50); });
