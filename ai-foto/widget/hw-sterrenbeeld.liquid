@@ -14,10 +14,10 @@
   </div>
 
   <div class="hw-sb-label">1. Kies je sterrenbeeld</div>
-  <div class="hw-sb-signs" data-sb-signs></div>
+  <select class="hw-sb-input hw-sb-select" data-sb-signs aria-label="Sterrenbeeld"></select>
 
   <div class="hw-sb-label">2. Naam <span class="hw-sb-req">(verplicht)</span></div>
-  <input type="text" class="hw-sb-input" data-sb-name maxlength="24" autocomplete="off" placeholder="Bijv. Tijay">
+  <input type="text" class="hw-sb-input" data-sb-name maxlength="24" autocomplete="off" value="Olivier" placeholder="Bijv. Olivier">
 
   <div class="hw-sb-label">3. Datum <span class="hw-sb-small">(optioneel, bijv. geboortedatum)</span></div>
   <div class="hw-sb-date">
@@ -40,12 +40,7 @@
   .hw-sb-label{display:block;font-size:14px;font-weight:700;color:#121212;margin:20px 0 8px}
   .hw-sb-req{font-weight:400;font-size:12px;color:#b3261e}
   .hw-sb-small{font-weight:400;font-size:12px;color:#666}
-  .hw-sb-signs{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px}
-  .hw-sb-sign{border:1.5px solid #D0D0D0;border-radius:12px;background:#fff;padding:8px 4px 6px;cursor:pointer;font:inherit;color:#222;text-align:center;line-height:1.2}
-  .hw-sb-sign img{display:block;width:100%;aspect-ratio:1/1;object-fit:contain;margin:0 0 4px;border-radius:6px}
-  .hw-sb-sign b{display:block;font-size:13px}
-  .hw-sb-sign small{display:block;font-size:10.5px;color:#777}
-  .hw-sb-sign[aria-pressed="true"]{border-color:#111;box-shadow:0 0 0 1.5px #111}
+  .hw-sb-select{appearance:auto;background:#fff;cursor:pointer}
   .hw-sb-input{width:100%;padding:12px 14px;border:1.5px solid #8A8A8A;border-radius:12px;font:inherit;font-size:16px;color:#222;background:#fff}
   .hw-sb-date{display:grid;grid-template-columns:1fr 1fr 1.6fr;gap:8px}
   .hw-sb-status{min-height:18px;margin-top:10px;font-size:13px;color:#666}
@@ -95,17 +90,10 @@
   fetch(API + '/api/sterrenbeeld/signs').then(function (r) { return r.json(); }).then(function (j) {
     S.signs = j.signs || [];
     S.signs.forEach(function (s) {
-      var b = document.createElement('button'); b.type = 'button'; b.className = 'hw-sb-sign'; b.setAttribute('aria-pressed', 'false'); b.setAttribute('data-slug', s.slug);
-      var im = document.createElement('img'); im.alt = ''; im.loading = 'lazy'; im.src = API + '/api/sterrenbeeld/art/' + s.slug; b.appendChild(im);
-      var t = document.createElement('b'); t.textContent = s.nl; b.appendChild(t);
-      var p = document.createElement('small'); p.textContent = s.period; b.appendChild(p);
-      b.addEventListener('click', function () {
-        S.sign = s.slug;
-        signsEl.querySelectorAll('.hw-sb-sign').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
-        refresh();
-      });
-      signsEl.appendChild(b);
+      var o = document.createElement('option'); o.value = s.slug; o.textContent = s.nl + ' (' + s.period + ')'; signsEl.appendChild(o);
     });
+    if (S.signs.length) S.sign = S.signs[0].slug;
+    signsEl.addEventListener('change', function () { S.sign = signsEl.value; refresh(); });
     refresh();
   }).catch(function () { say('De sterrenbeelden konden niet geladen worden. Ververs de pagina.', true); });
 
