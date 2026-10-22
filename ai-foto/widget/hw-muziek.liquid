@@ -109,15 +109,15 @@
   .hw-mz-scene{position:relative;width:min(100%,520px);aspect-ratio:41/50;margin:0 auto;overflow:hidden;border-radius:6px;background:#ece7df center top/cover no-repeat;transition:width .25s ease}
   .hw-mz-ground{position:absolute;left:14%;width:72%;top:86.6%;height:5.7%;background:radial-gradient(ellipse at center,rgba(60,45,30,.38),rgba(60,45,30,0) 70%);filter:blur(3px)}
   .hw-mz-plate{position:absolute;left:17%;width:66%;top:8%}
-  .hw-mz-stage{position:relative;z-index:2;width:100%;aspect-ratio:2/3;overflow:hidden;background:#fff;box-shadow:0 0 0 1px rgba(110,130,140,.3),6px 8px 16px rgba(60,45,30,.2)}
+  .hw-mz-stage{position:relative;z-index:2;width:100%;aspect-ratio:2/3;overflow:hidden;background:#fff;box-shadow:0 0 0 1px rgba(110,130,140,.3),0 14px 12px -4px rgba(40,25,10,.5),8px 8px 18px rgba(60,45,30,.25)}
   .hw-mz-stage.is-clear{background:linear-gradient(135deg,rgba(255,255,255,.20),rgba(255,255,255,.10) 55%,rgba(255,255,255,.16));-webkit-backdrop-filter:blur(.6px);backdrop-filter:blur(.6px);box-shadow:0 0 0 1px rgba(110,130,140,.3),4px 6px 14px rgba(60,45,30,.12)}
   .hw-mz-canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
   /* geen witte glasrand meer: de plaat is volledig doorzichtig */
   .hw-mz-drag{z-index:4}
-  .hw-mz-stand{display:block;position:relative;z-index:1;width:100%;margin:-7.5% 0 0;height:auto;background:transparent !important;border:0 !important;box-shadow:none !important;padding:0 !important;filter:none}
+  .hw-mz-stand{display:block;position:relative;z-index:1;width:100%;margin:-5% 0 0;height:auto;background:transparent !important;border:0 !important;box-shadow:none !important;padding:0 !important;filter:drop-shadow(0 5px 5px rgba(40,25,10,.38)) drop-shadow(0 12px 12px rgba(40,25,10,.22))}
   .hw-mz-stand[hidden]{display:none}
   /* transparante plaat: houder volledig zichtbaar, ervoor; gekleurd of marmer: halve houder achter de plaat */
-  .hw-mz-stage.is-clear ~ .hw-mz-stand{z-index:5;margin-top:-5%}
+  .hw-mz-stage.is-clear ~ .hw-mz-stand{z-index:5}
   .hw-mz-drag{position:absolute;left:10%;top:5.2%;width:80%;height:53.333%;touch-action:none;cursor:grab}
   .hw-mz-drag:active{cursor:grabbing}
   .hw-mz-hint{text-align:center;font-size:12px;color:#777;margin-top:6px}
