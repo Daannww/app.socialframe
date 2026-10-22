@@ -44,6 +44,7 @@
   <div class="filters-row" id="filtersRow">
     <div class="filters">
       <button class="filter-btn active" data-status="">Alle orders</button>
+      <button class="filter-btn" data-status="wacht op betaling">Wacht op betaling</button>
       <button class="filter-btn" data-status="wacht op drukwerkbestand">Wacht op drukwerkbestand</button>
       <button class="filter-btn" data-status="wacht op productie">Wacht op productie</button>
       <button class="filter-btn" data-status="verzonden">Verzonden</button>
@@ -59,6 +60,7 @@
       <span id="selectionCount">0 geselecteerd</span>
       <select id="bulkStatusSelect" class="bulk-status-select">
         <option value="">Zet status naar...</option>
+        <option value="wacht op betaling">Wacht op betaling</option>
         <option value="wacht op drukwerkbestand">Wacht op drukwerkbestand</option>
         <option value="wacht op productie">Wacht op productie</option>
         <option value="verzonden">Verzonden</option>
@@ -131,6 +133,13 @@
           <textarea id="kaartAdres" rows="3" placeholder="Kerkstraat 12&#10;1234 AB Utrecht"></textarea>
         </div>
 
+        <label class="kaartjes-label" for="kaartThema">Thema</label>
+        <select id="kaartThema">
+          <option value="algemeen">Algemeen</option>
+          <option value="verjaardag">Verjaardag</option>
+          <option value="condoleance">Condoleance</option>
+        </select>
+
         <div class="kaartjes-twee">
           <div>
             <label class="kaartjes-label" for="kaartSjabloon">Sjabloon</label>
@@ -184,9 +193,9 @@
     <div class="table-scroll">
       <table class="orders-table kaartjes-tabel">
         <thead>
-          <tr><th>Order</th><th>Naam</th><th>Sjabloon</th><th>Tekst</th><th>Status</th><th></th></tr>
+          <tr><th>Order</th><th>Naam</th><th>Thema</th><th>Sjabloon</th><th>Tekst</th><th>Status</th><th></th></tr>
         </thead>
-        <tbody id="kaartJobs"><tr><td colspan="6" class="empty-row">Laden…</td></tr></tbody>
+        <tbody id="kaartJobs"><tr><td colspan="7" class="empty-row">Laden…</td></tr></tbody>
       </table>
     </div>
   </div>

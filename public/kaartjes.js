@@ -311,6 +311,8 @@
   };
   let bezigJob = null;
 
+  const THEMA_LABEL = { algemeen: 'Algemeen', verjaardag: 'Verjaardag', condoleance: 'Condoleance' };
+
   async function laadJobs() {
     try {
       const [jr, ir] = await Promise.all([fetch('/api/schrijfmachine/jobs'), fetch('/api/schrijfmachine/info')]);
@@ -328,7 +330,7 @@
       const act = document.activeElement;
       if (act && act.tagName === 'SELECT' && body.contains(act)) return; // gebruiker kiest net iets
       if (!jobs.length) {
-        body.innerHTML = '<tr><td colspan="6" class="empty-row">Nog geen kaartjes.</td></tr>';
+        body.innerHTML = '<tr><td colspan="7" class="empty-row">Nog geen kaartjes.</td></tr>';
         return;
       }
       body.innerHTML = jobs.map(j => {
@@ -350,6 +352,10 @@
         return `<tr>
           <td>${j.order_number ? '#' + esc(j.order_number) : '—'}</td>
           <td>${esc(j.naam || '—')}</td>
+          <td>${j.status === 'bezig'
+            ? `<span class="badge thema-${esc(j.thema || 'algemeen')}">${esc(THEMA_LABEL[j.thema] || 'Algemeen')}</span>`
+            : `<select class="kaart-rij-select kaart-thema thema-${esc(j.thema || 'algemeen')}" data-instelling="thema" data-id="${j.id}" title="Thema wijzigen">${
+                Object.entries(THEMA_LABEL).map(([id, l]) => `<option value="${id}"${id === (j.thema || 'algemeen') ? ' selected' : ''}>${l}</option>`).join('')}</select>`}</td>
           <td>${j.status === 'bezig'
             ? `${esc(sj ? sj.naam : j.sjabloon)}<div class="kaartjes-klein">${esc(j.lettertype)}</div>`
             : `<select class="kaart-rij-select" data-instelling="sjabloon" data-id="${j.id}" title="Sjabloon wijzigen">${
@@ -453,6 +459,7 @@
         tekst,
         sjabloon: $('kaartSjabloon').value,
         lettertype: $('kaartLettertype').value,
+        thema: $('kaartThema').value,
         direct
       });
       if (direct && info.wachtrij && (info.wachtrij.bezig || info.wachtrij.aantal)) {
@@ -487,6 +494,7 @@
           $('kaartAdres').value = (j.adres || []).slice(j.naam ? 1 : 0).join('\n');
           $('kaartSjabloon').value = j.sjabloon;
           $('kaartLettertype').value = j.lettertype;
+          $('kaartThema').value = j.thema || 'algemeen';
           $('kaartTekst').value = j.tekst;
           $('kaartTekstKeuze').value = '';
           planVoorbeeld();

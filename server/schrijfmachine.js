@@ -67,6 +67,11 @@ for (const kolom of ['opdracht TEXT', 'voortgang INTEGER', 'gepauzeerd INTEGER']
   try { db.exec(`ALTER TABLE schrijf_jobs ADD COLUMN ${kolom}`); } catch (e) { /* bestaat al */ }
 }
 
+// Thema van het kaartje (verjaardag / algemeen / condoleance): alleen een label
+// in het dashboard. Kolom later toegevoegd, dus per start controleren.
+const THEMAS = ['verjaardag', 'algemeen', 'condoleance'];
+try { db.exec("ALTER TABLE schrijf_jobs ADD COLUMN thema TEXT NOT NULL DEFAULT 'algemeen'"); } catch (e) { /* bestaat al */ }
+
 if (db.prepare('SELECT COUNT(*) AS c FROM schrijf_teksten').get().c === 0) {
   db.prepare('INSERT INTO schrijf_teksten (naam, tekst) VALUES (?, ?)').run('Standaard bedankje', STANDAARD_TEKST);
 }
@@ -85,6 +90,7 @@ function jobNaarJson(j) {
     order_id: j.order_id,
     order_number: j.order_number,
     naam: j.naam,
+    thema: j.thema || 'algemeen',
     adres: JSON.parse(j.adres_json || '[]'),
     tekst: j.tekst,
     sjabloon: j.sjabloon,
@@ -250,14 +256,14 @@ function registreerDashboardRoutes(app) {
 
   app.post('/api/schrijfmachine/jobs', (req, res) => {
     try {
-      const { order_id, order_number, naam, adres, tekst, sjabloon, lettertype, direct } = req.body || {};
+      const { order_id, order_number, naam, adres, tekst, sjabloon, lettertype, thema, direct } = req.body || {};
       if (!tekst || !String(tekst).trim()) return res.status(400).json({ error: 'Tekst is verplicht' });
       if (!SJABLONEN[sjabloon]) return res.status(400).json({ error: 'Onbekend sjabloon' });
       if (!LETTERTYPES.includes(lettertype)) return res.status(400).json({ error: 'Onbekend lettertype' });
-      const r = db.prepare(`INSERT INTO schrijf_jobs (order_id, order_number, naam, adres_json, tekst, sjabloon, lettertype, status)
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`)
+      const r = db.prepare(`INSERT INTO schrijf_jobs (order_id, order_number, naam, adres_json, tekst, sjabloon, lettertype, thema, status)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`)
         .run(order_id || null, order_number || null, naam || null, JSON.stringify(Array.isArray(adres) ? adres : []),
-             String(tekst).slice(0, 2000), sjabloon, lettertype, direct ? 'wachtrij' : 'concept');
+             String(tekst).slice(0, 2000), sjabloon, lettertype, THEMAS.includes(thema) ? thema : 'algemeen', direct ? 'wachtrij' : 'concept');
       if (direct) zetMeta('schrijf_kaart_klaar', '1');
       res.json(jobNaarJson(db.prepare('SELECT * FROM schrijf_jobs WHERE id = ?').get(r.lastInsertRowid)));
     } catch (e) {
@@ -305,15 +311,17 @@ function registreerDashboardRoutes(app) {
   // Sjabloon en/of handschrift van een kaartje wijzigen (niet terwijl hij geschreven wordt).
   app.post('/api/schrijfmachine/jobs/:id/instellingen', (req, res) => {
     try {
-      const { sjabloon, lettertype } = req.body || {};
+      const { sjabloon, lettertype, thema } = req.body || {};
       const job = db.prepare('SELECT status FROM schrijf_jobs WHERE id = ?').get(req.params.id);
       if (!job) return res.status(404).json({ error: 'Kaartje niet gevonden' });
       if (job.status === 'bezig') return res.status(409).json({ error: 'Dit kaartje wordt nu geschreven' });
       if (sjabloon !== undefined && !SJABLONEN[sjabloon]) return res.status(400).json({ error: 'Onbekend sjabloon' });
       if (lettertype !== undefined && !LETTERTYPES.includes(lettertype)) return res.status(400).json({ error: 'Onbekend lettertype' });
-      db.prepare(`UPDATE schrijf_jobs SET sjabloon = COALESCE(?, sjabloon), lettertype = COALESCE(?, lettertype),
+      if (thema !== undefined && !THEMAS.includes(thema)) return res.status(400).json({ error: 'Onbekend thema' });
+      db.prepare(`UPDATE schrijf_jobs SET sjabloon = COALESCE(?, sjabloon), lettertype = COALESCE(?, lettertype), thema = COALESCE(?, thema),
                   updated_at = datetime('now') WHERE id = ?`)
-        .run(sjabloon === undefined ? null : sjabloon, lettertype === undefined ? null : lettertype, req.params.id);
+        .run(sjabloon === undefined ? null : sjabloon, lettertype === undefined ? null : lettertype,
+             thema === undefined ? null : thema, req.params.id);
       res.json({ ok: true });
     } catch (e) {
       res.status(500).json({ error: e.message });

@@ -92,6 +92,21 @@ try {
   // kolom bestaat al, negeren
 }
 
+// Migratie: betaalcontrole — Shopify's betaalstatus per order (paid, pending,
+// voided, ...) en een vlag 'betaling_ok' die aangeeft dat iemand een order die
+// op "wacht op betaling" stond bewust handmatig heeft doorgezet (dan trekt de
+// controle 'm niet opnieuw terug).
+try {
+  db.exec("ALTER TABLE orders ADD COLUMN financial_status TEXT");
+} catch (e) {
+  // kolom bestaat al, negeren
+}
+try {
+  db.exec("ALTER TABLE orders ADD COLUMN betaling_ok INTEGER DEFAULT 0");
+} catch (e) {
+  // kolom bestaat al, negeren
+}
+
 // Migratie: handmatige formaat-override voor tegeltjes ('10x10' / '13x13' /
 // NULL = automatisch op basis van de besteltekst, zoals nu al gebeurt)
 try {
@@ -209,12 +224,13 @@ function upsertOrder(order) {
         spotify_links_json = ?,
         photo_links_json = ?,
         raw_json = ?,
+        financial_status = ?,
         updated_at = datetime('now')
       WHERE shopify_order_id = ?
     `).run(
       order.order_number, order.customer_name, order.customer_email, order.customer_phone,
       order.shipping_address, order.shipping_country_code, order.line_items_json, order.spotify_links_json,
-      order.photo_links_json, order.raw_json,
+      order.photo_links_json, order.raw_json, order.financial_status || null,
       order.shopify_order_id
     );
     return { isNew: false };
@@ -230,13 +246,13 @@ function upsertOrder(order) {
     const insertResult = db.prepare(`
       INSERT INTO orders
       (shopify_order_id, order_number, customer_name, customer_email, customer_phone,
-       shipping_address, shipping_country_code, line_items_json, spotify_links_json, photo_links_json, raw_json, shopify_created_at, status, verzonden_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       shipping_address, shipping_country_code, line_items_json, spotify_links_json, photo_links_json, raw_json, shopify_created_at, status, verzonden_at, financial_status)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       order.shopify_order_id, order.order_number, order.customer_name, order.customer_email,
       order.customer_phone, order.shipping_address, order.shipping_country_code, order.line_items_json,
       order.spotify_links_json, order.photo_links_json, order.raw_json, order.shopify_created_at,
-      initialStatus, verzondenAt
+      initialStatus, verzondenAt, order.financial_status || null
     );
 
     // Voorraad automatisch bijwerken voor deze nieuwe order (alleen bij
@@ -288,6 +304,28 @@ function getStatusHistory(orderId) {
   ).all(orderId);
 }
 
+// Zet iemand een order die op "wacht op betaling" stond zelf door (naar alles
+// behalve "geannuleerd"), dan onthouden we dat — de betaalcontrole in
+// shopify.js trekt 'm dan niet opnieuw terug naar "wacht op betaling".
+function markBetalingOkAlsDoorgezet(id, oldStatus, newStatus) {
+  if (oldStatus === 'wacht op betaling' && newStatus !== 'wacht op betaling' && newStatus !== 'geannuleerd') {
+    db.prepare('UPDATE orders SET betaling_ok = 1 WHERE id = ?').run(id);
+  }
+}
+
+// Orders die nog niet verzonden zijn, voor de periodieke betaalcontrole.
+function getOrdersForPaymentCheck() {
+  return db.prepare(
+    `SELECT id, shopify_order_id, status, betaling_ok, line_items_json, photo_links_json, financial_status
+     FROM orders
+     WHERE status IN ('wacht op drukwerkbestand', 'wacht op productie', 'onjuiste gegevens', 'wacht op betaling')`
+  ).all();
+}
+
+function setFinancialStatus(id, financialStatus) {
+  db.prepare('UPDATE orders SET financial_status = ? WHERE id = ?').run(financialStatus || null, id);
+}
+
 function updateStatus(id, status) {
   // Alleen de allereerste keer dat een order "verzonden" wordt, verzonden_at
   // vastleggen (niet opnieuw overschrijven als iemand de status per ongeluk
@@ -301,6 +339,7 @@ function updateStatus(id, status) {
   } else {
     db.prepare(`UPDATE orders SET status = ?, updated_at = datetime('now') WHERE id = ?`).run(status, id);
   }
+  markBetalingOkAlsDoorgezet(id, current ? current.status : null, status);
   logStatusChange(id, current ? current.status : null, status);
   return getOrder(id);
 }
@@ -318,6 +357,7 @@ function updateStatusBulk(ids, status) {
       } else {
         withoutTimestamp.run(status, id);
       }
+      markBetalingOkAlsDoorgezet(id, current ? current.status : null, status);
       logStatusChange(id, current ? current.status : null, status);
     });
   });
@@ -516,5 +556,6 @@ module.exports = {
   getInventory, setInventoryStock, deductInventory, addInventoryItem, deleteInventoryItem,
   getOrdersReadyForReviewEmail, markReviewEmailSent, setSizeOverride, setNote, getStatusHistory,
   setLineItemOverride, getLineItemsMetOverrides,
-  setReparatieLineItems, getReparatieLineItemIds, clearReparatieLineItems
+  setReparatieLineItems, getReparatieLineItemIds, clearReparatieLineItems,
+  getOrdersForPaymentCheck, setFinancialStatus
 };

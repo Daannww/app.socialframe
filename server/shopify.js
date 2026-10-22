@@ -1,5 +1,5 @@
 const axios = require('axios');
-const { upsertOrder, getMeta, setMeta } = require('./db');
+const { upsertOrder, getMeta, setMeta, getOrdersForPaymentCheck, setFinancialStatus, updateStatus } = require('./db');
 const { isTegelTekstLineItem } = require('./texttile');
 const { isTegelIllustratieLineItem } = require('./tegelillustratie');
 const { isVermoedelijkeDubbeleCadeautjeRegel } = require('./pdf-shared');
@@ -32,6 +32,31 @@ function aiPrintLinkOfLine(li) {
 // Bestanden die de klant zelf rechtstreeks via Shopify uploadt (bv. een "upload je ontwerp"
 // veld) landen op Shopify's eigen CDN, soms zonder duidelijke/herkenbare extensie in de URL.
 const SHOPIFY_CDN_UPLOAD_REGEX = /(https?:\/\/cdn\.shopify\.com\/s\/files\/[^\s"'<>]+)/gi;
+
+// Koppelt AI-foto's aan bestellingen: elke regel met eigenschap "_AI job" geeft (job-id, bestelnummer) door aan de ai-foto-service,
+// zodat je in de admin daar ziet bij welke bestelling een foto hoort. Mislukt dit, dan gaat de order-sync gewoon door.
+function aiJobLinksOfOrder(order) {
+  const out = [];
+  for (const li of (order.line_items || [])) {
+    for (const p of (li.properties || [])) {
+      if (/^_?AI job$/i.test((p.name || '').trim())) {
+        const id = String(p.value || '').trim();
+        if (/^[a-f0-9]{16,64}$/i.test(id)) out.push({ job_id: id, order_name: order.name || ('#' + order.order_number) });
+      }
+    }
+  }
+  return out;
+}
+async function sendAiJobLinks(links) {
+  const secret = process.env.ORDER_LINK_SECRET;
+  if (!links.length || !secret) return;
+  const base = (process.env.AI_FOTO_URL || 'https://ai-foto.socialframe.nl').replace(/\/+$/, '');
+  try {
+    await axios.post(base + '/api/order-link', { orders: links }, { headers: { 'x-link-secret': secret }, timeout: 15000 });
+  } catch (e) {
+    console.error('[ai-foto] bestelnummers doorgeven mislukt:', e.message);
+  }
+}
 
 function client() {
   if (!STORE || !TOKEN) {
@@ -316,8 +341,22 @@ function extractHandgeschrevenKaartjeBoodschap(lineItems) {
 // Vooral relevant bij het met terugwerkende kracht ophalen van oudere orders
 // (INITIAL_SYNC_DAYS hoger gezet): zonder deze check zouden allang verzonden
 // orders alsnog als "wacht op drukwerkbestand" binnenkomen.
-function determineInitialStatus(lineItems, photoLinks, fulfillmentStatus) {
+// Betaalcontrole: alleen orders die echt betaald zijn (of waarvan de betaling
+// is goedgekeurd/autorisatie staat) mogen naar productie. Alles anders
+// ('pending', 'voided', 'expired', 'partially_paid') wacht op betaling —
+// zo komt een bestelling waarvan de betaling is verlopen niet in productie en
+// wordt het pakket niet verstuurd terwijl de klant niet betaald heeft. Ontbreekt
+// de betaalstatus helemaal (bv. testdata), dan blokkeren we niet.
+const BETAALD_STATUSSEN = ['paid', 'partially_refunded', 'refunded', 'authorized'];
+function isBetaald(financialStatus) {
+  if (financialStatus === undefined || financialStatus === null || financialStatus === '') return true;
+  return BETAALD_STATUSSEN.includes(String(financialStatus).toLowerCase());
+}
+
+function determineInitialStatus(lineItems, photoLinks, fulfillmentStatus, financialStatus, cancelledAt) {
   if (fulfillmentStatus === 'fulfilled') return 'verzonden';
+  if (cancelledAt) return 'geannuleerd';
+  if (!isBetaald(financialStatus)) return 'wacht op betaling';
   if (!lineItems || lineItems.length === 0) return 'wacht op drukwerkbestand';
   if (photoLinks && photoLinks.length > 0) return 'wacht op drukwerkbestand';
   const allTextTiles = lineItems.every(li => /tegeltje met tekst/i.test(li.title || ''));
@@ -403,9 +442,60 @@ function mapOrder(order) {
     photo_links_json: JSON.stringify(photoLinks),
     raw_json: JSON.stringify(order),
     shopify_created_at: order.created_at,
-    initial_status: determineInitialStatus(lineItems, photoLinks, order.fulfillment_status),
+    financial_status: order.financial_status || '',
+    initial_status: determineInitialStatus(lineItems, photoLinks, order.fulfillment_status, order.financial_status, order.cancelled_at),
     verzonden_at: verzondenAt
   };
+}
+
+// Controleert (bij elke sync) de betaalstatus van alle nog niet verzonden orders
+// bij Shopify. Een order die later verloopt of geannuleerd wordt, verdwijnt
+// namelijk uit de lijst met open orders en zou anders onopgemerkt in de
+// productie blijven staan.
+//  - geannuleerd in Shopify (ook bij een verlopen betaling)  -> "geannuleerd"
+//  - niet betaald (pending/voided/...), nog niet doorgezet     -> "wacht op betaling"
+//  - alsnog betaald terwijl 'ie op "wacht op betaling" stond   -> terug de normale status
+async function checkPayments(api) {
+  const rows = getOrdersForPaymentCheck();
+  const result = { gecontroleerd: 0, naarBetaling: 0, naarGeannuleerd: 0, doorgezet: 0 };
+  for (let i = 0; i < rows.length; i += 100) {
+    const chunk = rows.slice(i, i + 100);
+    let res;
+    try {
+      res = await api.get('/orders.json', {
+        params: { ids: chunk.map(r => r.shopify_order_id).join(','), status: 'any', limit: 250, fields: 'id,financial_status,cancelled_at,fulfillment_status' }
+      });
+    } catch (e) {
+      console.error('[betaling] controle mislukt:', e.response?.status || '', e.message);
+      return result;
+    }
+    const byId = new Map((res.data.orders || []).map(o => [String(o.id), o]));
+    for (const row of chunk) {
+      const o = byId.get(String(row.shopify_order_id));
+      if (!o) continue;
+      result.gecontroleerd++;
+      if ((o.financial_status || null) !== (row.financial_status || null)) setFinancialStatus(row.id, o.financial_status);
+      if (o.cancelled_at) {
+        updateStatus(row.id, 'geannuleerd');
+        result.naarGeannuleerd++;
+      } else if (!isBetaald(o.financial_status)) {
+        if (row.status !== 'wacht op betaling' && row.status !== 'onjuiste gegevens' && !row.betaling_ok) {
+          updateStatus(row.id, 'wacht op betaling');
+          result.naarBetaling++;
+        }
+      } else if (row.status === 'wacht op betaling') {
+        let items = [], photos = [];
+        try { items = JSON.parse(row.line_items_json || '[]'); } catch { /* leeg */ }
+        try { photos = JSON.parse(row.photo_links_json || '[]'); } catch { /* leeg */ }
+        updateStatus(row.id, determineInitialStatus(items, photos, o.fulfillment_status, o.financial_status, null));
+        result.doorgezet++;
+      }
+    }
+  }
+  if (result.naarBetaling || result.naarGeannuleerd || result.doorgezet) {
+    console.log(`[betaling] ${result.naarBetaling} naar "wacht op betaling", ${result.naarGeannuleerd} geannuleerd, ${result.doorgezet} alsnog betaald (van ${result.gecontroleerd} gecontroleerd)`);
+  }
+  return result;
 }
 
 async function syncOrders() {
@@ -427,6 +517,7 @@ async function syncOrders() {
 
   let totalNew = 0;
   let totalSeen = 0;
+  const aiLinks = [];
   let lastId = sinceId ? Number(sinceId) : null;
 
   // Shopify's REST API pagineert via since_id
@@ -473,6 +564,7 @@ async function syncOrders() {
           console.error('[kaartje] kon geen concept-kaartje aanmaken voor nieuwe order:', e.message);
         }
       }
+      try { aiLinks.push(...aiJobLinksOfOrder(order)); } catch { /* negeren */ }
       totalSeen++;
       lastId = order.id;
     }
@@ -482,6 +574,10 @@ async function syncOrders() {
     params = { status: 'open', limit: 250, since_id: lastId };
   }
 
+  await sendAiJobLinks(aiLinks);
+
+  try { await checkPayments(api); } catch (e) { console.error('[betaling] fout bij betaalcontrole:', e.message); }
+
   if (lastId) setMeta('last_since_id', String(lastId));
   setMeta('first_sync_done', 'true');
   setMeta('last_sync_at', new Date().toISOString());
@@ -489,4 +585,4 @@ async function syncOrders() {
   return { totalNew, totalSeen, syncedAt: new Date().toISOString() };
 }
 
-module.exports = { syncOrders, extractSpotifyLinks, extractPhotoLinks, mapOrder, isFotoTegelLineItem, extractFotoTegelPhotoUrls, extractPosterlyPhotoUrls, extractTileItemsFromOrder, isAutoFrameLineItem, getAutoFrameVariant, extractAutoFrameData, extractAutoFrameItemsFromOrder, isHandgeschrevenKaartjeLineItem, extractHandgeschrevenKaartjeBoodschap };
+module.exports = { checkPayments, isBetaald, determineInitialStatus, aiJobLinksOfOrder, syncOrders, extractSpotifyLinks, extractPhotoLinks, mapOrder, isFotoTegelLineItem, extractFotoTegelPhotoUrls, extractPosterlyPhotoUrls, extractTileItemsFromOrder, isAutoFrameLineItem, getAutoFrameVariant, extractAutoFrameData, extractAutoFrameItemsFromOrder, isHandgeschrevenKaartjeLineItem, extractHandgeschrevenKaartjeBoodschap };
