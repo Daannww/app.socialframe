@@ -112,12 +112,7 @@
   .hw-mz-stage{position:relative;width:100%;aspect-ratio:2/3;overflow:hidden;background:#fff;box-shadow:0 0 0 1px rgba(110,130,140,.3),6px 8px 16px rgba(60,45,30,.2)}
   .hw-mz-stage.is-clear{background:transparent;box-shadow:0 0 0 1px rgba(110,130,140,.3),4px 6px 14px rgba(60,45,30,.12)}
   .hw-mz-canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
-  /* glasplaat-look: witte glasrand (dik linksboven, dun rechtsonder) en zachte glans; alleen visueel, de canvas blijft ongewijzigd */
-  .hw-mz-stage::before{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;
-    background:linear-gradient(118deg,rgba(255,255,255,0) 18%,rgba(255,255,255,.10) 34%,rgba(255,255,255,.04) 46%,rgba(255,255,255,0) 54%,rgba(255,255,255,.06) 72%,rgba(255,255,255,0) 86%),
-    linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,0) 18%)}
-  .hw-mz-stage::after{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;
-    border-style:solid;border-width:5px 2px 1px 4px;border-color:rgba(255,255,255,.95) rgba(255,255,255,.7) rgba(255,255,255,.45) rgba(255,255,255,.95);box-shadow:inset 0 0 0 1px rgba(120,150,165,.35)}
+  /* geen witte glasrand meer: de plaat is volledig doorzichtig */
   .hw-mz-drag{z-index:4}
   .hw-mz-stand{display:block;position:relative;z-index:5;width:100%;margin:-5% 0 0;height:auto;background:transparent !important;border:0 !important;box-shadow:none !important;padding:0 !important;filter:none}
   .hw-mz-stand[hidden]{display:none}
@@ -245,6 +240,21 @@
       }
     }
 
+    // Spotify-code zonder vakje: alleen de balkjes en het logo blijven over (achtergrond wordt doorzichtig), zoals in het drukbestand
+    var shapeCache = null;
+    function codeShape(im, white, w, h) {
+      if (shapeCache && shapeCache.im === im && shapeCache.white === white && shapeCache.w === Math.round(w)) return shapeCache.c;
+      var c = document.createElement('canvas'); c.width = Math.round(w); c.height = Math.round(h);
+      var x = c.getContext('2d'); x.drawImage(im, 0, 0, c.width, c.height);
+      var d = x.getImageData(0, 0, c.width, c.height), a = d.data;
+      for (var i = 0; i < a.length; i += 4) {
+        var lum = (a[i] + a[i + 1] + a[i + 2]) / 3, al = white ? lum : 255 - lum;
+        var v = white ? 255 : 0; a[i] = a[i + 1] = a[i + 2] = v; a[i + 3] = Math.max(0, Math.min(255, al * 1.0));
+      }
+      x.putImageData(d, 0, 0);
+      shapeCache = { im: im, white: white, w: Math.round(w), c: c };
+      return c;
+    }
     // ----- tekenen -----
     function fitFont(text, weight, pt, maxPx, minPt) {
       var size = pt;
@@ -316,7 +326,7 @@
       if (S.code === 'spotify') {
         var bx = 43.55 * PX, by = 261.32 * PX, bw = 113 * PX, bh = 28.25 * PX;
         if (codeImg && codeImg !== 'fout') {
-          ctx.save(); ctx.globalCompositeOperation = wt ? 'screen' : 'multiply'; ctx.drawImage(codeImg, bx, by, bw, bh); ctx.restore();
+          ctx.drawImage(codeShape(codeImg, wt, bw, bh), bx, by, bw, bh);
         } else {
           ctx.save(); ctx.strokeStyle = col; ctx.globalAlpha = .5; ctx.setLineDash([8, 6]); ctx.strokeRect(bx, by, bw, bh);
           ctx.setLineDash([]); ctx.fillStyle = col; ctx.font = '400 ' + (4 * PX) + 'px Montserrat, Arial, sans-serif'; ctx.textAlign = 'center';
