@@ -184,6 +184,14 @@ app.get('/widget/muziek.html', (req, res) => {
   res.set({ 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'public, max-age=60' }).type('html').send(html);
 });
 
+// Sterrenbeeld-widget als losse HTML (zelfde opzet als muziek), plus demo-pagina.
+const sbWidget = () => fs.readFileSync(path.join(__dirname, '..', 'widget', 'hw-sterrenbeeld.liquid'), 'utf8')
+  .replace(/\{%-?\s*comment\s*-?%\}[\s\S]*?\{%-?\s*endcomment\s*-?%\}/g, '').replace(/\{%-?[\s\S]*?-?%\}/g, '').replace(/data-api="[^"]*"/, `data-api="${BASE || 'https://ai-foto.socialframe.nl'}"`);
+app.get('/widget/sterrenbeeld.html', (req, res) => { res.set({ 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'public, max-age=60' }).type('html').send(sbWidget()); });
+app.get('/sterrenbeeld-demo', (req, res) => {
+  res.set({ 'X-Robots-Tag': 'noindex', 'Access-Control-Allow-Origin': '*' }).type('html').send(`<!doctype html><html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Sterrenbeeld demo</title></head><body style="max-width:560px;margin:0 auto;padding:14px;font-family:system-ui,sans-serif">${sbWidget()}</body></html>`);
+});
+
 // Demo-pagina voor de routewidget (zonder winkelwagen).
 app.get('/route-demo', (req, res) => {
   const widget = fs.readFileSync(path.join(__dirname, '..', 'widget', 'hw-route.liquid'), 'utf8')

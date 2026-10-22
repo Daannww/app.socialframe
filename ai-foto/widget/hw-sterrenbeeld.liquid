@@ -1,0 +1,183 @@
+{%- comment -%}
+  Sterrenbeeld-tegeltje: klant kiest zijn sterrenbeeld, vult naam en datum in en ziet direct het ontwerp.
+  Zet dit in een Custom Liquid-blok op de productpagina van het sterrenbeeld-tegeltje.
+  Formaat en houder kiest de klant gewoon met de varianten van het product.
+{%- endcomment -%}
+{%- assign hw_sb_api = 'https://ai-foto.socialframe.nl' -%}
+
+<div class="hw-sb" data-hw-sb data-api="{{ hw_sb_api }}">
+  <div class="hw-sb-heading">Personaliseren</div>
+  <div class="hw-sb-slot" data-sb-slot>
+    <div class="hw-sb-sticky" data-sb-sticky>
+      <div class="hw-sb-tile"><img data-sb-img alt="Voorbeeld van jouw sterrenbeeld-tegeltje" width="900" height="900"></div>
+    </div>
+  </div>
+
+  <div class="hw-sb-label">1. Kies je sterrenbeeld</div>
+  <div class="hw-sb-signs" data-sb-signs></div>
+
+  <div class="hw-sb-label">2. Naam <span class="hw-sb-req">(verplicht)</span></div>
+  <input type="text" class="hw-sb-input" data-sb-name maxlength="24" autocomplete="off" placeholder="Bijv. Tijay">
+
+  <div class="hw-sb-label">3. Datum <span class="hw-sb-small">(optioneel, bijv. geboortedatum)</span></div>
+  <div class="hw-sb-date">
+    <input type="text" inputmode="numeric" class="hw-sb-input" data-sb-d autocomplete="off" maxlength="2" placeholder="dd" aria-label="Dag">
+    <input type="text" inputmode="numeric" class="hw-sb-input" data-sb-m autocomplete="off" maxlength="2" placeholder="mm" aria-label="Maand">
+    <input type="text" inputmode="numeric" class="hw-sb-input" data-sb-y autocomplete="off" maxlength="4" placeholder="jjjj" aria-label="Jaar">
+  </div>
+  <div class="hw-sb-status" data-sb-status role="status" aria-live="polite"></div>
+</div>
+
+<style>
+  .hw-sb{font-family:inherit;font-size:14px;color:#333;border:1.5px solid #E2E2E2;border-radius:24px;background:#fff;padding:22px 18px 20px;margin:1.75rem 0 1rem;box-sizing:border-box}
+  .hw-sb *{box-sizing:border-box}
+  .hw-sb-heading{font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#111;margin:0 0 16px}
+  .hw-sb-sticky{z-index:20;background:#fff;padding:6px 0 8px;text-align:center}
+  .hw-sb-tile{width:min(100%,460px);aspect-ratio:1/1;margin:0 auto;background:#fff;border-radius:4px;box-shadow:0 0 0 1px rgba(110,130,140,.25),5px 8px 18px rgba(60,45,30,.18);overflow:hidden;transition:width .25s ease}
+  .hw-sb-tile img{display:block;width:100%;height:100%;object-fit:cover}
+  .hw-sb-sticky.is-stuck .hw-sb-tile{width:min(100%,32vh)}
+  .hw-sb-sticky.is-stuck{box-shadow:0 6px 10px -8px rgba(0,0,0,.35)}
+  .hw-sb-label{display:block;font-size:14px;font-weight:700;color:#121212;margin:20px 0 8px}
+  .hw-sb-req{font-weight:400;font-size:12px;color:#b3261e}
+  .hw-sb-small{font-weight:400;font-size:12px;color:#666}
+  .hw-sb-signs{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px}
+  .hw-sb-sign{border:1.5px solid #D0D0D0;border-radius:12px;background:#fff;padding:8px 4px 6px;cursor:pointer;font:inherit;color:#222;text-align:center;line-height:1.2}
+  .hw-sb-sign img{display:block;width:100%;aspect-ratio:1/1;object-fit:contain;margin:0 0 4px;border-radius:6px}
+  .hw-sb-sign b{display:block;font-size:13px}
+  .hw-sb-sign small{display:block;font-size:10.5px;color:#777}
+  .hw-sb-sign[aria-pressed="true"]{border-color:#111;box-shadow:0 0 0 1.5px #111}
+  .hw-sb-input{width:100%;padding:12px 14px;border:1.5px solid #8A8A8A;border-radius:12px;font:inherit;font-size:16px;color:#222;background:#fff}
+  .hw-sb-date{display:grid;grid-template-columns:1fr 1fr 1.6fr;gap:8px}
+  .hw-sb-status{min-height:18px;margin-top:10px;font-size:13px;color:#666}
+  .hw-sb-status.err{color:#b3261e}
+</style>
+
+<script>
+(function () {
+  var root = document.querySelector('[data-hw-sb]');
+  if (!root || root.getAttribute('data-ready')) return;
+  root.setAttribute('data-ready', '1');
+  var API = (root.getAttribute('data-api') || '').replace(/\/$/, '');
+  var $ = function (s) { return root.querySelector(s); };
+  var img = $('[data-sb-img]'), signsEl = $('[data-sb-signs]'), nameEl = $('[data-sb-name]'), statusEl = $('[data-sb-status]');
+  var dEl = $('[data-sb-d]'), mEl = $('[data-sb-m]'), yEl = $('[data-sb-y]');
+  var S = { sign: '', signs: [] }, tm = 0;
+
+  function say(t, err) { statusEl.textContent = t || ''; statusEl.className = 'hw-sb-status' + (err ? ' err' : ''); }
+  function pad(v) { return v.length === 1 ? '0' + v : v; }
+  function dateStr() {
+    var d = dEl.value.trim(), m = mEl.value.trim(), y = yEl.value.trim();
+    if (!d && !m && !y) return '';
+    if (!/^\d{1,2}$/.test(d) || !/^\d{1,2}$/.test(m) || !/^\d{4}$/.test(y)) return null;
+    var s = pad(d) + '-' + pad(m) + '-' + y, dt = new Date(Date.UTC(+y, +m - 1, +d));
+    if (dt.getUTCFullYear() !== +y || dt.getUTCMonth() !== +m - 1 || dt.getUTCDate() !== +d) return null;
+    return s;
+  }
+  function nameStr() { return nameEl.value.replace(/\s+/g, ' ').trim(); }
+  function previewUrl() {
+    var u = API + '/api/sterrenbeeld/preview?sign=' + encodeURIComponent(S.sign || (S.signs[0] && S.signs[0].slug) || 'leeuw');
+    var n = nameStr(), d = dateStr();
+    if (n) u += '&name=' + encodeURIComponent(n);
+    if (d) u += '&date=' + encodeURIComponent(d);
+    return u;
+  }
+  function refresh() {
+    clearTimeout(tm);
+    tm = setTimeout(function () {
+      var d = dateStr();
+      if (d === null) { say('Vul de datum in als dd, mm en jjjj.', true); return; }
+      say('');
+      var u = previewUrl(); if (img.getAttribute('src') !== u) img.src = u;
+    }, 250);
+  }
+  img.addEventListener('error', function () { say('Het voorbeeld kon niet geladen worden. Controleer de naam (alleen letters).', true); });
+
+  fetch(API + '/api/sterrenbeeld/signs').then(function (r) { return r.json(); }).then(function (j) {
+    S.signs = j.signs || [];
+    S.signs.forEach(function (s) {
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'hw-sb-sign'; b.setAttribute('aria-pressed', 'false'); b.setAttribute('data-slug', s.slug);
+      var im = document.createElement('img'); im.alt = ''; im.loading = 'lazy'; im.src = API + '/api/sterrenbeeld/art/' + s.slug; b.appendChild(im);
+      var t = document.createElement('b'); t.textContent = s.nl; b.appendChild(t);
+      var p = document.createElement('small'); p.textContent = s.period; b.appendChild(p);
+      b.addEventListener('click', function () {
+        S.sign = s.slug;
+        signsEl.querySelectorAll('.hw-sb-sign').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+        refresh();
+      });
+      signsEl.appendChild(b);
+    });
+    refresh();
+  }).catch(function () { say('De sterrenbeelden konden niet geladen worden. Ververs de pagina.', true); });
+
+  [nameEl, dEl, mEl, yEl].forEach(function (el) { el.addEventListener('input', function () {
+    if (el !== nameEl) el.value = el.value.replace(/\D/g, '');
+    if (el === dEl && el.value.length === 2) mEl.focus(); else if (el === mEl && el.value.length === 2) yEl.focus();
+    refresh();
+  }); });
+
+  // ----- winkelwagen -----
+  function getForms() {
+    var f = document.querySelectorAll('.product-form .form'); if (f.length) return f;
+    var fb = document.querySelector('form[data-type="add-to-cart-form"]'); return fb ? [fb] : [];
+  }
+  function signNl() { var s = S.signs.filter(function (x) { return x.slug === S.sign; })[0]; return s ? s.nl : ''; }
+  function validate() {
+    if (!S.sign) return 'Kies eerst je sterrenbeeld.';
+    if (!nameStr()) return 'Vul een naam in.';
+    if (!/^[\p{L}\p{M}][\p{L}\p{M} '’.\-&]*$/u.test(nameStr())) return 'Gebruik alleen letters in de naam.';
+    if (dateStr() === null) return 'Vul de datum in als dd, mm en jjjj.';
+    return '';
+  }
+  function setProps() {
+    var P = { 'properties[Uw personalisatie]': previewUrl(), 'properties[Sterrenbeeld]': signNl(), 'properties[Naam]': nameStr(), 'properties[Datum]': dateStr() || '' };
+    getForms().forEach(function (form) {
+      form.querySelectorAll('[data-hw-sb-prop]').forEach(function (el) { el.remove(); });
+      Object.keys(P).forEach(function (n) { if (P[n] === '') return; var i = document.createElement('input'); i.type = 'hidden'; i.name = n; i.value = P[n]; i.setAttribute('data-hw-sb-prop', ''); form.appendChild(i); });
+    });
+  }
+  var toastEl = null, toastTimer = null;
+  function toast(anchor, msg) {
+    if (!toastEl) {
+      toastEl = document.createElement('div'); toastEl.setAttribute('role', 'alert');
+      toastEl.style.cssText = 'position:fixed;z-index:99999;background:#fff;color:#444;font:500 15px/1.3 inherit;font-family:inherit;padding:14px 20px;border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,.22);text-align:center;max-width:90vw;pointer-events:none;transform:translate(-50%,-50%);transition:opacity .25s';
+      document.body.appendChild(toastEl);
+    }
+    var r = anchor.getBoundingClientRect();
+    toastEl.textContent = msg; toastEl.style.left = (r.left + r.width / 2) + 'px'; toastEl.style.top = (r.top + r.height / 2) + 'px'; toastEl.style.opacity = '1'; toastEl.style.display = 'block';
+    clearTimeout(toastTimer); toastTimer = setTimeout(function () { toastEl.style.opacity = '0'; setTimeout(function () { toastEl.style.display = 'none'; }, 260); }, 3200);
+  }
+  function intercept(e, target) {
+    if (root.hidden || root.offsetParent === null) return;
+    if (!target || !target.closest || !target.closest('.product-form, form[data-type="add-to-cart-form"]')) return;
+    var btn = target.matches && target.matches('button, input') ? target : (target.querySelector && target.querySelector('button[type="submit"], button[name="add"]')) || target;
+    var bad = validate();
+    if (bad) { e.preventDefault(); e.stopImmediatePropagation(); toast(btn, bad); return; }
+    setProps();
+  }
+  document.addEventListener('submit', function (e) { intercept(e, e.target); }, true);
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest && e.target.closest('button[type="submit"], button[name="add"], input[type="submit"]');
+    if (btn) intercept(e, btn);
+  }, true);
+
+  // Voorbeeld blijft bovenaan hangen tijdens het scrollen
+  (function () {
+    var slot = $('[data-sb-slot]'), sticky = $('[data-sb-sticky]'), busy = false, fixed = false;
+    function headerOffset() {
+      var h = 0, els = document.querySelectorAll('header, .site-header, [data-section-type="header"], .header');
+      for (var i = 0; i < els.length; i++) { var cs = getComputedStyle(els[i]); if ((cs.position === 'fixed' || cs.position === 'sticky') && els[i].getBoundingClientRect().top <= 1) h = Math.max(h, els[i].getBoundingClientRect().height); }
+      return Math.round(h);
+    }
+    function update() {
+      busy = false;
+      var topOff = headerOffset(), sr = slot.getBoundingClientRect(), rr = root.getBoundingClientRect();
+      if (sr.top >= topOff || rr.bottom <= 0) { if (fixed) { fixed = false; sticky.classList.remove('is-stuck'); sticky.style.cssText = ''; slot.style.height = ''; } return; }
+      if (!fixed) { slot.style.height = slot.offsetHeight + 'px'; fixed = true; sticky.classList.add('is-stuck'); }
+      var h = sticky.offsetHeight, t = Math.min(topOff, rr.bottom - h - 8);
+      sticky.style.cssText = 'position:fixed;top:' + t + 'px;left:' + sr.left + 'px;width:' + sr.width + 'px';
+    }
+    function req() { if (!busy) { busy = true; requestAnimationFrame(update); } }
+    window.addEventListener('scroll', req, { passive: true }); window.addEventListener('resize', req); req();
+  })();
+})();
+</script>
