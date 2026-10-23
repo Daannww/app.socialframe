@@ -114,7 +114,9 @@
   .hw-mz-stage{position:relative;z-index:2;width:100%;aspect-ratio:2/3;overflow:hidden;background:#fff;box-shadow:0 0 0 1px rgba(110,130,140,.3),0 14px 12px -4px rgba(40,25,10,.5),8px 8px 18px rgba(60,45,30,.25)}
   .hw-mz-stage.is-clear{background:linear-gradient(135deg,rgba(255,255,255,.20),rgba(255,255,255,.10) 55%,rgba(255,255,255,.16));-webkit-backdrop-filter:blur(.6px);backdrop-filter:blur(.6px);box-shadow:0 0 0 .75px rgba(255,255,255,.88),3px 5px 12px rgba(60,45,30,.10)}
   .hw-mz-canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
-  /* geen witte glasrand meer: de plaat is volledig doorzichtig */
+  /* dunne witte rand rond de plaat (half zo dik als de eerste versie), geen glans */
+  .hw-mz-stage::after{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;
+    border-style:solid;border-width:2.5px 1px .5px 2px;border-color:rgba(255,255,255,.9) rgba(255,255,255,.6) rgba(255,255,255,.4) rgba(255,255,255,.9)}
   .hw-mz-drag{z-index:4}
   .hw-mz-stand{display:block;position:relative;z-index:1;width:110%;margin:-3.6% 0 0 -5%;height:auto;background:transparent !important;border:0 !important;box-shadow:none !important;padding:0 !important;filter:drop-shadow(0 5px 5px rgba(40,25,10,.38)) drop-shadow(0 12px 12px rgba(40,25,10,.22))}
   /* ledverlichting: donkerdere kamer, licht uit de sleuf, kabel naast de houder */
