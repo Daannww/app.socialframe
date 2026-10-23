@@ -635,7 +635,8 @@
         var t = rr.bottom - hSticky - 8;
         if (t < topOff) {
           // einde van het blok: het voorbeeld staat vast onderin het blok en scrolt gewoon mee (geen JS meer, dus geen getril op iPhone)
-          sticky.style.cssText = 'position:absolute;left:' + (sr.left - rr.left) + 'px;width:' + sr.width + 'px;bottom:8px';
+          var rcs = getComputedStyle(root), bl = parseFloat(rcs.borderLeftWidth) || 0, bb = parseFloat(rcs.borderBottomWidth) || 0;
+          sticky.style.cssText = 'position:absolute;left:' + (sr.left - rr.left - bl) + 'px;width:' + sr.width + 'px;bottom:' + (8 - bb) + 'px';
         } else {
           sticky.style.cssText = 'position:fixed;left:' + sr.left + 'px;width:' + sr.width + 'px;top:' + topOff + 'px';
         }
