@@ -611,7 +611,9 @@
         var sy = window.pageYOffset, maxY = document.documentElement.scrollHeight - window.innerHeight;
         if (sy < 0 || sy > maxY + 0.5) return;
         var sr = slot.getBoundingClientRect(), rr = root.getBoundingClientRect();
-        if (sr.top >= topOff || rr.bottom <= 0) {
+        if (!fixed && rr.bottom <= 0) return;
+        if (fixed && sr.top < topOff && rr.bottom <= 0) return; // blok ver voorbij: niets meer veranderen (anders verspringt de pagina)
+        if (sr.top >= topOff) {
           if (fixed) { fixed = false; sticky.classList.remove('is-stuck'); sticky.style.cssText = ''; scene.style.width = ''; if (hint) hint.style.display = ''; slot.style.height = ''; }
           return;
         }
