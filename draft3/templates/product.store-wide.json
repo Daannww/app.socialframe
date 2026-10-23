@@ -200,33 +200,9 @@
           }
         },
         "1760df81cb4dc25a": {
-          "type": "shopify://apps/section-store/blocks/block-review-summary/d7a2e423-ea88-4344-b866-6d0fb487c3dd",
+          "type": "custom_liquid",
           "settings": {
-            "star_style": "sharp",
-            "stars_count": 4.5,
-            "stars_size": 13,
-            "stars_gap": 2.0,
-            "stars_color": "#FBB91C",
-            "stars_bg_color": "#FBB91C",
-            "stars_bg_half_color": "#E8DDD2",
-            "avatars_position": "none",
-            "avatars_size": 20.0,
-            "avatars_animate": false,
-            "first_text": "<p>&nbsp;</p>",
-            "first_text_size": 12.0,
-            "first_text_color": "#3A3330",
-            "second_text": "<p><strong>4.8</strong> 847 verified reviews</p>",
-            "second_text_size": 12.0,
-            "second_text_color": "#3A3330",
-            "border": "none",
-            "border_thickness": 1.0,
-            "border_color": "#E8DDD2",
-            "radius": 0.0,
-            "effect": "none",
-            "block_padding_top": 0.0,
-            "block_padding_bottom": 0.0,
-            "padding_vertical": 6.0,
-            "padding_horizontal": 0.0
+            "custom_liquid": "{% capture sfj %}{\"star_style\": \"sharp\", \"stars_count\": 4.5, \"stars_size\": 13, \"stars_gap\": 2.0, \"stars_color\": \"#FBB91C\", \"stars_bg_color\": \"#FBB91C\", \"stars_bg_half_color\": \"#E8DDD2\", \"avatars_position\": \"none\", \"avatars_size\": 20.0, \"avatars_animate\": false, \"first_text\": \"<p>&nbsp;</p>\", \"first_text_size\": 12.0, \"first_text_color\": \"#3A3330\", \"second_text\": \"<p><strong>4.8</strong> 847 verified reviews</p>\", \"second_text_size\": 12.0, \"second_text_color\": \"#3A3330\", \"border\": \"none\", \"border_thickness\": 1.0, \"border_color\": \"#E8DDD2\", \"radius\": 0.0, \"effect\": \"none\", \"block_padding_top\": 0.0, \"block_padding_bottom\": 0.0, \"padding_vertical\": 6.0, \"padding_horizontal\": 0.0}{% endcapture %}{% render 'sf-review-summary', cfg: sfj %}"
           }
         },
         "e177e634526b812a": {
@@ -291,38 +267,9 @@
           }
         },
         "5cd5b348fed1900a": {
-          "type": "shopify://apps/section-store/blocks/block-comments/d7a2e423-ea88-4344-b866-6d0fb487c3dd",
+          "type": "custom_liquid",
           "settings": {
-            "content_alignment": "center",
-            "comment_verified_badge_position": "inline",
-            "verified_badge_color": "#BE8F5C",
-            "verified_badge_text": "Geverifieerde klant",
-            "slide_style": "none",
-            "autoplay": 6,
-            "comment_name_1": "Marloes T.",
-            "comment_1": "Prachtig tegeltje ontvangen, de print is scherp en de kleuren zijn precies goed. Leuk als cadeau!",
-            "comment_name_2": "Jeroen B.",
-            "comment_2": "Heel snel geleverd en mooi ingepakt. Mijn vriendin was er super blij mee, top kwaliteit.",
-            "comment_name_3": "Linda K.",
-            "comment_3": "Al meerdere keren besteld voor verjaardagen. Altijd een succes en de kwaliteit blijft constant goed.",
-            "avatar_border_radius": 50.0,
-            "avatar_size": 44.0,
-            "author_font_size": 13.0,
-            "author_font_weight": 500.0,
-            "author_font_color": "#3A3330",
-            "star_style": "sharp",
-            "star_color": "#FBB91C",
-            "star_size": 13,
-            "item_border_style": "none",
-            "item_border_color": "#E8DDD2",
-            "item_border_radius": 10.0,
-            "item_bg_color": "#FFF5E8",
-            "effect": "none",
-            "item_padding_vertical": 10.0,
-            "item_padding_horizontal": 16.0,
-            "comment_avatar_1": "shopify://shop_images/ai-block-comments-comment-avatar-1-6.jpg",
-            "comment_avatar_2": "shopify://shop_images/ai-block-comments-comment-avatar-2-7.jpg",
-            "comment_avatar_3": "shopify://shop_images/ai-block-comments-comment-avatar-3-8.jpg"
+            "custom_liquid": "{% capture sfj %}{\"content_alignment\": \"center\", \"comment_verified_badge_position\": \"inline\", \"verified_badge_color\": \"#BE8F5C\", \"verified_badge_text\": \"Geverifieerde klant\", \"slide_style\": \"none\", \"autoplay\": 6, \"comment_name_1\": \"Marloes T.\", \"comment_1\": \"Prachtig tegeltje ontvangen, de print is scherp en de kleuren zijn precies goed. Leuk als cadeau!\", \"comment_name_2\": \"Jeroen B.\", \"comment_2\": \"Heel snel geleverd en mooi ingepakt. Mijn vriendin was er super blij mee, top kwaliteit.\", \"comment_name_3\": \"Linda K.\", \"comment_3\": \"Al meerdere keren besteld voor verjaardagen. Altijd een succes en de kwaliteit blijft constant goed.\", \"avatar_border_radius\": 50.0, \"avatar_size\": 44.0, \"author_font_size\": 13.0, \"author_font_weight\": 500.0, \"author_font_color\": \"#3A3330\", \"star_style\": \"sharp\", \"star_color\": \"#FBB91C\", \"star_size\": 13, \"item_border_style\": \"none\", \"item_border_color\": \"#E8DDD2\", \"item_border_radius\": 10.0, \"item_bg_color\": \"#FFF5E8\", \"effect\": \"none\", \"item_padding_vertical\": 10.0, \"item_padding_horizontal\": 16.0, \"comment_avatar_1\": \"shopify://shop_images/ai-block-comments-comment-avatar-1-6.jpg\", \"comment_avatar_2\": \"shopify://shop_images/ai-block-comments-comment-avatar-2-7.jpg\", \"comment_avatar_3\": \"shopify://shop_images/ai-block-comments-comment-avatar-3-8.jpg\"}{% endcapture %}{% render 'sf-comments', cfg: sfj, bid: block.id %}"
           }
         }
       },

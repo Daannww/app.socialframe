@@ -8,36 +8,9 @@
           "settings": {}
         },
         "section_store_block_review_summary_HXMMKB": {
-          "type": "shopify://apps/section-store/blocks/block-review-summary/d7a2e423-ea88-4344-b866-6d0fb487c3dd",
+          "type": "custom_liquid",
           "settings": {
-            "star_style": "standard",
-            "stars_count": 4.5,
-            "stars_size": 17,
-            "stars_gap": 2,
-            "stars_color": "#ffffff",
-            "stars_bg_color": "#00b67a",
-            "stars_bg_half_color": "#dddddd",
-            "avatars_position": "none",
-            "avatars_size": 20,
-            "avatars_animate": false,
-            "first_text": "<p>Uitstekend </p>",
-            "first_text_size": 15,
-            "first_text_color": "#000000",
-            "second_text": "<p><strong>418 </strong>reviews</p>",
-            "second_text_size": 13,
-            "second_text_color": "#000000",
-            "border": "none",
-            "border_thickness": 1,
-            "border_color": "#000000",
-            "radius": 0,
-            "background": "",
-            "background_gradient": "",
-            "effect": "none",
-            "block_padding_top": 0,
-            "block_padding_bottom": 0,
-            "padding_vertical": 6,
-            "padding_horizontal": 0,
-            "custom_css": ""
+            "custom_liquid": "{% capture sfj %}{\"star_style\": \"standard\", \"stars_count\": 4.5, \"stars_size\": 17, \"stars_gap\": 2, \"stars_color\": \"#ffffff\", \"stars_bg_color\": \"#00b67a\", \"stars_bg_half_color\": \"#dddddd\", \"avatars_position\": \"none\", \"avatars_size\": 20, \"avatars_animate\": false, \"first_text\": \"<p>Uitstekend </p>\", \"first_text_size\": 15, \"first_text_color\": \"#000000\", \"second_text\": \"<p><strong>418 </strong>reviews</p>\", \"second_text_size\": 13, \"second_text_color\": \"#000000\", \"border\": \"none\", \"border_thickness\": 1, \"border_color\": \"#000000\", \"radius\": 0, \"background\": \"\", \"background_gradient\": \"\", \"effect\": \"none\", \"block_padding_top\": 0, \"block_padding_bottom\": 0, \"padding_vertical\": 6, \"padding_horizontal\": 0, \"custom_css\": \"\"}{% endcapture %}{% render 'sf-review-summary', cfg: sfj %}"
           }
         },
         "price_WqFFz9": {
@@ -45,28 +18,9 @@
           "settings": {}
         },
         "section_store_block_benefits_list_eeQfVH": {
-          "type": "shopify://apps/section-store/blocks/block-benefits-list/d7a2e423-ea88-4344-b866-6d0fb487c3dd",
+          "type": "custom_liquid",
           "settings": {
-            "items_gap": 8,
-            "first_text": "<p><strong>Handgevormde keramische tegeltjes</strong> — elk tegeltje is uniek gevormd</p>",
-            "second_text": "<p><strong>Jouw sterrenbeeld</strong> — met naam en datum erbij</p>",
-            "third_text": "<p><strong>Twee formaten</strong> — 10×10 cm of 13×13 cm</p>",
-            "fourth_text": "<p><strong>Productie in eigen huis</strong> — met zorg afgewerkt</p>",
-            "icon_selection": "check_mark",
-            "icon_size": 18,
-            "icon_color": "#212529",
-            "text_size": 14,
-            "text_color": "#212529",
-            "content_align": "left",
-            "border": "none",
-            "border_thickness": 1,
-            "border_color": "#e1e1e1",
-            "radius": 0,
-            "background": "",
-            "background_gradient": "",
-            "padding_vertical": 8,
-            "padding_horizontal": 0,
-            "custom_css": ""
+            "custom_liquid": "{% capture sfj %}{\"items_gap\": 8, \"first_text\": \"<p><strong>Handgevormde keramische tegeltjes</strong> — elk tegeltje is uniek gevormd</p>\", \"second_text\": \"<p><strong>Jouw sterrenbeeld</strong> — met naam en datum erbij</p>\", \"third_text\": \"<p><strong>Twee formaten</strong> — 10×10 cm of 13×13 cm</p>\", \"fourth_text\": \"<p><strong>Productie in eigen huis</strong> — met zorg afgewerkt</p>\", \"icon_selection\": \"check_mark\", \"icon_size\": 18, \"icon_color\": \"#212529\", \"text_size\": 14, \"text_color\": \"#212529\", \"content_align\": \"left\", \"border\": \"none\", \"border_thickness\": 1, \"border_color\": \"#e1e1e1\", \"radius\": 0, \"background\": \"\", \"background_gradient\": \"\", \"padding_vertical\": 8, \"padding_horizontal\": 0, \"custom_css\": \"\"}{% endcapture %}{% render 'sf-benefits', cfg: sfj %}"
           }
         },
         "space_KDhbgn": {

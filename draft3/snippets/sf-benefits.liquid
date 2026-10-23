@@ -1,0 +1,32 @@
+{%- comment -%} Eigen voordelenlijst (vervangt Section Store block-benefits-list). Param: cfg = JSON-string {%- endcomment -%}
+{%- assign d = cfg | parse_json -%}
+{%- assign keys = 'first,second,third,fourth,fifth,sixth,seventh,eighth' | split: ',' -%}
+<div class="sf-bl" style="--bl-gap:{{ d.items_gap | default: 8 }}px;--bl-pv:{{ d.padding_vertical | default: 8 }}px;--bl-ph:{{ d.padding_horizontal | default: 0 }}px;--bl-text:{{ d.text_size | default: 14 }}px;--bl-icon:{{ d.icon_size | default: 18 }}px;--bl-color:{{ d.text_color | default: '#212529' }};--bl-icolor:{{ d.icon_color | default: '#212529' }};--bl-align:{{ d.content_align | default: 'left' }}">
+  <ul class="sf-bl-list">
+    {%- for k in keys -%}
+      {%- assign tk = k | append: '_text' -%}
+      {%- assign txt = d[tk] -%}
+      {%- if txt != blank -%}
+      <li class="sf-bl-item">
+        <span class="sf-bl-icon" aria-hidden="true">
+          {%- if d.icon_selection == 'icon_2' -%}
+          <svg viewBox="0 0 24 24" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12.5 9.5 18 20 6.5"/></svg>
+          {%- else -%}
+          <svg viewBox="0 0 24 24" width="100%" height="100%" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2c-.8 0-1.6.3-2.2.9l-.5.4c-.4.3-.8.5-1.3.6l-.6.1c-.9.1-1.6.2-2 .3-1.4.5-2.2 1.3-2.7 2.7-.1.4-.2 1.1-.3 2l-.1.6c-.1.5-.3.9-.6 1.3l-.4.5C1.7 11.5 1.5 12 1.5 12.8s.3 1.3.9 2l.4.5c.3.4.5.8.6 1.3l.1.6c.1.9.2 1.6.3 2 .5 1.4 1.3 2.2 2.7 2.7.4.1 1.1.2 2 .3l.6.1c.5.1.9.3 1.3.6l.5.4c.6.6 1.4.9 2.2.9s1.6-.3 2.2-.9l.5-.4c.4-.3.8-.5 1.3-.6l.6-.1c.9-.1 1.6-.2 2-.3 1.4-.5 2.2-1.3 2.7-2.7.1-.4.2-1.1.3-2l.1-.6c.1-.5.3-.9.6-1.3l.4-.5c.6-.7.9-1.2.9-2s-.3-1.3-.9-2l-.4-.5c-.3-.4-.5-.8-.6-1.3l-.1-.6c-.1-.9-.2-1.6-.3-2-.5-1.4-1.3-2.2-2.7-2.7-.4-.1-1.1-.2-2-.3l-.6-.1c-.5-.1-.9-.3-1.3-.6l-.5-.4C13.6 2.3 12.8 2 12 2zm4.4 7.9a.8.8 0 0 0-1.1-1.1l-4.9 4.8-1.6-1.6a.8.8 0 0 0-1.1 1.1l2.2 2.2a.8.8 0 0 0 1.1 0z"/></svg>
+          {%- endif -%}
+        </span>
+        <span class="sf-bl-text">{{ txt }}</span>
+      </li>
+      {%- endif -%}
+    {%- endfor -%}
+  </ul>
+</div>
+<style>
+.sf-bl{padding:var(--bl-pv) var(--bl-ph);font-family:inherit}
+.sf-bl-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:var(--bl-gap)}
+.sf-bl-item{display:flex;align-items:center;gap:6px;margin:0;padding:0}
+.sf-bl-item::before{content:none!important}
+.sf-bl-icon{flex:0 0 auto;display:block;width:var(--bl-icon);height:var(--bl-icon);color:var(--bl-icolor)}
+.sf-bl-text,.sf-bl-text *{margin:0;text-align:var(--bl-align);font-size:var(--bl-text);line-height:150%;color:var(--bl-color)}
+@media(max-width:1023px){.sf-bl-text,.sf-bl-text *{font-size:calc(var(--bl-text) - 1px)}.sf-bl-icon{width:calc(var(--bl-icon) - 2px);height:calc(var(--bl-icon) - 2px)}}
+</style>

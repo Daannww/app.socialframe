@@ -1,0 +1,42 @@
+{%- comment -%} Eigen reviewsamenvatting (vervangt Section Store block-review-summary). Param: cfg = JSON-string {%- endcomment -%}
+{%- assign d = cfg | parse_json -%}
+{%- assign sc = d.stars_count | default: 5 | times: 1.0 -%}
+{%- assign style = d.star_style | default: 'standard' -%}
+{%- assign bg = d.stars_bg_color | default: '#00b67a' -%}
+{%- assign fg = d.stars_color | default: '#ffffff' -%}
+{%- assign half = d.stars_bg_half_color | default: '#dddddd' -%}
+<div class="sf-rs" style="--rs-size:{{ d.stars_size | default: 17 }}px;--rs-gap:{{ d.stars_gap | default: 2 }}px;--rs-s1:{{ d.first_text_size | default: 15 }}px;--rs-s2:{{ d.second_text_size | default: 13 }}px;--rs-c1:{{ d.first_text_color | default: '#000' }};--rs-c2:{{ d.second_text_color | default: '#000' }};--rs-pv:{{ d.padding_vertical | default: 6 }}px;--rs-bg:{{ bg }};--rs-half:{{ half }};--rs-pt:{{ d.block_padding_top | default: 0 }}px;--rs-pb:{{ d.block_padding_bottom | default: 0 }}px">
+  <div class="sf-rs-body">
+    {%- if d.first_text != blank -%}<div class="sf-rs-t1">{{ d.first_text }}</div>{%- endif -%}
+    <div class="sf-rs-stars" role="img" aria-label="{{ sc }} / 5">
+      {%- for i in (1..5) -%}
+        {%- assign pos = i | minus: 0.5 -%}
+        {%- if sc >= i -%}{%- assign kind = 'full' -%}{%- elsif sc >= pos -%}{%- assign kind = 'half' -%}{%- else -%}{%- assign kind = 'empty' -%}{%- endif -%}
+        <span class="sf-rs-star sf-rs-{{ style }} sf-rs-{{ kind }}">
+          {%- if style == 'standard' -%}
+          <svg viewBox="0 0 32 32" width="100%" height="100%" aria-hidden="true"><path d="M9.20283 27L16.001 21.807L22.7972 27L20.2018 18.596L27 13.403H18.5984L16.001 5L13.4037 13.403H5L11.7982 18.596L9.20283 27Z" fill="{{ fg }}"/></svg>
+          {%- endif -%}
+        </span>
+      {%- endfor -%}
+    </div>
+    {%- if d.second_text != blank -%}<div class="sf-rs-t2">{{ d.second_text }}</div>{%- endif -%}
+  </div>
+</div>
+<style>
+.sf-rs{padding-top:var(--rs-pt);padding-bottom:var(--rs-pb);font-family:inherit}
+.sf-rs-body{display:flex;align-items:center;gap:8px;width:fit-content;max-width:100%;padding:var(--rs-pv) 0}
+.sf-rs p{margin:0}
+.sf-rs-t1,.sf-rs-t2{display:flex;align-items:center;line-height:1;min-height:var(--rs-size)}
+.sf-rs-t1 *{font-size:var(--rs-s1);color:var(--rs-c1);line-height:1;margin:0}
+.sf-rs-t2 *{font-size:var(--rs-s2);color:var(--rs-c2);line-height:1;margin:0}
+.sf-rs-stars{display:flex;align-items:center;gap:var(--rs-gap)}
+.sf-rs-star{display:block;width:var(--rs-size);height:var(--rs-size)}
+.sf-rs-standard.sf-rs-full{background:var(--rs-bg)}
+.sf-rs-standard.sf-rs-half{background:linear-gradient(90deg,var(--rs-bg) 50%,var(--rs-half) 50%)}
+.sf-rs-standard.sf-rs-empty{background:var(--rs-half)}
+.sf-rs-sharp,.sf-rs-mild{-webkit-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 1.5l3.1 6.9 7.4.8-5.5 5 1.6 7.4L12 17.9l-6.6 3.7L7 14.2 1.5 9.2l7.4-.8z'/></svg>") center/contain no-repeat;mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 1.5l3.1 6.9 7.4.8-5.5 5 1.6 7.4L12 17.9l-6.6 3.7L7 14.2 1.5 9.2l7.4-.8z'/></svg>") center/contain no-repeat}
+.sf-rs-sharp.sf-rs-full,.sf-rs-mild.sf-rs-full{background:var(--rs-bg)}
+.sf-rs-sharp.sf-rs-half,.sf-rs-mild.sf-rs-half{background:linear-gradient(90deg,var(--rs-bg) 50%,var(--rs-half) 50%)}
+.sf-rs-sharp.sf-rs-empty,.sf-rs-mild.sf-rs-empty{background:var(--rs-half)}
+@media(max-width:1023px){.sf-rs-t1 *{font-size:calc(var(--rs-s1) - 1px)}.sf-rs-t2 *{font-size:calc(var(--rs-s2) - 1px)}}
+</style>
