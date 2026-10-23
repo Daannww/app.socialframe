@@ -1,0 +1,227 @@
+{%- liquid
+  assign menu = linklists[section.settings.menu]
+  assign logo = section.settings.logo
+-%}
+<style>
+  .sfh-spacer{width:100%}
+  .sfh{position:fixed;top:0;left:0;right:0;z-index:900;background:#fff;color:#151412;font-family:inherit;transition:box-shadow .25s ease}
+  .sfh a{color:inherit;text-decoration:none}
+  .sfh.is-compact{box-shadow:0 8px 30px rgba(21,20,18,.08)}
+  .sfh-strip{background:#f2c48a;color:#151412;height:40px;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:12px;font-size:12px;font-weight:600;letter-spacing:.02em;transition:height .25s ease;padding:0 16px;text-align:center}
+  .sfh.is-compact .sfh-strip{height:0}
+  .sfh-strip i{font-style:normal;opacity:.6}
+  .sfh-main{height:96px;box-sizing:border-box;padding:0 64px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;transition:height .25s ease}
+  .sfh.is-compact .sfh-main{height:68px}
+  .sfh-search{display:flex;align-items:center;gap:12px;max-width:300px;border-bottom:1px solid #151412;padding-bottom:8px}
+  .sfh-search input{flex:1;min-width:0;border:0!important;outline:0;background:transparent!important;box-shadow:none!important;font-size:14px;font-weight:500;font-family:inherit;color:#151412;padding:0!important;height:auto!important}
+  .sfh-search button{border:0;background:transparent;padding:0;cursor:pointer;display:flex}
+  .sfh-logo{display:flex;align-items:center;justify-self:center}
+  .sfh-logo img{height:{{ section.settings.logo_height | default: 52 }}px;width:auto;display:block;transition:height .25s ease}
+  .sfh.is-compact .sfh-logo img{height:{{ section.settings.logo_height | default: 52 | times: 0.72 | round }}px}
+  .sfh-actions{display:flex;justify-content:flex-end;align-items:center;gap:24px;font-size:13px;font-weight:600}
+  .sfh-actions a{display:flex;align-items:center;gap:8px;white-space:nowrap}
+  .sfh-nav{height:56px;border-top:1px solid #ebe8e1;border-bottom:1px solid #ebe8e1;display:flex;justify-content:center;align-items:stretch}
+  .sfh-nav>ul{display:flex;gap:40px;list-style:none;margin:0;padding:0;align-items:stretch}
+  .sfh-nav>ul>li{display:flex;align-items:stretch;margin:0;padding:0}
+  .sfh-nav>ul>li::before{content:none!important}
+  .sfh-nav>ul>li>a{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;border-bottom:2px solid transparent;margin-bottom:-1px}
+  .sfh-nav>ul>li:hover>a,.sfh-nav>ul>li:focus-within>a,.sfh-nav>ul>li>a[aria-current]{border-bottom-color:#151412}
+  .sfh-nav svg.sfh-chev{width:10px;height:10px;transition:transform .2s ease}
+  .sfh-nav>ul>li:hover svg.sfh-chev{transform:rotate(180deg)}
+  .sfh-panel{position:absolute;left:0;right:0;top:100%;background:#fff;border-bottom:1px solid #ebe8e1;box-shadow:0 24px 40px rgba(21,20,18,.07);padding:36px 64px 40px;display:none}
+  .sfh-nav>ul>li:hover>.sfh-panel,.sfh-nav>ul>li:focus-within>.sfh-panel{display:block}
+  .sfh-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:32px 48px;max-width:1280px;margin:0 auto}
+  .sfh-cols ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+  .sfh-cols li{margin:0;padding:0}
+  .sfh-cols li::before{content:none!important}
+  .sfh-colhead{display:block;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#6d675c;margin-bottom:14px}
+  .sfh-cols a{font-size:14px;color:#3b3832}
+  .sfh-cols a:hover{color:#000;text-decoration:underline;text-underline-offset:4px}
+  .sfh-burger{display:none;width:44px;height:44px;border:0;background:transparent;padding:0;cursor:pointer;align-items:center;justify-content:center;margin-left:-10px}
+  .sfh-drawer{display:none}
+  @media (max-width:989px){
+    .sfh-strip{height:34px;font-size:11px}
+    .sfh-strip span:nth-of-type(n+2),.sfh-strip i{display:none}
+    .sfh-main{height:64px;padding:0 16px;grid-template-columns:1fr auto 1fr}
+    .sfh.is-compact .sfh-main{height:56px}
+    .sfh-logo img{height:34px}
+    .sfh.is-compact .sfh-logo img{height:28px}
+    .sfh-search,.sfh-nav,.sfh-actions .sfh-account span,.sfh-actions .sfh-cart span.sfh-label{display:none}
+    .sfh-actions{gap:4px}
+    .sfh-actions a{width:44px;height:44px;justify-content:center;margin-right:-10px;gap:2px}
+    .sfh-actions .sfh-account{display:none}
+    .sfh-burger{display:flex}
+    .sfh-drawer{position:fixed;left:0;right:0;bottom:0;top:var(--sfh-h,98px);background:#fff;z-index:899;overflow-y:auto;padding:16px 16px 40px;transform:translateX(-100%);transition:transform .25s ease;display:block;visibility:hidden}
+    .sfh-drawer.is-open{transform:none;visibility:visible}
+    .sfh-drawer form{display:flex;align-items:center;gap:10px;height:48px;box-sizing:border-box;border-radius:999px;background:#f6f4ef;padding:0 18px;margin-bottom:8px}
+    .sfh-drawer form input{flex:1;min-width:0;border:0!important;outline:0;background:transparent!important;box-shadow:none!important;font-size:16px;font-family:inherit;padding:0!important;height:auto!important}
+    .sfh-drawer form button{border:0;background:transparent;padding:0;display:flex}
+    .sfh-drawer details{border-bottom:1px solid #ebe8e1}
+    .sfh-drawer summary,.sfh-drawer .sfh-d1{display:flex;justify-content:space-between;align-items:center;min-height:58px;font-size:17px;font-weight:600;list-style:none;cursor:pointer;color:#151412;text-decoration:none}
+    .sfh-drawer summary::-webkit-details-marker{display:none}
+    .sfh-drawer .sfh-d1{border-bottom:1px solid #ebe8e1}
+    .sfh-drawer details[open]>summary svg{transform:rotate(90deg)}
+    .sfh-dsub{padding:0 0 14px;display:flex;flex-direction:column;gap:12px}
+    .sfh-dsub strong{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#6d675c;margin-top:8px}
+    .sfh-dsub a{font-size:15px;color:#3b3832;text-decoration:none}
+    .sfh-dfoot{padding-top:22px;display:flex;flex-direction:column;gap:14px;font-size:14px}
+    .sfh-dfoot a{color:#3b3832;text-decoration:none}
+  }
+</style>
+
+<div class="sfh-spacer" data-sfh-spacer aria-hidden="true"></div>
+<header class="sfh" data-sfh {{ section.shopify_attributes }}>
+  {%- if section.settings.text_1 != blank -%}
+  <div class="sfh-strip">
+    <span>{{ section.settings.text_1 }}</span>
+    {%- if section.settings.text_2 != blank -%}<i aria-hidden="true">·</i><span>{{ section.settings.text_2 }}</span>{%- endif -%}
+    {%- if section.settings.text_3 != blank -%}<i aria-hidden="true">·</i><span>{{ section.settings.text_3 }}</span>{%- endif -%}
+  </div>
+  {%- endif -%}
+
+  <div class="sfh-main">
+    <div>
+      <button type="button" class="sfh-burger" aria-label="Menu" aria-expanded="false" data-sfh-burger>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#151412" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+      <form class="sfh-search" action="{{ routes.search_url }}" method="get" role="search">
+        <button type="submit" aria-label="Zoeken"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#151412" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></button>
+        <input type="search" name="q" placeholder="Zoek naar..." aria-label="Zoeken" autocomplete="off">
+      </form>
+    </div>
+
+    <a class="sfh-logo" href="{{ routes.root_url }}" aria-label="{{ shop.name | escape }}">
+      {%- if logo != blank -%}
+        <img src="{{ logo | image_url: width: 800 }}" alt="{{ shop.name | escape }}" height="{{ section.settings.logo_height | default: 52 }}">
+      {%- else -%}
+        <span style="font-size:30px;font-weight:700;letter-spacing:-.04em">{{ shop.name | escape }}</span>
+      {%- endif -%}
+    </a>
+
+    <div class="sfh-actions">
+      <a class="sfh-account" href="{% if customer %}{{ routes.account_url }}{% else %}{{ routes.account_login_url }}{% endif %}">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#151412" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg><span>Account</span>
+      </a>
+      <a class="sfh-cart" href="{{ routes.cart_url }}" aria-label="Winkelwagen">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#151412" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1 12H6z"/><path d="M9 8V6a3 3 0 016 0v2"/></svg><span class="sfh-label">Winkelwagen (<span data-header-cart-count>{{ cart.item_count }}</span>)</span>
+      </a>
+    </div>
+  </div>
+
+  {%- if menu != blank -%}
+  <nav class="sfh-nav" aria-label="Hoofdmenu">
+    <ul>
+      {%- for link in menu.links -%}
+        <li>
+          <a href="{{ link.url }}"{% if link.current %} aria-current="page"{% endif %}>{{ link.title | escape }}
+            {%- if link.links.size > 0 -%}<svg class="sfh-chev" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 4l4 4 4-4"/></svg>{%- endif -%}
+          </a>
+          {%- if link.links.size > 0 -%}
+          <div class="sfh-panel">
+            <div class="sfh-cols">
+              {%- assign has_grand = false -%}
+              {%- for child in link.links -%}{%- if child.links.size > 0 -%}{%- assign has_grand = true -%}{%- endif -%}{%- endfor -%}
+              {%- if has_grand -%}
+                {%- for child in link.links -%}
+                  <div>
+                    <a class="sfh-colhead" href="{{ child.url }}">{{ child.title | escape }}</a>
+                    {%- if child.links.size > 0 -%}
+                    <ul>{%- for g in child.links -%}<li><a href="{{ g.url }}">{{ g.title | escape }}</a></li>{%- endfor -%}</ul>
+                    {%- endif -%}
+                  </div>
+                {%- endfor -%}
+              {%- else -%}
+                <div style="grid-column:1/-1">
+                  <ul style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px 40px">{%- for child in link.links -%}<li><a href="{{ child.url }}">{{ child.title | escape }}</a></li>{%- endfor -%}</ul>
+                </div>
+              {%- endif -%}
+            </div>
+          </div>
+          {%- endif -%}
+        </li>
+      {%- endfor -%}
+    </ul>
+  </nav>
+  {%- endif -%}
+</header>
+
+<div class="sfh-drawer" data-sfh-drawer>
+  <form action="{{ routes.search_url }}" method="get" role="search">
+    <button type="submit" aria-label="Zoeken"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#151412" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></button>
+    <input type="search" name="q" placeholder="Zoek naar..." aria-label="Zoeken">
+  </form>
+  {%- if menu != blank -%}
+    {%- for link in menu.links -%}
+      {%- if link.links.size > 0 -%}
+        <details>
+          <summary>{{ link.title | escape }}<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#151412" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="transition:transform .2s ease"><path d="M9 6l6 6-6 6"/></svg></summary>
+          <div class="sfh-dsub">
+            <a href="{{ link.url }}">Alles bekijken</a>
+            {%- for child in link.links -%}
+              {%- if child.links.size > 0 -%}
+                <strong>{{ child.title | escape }}</strong>
+                {%- for g in child.links -%}<a href="{{ g.url }}">{{ g.title | escape }}</a>{%- endfor -%}
+              {%- else -%}
+                <a href="{{ child.url }}">{{ child.title | escape }}</a>
+              {%- endif -%}
+            {%- endfor -%}
+          </div>
+        </details>
+      {%- else -%}
+        <a class="sfh-d1" href="{{ link.url }}">{{ link.title | escape }}</a>
+      {%- endif -%}
+    {%- endfor -%}
+  {%- endif -%}
+  <div class="sfh-dfoot">
+    <a href="{% if customer %}{{ routes.account_url }}{% else %}{{ routes.account_login_url }}{% endif %}">Mijn account</a>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var h = document.querySelector('[data-sfh]'), sp = document.querySelector('[data-sfh-spacer]');
+    var dr = document.querySelector('[data-sfh-drawer]'), bg = document.querySelector('[data-sfh-burger]');
+    if (!h || !sp) return;
+    var full = 0;
+    function measure() {
+      if (h.classList.contains('is-compact')) return;
+      full = h.offsetHeight; sp.style.height = full + 'px';
+      document.documentElement.style.setProperty('--sfh-h', full + 'px');
+    }
+    function onScroll() {
+      var c = (window.pageYOffset || 0) > 40;
+      if (c !== h.classList.contains('is-compact')) {
+        h.classList.toggle('is-compact', c);
+        if (dr) dr.style.top = h.offsetHeight + 'px';
+      }
+    }
+    measure(); onScroll();
+    window.addEventListener('resize', function () { var w = h.classList.contains('is-compact'); h.classList.remove('is-compact'); measure(); h.classList.toggle('is-compact', w); });
+    window.addEventListener('load', function () { var w = h.classList.contains('is-compact'); h.classList.remove('is-compact'); measure(); h.classList.toggle('is-compact', w); });
+    window.addEventListener('scroll', onScroll, { passive: true });
+    if (bg && dr) {
+      bg.addEventListener('click', function () {
+        var open = !dr.classList.contains('is-open');
+        dr.classList.toggle('is-open', open); bg.setAttribute('aria-expanded', open);
+        dr.style.top = h.offsetHeight + 'px';
+        document.documentElement.style.overflow = open ? 'hidden' : '';
+      });
+    }
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "SocialFrame header",
+  "class": "sf-header-section",
+  "settings": [
+    { "type": "image_picker", "id": "logo", "label": "Logo" },
+    { "type": "range", "id": "logo_height", "min": 28, "max": 90, "step": 2, "unit": "px", "label": "Logohoogte", "default": 52 },
+    { "type": "link_list", "id": "menu", "label": "Menu", "default": "main-menu" },
+    { "type": "text", "id": "text_1", "label": "Strook tekst 1", "default": "2e tegeltje 20% korting" },
+    { "type": "text", "id": "text_2", "label": "Strook tekst 2", "default": "Voor 12:00 besteld = zelfde werkdag verzonden" },
+    { "type": "text", "id": "text_3", "label": "Strook tekst 3", "default": "Gratis verzending vanaf €20" }
+  ],
+  "enabled_on": { "groups": ["header"] }
+}
+{% endschema %}
