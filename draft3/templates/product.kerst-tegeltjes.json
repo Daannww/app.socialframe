@@ -3,32 +3,6 @@
     "main": {
       "type": "main-product",
       "blocks": {
-        "section_store_block_product_info_wrapper_DTHcmy": {
-          "type": "shopify://apps/section-store/blocks/block-product-info-wrapper/d7a2e423-ea88-4344-b866-6d0fb487c3dd",
-          "settings": {
-            "auto_detect_product_info_container": true,
-            "product_info_container_selector": "",
-            "use_on_mobile": true,
-            "use_header": true,
-            "header_font_size": 12,
-            "header_bg_color": "#000000",
-            "header_text_color": "#ffffff",
-            "header_text_align": "center",
-            "header_text": "♥︎ Klantbeoordeling van 4.6/5",
-            "border_style": "solid",
-            "border_width": 1,
-            "border_color": "#dfdfdf",
-            "border_radius": 12,
-            "background_color": "",
-            "shadow": "none",
-            "padding_top": 20,
-            "padding_bottom": 20,
-            "padding_left": 18,
-            "padding_right": 18,
-            "section_background_color": "",
-            "custom_css": ""
-          }
-        },
         "title": {
           "type": "title",
           "settings": {}
@@ -192,7 +166,6 @@
         }
       },
       "block_order": [
-        "section_store_block_product_info_wrapper_DTHcmy",
         "title",
         "section_store_block_review_summary_3EexNa",
         "section_store_block_benefits_list_EHbKzT",
