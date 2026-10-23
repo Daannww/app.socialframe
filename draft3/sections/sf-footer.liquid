@@ -1,0 +1,158 @@
+{%- liquid
+  assign shop_menu = linklists[section.settings.menu_shop]
+  assign info_menu = linklists[section.settings.menu_info]
+-%}
+<style>
+  /* de losse nieuwsbrief-blokken uit de pagina's vervangen door de nieuwsbrief in deze footer */
+  main .shopify-section:has(.card.newsletter){display:none!important}
+  .sff{background:#fff;color:#151412;font-family:inherit;margin-top:56px;padding-bottom:0}
+  .sff a{color:inherit;text-decoration:none}
+  .sff-wrap{max-width:1440px;margin:0 auto;padding:0 64px;box-sizing:border-box}
+  .sff-news{background:#faf1df;border-radius:20px;padding:44px 56px;display:flex;align-items:center;justify-content:space-between;gap:48px}
+  .sff-news h2{margin:0 0 8px;font-size:26px;line-height:1.2;font-weight:700;letter-spacing:-.01em;color:#151412}
+  .sff-news p{margin:0;font-size:15px;line-height:1.5;color:#4a4238}
+  .sff-form{display:flex;gap:10px;flex:1;max-width:520px;margin:0}
+  .sff-form fieldset{display:flex;gap:10px;flex:1;margin:0;padding:0;border:0;min-width:0}
+  .sff-form input[type=email]{flex:1;min-width:0;height:52px;box-sizing:border-box;border:1px solid #d9c9a8!important;border-radius:999px!important;padding:0 24px!important;font-size:15px;font-weight:500;font-family:inherit;background:#fff!important;color:#151412;margin:0;box-shadow:none!important}
+  .sff-form button{height:52px;padding:0 30px;border:0;border-radius:999px;background:#151412;color:#fff;font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap}
+  .sff-form button:hover{background:#000}
+  .sff-ok{font-size:15px;font-weight:600;margin:0;color:#151412}
+  .sff-cols{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;column-gap:48px;padding-top:56px;padding-bottom:40px}
+  .sff-brand{max-width:300px;display:flex;flex-direction:column;gap:16px}
+  .sff-brand img{height:44px;width:auto;display:block;align-self:flex-start}
+  .sff-brand p{margin:0;font-size:14px;line-height:1.65;color:#4a4238}
+  .sff-social{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+  .sff-social a{border:1px solid #d9c9a8;border-radius:999px;padding:8px 16px;font-size:13px;font-weight:600;color:#151412}
+  .sff-social a:hover{background:#faf1df}
+  .sff-col{display:flex;flex-direction:column;gap:12px;font-size:14px}
+  .sff-col h3{margin:0 0 4px;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#8a7a5f}
+  .sff-col a{color:#4a4238}
+  .sff-col a:hover,.sff-bot a:hover{color:#000;text-decoration:underline;text-underline-offset:4px}
+  .sff-bot{border-top:1px solid #e8dcc3;padding:22px 0 28px;display:flex;align-items:center;justify-content:space-between;gap:24px;font-size:13px;color:#6b6252}
+  .sff-pay{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center;list-style:none;margin:0;padding:0}
+  .sff-pay li{display:block;height:22px;margin:0;padding:0}
+  .sff-pay li::before{content:none!important}
+  .sff-pay svg{display:block;height:100%;width:auto}
+  .sff-right{display:flex;align-items:center;gap:20px}
+  .sff-right a{color:#6b6252}
+  .sff-loc{font-weight:600;color:#151412;position:static!important}
+  .sff-loc *{position:static}
+  @media (max-width:989px){
+    .sff-wrap{padding:0 20px}
+    .sff-news{flex-direction:column;align-items:flex-start;gap:24px;padding:32px 24px}
+    .sff-form{max-width:none;width:100%}
+    .sff-cols{grid-template-columns:1fr 1fr;row-gap:36px;padding-top:40px}
+    .sff-brand{grid-column:1/-1;max-width:none}
+    .sff-bot{flex-direction:column;align-items:flex-start;gap:18px}
+    .sff-pay{justify-content:flex-start}
+  }
+  @media (max-width:560px){
+    .sff-form fieldset{flex-direction:column}
+    .sff-form button{width:100%}
+  }
+</style>
+
+<footer class="sff" data-js-inert {{ section.shopify_attributes }}>
+  <div class="sff-wrap">
+    <div class="sff-news">
+      <div style="max-width:520px">
+        <h2>{{ section.settings.news_title }}</h2>
+        <p>{{ section.settings.news_text }}</p>
+      </div>
+      {%- form 'customer', id: 'sff-newsletter', class: 'sff-form' -%}
+        {%- if form.posted_successfully? -%}
+          <p class="sff-ok">Bedankt voor je aanmelding!</p>
+        {%- else -%}
+          <fieldset>
+            <input type="hidden" name="contact[tags]" value="newsletter">
+            <input type="email" name="contact[email]" placeholder="Voer je e-mailadres in" aria-label="E-mailadres" autocorrect="off" autocapitalize="off" required value="{% if customer %}{{ customer.email }}{% endif %}">
+            <button type="submit">Aanmelden</button>
+          </fieldset>
+        {%- endif -%}
+      {%- endform -%}
+    </div>
+
+    <div class="sff-cols">
+      <div class="sff-brand">
+        {%- if section.settings.logo != blank -%}
+          <img src="{{ section.settings.logo | image_url: width: 600 }}" alt="{{ shop.name | escape }}" height="44" loading="lazy">
+        {%- else -%}
+          <div style="font-size:24px;font-weight:700;letter-spacing:-.02em">{{ shop.name | escape }}</div>
+        {%- endif -%}
+        <p>{{ section.settings.brand_text }}</p>
+        <div class="sff-social">
+          {%- if section.settings.instagram != blank -%}<a href="{{ section.settings.instagram }}" target="_blank" rel="noopener">Instagram</a>{%- endif -%}
+          {%- if section.settings.tiktok != blank -%}<a href="{{ section.settings.tiktok }}" target="_blank" rel="noopener">TikTok</a>{%- endif -%}
+          {%- if section.settings.whatsapp != blank -%}<a href="{{ section.settings.whatsapp }}" target="_blank" rel="noopener">WhatsApp</a>{%- endif -%}
+          {%- if section.settings.email != blank -%}<a href="mailto:{{ section.settings.email }}">E-mail</a>{%- endif -%}
+        </div>
+      </div>
+
+      <nav class="sff-col" aria-label="Shop">
+        <h3>Shop</h3>
+        {%- for link in shop_menu.links -%}
+          {%- assign t = link.title | downcase -%}
+          {%- unless t == 'home' or t == 'service & faq' or t == 'contact' or t == 'meer' -%}
+            <a href="{{ link.url }}">{{ link.title | escape }}</a>
+          {%- endunless -%}
+        {%- endfor -%}
+      </nav>
+
+      <nav class="sff-col" aria-label="Klantenservice">
+        <h3>Klantenservice</h3>
+        <a href="{{ routes.root_url }}pages/verzenden">Service &amp; faq</a>
+        <a href="{{ routes.root_url }}pages/verzenden">Verzending</a>
+        <a href="{{ routes.root_url }}pages/retourneren">Retourneren</a>
+        <a href="{{ routes.root_url }}pages/contact">Contact</a>
+      </nav>
+
+      <nav class="sff-col" aria-label="Over SocialFrame">
+        <h3>Over SocialFrame</h3>
+        {%- for link in info_menu.links -%}
+          {%- assign t = link.title | downcase -%}
+          {%- unless t == 'verzending' or t == 'retourneren' -%}
+            <a href="{{ link.url }}">{{ link.title | escape }}</a>
+          {%- endunless -%}
+        {%- endfor -%}
+        <a href="javascript:document.querySelector('e-kookie') && document.querySelector('e-kookie').openModal()">Cookie-instellingen</a>
+      </nav>
+    </div>
+
+    <div class="sff-bot">
+      <span>© {{ 'now' | date: '%Y' }} <a href="{{ routes.root_url }}">{{ shop.name | escape }}</a>®</span>
+      <ul class="sff-pay" aria-label="Betaalmogelijkheden">
+        {%- for type in shop.enabled_payment_types -%}
+          <li>{{ type | payment_type_svg_tag: class: 'payment-icon' }}</li>
+        {%- endfor -%}
+      </ul>
+      <div class="sff-right">
+        <div class="sff-loc">
+          {%- render 'localization-form', show_country_selector: false, show_locale_selector: true, location: 'footer' -%}
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+{% schema %}
+{
+  "name": "SocialFrame footer",
+  "class": "sf-footer-section",
+  "settings": [
+    { "type": "header", "content": "Nieuwsbrief" },
+    { "type": "text", "id": "news_title", "label": "Titel", "default": "Blijf op de hoogte" },
+    { "type": "text", "id": "news_text", "label": "Tekst", "default": "Ontvang als eerste nieuwe ontwerpen en kortingscodes in je mailbox." },
+    { "type": "header", "content": "Merk" },
+    { "type": "image_picker", "id": "logo", "label": "Logo" },
+    { "type": "textarea", "id": "brand_text", "label": "Korte tekst", "default": "Persoonlijke frames en tegeltjes, met liefde zelf gemaakt van jouw herinnering." },
+    { "type": "url", "id": "instagram", "label": "Instagram" },
+    { "type": "url", "id": "tiktok", "label": "TikTok" },
+    { "type": "url", "id": "whatsapp", "label": "WhatsApp" },
+    { "type": "text", "id": "email", "label": "E-mailadres" },
+    { "type": "header", "content": "Menu's" },
+    { "type": "link_list", "id": "menu_shop", "label": "Shop-menu", "default": "main-menu" },
+    { "type": "link_list", "id": "menu_info", "label": "Over ons-menu", "default": "footermenu" }
+  ],
+  "enabled_on": { "groups": ["footer"] }
+}
+{% endschema %}
