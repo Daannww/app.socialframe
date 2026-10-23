@@ -193,7 +193,7 @@
         "20498777200fd8c9": {
           "type": "custom_liquid",
           "settings": {
-            "custom_liquid": "{% assign bid = 'x' %}{% include 'sf-tabs' %}"
+            "custom_liquid": "<!-- tabs test -->"
           }
         },
         "custom_liquid_LaqUz9": {
