@@ -619,7 +619,6 @@
         }
         if (!fixed) {
           fixed = true; sticky.classList.add('is-stuck');
-          var cs0 = getComputedStyle(scene);
           full = { w: scene.offsetWidth, h: slot.offsetHeight };
           small = Math.min(full.w, window.innerHeight * 0.34 * 41 / 50);
           smallH = full.h - (full.w - small) * 50 / 41 - (hint ? hint.offsetHeight + 6 : 0);
