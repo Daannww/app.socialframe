@@ -115,6 +115,7 @@
   .hw-mz{position:relative;font-family:inherit;font-size:14px;color:#333;border:1.5px solid #E2E2E2;border-radius:24px;background:#fff;padding:22px 18px 20px;margin:1.75rem 0 1rem;box-sizing:border-box}
   .hw-mz *{box-sizing:border-box}
   .hw-mz-heading{font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#111;margin:0 0 16px}
+  .hw-mz-slot{margin-bottom:56px}
   .hw-mz-sticky{z-index:20;box-sizing:border-box;background:#fff;padding:6px 0 8px;text-align:center;box-shadow:-16px 0 0 #fff,16px 0 0 #fff,0 12px 0 #fff}
   .hw-mz-scene{position:relative;width:min(100%,520px);aspect-ratio:41/50;margin:0 auto;overflow:hidden;border-radius:6px;background:#ece7df center top/cover no-repeat}
   .hw-mz-ground{position:absolute;left:14%;width:72%;top:86.6%;height:5.7%;background:radial-gradient(ellipse at center,rgba(60,45,30,.38),rgba(60,45,30,0) 70%);filter:blur(3px)}
@@ -620,7 +621,7 @@
         if (!fixed && rr.bottom <= 0) return;
         if (fixed && sr.top < topOff && rr.bottom <= 0) return; // blok ver voorbij: niets meer veranderen (anders verspringt de pagina)
         if (sr.top >= topOff) {
-          if (fixed) { fixed = false; sticky.classList.remove('is-stuck'); sticky.style.cssText = ''; scene.style.width = ''; if (hint) hint.style.display = ''; slot.style.height = ''; }
+          if (fixed) { fixed = false; sticky.classList.remove('is-stuck'); sticky.style.cssText = ''; scene.style.width = ''; if (hint) hint.style.display = ''; slot.style.height = ''; slot.style.marginBottom = ''; }
           return;
         }
         if (!fixed) {
@@ -637,6 +638,7 @@
         if (hint) hint.style.display = p > 0.02 ? 'none' : '';
         var hSticky = w * 50 / 41 + 14;
         slot.style.height = Math.max(hSticky, full.h + (smallH - full.h) * p) + 'px';
+        slot.style.marginBottom = (56 * (1 - p)) + 'px'; // extra wit onder het voorbeeld, zodat de uploadknop van stap 1 niet meteen wegvalt
         var t = rr.bottom - hSticky - 8;
         if (t < topOff) {
           // einde van het blok: het voorbeeld staat vast onderin het blok en scrolt gewoon mee (geen JS meer, dus geen getril op iPhone)
