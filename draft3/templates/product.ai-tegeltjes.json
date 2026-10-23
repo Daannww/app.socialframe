@@ -3,33 +3,6 @@
     "main": {
       "type": "main-product",
       "blocks": {
-        "section_store_block_product_info_wrapper_jVfxJM": {
-          "type": "shopify://apps/section-store/blocks/block-product-info-wrapper/d7a2e423-ea88-4344-b866-6d0fb487c3dd",
-          "disabled": true,
-          "settings": {
-            "auto_detect_product_info_container": true,
-            "product_info_container_selector": "",
-            "use_on_mobile": true,
-            "use_header": true,
-            "header_font_size": 12,
-            "header_bg_color": "#000000",
-            "header_text_color": "#ffffff",
-            "header_text_align": "center",
-            "header_text": "♥︎ Klantbeoordeling van 4.6/5",
-            "border_style": "solid",
-            "border_width": 1,
-            "border_color": "#dfdfdf",
-            "border_radius": 12,
-            "background_color": "#ffffff",
-            "shadow": "shadow_2",
-            "padding_top": 26,
-            "padding_bottom": 26,
-            "padding_left": 26,
-            "padding_right": 26,
-            "section_background_color": "",
-            "custom_css": ""
-          }
-        },
         "title": {
           "type": "title",
           "settings": {}
@@ -86,17 +59,9 @@
           }
         },
         "section_store_block_space_divide_ac6wXe": {
-          "type": "shopify://apps/section-store/blocks/block-space-divide/d7a2e423-ea88-4344-b866-6d0fb487c3dd",
+          "type": "custom_liquid",
           "settings": {
-            "height": 20,
-            "background_color": "rgba(0,0,0,0)",
-            "show_line": false,
-            "line_style": "solid",
-            "line_width": 100,
-            "line_thickness": 1,
-            "line_roundness": 0,
-            "line_color": "#e0e0e0",
-            "custom_css": ""
+            "custom_liquid": "<div class=\"sf-space\" style=\"height:20px;display:flex;align-items:center\"></div>"
           }
         },
         "text_eNG89x": {
@@ -109,50 +74,9 @@
           }
         },
         "section_store_block_space_divide_egmwJY": {
-          "type": "shopify://apps/section-store/blocks/block-space-divide/d7a2e423-ea88-4344-b866-6d0fb487c3dd",
+          "type": "custom_liquid",
           "settings": {
-            "height": 20,
-            "background_color": "rgba(0,0,0,0)",
-            "show_line": false,
-            "line_style": "solid",
-            "line_width": 100,
-            "line_thickness": 1,
-            "line_roundness": 0,
-            "line_color": "#e0e0e0",
-            "custom_css": ""
-          }
-        },
-        "section_store_block_product_addons_Rf39LH": {
-          "type": "shopify://apps/section-store/blocks/block-product-addons/d7a2e423-ea88-4344-b866-6d0fb487c3dd",
-          "disabled": true,
-          "settings": {
-            "products": [
-              "gift-wrap"
-            ],
-            "product_list_style": "stack",
-            "variant_selector": "text",
-            "show_compare_price": true,
-            "use_discount_tag": false,
-            "discount_tag_background": "#c9ffc9",
-            "switch_style": "toggle",
-            "switch_size": 21,
-            "switch_position": "last",
-            "switch_vertical_position": "center",
-            "switch_color": "#000000",
-            "font_size": 12,
-            "font_weight": "normal",
-            "item_title_color": "#000000",
-            "item_subtitle_color": "#000000",
-            "image_size": 48,
-            "item_border_style": "solid",
-            "item_border_width": 1,
-            "item_border_color": "#d7d7d7",
-            "item_border_radius": 20,
-            "item_bg_color": "#f6f6f6",
-            "background_gradient": "",
-            "item_padding_vertical": 5,
-            "item_padding_horizontal": 7,
-            "custom_css": ""
+            "custom_liquid": "<div class=\"sf-space\" style=\"height:20px;display:flex;align-items:center\"></div>"
           }
         },
         "custom_liquid_VnxQkf": {
@@ -225,38 +149,6 @@
             "hide_block_if": true
           }
         },
-        "section_store_block_benefits_boxes_2_9KFqYJ": {
-          "type": "shopify://apps/section-store/blocks/block-benefits-boxes-2/d7a2e423-ea88-4344-b866-6d0fb487c3dd",
-          "disabled": true,
-          "settings": {
-            "cards_design": "vertical",
-            "cards_row": "3",
-            "card_align": "center",
-            "first_icon": "store_outline",
-            "first_title": "In Nederland gemaakt",
-            "first_sub_title": "",
-            "second_icon": "leaf",
-            "second_title": "Recyclebaar",
-            "second_sub_title": "",
-            "third_icon": "star_sparkle_outline",
-            "third_title": "12 maanden garantie",
-            "third_sub_title": "",
-            "fourth_icon": "star_sparkle",
-            "fourth_title": "",
-            "fourth_sub_title": "",
-            "all_size": 19,
-            "all_color": "#000000",
-            "font_weight": "700",
-            "border": "none",
-            "border_thickness": 1,
-            "border_color": "#000000",
-            "radius": 0,
-            "cards_bg_color": "",
-            "padding_vertical": 0,
-            "padding_horizontal": 0,
-            "custom_css": ""
-          }
-        },
         "custom_liquid_iq83WQ": {
           "type": "custom_liquid",
           "disabled": true,
@@ -312,7 +204,6 @@
         }
       },
       "block_order": [
-        "section_store_block_product_info_wrapper_jVfxJM",
         "title",
         "section_store_block_review_summary_yxcjCQ",
         "price_WqFFz9",
@@ -326,7 +217,6 @@
         "section_store_block_space_divide_ac6wXe",
         "text_eNG89x",
         "section_store_block_space_divide_egmwJY",
-        "section_store_block_product_addons_Rf39LH",
         "custom_liquid_VnxQkf",
         "custom_liquid_wkfBdm",
         "custom_liquid_bcLYCA",
@@ -337,7 +227,6 @@
         "section_store_block_tabs_AeYhfa",
         "custom_liquid_LaqUz9",
         "collapsible_tab_yj6yQA",
-        "section_store_block_benefits_boxes_2_9KFqYJ",
         "custom_liquid_iq83WQ",
         "custom_liquid_wNEfNx",
         "description_9XYgMB",
