@@ -77,14 +77,14 @@
         {%- if section.settings.logo != blank -%}
           <img src="{{ section.settings.logo | image_url: width: 600 }}" alt="{{ shop.name | escape }}" height="44" loading="lazy">
         {%- else -%}
-          <div style="font-size:24px;font-weight:700;letter-spacing:-.02em">{{ shop.name | escape }}</div>
+          <img src="{{ 'SocialFrame_logo_Registerd_menu_logo.svg' | file_url }}" alt="{{ shop.name | escape }}" height="44" loading="lazy">
         {%- endif -%}
         <p>{{ section.settings.brand_text }}</p>
         <div class="sff-social">
-          {%- if section.settings.instagram != blank -%}<a href="{{ section.settings.instagram }}" target="_blank" rel="noopener">Instagram</a>{%- endif -%}
-          {%- if section.settings.tiktok != blank -%}<a href="{{ section.settings.tiktok }}" target="_blank" rel="noopener">TikTok</a>{%- endif -%}
-          {%- if section.settings.whatsapp != blank -%}<a href="{{ section.settings.whatsapp }}" target="_blank" rel="noopener">WhatsApp</a>{%- endif -%}
-          {%- if section.settings.email != blank -%}<a href="mailto:{{ section.settings.email }}">E-mail</a>{%- endif -%}
+          {%- assign u_ig = section.settings.instagram | default: settings.social_instagram -%}{%- if u_ig != blank -%}<a href="{{ u_ig }}" target="_blank" rel="noopener">Instagram</a>{%- endif -%}
+          {%- assign u_tt = section.settings.tiktok | default: settings.social_tiktok -%}{%- if u_tt != blank -%}<a href="{{ u_tt }}" target="_blank" rel="noopener">TikTok</a>{%- endif -%}
+          {%- assign u_wa = section.settings.whatsapp | default: settings.social_whatsapp -%}{%- if u_wa != blank -%}<a href="{{ u_wa }}" target="_blank" rel="noopener">WhatsApp</a>{%- endif -%}
+          {%- assign u_em = section.settings.email | default: 'info@socialframe.nl' -%}<a href="mailto:{{ u_em }}">E-mail</a>
         </div>
       </div>
 
@@ -126,9 +126,11 @@
         {%- endfor -%}
       </ul>
       <div class="sff-right">
+        {%- if section.settings.show_locale_selector -%}
         <div class="sff-loc">
           {%- render 'localization-form', show_country_selector: false, show_locale_selector: true, location: 'footer' -%}
         </div>
+        {%- endif -%}
       </div>
     </div>
   </div>
@@ -151,7 +153,28 @@
     { "type": "text", "id": "email", "label": "E-mailadres" },
     { "type": "header", "content": "Menu's" },
     { "type": "link_list", "id": "menu_shop", "label": "Shop-menu", "default": "main-menu" },
-    { "type": "link_list", "id": "menu_info", "label": "Over ons-menu", "default": "footermenu" }
+    { "type": "link_list", "id": "menu_info", "label": "Over ons-menu", "default": "footermenu" },
+    { "type": "select", "id": "layout", "label": "Kolommen (niet gebruikt)", "options": [ { "value": "grid-3 grid-lap-1", "label": "3" }, { "value": "grid-4 grid-portable-2 grid-lap-1", "label": "4" } ], "default": "grid-4 grid-portable-2 grid-lap-1" },
+    { "type": "checkbox", "id": "show_locale_selector", "label": "Taalkiezer", "default": false },
+    { "type": "checkbox", "id": "show_country_selector", "label": "Landkiezer", "default": false },
+    { "type": "checkbox", "id": "remove_margin", "label": "Geen marge (niet gebruikt)", "default": false },
+    { "type": "select", "id": "seo_h_tag", "label": "Kop-tag (niet gebruikt)", "options": [ { "value": "h4", "label": "H4" }, { "value": "span", "label": "span" } ], "default": "h4" }
+  ],
+  "max_blocks": 8,
+  "blocks": [
+    { "type": "menu", "name": "Menu", "settings": [
+      { "type": "text", "id": "title", "label": "Titel", "default": "Snelle links" },
+      { "type": "link_list", "id": "menu", "label": "Menu", "default": "footer" },
+      { "type": "checkbox", "id": "open_in_new_window", "label": "In nieuw venster", "default": false } ] },
+    { "type": "text", "name": "Tekst", "settings": [
+      { "type": "text", "id": "title", "label": "Titel", "default": "Contact" },
+      { "type": "select", "id": "size", "label": "Grootte", "options": [ { "value": "h5", "label": "Klein" }, { "value": "h4", "label": "Groot" } ], "default": "h4" },
+      { "type": "richtext", "id": "content", "label": "Tekst", "default": "<p>Tekst</p>" },
+      { "type": "checkbox", "id": "show_social_icons", "label": "Social iconen", "default": true },
+      { "type": "checkbox", "id": "enable_follow_on_shop", "label": "Follow on Shop", "default": false } ] },
+    { "type": "payment", "name": "Betaalmethodes", "limit": 1, "settings": [
+      { "type": "text", "id": "title", "label": "Titel", "default": "Betaalmogelijkheden" },
+      { "type": "checkbox", "id": "only_show_custom_icons", "label": "Alleen eigen iconen", "default": false } ] }
   ],
   "enabled_on": { "groups": ["footer"] }
 }
