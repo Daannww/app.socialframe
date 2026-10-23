@@ -11,7 +11,7 @@
         {%- assign nr = nr | plus: 1 -%}
         <div class="sf-cm-item">
           <div class="sf-cm-avatar">
-            {%- if avatars_a[ix] != blank -%}<img src="{{ avatars_a[ix] }}" alt="" loading="lazy" width="88" height="88">{%- endif -%}
+            {%- assign av = avatars_a[ix] -%}{%- if av contains 'shopify://shop_images/' -%}{%- assign av = av | remove: 'shopify://shop_images/' | file_url -%}{%- endif -%}{%- if av != blank -%}<img src="{{ av }}" alt="" loading="lazy" width="88" height="88">{%- endif -%}
             <svg class="sf-cm-badge" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M12.21 2.13965L13.5602 4.2273L16.0435 4.35159L16.169 6.83451L18.2578 8.18354L17.1247 10.3971L18.259 12.6094L16.1713 13.9596L16.047 16.4429L13.5641 16.5684L12.2151 18.6572L10.0016 17.5241L7.78924 18.6584L6.43903 16.5707L3.95571 16.4464L3.83025 13.9635L1.74141 12.6145L2.87452 10.401L1.74023 8.18865L3.82789 6.83844L3.95217 4.35513L6.4351 4.22966L7.78413 2.14083L9.99764 3.27393L12.21 2.13965Z" fill="currentColor"/><path d="M8.97521 13.2526L6.41992 10.6981L7.25451 9.86391L8.9878 11.5972L12.7509 7.94971L13.5721 8.79688L8.97521 13.2526Z" fill="white"/></svg>
           </div>
           <div class="sf-cm-content">
