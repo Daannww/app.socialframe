@@ -112,7 +112,7 @@
 </div>
 
 <style>
-  .hw-mz{font-family:inherit;font-size:14px;color:#333;border:1.5px solid #E2E2E2;border-radius:24px;background:#fff;padding:22px 18px 20px;margin:1.75rem 0 1rem;box-sizing:border-box}
+  .hw-mz{position:relative;font-family:inherit;font-size:14px;color:#333;border:1.5px solid #E2E2E2;border-radius:24px;background:#fff;padding:22px 18px 20px;margin:1.75rem 0 1rem;box-sizing:border-box}
   .hw-mz *{box-sizing:border-box}
   .hw-mz-heading{font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#111;margin:0 0 16px}
   .hw-mz-sticky{z-index:20;box-sizing:border-box;background:#fff;padding:6px 0 8px;text-align:center}
@@ -607,6 +607,9 @@
       // Het voorbeeld krimpt geleidelijk mee met het scrollen (en het vak eronder krimpt gelijk op), zodat er geen sprong en geen wit gat ontstaat
       function update() {
         busy = false;
+        // iPhone-rubberband (door de rand heen scrollen): niets aanpassen, anders gaat het voorbeeld trillen
+        var sy = window.pageYOffset, maxY = document.documentElement.scrollHeight - window.innerHeight;
+        if (sy < 0 || sy > maxY + 0.5) return;
         var sr = slot.getBoundingClientRect(), rr = root.getBoundingClientRect();
         if (sr.top >= topOff || rr.bottom <= 0) {
           if (fixed) { fixed = false; sticky.classList.remove('is-stuck'); sticky.style.cssText = ''; scene.style.width = ''; if (hint) hint.style.display = ''; slot.style.height = ''; }
@@ -627,8 +630,13 @@
         if (hint) hint.style.display = p > 0.02 ? 'none' : '';
         var hSticky = w * 50 / 41 + 14;
         slot.style.height = Math.max(hSticky, full.h + (smallH - full.h) * p) + 'px';
-        var t = Math.min(topOff, rr.bottom - hSticky - 8);
-        sticky.style.cssText = 'position:fixed;left:' + sr.left + 'px;width:' + sr.width + 'px;top:' + t + 'px';
+        var t = rr.bottom - hSticky - 8;
+        if (t < topOff) {
+          // einde van het blok: het voorbeeld staat vast onderin het blok en scrolt gewoon mee (geen JS meer, dus geen getril op iPhone)
+          sticky.style.cssText = 'position:absolute;left:' + (sr.left - rr.left) + 'px;width:' + sr.width + 'px;bottom:8px';
+        } else {
+          sticky.style.cssText = 'position:fixed;left:' + sr.left + 'px;width:' + sr.width + 'px;top:' + topOff + 'px';
+        }
       }
       function req() { if (!busy) { busy = true; requestAnimationFrame(update); } }
       topOff = headerOffset();
