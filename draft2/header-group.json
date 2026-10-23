@@ -140,10 +140,9 @@
     "header": {
       "type": "header",
       "blocks": {
-        "mega_menu_66KA8r": {
+        "mega_menu_frames": {
           "type": "mega-menu",
           "settings": {
-            "menu_handle": "",
             "show_promotion_block": false,
             "promotion_title": "Great promotion",
             "promotion_title_size": "text-size--xlarge",
@@ -153,7 +152,40 @@
             "promotion_button_size": "regular",
             "promotion_button_link": "",
             "promotion_color_txt": "#000000",
-            "promotion_color_bg": "#f3f3f3"
+            "promotion_color_bg": "#f3f3f3",
+            "menu_handle": "frames"
+          }
+        },
+        "mega_menu_cadeaus": {
+          "type": "mega-menu",
+          "settings": {
+            "show_promotion_block": false,
+            "promotion_title": "Great promotion",
+            "promotion_title_size": "text-size--xlarge",
+            "promotion_subtitle": "Write all about it",
+            "promotion_subtitle_size": "text-size--regular",
+            "promotion_button_label": "",
+            "promotion_button_size": "regular",
+            "promotion_button_link": "",
+            "promotion_color_txt": "#000000",
+            "promotion_color_bg": "#f3f3f3",
+            "menu_handle": "cadeaus"
+          }
+        },
+        "mega_menu_accessoires": {
+          "type": "mega-menu",
+          "settings": {
+            "show_promotion_block": false,
+            "promotion_title": "Great promotion",
+            "promotion_title_size": "text-size--xlarge",
+            "promotion_subtitle": "Write all about it",
+            "promotion_subtitle_size": "text-size--regular",
+            "promotion_button_label": "",
+            "promotion_button_size": "regular",
+            "promotion_button_link": "",
+            "promotion_color_txt": "#000000",
+            "promotion_color_bg": "#f3f3f3",
+            "menu_handle": "accessoires"
           }
         },
         "info": {
@@ -180,11 +212,21 @@
         }
       },
       "block_order": [
-        "mega_menu_66KA8r",
+        "mega_menu_frames",
+        "mega_menu_cadeaus",
+        "mega_menu_accessoires",
         "info",
         "info_tAygQU"
       ],
-      "custom_css": [],
+      "custom_css": [
+        ".site-nav.style--classic .link-list > li > a.menu-link { text-transform: uppercase; letter-spacing: .06em; font-size: 13px; font-weight: 500; }",
+        ".site-nav.style--classic .submenu .menu-link span { text-transform: uppercase; letter-spacing: .06em; font-size: 12.5px; }",
+        ".site-nav.style--classic .submenu.mega-menu .mega-link > a.menu-link { display: block; padding-bottom: 12px; margin-bottom: 10px; border-bottom: 1px solid #e6e6e6; }",
+        ".site-nav.style--classic .submenu.mega-menu .mega-link > a.menu-link span { font-weight: 600; font-size: 13px; }",
+        ".site-nav.style--classic .submenu .babymenu a.menu-link span, .site-nav.style--classic .submenu.normal-menu li > a.menu-link span { font-weight: 400; color: #555; }",
+        ".site-nav.style--classic .submenu .babymenu a.menu-link:hover span, .site-nav.style--classic .submenu.normal-menu li > a.menu-link:hover span { color: #000; }",
+        ".site-nav.style--classic .submenu .babymenu li { padding: 5px 0; }"
+      ],
       "settings": {
         "logo_src": "shopify://shop_images/SocialFrame_logo_Registerd_menu_logo.svg",
         "logo_height": 50,
