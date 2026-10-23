@@ -1,6 +1,6 @@
 {%- liquid
   assign shop_menu = linklists[section.settings.menu_shop]
-  assign info_menu = linklists[section.settings.menu_info]
+  assign info_menu = linklists['footermenu']
 -%}
 <style>
   /* de losse nieuwsbrief-blokken uit de pagina's vervangen door de nieuwsbrief in deze footer */
@@ -153,7 +153,6 @@
     { "type": "text", "id": "email", "label": "E-mailadres" },
     { "type": "header", "content": "Menu's" },
     { "type": "link_list", "id": "menu_shop", "label": "Shop-menu", "default": "main-menu" },
-    { "type": "link_list", "id": "menu_info", "label": "Over ons-menu", "default": "footermenu" },
     { "type": "select", "id": "layout", "label": "Kolommen (niet gebruikt)", "options": [ { "value": "grid-3 grid-lap-1", "label": "3" }, { "value": "grid-4 grid-portable-2 grid-lap-1", "label": "4" } ], "default": "grid-4 grid-portable-2 grid-lap-1" },
     { "type": "checkbox", "id": "show_locale_selector", "label": "Taalkiezer", "default": false },
     { "type": "checkbox", "id": "show_country_selector", "label": "Landkiezer", "default": false },
