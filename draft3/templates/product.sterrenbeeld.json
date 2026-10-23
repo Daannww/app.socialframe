@@ -28,17 +28,9 @@
           "settings": {}
         },
         "section_store_block_space_divide_EzzpJ3": {
-          "type": "shopify://apps/section-store/blocks/block-space-divide/d7a2e423-ea88-4344-b866-6d0fb487c3dd",
+          "type": "custom_liquid",
           "settings": {
-            "height": 8,
-            "background_color": "#ffffff",
-            "show_line": true,
-            "line_style": "solid",
-            "line_width": 100,
-            "line_thickness": 1,
-            "line_roundness": 0,
-            "line_color": "#e0e0e0",
-            "custom_css": ""
+            "custom_liquid": "<div class=\"sf-space\" style=\"height:8px;display:flex;align-items:center\"><hr style=\"border:0;border-top:1px solid #e0e0e0;margin:0 auto;width:100%\"></div>"
           }
         },
         "sterrenbeeld": {
@@ -63,17 +55,9 @@
           }
         },
         "section_store_block_space_divide_DHdHei": {
-          "type": "shopify://apps/section-store/blocks/block-space-divide/d7a2e423-ea88-4344-b866-6d0fb487c3dd",
+          "type": "custom_liquid",
           "settings": {
-            "height": 20,
-            "background_color": "rgba(0,0,0,0)",
-            "show_line": false,
-            "line_style": "solid",
-            "line_width": 100,
-            "line_thickness": 1,
-            "line_roundness": 0,
-            "line_color": "#e0e0e0",
-            "custom_css": ""
+            "custom_liquid": "<div class=\"sf-space\" style=\"height:20px;display:flex;align-items:center\"></div>"
           }
         },
         "text_nDV4VH": {

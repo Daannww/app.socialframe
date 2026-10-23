@@ -3,28 +3,6 @@
     "main": {
       "type": "main-product",
       "blocks": {
-        "section_store_block_social_proof_adjLQj": {
-          "type": "shopify://apps/section-store/blocks/block-social-proof/d7a2e423-ea88-4344-b866-6d0fb487c3dd",
-          "disabled": true,
-          "settings": {
-            "slide_icon_size": 28,
-            "use_carousel": true,
-            "text": "<p><strong>Anja</strong> ✓, <strong>Hans</strong> ✓ en 50.000+ anderen zijn fan van onze producten!</p>",
-            "text_size": 14,
-            "text_color": "#000000",
-            "checkmark_size": 14,
-            "symbols_color": "#42a5f5",
-            "border": "solid",
-            "border_thickness": 1,
-            "border_color": "#d7d7d7",
-            "radius": 16,
-            "bg_color": "#f6f6f6",
-            "padding_vertical": 12,
-            "padding_horizontal": 16,
-            "clip_as_header_of_wrapper": true,
-            "custom_css": ""
-          }
-        },
         "title": {
           "type": "title",
           "settings": {}
@@ -141,7 +119,6 @@
         }
       },
       "block_order": [
-        "section_store_block_social_proof_adjLQj",
         "title",
         "section_store_block_review_summary_nwpf37",
         "price_WqFFz9",

@@ -34,17 +34,9 @@
           "settings": {}
         },
         "section_store_block_space_divide_EzzpJ3": {
-          "type": "shopify://apps/section-store/blocks/block-space-divide/d7a2e423-ea88-4344-b866-6d0fb487c3dd",
+          "type": "custom_liquid",
           "settings": {
-            "height": 8,
-            "background_color": "#ffffff",
-            "show_line": true,
-            "line_style": "solid",
-            "line_width": 100,
-            "line_thickness": 1,
-            "line_roundness": 0,
-            "line_color": "#e0e0e0",
-            "custom_css": ""
+            "custom_liquid": "<div class=\"sf-space\" style=\"height:8px;display:flex;align-items:center\"><hr style=\"border:0;border-top:1px solid #e0e0e0;margin:0 auto;width:100%\"></div>"
           }
         },
         "zepto_product_personalizer_product_personalizer_page_4zRR7U": {
@@ -79,17 +71,9 @@
           }
         },
         "section_store_block_space_divide_DHdHei": {
-          "type": "shopify://apps/section-store/blocks/block-space-divide/d7a2e423-ea88-4344-b866-6d0fb487c3dd",
+          "type": "custom_liquid",
           "settings": {
-            "height": 20,
-            "background_color": "rgba(0,0,0,0)",
-            "show_line": false,
-            "line_style": "solid",
-            "line_width": 100,
-            "line_thickness": 1,
-            "line_roundness": 0,
-            "line_color": "#e0e0e0",
-            "custom_css": ""
+            "custom_liquid": "<div class=\"sf-space\" style=\"height:20px;display:flex;align-items:center\"></div>"
           }
         },
         "text_nDV4VH": {
@@ -99,33 +83,6 @@
             "text_size": "text-size--xsmall",
             "text_color": "#6a6a6a",
             "text_transform": false
-          }
-        },
-        "section_store_block_product_info_wrapper_6ajeWX": {
-          "type": "shopify://apps/section-store/blocks/block-product-info-wrapper/d7a2e423-ea88-4344-b866-6d0fb487c3dd",
-          "disabled": true,
-          "settings": {
-            "auto_detect_product_info_container": true,
-            "product_info_container_selector": "",
-            "use_on_mobile": true,
-            "use_header": true,
-            "header_font_size": 12,
-            "header_bg_color": "#000000",
-            "header_text_color": "#ffffff",
-            "header_text_align": "center",
-            "header_text": "♥︎ Klantbeoordeling van 4.6/5",
-            "border_style": "solid",
-            "border_width": 0.5,
-            "border_color": "#dfdfdf",
-            "border_radius": 12,
-            "background_color": "",
-            "shadow": "shadow_2",
-            "padding_top": 20,
-            "padding_bottom": 26,
-            "padding_left": 26,
-            "padding_right": 26,
-            "section_background_color": "",
-            "custom_css": ""
           }
         },
         "space_pF4aDR": {
@@ -253,7 +210,6 @@
         "variant_picker",
         "section_store_block_space_divide_DHdHei",
         "text_nDV4VH",
-        "section_store_block_product_info_wrapper_6ajeWX",
         "space_pF4aDR",
         "custom_liquid_Uy36HA",
         "custom_liquid_WW3JqP",

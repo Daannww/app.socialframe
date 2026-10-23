@@ -85,28 +85,9 @@
           "settings": {}
         },
         "section_store_block_payment_icons_2_E8U4GA": {
-          "type": "shopify://apps/section-store/blocks/block-payment-icons-2/d7a2e423-ea88-4344-b866-6d0fb487c3dd",
+          "type": "custom_liquid",
           "settings": {
-            "icons_layout": "fixed_grid",
-            "icons_per_row": 10,
-            "icons_per_row_mobile": 8,
-            "gap": 10,
-            "icons_align": "center",
-            "icons_monochrome": false,
-            "enable_first_image": false,
-            "enable_second_image": false,
-            "enable_third_image": false,
-            "icon_size": 20,
-            "border": "none",
-            "border_thickness": 1,
-            "border_color": "#000000",
-            "radius": 0,
-            "background": "",
-            "padding_top": 0,
-            "padding_bottom": 0,
-            "padding_left": 0,
-            "padding_right": 0,
-            "custom_css": ""
+            "custom_liquid": "<ul class=\"sf-pay\" style=\"display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-items:center;list-style:none;margin:0;padding:0\">{%- for t in shop.enabled_payment_types -%}<li style=\"display:block;height:20px;margin:0;padding:0\">{{ t | payment_type_svg_tag }}</li>{%- endfor -%}</ul><style>.sf-pay li::before{content:none!important}.sf-pay svg{display:block;width:auto;height:100%}</style>"
           }
         }
       },
