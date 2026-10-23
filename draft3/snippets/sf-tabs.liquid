@@ -1,0 +1,97 @@
+{%- comment -%} Eigen tabs (vervangt Section Store block-tabs). Variabelen via assign: bid, texts (§§), first_title..fourth_title, ... {%- endcomment -%}
+{%- assign texts_a = texts | split: '§§' -%}
+{%- assign tkeys = 'first,second,third,fourth' | split: ',' -%}
+{%- assign titles_a = first_title | append: '§§' | append: second_title | append: '§§' | append: third_title | append: '§§' | append: fourth_title | split: '§§' -%}
+{%- assign tab_n = 3 -%}
+{%- if enable_fourth_tab -%}{%- assign tab_n = 4 -%}{%- endif -%}
+{%- assign uid = 'sftabs' | append: bid -%}
+{%- assign default_k = default_tab | default: 'first' -%}
+{%- assign ri = reviewer_image | default: '' -%}
+{%- if ri contains 'shopify://shop_images/' -%}{%- assign ri = ri | remove: 'shopify://shop_images/' | file_url -%}{%- endif -%}
+{%- assign sc = stars_count | default: 0 | times: 1 -%}
+<div class="sf-tabs" id="{{ uid }}" data-default="{{ default_k }}" style="--tb-pt:{{ padding_vertical | default: 18 }}px;--tb-ph:{{ padding_horizontal | default: 18 }}px;--tb-r:{{ radius | default: 10 }}px;--tb-active:{{ light_color | default: '#fff' }};--tb-inactive:{{ dark_color | default: '#f0ede5' }};--tb-itext:{{ tab_text_color | default: '#5a4636' }};--tb-text:{{ text_color | default: '#212529' }};--tb-muted:{{ muted_text_color | default: '#7a6a5a' }};--tb-bw:{{ border_thickness | default: 0.5 }}px;--tb-bs:{{ border | default: 'solid' }};--tb-bc:{{ border_color | default: '#d9cdbf' }};--tb-ts:{{ tab_text_size | default: 13 }}px;--tb-fw:{{ tab_font_weight | default: 500 }};--tb-cs:{{ content_text_size | default: 13 }}px;--tb-vb:{{ verified_badge_color | default: '#c4956a' }};--tb-star:{{ stars_color | default: '#c4956a' }};--tb-n:{{ tab_n }}">
+  <div class="sf-tabs-shell">
+    <div class="sf-tabs-list" role="tablist">
+      {%- for k in tkeys limit: tab_n -%}
+        {%- assign ix = forloop.index0 -%}
+        <button type="button" class="sf-tab-btn{% if k == default_k %} is-active{% endif %}" role="tab" data-k="{{ k }}" aria-selected="{% if k == default_k %}true{% else %}false{% endif %}">{{ titles_a[ix] }}</button>
+      {%- endfor -%}
+    </div>
+    {%- for k in tkeys limit: tab_n -%}
+      {%- assign ix = forloop.index0 -%}
+      <div class="sf-tab-panel" role="tabpanel" data-k="{{ k }}"{% unless k == default_k %} hidden{% endunless %}>
+        <div class="sf-tab-stack">
+          <div class="sf-tab-content">
+            {%- if product_description_tab == k and product.description != blank -%}{{ product.description }}{%- else -%}{{ texts_a[ix] }}{%- endif -%}
+          </div>
+          {%- if review_tab == k and reviewer_name != blank -%}
+          <div class="sf-tab-review">
+            {%- if ri != blank -%}<div class="sf-tab-avatar"><img src="{{ ri }}" alt="" loading="lazy" width="100" height="100"></div>{%- endif -%}
+            <div class="sf-tab-who">
+              <div class="sf-tab-top">
+                <span class="sf-tab-name">{{ reviewer_name }}</span>
+                {%- if show_verified_badge -%}
+                <span class="sf-tab-badge"><svg viewBox="0 0 20 20" width="12" height="12" fill="none" aria-hidden="true"><path d="M12.21 2.14L13.56 4.23L16.04 4.35L16.17 6.83L18.26 8.18L17.12 10.4L18.26 12.61L16.17 13.96L16.05 16.44L13.56 16.57L12.22 18.66L10 17.52L7.79 18.66L6.44 16.57L3.96 16.45L3.83 13.96L1.74 12.61L2.87 10.4L1.74 8.19L3.83 6.84L3.95 4.36L6.44 4.23L7.78 2.14L10 3.27Z" fill="currentColor"/><path d="M8.98 13.25L6.42 10.7L7.25 9.86L8.99 11.6L12.75 7.95L13.57 8.8L8.98 13.25Z" fill="#fff"/></svg><span>Geverifieerde expert</span></span>
+                {%- endif -%}
+              </div>
+              {%- if sc > 0 -%}
+              <div class="sf-tab-stars" aria-label="{{ sc }} / 5">{%- for s in (1..5) -%}<span class="sf-tab-star{% if s > sc %} off{% endif %}"><svg viewBox="0 0 12 13" width="100%" height="100%" fill="currentColor" aria-hidden="true"><path d="M6.86 2.12L7.74 3.88C7.86 4.12 8.18 4.36 8.45 4.4L10.05 4.67C11.07 4.84 11.31 5.58 10.57 6.31L9.33 7.55C9.12 7.76 9.01 8.16 9.07 8.45L9.43 9.99C9.71 11.2 9.06 11.67 7.99 11.04L6.49 10.15C6.22 9.99 5.78 9.99 5.5 10.15L4.01 11.04C2.94 11.67 2.29 11.2 2.57 9.99L2.92 8.45C2.99 8.16 2.87 7.76 2.66 7.55L1.42 6.31C0.69 5.58 0.93 4.84 1.95 4.67L3.54 4.4C3.81 4.36 4.13 4.12 4.25 3.88L5.13 2.12C5.61 1.16 6.39 1.16 6.86 2.12Z"/></svg></span>{%- endfor -%}</div>
+              {%- endif -%}
+              <div class="sf-tab-meta">{%- if reviewer_subtext != blank -%}<span>{{ reviewer_subtext }}</span>{%- endif -%}{%- if reviewer_subtext != blank and review_date != blank -%}<span aria-hidden="true">·</span>{%- endif -%}{%- if review_date != blank -%}<span>{{ review_date }}</span>{%- endif -%}</div>
+            </div>
+          </div>
+          {%- endif -%}
+          {%- if show_payment_icons == k or show_payment_icons == 'all' -%}
+          <div class="sf-tab-pay"><ul>{%- for t in shop.enabled_payment_types -%}<li>{{ t | payment_type_svg_tag }}</li>{%- endfor -%}</ul></div>
+          {%- endif -%}
+        </div>
+      </div>
+    {%- endfor -%}
+  </div>
+</div>
+<style>
+.sf-tabs{font-family:inherit;color:var(--tb-text)}
+.sf-tabs,.sf-tabs *{box-sizing:border-box}
+.sf-tabs-shell{background:var(--tb-active);border-radius:var(--tb-r);border:var(--tb-bw) var(--tb-bs) var(--tb-bc);overflow:hidden}
+.sf-tabs-list{display:grid;grid-template-columns:repeat(var(--tb-n),minmax(0,1fr));background:var(--tb-inactive);position:relative}
+.sf-tab-btn{appearance:none;border:0;border-radius:0;background:transparent;color:var(--tb-itext);cursor:pointer;display:flex;align-items:center;justify-content:center;min-height:46px;min-width:0;padding:8px 14px;position:relative;text-align:center;font-family:inherit;font-size:var(--tb-ts);font-weight:var(--tb-fw);line-height:1.05;white-space:normal;overflow-wrap:break-word;transition:background-color .18s ease,color .18s ease;margin:0;text-transform:none;letter-spacing:normal}
+.sf-tab-btn+.sf-tab-btn:before{background:rgba(90,70,54,.14);content:"";height:22px;left:0;pointer-events:none;position:absolute;top:50%;transform:translateY(-50%);width:1px}
+.sf-tab-btn.is-active{background:var(--tb-active);color:var(--tb-text);border-top-left-radius:calc(var(--tb-r) - .5px);border-top-right-radius:calc(var(--tb-r) - .5px)}
+.sf-tab-btn.is-active:before,.sf-tab-btn.is-active+.sf-tab-btn:before{display:none}
+.sf-tab-panel{background:var(--tb-active)}
+.sf-tab-panel[hidden]{display:none}
+.sf-tab-stack{display:flex;flex-direction:column;gap:18px;padding:var(--tb-pt) var(--tb-ph)}
+.sf-tab-content{font-size:var(--tb-cs);line-height:1.58;color:var(--tb-text)}
+.sf-tab-content>*:first-child{margin-top:0}.sf-tab-content>*:last-child{margin-bottom:0}
+.sf-tab-content p,.sf-tab-content ul,.sf-tab-content ol,.sf-tab-content blockquote,.sf-tab-content table{margin:0 0 1em}
+.sf-tab-content ul,.sf-tab-content ol{padding-left:1.25em}
+.sf-tab-content img{display:block;max-width:100%;height:auto}
+.sf-tab-content *{font-size:inherit}
+.sf-tab-review{display:flex;align-items:center;gap:14px}
+.sf-tab-avatar{flex:0 0 auto;width:50px;height:50px;border-radius:999px;overflow:hidden;background:#1111110f}
+.sf-tab-avatar img{display:block;width:100%;height:100%;object-fit:cover}
+.sf-tab-who{min-width:0;display:flex;flex-direction:column;gap:4px}
+.sf-tab-top{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px}
+.sf-tab-name{font-size:13px;font-weight:700;line-height:1.2;color:var(--tb-text)}
+.sf-tab-badge{display:inline-flex;align-items:center;gap:4px;border-radius:999px;background:color-mix(in srgb,var(--tb-vb) 8%,transparent);color:var(--tb-vb);padding:3px 8px;font-size:10px;line-height:1;white-space:nowrap}
+.sf-tab-stars{display:flex;gap:2px;color:var(--tb-star)}
+.sf-tab-star{display:inline-flex;width:15px;height:15px}.sf-tab-star.off{opacity:.25}
+.sf-tab-meta{display:flex;flex-wrap:wrap;gap:4px 6px;font-size:11px;line-height:1.35;color:var(--tb-muted)}
+.sf-tab-pay{border-top:1px solid var(--tb-bc);margin:2px calc(var(--tb-ph) * -1) calc(var(--tb-pt) * -1 + 0px);padding:14px var(--tb-ph) var(--tb-pt)}
+.sf-tab-pay ul{display:flex;flex-wrap:wrap;gap:8px;align-items:center;list-style:none;margin:0;padding:0}
+.sf-tab-pay li{display:block;height:20px;margin:0;padding:0}
+.sf-tab-pay li::before{content:none!important}
+.sf-tab-pay svg{display:block;width:auto;height:100%}
+@media(max-width:749px){.sf-tab-btn{min-height:42px;padding:7px 10px;font-size:11px}.sf-tab-stack{gap:16px}.sf-tab-content{font-size:12px}.sf-tab-name{font-size:12px}.sf-tab-avatar{width:44px;height:44px}.sf-tab-pay li{height:18px}}
+</style>
+<script>
+(function(){
+  var root=document.getElementById('{{ uid }}'); if(!root)return;
+  var btns=root.querySelectorAll('.sf-tab-btn'),panels=root.querySelectorAll('.sf-tab-panel');
+  btns.forEach(function(b){b.addEventListener('click',function(){
+    var k=b.getAttribute('data-k');
+    btns.forEach(function(x){var on=x===b;x.classList.toggle('is-active',on);x.setAttribute('aria-selected',on?'true':'false')});
+    panels.forEach(function(p){p.hidden=p.getAttribute('data-k')!==k});
+  })});
+})();
+</script>
