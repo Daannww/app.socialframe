@@ -1,0 +1,720 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "type": "header",
+  "name": "t:sections.refactor_words.labels.header_group",
+  "sections": {
+    "ss_countdown_bar_cNWAkf": {
+      "type": "ss-countdown-bar",
+      "blocks": {
+        "text_xzpcFF": {
+          "type": "text",
+          "settings": {
+            "heading": "Profiteer nu!  2e Tegeltje 20% korting!",
+            "color": "#ffffff",
+            "font_size": 16
+          }
+        },
+        "timer_nHCHaQ": {
+          "type": "timer",
+          "settings": {
+            "year": "2026",
+            "month": "10",
+            "day": "21",
+            "hour": "12",
+            "minute": "00",
+            "hide_timer_on_completed": true,
+            "color": "#ffffff",
+            "font_size_number": 20,
+            "font_size_text": 10
+          }
+        },
+        "button_RiQ4t9": {
+          "type": "button",
+          "settings": {
+            "button_text": "Shop nu!",
+            "button_link": "shopify://collections/tegels",
+            "button_color": "#ffffff",
+            "background_color": "#c51f5d",
+            "button_border_color": "#ffffff",
+            "border_radius": 6,
+            "font_size": 12,
+            "button_border_thickness": 0
+          }
+        }
+      },
+      "block_order": [
+        "text_xzpcFF",
+        "timer_nHCHaQ",
+        "button_RiQ4t9"
+      ],
+      "name": "SS - Countdown timer bar",
+      "settings": {
+        "target_selector": "",
+        "use_cross": false,
+        "days_text": "Days",
+        "hours_text": "Hrs",
+        "mins_text": "Mins",
+        "seconds_text": "Secs",
+        "background-color": "#212529"
+      }
+    },
+    "announcement_bar_tGPWhg": {
+      "type": "announcement-bar",
+      "blocks": {
+        "content_TwYbJj": {
+          "type": "content",
+          "settings": {
+            "text": "Vandaag besteld = op tijd voor Valentijn ❤",
+            "link": "",
+            "target": false
+          }
+        }
+      },
+      "block_order": [
+        "content_TwYbJj"
+      ],
+      "disabled": true,
+      "custom_css": [
+        ".announcement-bar__slider {font-weight: bold;}"
+      ],
+      "name": "t:sections.announcement-bar.name",
+      "settings": {
+        "visibility": "all",
+        "show_locale_selector": false,
+        "show_country_selector": false,
+        "show_social_icons": false,
+        "bar_bgcolor": "#9f0505",
+        "bar_txtcolor": "#ffffff"
+      }
+    },
+    "announcement": {
+      "type": "announcement-bar",
+      "blocks": {
+        "content_YcpzV4": {
+          "type": "content",
+          "settings": {
+            "text": "Made in Holland 🇳🇱 • Vóór 12:00 besteld = zelfde werkdag verzonden • Gratis vanaf €20",
+            "link": "",
+            "target": false
+          }
+        },
+        "content_GCxtX6": {
+          "type": "content",
+          "settings": {
+            "text": "Klantbeoordeling 4.6/5",
+            "link": "",
+            "target": false
+          }
+        },
+        "content_PnmJBM": {
+          "type": "content",
+          "settings": {
+            "text": "100% tevredenheidsgarantie",
+            "link": "",
+            "target": false
+          }
+        }
+      },
+      "block_order": [
+        "content_YcpzV4",
+        "content_GCxtX6",
+        "content_PnmJBM"
+      ],
+      "settings": {
+        "visibility": "all",
+        "show_locale_selector": false,
+        "show_country_selector": false,
+        "show_social_icons": true,
+        "bar_bgcolor": "#f0ede5",
+        "bar_txtcolor": "#1d1d1d"
+      }
+    },
+    "header": {
+      "type": "header",
+      "blocks": {
+        "mega_menu_66KA8r": {
+          "type": "mega-menu",
+          "settings": {
+            "menu_handle": "",
+            "show_promotion_block": false,
+            "promotion_title": "Great promotion",
+            "promotion_title_size": "text-size--xlarge",
+            "promotion_subtitle": "Write all about it",
+            "promotion_subtitle_size": "text-size--regular",
+            "promotion_button_label": "",
+            "promotion_button_size": "regular",
+            "promotion_button_link": "",
+            "promotion_color_txt": "#000000",
+            "promotion_color_bg": "#f3f3f3"
+          }
+        },
+        "info": {
+          "type": "info",
+          "disabled": true,
+          "settings": {
+            "caption": "Gratis",
+            "title": "verzending!",
+            "link": "",
+            "link_type": "_self",
+            "icon": "delivery"
+          }
+        },
+        "info_tAygQU": {
+          "type": "info",
+          "disabled": true,
+          "settings": {
+            "caption": "Voor 12 uur besteld =",
+            "title": "Dezelfde dag verzonden",
+            "link": "",
+            "link_type": "_self",
+            "icon": "delivery-time"
+          }
+        }
+      },
+      "block_order": [
+        "mega_menu_66KA8r",
+        "info",
+        "info_tAygQU"
+      ],
+      "custom_css": [],
+      "settings": {
+        "logo_src": "shopify://shop_images/SocialFrame_logo_Registerd_menu_logo.svg",
+        "logo_height": 50,
+        "main_linklist": "hoofdmenu-nieuw",
+        "show_search": true,
+        "sticky_header": false,
+        "select_header_actions_on_mobile": "show_on_homepage",
+        "show_header_actions": false,
+        "show_locale_selector": false,
+        "show_country_selector": false,
+        "show_social_icons": false
+      }
+    },
+    "ss_header_17_J4YAdE": {
+      "type": "ss-header-17",
+      "blocks": {
+        "menu_item_QkhFAb": {
+          "type": "menu_item",
+          "settings": {
+            "text": "Frames",
+            "use_accent_color": false,
+            "link_accent_color": "#d55e60",
+            "link_url": "shopify://collections/socialframe-the-classics",
+            "show_promotion": true,
+            "promotional_image": "shopify://shop_images/echofoto_geoptimaliseerd.webp",
+            "promotion_tag_text": "Baby-frames",
+            "promotional_caption": "",
+            "promotional_text": "<p>Babygeluk.</p>",
+            "promo_image_url": "shopify://collections/geboorte-musthaves",
+            "show_second_promotion": true,
+            "second_promotional_image": "shopify://shop_images/Autoframe.jpg",
+            "second_promotion_tag_text": "Auto-frame",
+            "second_promotional_caption": "",
+            "second_promotional_text": "<h4>Dikkewagen..</h4>",
+            "second_promo_image_url": ""
+          }
+        },
+        "submenu_item_dqLrxM": {
+          "type": "submenu_item",
+          "settings": {
+            "submenu_title": "Frames",
+            "menu_heading": "Alle frames",
+            "menu_text": "<p>Alle producten in één overzicht.</p>",
+            "menu_url": "shopify://collections/socialframe-the-classics",
+            "menu_image": "shopify://shop_images/SOCIAL-muziekframe_1a01cf93-54d4-4be8-a9ac-d70fe5f821af.jpg",
+            "add_tag": true,
+            "tag_text": "Sale",
+            "tag_color": "#121212",
+            "tag_bg_color": "#ffffff"
+          }
+        },
+        "submenu_item_w8jgxU": {
+          "type": "submenu_item",
+          "settings": {
+            "submenu_title": "Frames",
+            "menu_heading": "3D-Frames",
+            "menu_text": "<p>3D-frames met diepte, detail en een tijdloze uitstraling.</p>",
+            "menu_url": "shopify://products/3d-gevel-frame",
+            "menu_image": "shopify://shop_images/Socialframe-3Dgevel-06.png",
+            "add_tag": false,
+            "tag_text": "New",
+            "tag_color": "#121212",
+            "tag_bg_color": "#ffffff"
+          }
+        },
+        "submenu_item_83Q8dP": {
+          "type": "submenu_item",
+          "settings": {
+            "submenu_title": "Frames",
+            "menu_heading": "Auto-Frame",
+            "menu_text": "<p>Laat jouw specs shinen.</p>",
+            "menu_url": "shopify://products/auto-frame-specs",
+            "menu_image": "shopify://shop_images/Autoframe.jpg",
+            "add_tag": false,
+            "tag_text": "New",
+            "tag_color": "#121212",
+            "tag_bg_color": "#ffffff"
+          }
+        },
+        "submenu_item_DTbXFw": {
+          "type": "submenu_item",
+          "settings": {
+            "submenu_title": "Frames",
+            "menu_heading": "Geboorte-frame",
+            "menu_text": "<p>Laat jou kleintje stralen</p>",
+            "menu_url": "shopify://products/babyframe",
+            "menu_image": "shopify://shop_images/Baby-frame_89ff3019-75ab-43e7-833e-c9ef62cf41cc.png",
+            "add_tag": false,
+            "tag_text": "New",
+            "tag_color": "#121212",
+            "tag_bg_color": "#ffffff"
+          }
+        },
+        "submenu_item_C4tcNb": {
+          "type": "submenu_item",
+          "settings": {
+            "submenu_title": "Frames",
+            "menu_heading": "Movie-frame",
+            "menu_text": "<p>Leg jou mooiste momenten vast als een film.</p>",
+            "menu_url": "shopify://products/movie-frame",
+            "menu_image": "shopify://shop_images/Netflix_layout_like.png",
+            "add_tag": false,
+            "tag_text": "New",
+            "tag_color": "#121212",
+            "tag_bg_color": "#ffffff"
+          }
+        },
+        "submenu_item_YhjTFa": {
+          "type": "submenu_item",
+          "settings": {
+            "submenu_title": "Frames",
+            "menu_heading": "Travel-frame",
+            "menu_text": "<p>Een blijvende herinnering aan avonturen.</p>",
+            "menu_url": "shopify://products/travel-frame",
+            "menu_image": "shopify://shop_images/Travel-frame.jpg",
+            "add_tag": false,
+            "tag_text": "New",
+            "tag_color": "#121212",
+            "tag_bg_color": "#ffffff"
+          }
+        },
+        "submenu_item_KhXqKG": {
+          "type": "submenu_item",
+          "settings": {
+            "submenu_title": "Contact",
+            "menu_heading": "Test",
+            "menu_text": "<p>Textetst</p>",
+            "menu_url": "shopify://products/bruiloft-frame",
+            "menu_image": "shopify://shop_images/Bruilof-frame.png",
+            "add_tag": false,
+            "tag_text": "New",
+            "tag_color": "#121212",
+            "tag_bg_color": "#ffffff"
+          }
+        },
+        "submenu_item_LFBA4f": {
+          "type": "submenu_item",
+          "settings": {
+            "submenu_title": "Frames",
+            "menu_heading": "Huis-frame",
+            "menu_text": "<p>Het detail dat van een huis een thuis maakt.</p>",
+            "menu_url": "shopify://products/huis-frame",
+            "menu_image": "shopify://shop_images/Scherm_afbeelding2023-07-07om13.30.32.png",
+            "add_tag": false,
+            "tag_text": "New",
+            "tag_color": "#121212",
+            "tag_bg_color": "#ffffff"
+          }
+        },
+        "submenu_item_gzjXmi": {
+          "type": "submenu_item",
+          "settings": {
+            "submenu_title": "Frames",
+            "menu_heading": "Memory-frame",
+            "menu_text": "<p>Text</p>",
+            "menu_url": "shopify://products/memory-frame",
+            "menu_image": "shopify://shop_images/SOCIAL-Memoryframe.jpg",
+            "add_tag": false,
+            "tag_text": "New",
+            "tag_color": "#121212",
+            "tag_bg_color": "#ffffff"
+          }
+        },
+        "menu_item_LwtfrY": {
+          "type": "menu_item",
+          "settings": {
+            "text": "Tegeltjes",
+            "use_accent_color": false,
+            "link_accent_color": "#d55e60",
+            "link_url": "shopify://collections/tegels",
+            "show_promotion": true,
+            "promotional_image": "shopify://shop_images/pluk_de_dag_groen.webp",
+            "promotion_tag_text": "Nieuw",
+            "promotional_caption": "<p><strong>Bestel nu,</strong></p>",
+            "promotional_text": "<p>Nieuwe Collectie</p>",
+            "promo_image_url": "",
+            "show_second_promotion": true,
+            "second_promotional_image": "shopify://shop_images/Gepersonaliseerd_geboortetegeltje.webp",
+            "second_promotion_tag_text": "Uniek",
+            "second_promotional_caption": "<p>Maak hier jouw eigen</p>",
+            "second_promotional_text": "<p>Tegeltje</p>",
+            "second_promo_image_url": "shopify://products/geboortetegel-gepersonaliseerd-geboortetegel"
+          }
+        },
+        "submenu_item_F8GyHX": {
+          "type": "submenu_item",
+          "settings": {
+            "submenu_title": "Tegeltjes",
+            "menu_heading": "Woordenboek stijl Tegeltjes",
+            "menu_text": "<p>Jouw woord, onze definitie — stijlvol op een tegeltje met een knipoog.</p>",
+            "menu_url": "shopify://collections/woordenboek-stijl-tegeltje",
+            "menu_image": "shopify://shop_images/Peettantewoordenboek.webp",
+            "add_tag": false,
+            "tag_text": "New",
+            "tag_color": "#121212",
+            "tag_bg_color": "#ffffff"
+          }
+        },
+        "submenu_item_pWktCD": {
+          "type": "submenu_item",
+          "settings": {
+            "submenu_title": "Tegeltjes",
+            "menu_heading": "Geboortetegeltjes",
+            "menu_text": "<p>Kleine momenten, groot geluk.</p>",
+            "menu_url": "shopify://collections/geboorte",
+            "menu_image": "shopify://shop_images/Geboortetegel10x10_da4987c6-2d09-4d6e-a279-7798839f018f.webp",
+            "add_tag": false,
+            "tag_text": "New",
+            "tag_color": "#121212",
+            "tag_bg_color": "#ffffff"
+          }
+        },
+        "submenu_item_CeDiAE": {
+          "type": "submenu_item",
+          "settings": {
+            "submenu_title": "Tegeltjes",
+            "menu_heading": "Gepersonaliseerde Tegeltjes",
+            "menu_text": "",
+            "menu_url": "shopify://collections/gepersonaliseerde-tegels",
+            "menu_image": "shopify://shop_images/Personaliseerbare.webp",
+            "add_tag": false,
+            "tag_text": "New",
+            "tag_color": "#121212",
+            "tag_bg_color": "#ffffff"
+          }
+        },
+        "submenu_item_wWNCdi": {
+          "type": "submenu_item",
+          "settings": {
+            "submenu_title": "Tegeltjes",
+            "menu_heading": "Alle Tegeltjes",
+            "menu_text": "<p>Producten voor elke gelegenheid.</p>",
+            "menu_url": "shopify://collections/tegels",
+            "menu_image": "shopify://shop_images/You_me_wit.webp",
+            "add_tag": false,
+            "tag_text": "Cadeautip",
+            "tag_color": "#121212",
+            "tag_bg_color": "#ffffff"
+          }
+        },
+        "submenu_item_A67Mzf": {
+          "type": "submenu_item",
+          "settings": {
+            "submenu_title": "Tegeltjes",
+            "menu_heading": "Tegeltjes met Landkaart",
+            "menu_text": "<p>Leg jouw favoriete plekje vast op keramiek.</p>",
+            "menu_url": "shopify://products/map-tile",
+            "menu_image": "shopify://shop_images/Maptile_design_1.png",
+            "add_tag": true,
+            "tag_text": "Aanpasbaar",
+            "tag_color": "#121212",
+            "tag_bg_color": "#ffffff"
+          }
+        },
+        "submenu_item_jtTkjf": {
+          "type": "submenu_item",
+          "settings": {
+            "submenu_title": "Tegeltjes",
+            "menu_heading": "Vriendschap",
+            "menu_text": "<p>Speciaal voor vrienschap.</p>",
+            "menu_url": "shopify://collections/vriendschap",
+            "menu_image": "shopify://shop_images/Lieverd_groen.webp",
+            "add_tag": false,
+            "tag_text": "New",
+            "tag_color": "#121212",
+            "tag_bg_color": "#ffffff"
+          }
+        },
+        "submenu_item_GgcdnB": {
+          "type": "submenu_item",
+          "settings": {
+            "submenu_title": "Tegeltjes",
+            "menu_heading": "Gedenktegeltjes",
+            "menu_text": "<p>Gemaakt om herinneringen te koesteren.</p>",
+            "menu_url": "shopify://collections/gedenk",
+            "menu_image": "shopify://shop_images/Tussen_de_sterren_zwart.webp",
+            "add_tag": false,
+            "tag_text": "New",
+            "tag_color": "#121212",
+            "tag_bg_color": "#ffffff"
+          }
+        },
+        "menu_item_WYPdtX": {
+          "type": "menu_item",
+          "settings": {
+            "text": "Accesiores",
+            "use_accent_color": false,
+            "link_accent_color": "#d55e60",
+            "link_url": "shopify://collections/accessoires",
+            "show_promotion": false,
+            "promotion_tag_text": "",
+            "promotional_caption": "",
+            "promotional_text": "",
+            "promo_image_url": "",
+            "show_second_promotion": false,
+            "second_promotion_tag_text": "",
+            "second_promotional_caption": "",
+            "second_promotional_text": "",
+            "second_promo_image_url": ""
+          }
+        },
+        "menu_item_J68LJK": {
+          "type": "menu_item",
+          "settings": {
+            "text": "Contact",
+            "use_accent_color": true,
+            "link_accent_color": "#d55e60",
+            "link_url": "shopify://pages/contact",
+            "show_promotion": true,
+            "promotion_tag_text": "",
+            "promotional_caption": "<p>Veelgestelde</p>",
+            "promotional_text": "<p>Vragen</p>",
+            "promo_image_url": "shopify://pages/verzenden",
+            "show_second_promotion": false,
+            "second_promotion_tag_text": "",
+            "second_promotional_caption": "",
+            "second_promotional_text": "",
+            "second_promo_image_url": ""
+          }
+        },
+        "submenu_item_hT9nyy": {
+          "type": "submenu_item",
+          "settings": {
+            "submenu_title": "Contact",
+            "menu_heading": "Veelgestelde vragen",
+            "menu_text": "<p>We helpen je graag — misschien staat jouw vraag hier al tussen.</p>",
+            "menu_url": "shopify://pages/verzenden",
+            "menu_image": "shopify://shop_images/klantenservice_Socialframe.png",
+            "add_tag": false,
+            "tag_text": "New",
+            "tag_color": "#121212",
+            "tag_bg_color": "#ffffff"
+          }
+        },
+        "submenu_item_nCX3Yb": {
+          "type": "submenu_item",
+          "settings": {
+            "submenu_title": "Contact",
+            "menu_heading": "Verzenden en ontvangen.",
+            "menu_text": "<p>Text</p>",
+            "menu_url": "shopify://pages/verzenden",
+            "add_tag": false,
+            "tag_text": "New",
+            "tag_color": "#121212",
+            "tag_bg_color": "#ffffff"
+          }
+        },
+        "submenu_item_DKDEA7": {
+          "type": "submenu_item",
+          "settings": {
+            "submenu_title": "Contact",
+            "menu_heading": "Blog",
+            "menu_text": "<p>Text</p>",
+            "menu_url": "shopify://blogs/nieuws",
+            "add_tag": false,
+            "tag_text": "New",
+            "tag_color": "#121212",
+            "tag_bg_color": "#ffffff"
+          }
+        }
+      },
+      "block_order": [
+        "menu_item_QkhFAb",
+        "submenu_item_dqLrxM",
+        "submenu_item_w8jgxU",
+        "submenu_item_83Q8dP",
+        "submenu_item_DTbXFw",
+        "submenu_item_C4tcNb",
+        "submenu_item_YhjTFa",
+        "submenu_item_KhXqKG",
+        "submenu_item_LFBA4f",
+        "submenu_item_gzjXmi",
+        "menu_item_LwtfrY",
+        "submenu_item_F8GyHX",
+        "submenu_item_pWktCD",
+        "submenu_item_CeDiAE",
+        "submenu_item_wWNCdi",
+        "submenu_item_A67Mzf",
+        "submenu_item_jtTkjf",
+        "submenu_item_GgcdnB",
+        "menu_item_WYPdtX",
+        "menu_item_J68LJK",
+        "submenu_item_hT9nyy",
+        "submenu_item_nCX3Yb",
+        "submenu_item_DKDEA7"
+      ],
+      "disabled": true,
+      "name": "SS - Header #17",
+      "settings": {
+        "show_type": "always",
+        "sticky_only_header": true,
+        "transparent_bg": "all",
+        "logo": "shopify://shop_images/SocialFrame_logo_Registerd_menu_logo.svg",
+        "second_logo": "shopify://shop_images/SocialFrame_logo_Registerd_menu_wit_logo.svg",
+        "logo_width": 80,
+        "logo_width_mobile": 50,
+        "name_custom": false,
+        "name_font": "josefin_sans_n4",
+        "name_size": 24,
+        "name_size_mobile": 20,
+        "name_height": 130,
+        "list_gap": 28,
+        "link_custom": false,
+        "link_font": "josefin_sans_n4",
+        "link_size": 14,
+        "link_size_mobile": 16,
+        "link_height": 130,
+        "right_gap": 24,
+        "right_gap_mobile": 16,
+        "right_link_custom": false,
+        "right_link_font": "josefin_sans_n4",
+        "right_link_size": 14,
+        "right_link_height": 130,
+        "icon_size": 20,
+        "icon_size_mobile": 20,
+        "use_search": true,
+        "search_text": "Zoeken",
+        "search_icon_desktop": true,
+        "search_menu_mobile": true,
+        "use_account": true,
+        "account_text": "Login",
+        "account_icon_desktop": true,
+        "account_menu_mobile": true,
+        "cart_text": "Cart",
+        "cart_icon_desktop": true,
+        "submenu_image_radius": 8,
+        "submenu_image_border_thickness": 0,
+        "submenu_image_ratio": "square",
+        "submenu_image_ratio_mobile": "square",
+        "image_zoom": true,
+        "submenu_content_align": "left",
+        "submenu_content_align_mobile": "left",
+        "submenu_heading_custom": false,
+        "submenu_heading_font": "josefin_sans_n4",
+        "submenu_heading_size": 14,
+        "submenu_heading_size_mobile": 14,
+        "submenu_heading_advanced": false,
+        "submenu_heading_height": 150,
+        "text_custom": false,
+        "text_font": "josefin_sans_n4",
+        "text_size": 12,
+        "text_size_mobile": 12,
+        "text_advanced": false,
+        "text_height": 150,
+        "text_mt": 4,
+        "text_mt_mobile": 4,
+        "promotional_image_gradient": true,
+        "promotional_image_overlay": 0.1,
+        "promotional_image_width_desktop": 300,
+        "promotional_image_radius": 12,
+        "promotional_image_border_thickness": 0,
+        "promotional_image_ratio": "square",
+        "use_promo_image_mobile": true,
+        "promotional_image_ratio_mobile": "square",
+        "promotional_content_align": "left",
+        "promotional_content_align_mobile": "left",
+        "promotional_caption_custom": false,
+        "promotional_caption_font": "josefin_sans_n4",
+        "promotional_caption_size": 14,
+        "promotional_caption_size_mobile": 14,
+        "promotional_caption_height": 150,
+        "promotional_title_custom": false,
+        "promotional_title_font": "josefin_sans_n4",
+        "promotional_title_size": 22,
+        "promotional_title_size_mobile": 22,
+        "promotional_title_advanced": false,
+        "promotional_title_height": 150,
+        "promotional_title_mt": 8,
+        "promotional_title_mt_mobile": 8,
+        "promotion_tag_custom": false,
+        "promotion_tag_font": "josefin_sans_n4",
+        "promotion_tag_size": 12,
+        "promotion_tag_size_mobile": 12,
+        "promotion_tag_advanced": true,
+        "promotion_tag_height": 100,
+        "promotion_tag_padding_vertical": 4,
+        "promotion_tag_padding_vertical_mobile": 4,
+        "promotion_tag_padding_horizontal": 6,
+        "promotion_tag_padding_horizontal_mobile": 6,
+        "promotion_tag_radius": 4,
+        "promotion_tag_border_thickness": 0,
+        "name_color": "#121212",
+        "name_hover_color": "#585858",
+        "name_hero_color": "#ffffff",
+        "link_color": "#585858",
+        "link_hover_color": "#121212",
+        "link_hero_color": "#ffffff",
+        "link_hover_hero_color": "#b6b6b6",
+        "mobile_menu_divider_color": "#ececec",
+        "right_link_color": "#121212",
+        "right_link_hover_color": "#585858",
+        "right_link_hero_color": "#ffffff",
+        "right_link_hover_hero_color": "#b6b6b6",
+        "submenu_heading_color": "#121212",
+        "text_color": "#585858",
+        "submenu_image_border_color": "#121212",
+        "submenu_bg_color": "#efeeef",
+        "submenu_bg_hover_color": "#ffffff",
+        "promotional_caption_color": "#ffffff",
+        "promotional_title_color": "#ffffff",
+        "promotional_image_overlay_color": "#121212",
+        "promotional_image_border_color": "#121212",
+        "promotion_tag_color": "#121212",
+        "promotion_tag_bg_color": "#ffffff",
+        "promotion_tag_border_color": "#121212",
+        "background_style": "solid",
+        "background_color": "#f7f7f7",
+        "background_gradient": "linear-gradient(180deg, #FFFFFF 0%, #F2F2F2 100%)",
+        "border_color": "#121212",
+        "margin_top": 24,
+        "margin_horizontal": 5,
+        "margin_horizontal_mobile": 1.5,
+        "padding_top": 20,
+        "padding_bottom": 16,
+        "padding_horizontal": 2,
+        "padding_horizontal_mobile": 1.5,
+        "width": "page",
+        "content_width": 1200,
+        "border_thickness": 0,
+        "border_bottom": false,
+        "section_radius": 12,
+        "lazy": false
+      }
+    }
+  },
+  "order": [
+    "ss_countdown_bar_cNWAkf",
+    "announcement_bar_tGPWhg",
+    "announcement",
+    "header",
+    "ss_header_17_J4YAdE"
+  ]
+}
