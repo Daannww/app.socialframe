@@ -17,7 +17,7 @@
         "section_store_block_review_summary_LyyhTq": {
           "type": "custom_liquid",
           "settings": {
-            "custom_liquid": "{% capture sf_t1 %}<p>Uitstekend&nbsp;</p>{% endcapture %}{% capture sf_t2 %}<p><strong>400+ </strong>reviews</p>{% endcapture %}{% render 'sf-review-summary', first_text: sf_t1, second_text: sf_t2, star_style: 'standard', stars_count: 4.5, stars_size: 17, stars_gap: 2, stars_color: '#ffffff', stars_bg_color: '#00b67a', stars_bg_half_color: '#dddddd', avatars_position: 'none', avatars_size: 20, avatars_animate: false, first_text_size: 15, first_text_color: '#000000', second_text_size: 13, second_text_color: '#000000', border: 'none', border_thickness: 1, border_color: '#000000', radius: 0, effect: 'none', block_padding_top: 0, block_padding_bottom: 0, padding_vertical: 6, padding_horizontal: 0 %}"
+            "custom_liquid": "{% capture sf_t1 %}<p>Uitstekend&nbsp;</p>{% endcapture %}{% capture sf_t2 %}<p><strong>400+ </strong>reviews</p>{% endcapture %}{% assign first_text = sf_t1 %}{% assign second_text = sf_t2 %}{% assign star_style = 'standard' %}{% assign stars_count = 4.5 %}{% assign stars_size = 17 %}{% assign stars_gap = 2 %}{% assign stars_color = '#ffffff' %}{% assign stars_bg_color = '#00b67a' %}{% assign stars_bg_half_color = '#dddddd' %}{% assign avatars_position = 'none' %}{% assign avatars_size = 20 %}{% assign avatars_animate = false %}{% assign first_text_size = 15 %}{% assign first_text_color = '#000000' %}{% assign second_text_size = 13 %}{% assign second_text_color = '#000000' %}{% assign border = 'none' %}{% assign border_thickness = 1 %}{% assign border_color = '#000000' %}{% assign radius = 0 %}{% assign effect = 'none' %}{% assign block_padding_top = 0 %}{% assign block_padding_bottom = 0 %}{% assign padding_vertical = 6 %}{% assign padding_horizontal = 0 %}{% include 'sf-review-summary' %}"
           }
         },
         "price_KNUcTm": {
@@ -27,7 +27,7 @@
         "section_store_block_benefits_list_efqbrW": {
           "type": "custom_liquid",
           "settings": {
-            "custom_liquid": "{% capture sf_items %}<p>Echt gedrukt – geen sticker.</p>§§<p>Handgevormd 100% keramiek.</p>§§<p>Met zorg in eigen huis geproduceerd.</p>§§<p>100% Tevredenheidsgarantie.</p>§§§§§§§§{% endcapture %}{% render 'sf-benefits', items: sf_items, items_gap: 5, icon_selection: 'check_mark', icon_size: 20, icon_color: '#000000', text_size: 15, text_color: '#000000', content_align: 'left', border: 'none', border_thickness: 1, border_color: '#000000', radius: 0, padding_vertical: 10, padding_horizontal: 0 %}"
+            "custom_liquid": "{% capture sf_items %}<p>Echt gedrukt – geen sticker.</p>§§<p>Handgevormd 100% keramiek.</p>§§<p>Met zorg in eigen huis geproduceerd.</p>§§<p>100% Tevredenheidsgarantie.</p>§§§§§§§§{% endcapture %}{% assign items = sf_items %}{% assign items_gap = 5 %}{% assign icon_selection = 'check_mark' %}{% assign icon_size = 20 %}{% assign icon_color = '#000000' %}{% assign text_size = 15 %}{% assign text_color = '#000000' %}{% assign content_align = 'left' %}{% assign border = 'none' %}{% assign border_thickness = 1 %}{% assign border_color = '#000000' %}{% assign radius = 0 %}{% assign padding_vertical = 10 %}{% assign padding_horizontal = 0 %}{% include 'sf-benefits' %}"
           }
         },
         "space_7YdUAh": {
