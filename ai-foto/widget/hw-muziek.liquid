@@ -518,6 +518,12 @@
       return fetch(API + path, { method: 'POST', body: fd }).then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || 'Opslaan mislukt'); return j; }); });
     }
     function toBlob(c, q) { return new Promise(function (res) { c.toBlob(res, 'image/jpeg', q); }); }
+    // voorbeeld voor in de winkelwagen: JPEG kent geen doorzichtigheid (dat werd zwart), dus eerst op een effen ondergrond zetten
+    function previewFlat() {
+      var f = document.createElement('canvas'); f.width = canvas.width; f.height = canvas.height;
+      var fc = f.getContext('2d'); fc.fillStyle = white() ? '#9a9a9a' : '#fff'; fc.fillRect(0, 0, f.width, f.height); fc.drawImage(canvas, 0, 0);
+      return f;
+    }
     function build() {
       var sig = signature();
       if (S.result && S.result.sig === sig) return Promise.resolve(S.result);
@@ -525,7 +531,7 @@
       var side = Math.max(800, Math.min(2400, Math.max(S.photo.naturalWidth, S.photo.naturalHeight)));
       var crop = document.createElement('canvas'); crop.width = crop.height = side;
       var cc = crop.getContext('2d'); cc.fillStyle = '#fff'; cc.fillRect(0, 0, side, side); drawPhotoTo(cc, side);
-      return fontsReady().then(function () { draw(); return Promise.all([toBlob(crop, 0.92), toBlob(canvas, 0.85)]); }).then(function (b) {
+      return fontsReady().then(function () { draw(); return Promise.all([toBlob(crop, 0.92), toBlob(previewFlat(), 0.85)]); }).then(function (b) {
         return Promise.all([post('/api/music/photo', 'photo', b[0], 'foto.jpg'), post('/api/music/preview', 'image', b[1], 'voorbeeld.jpg')]);
       }).then(function (u) {
         S.busy = false; S.result = { sig: sig, photo: u[0].url, preview: u[1].url }; return S.result;
