@@ -1,13 +1,12 @@
-{%- comment -%} Eigen reviewsamenvatting (vervangt Section Store block-review-summary). Param: cfg = JSON-string {%- endcomment -%}
-{%- assign d = cfg | parse_json -%}
-{%- assign sc = d.stars_count | default: 5 | times: 1.0 -%}
-{%- assign style = d.star_style | default: 'standard' -%}
-{%- assign bg = d.stars_bg_color | default: '#00b67a' -%}
-{%- assign fg = d.stars_color | default: '#ffffff' -%}
-{%- assign half = d.stars_bg_half_color | default: '#dddddd' -%}
-<div class="sf-rs" style="--rs-size:{{ d.stars_size | default: 17 }}px;--rs-gap:{{ d.stars_gap | default: 2 }}px;--rs-s1:{{ d.first_text_size | default: 15 }}px;--rs-s2:{{ d.second_text_size | default: 13 }}px;--rs-c1:{{ d.first_text_color | default: '#000' }};--rs-c2:{{ d.second_text_color | default: '#000' }};--rs-pv:{{ d.padding_vertical | default: 6 }}px;--rs-bg:{{ bg }};--rs-half:{{ half }};--rs-pt:{{ d.block_padding_top | default: 0 }}px;--rs-pb:{{ d.block_padding_bottom | default: 0 }}px">
+{%- comment -%} Eigen reviewsamenvatting (vervangt Section Store block-review-summary). Params: losse instellingen (stars_count, star_style, first_text, second_text, ...) {%- endcomment -%}
+{%- assign sc = stars_count | default: 5 | times: 1.0 -%}
+{%- assign style = star_style | default: 'standard' -%}
+{%- assign bg = stars_bg_color | default: '#00b67a' -%}
+{%- assign fg = stars_color | default: '#ffffff' -%}
+{%- assign half = stars_bg_half_color | default: '#dddddd' -%}
+<div class="sf-rs" style="--rs-size:{{ stars_size | default: 17 }}px;--rs-gap:{{ stars_gap | default: 2 }}px;--rs-s1:{{ first_text_size | default: 15 }}px;--rs-s2:{{ second_text_size | default: 13 }}px;--rs-c1:{{ first_text_color | default: '#000' }};--rs-c2:{{ second_text_color | default: '#000' }};--rs-pv:{{ padding_vertical | default: 6 }}px;--rs-bg:{{ bg }};--rs-half:{{ half }};--rs-pt:{{ block_padding_top | default: 0 }}px;--rs-pb:{{ block_padding_bottom | default: 0 }}px">
   <div class="sf-rs-body">
-    {%- if d.first_text != blank -%}<div class="sf-rs-t1">{{ d.first_text }}</div>{%- endif -%}
+    {%- if first_text != blank -%}<div class="sf-rs-t1">{{ first_text }}</div>{%- endif -%}
     <div class="sf-rs-stars" role="img" aria-label="{{ sc }} / 5">
       {%- for i in (1..5) -%}
         {%- assign pos = i | minus: 0.5 -%}
@@ -19,7 +18,7 @@
         </span>
       {%- endfor -%}
     </div>
-    {%- if d.second_text != blank -%}<div class="sf-rs-t2">{{ d.second_text }}</div>{%- endif -%}
+    {%- if second_text != blank -%}<div class="sf-rs-t2">{{ second_text }}</div>{%- endif -%}
   </div>
 </div>
 <style>
