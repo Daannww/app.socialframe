@@ -1,0 +1,1 @@
+{"sections": {"main": {"type": "main-product", "blocks": {"x": {"type": "custom_liquid", "settings": {"custom_liquid": "{% include 'sf-comments' %}"}}}, "block_order": ["x"], "settings": {}}}, "order": ["main"]}
