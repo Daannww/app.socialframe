@@ -1,0 +1,487 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "text_columns_icons_YynfjB": {
+      "type": "text-columns-icons",
+      "disabled": true,
+      "custom_css": [
+        "h1 {font-size: 20px;}"
+      ],
+      "name": "t:sections.text-columns-with-icons.name",
+      "settings": {
+        "heading": "Tegeltjes met tekst of landkaart 10×10 cm.",
+        "subheading": "Onze tegeltjes van 10×10 cm combineren een sterke boodschap met een tijdloos ontwerp. Kies uit tegeltjes met tekst, quote of landkaart, of ga voor een persoonlijke variant. Perfect als decoratie of als betekenisvol cadeau voor elk moment.",
+        "section_heading_layout": "section-heading--left",
+        "style": "grid",
+        "layout": "grid-4 grid-portable-3 grid-lap-2",
+        "border_radius": 200,
+        "section_background_color": "rgba(0,0,0,0)",
+        "section_background_gradient": "",
+        "section_heading_color": "rgba(0,0,0,0)",
+        "remove_margin": false,
+        "seo_h_tag": "h1"
+      }
+    },
+    "banner": {
+      "type": "main-collection-banner",
+      "custom_css": [
+        "h1 {text-transform: uppercase; letter-spacing: 1px; padding: 0 0px; font-size: 20px; font-weight: 600; display: inline-block; margin-left: 0; left: 2%; top: -20px; text-align: left;}"
+      ],
+      "settings": {
+        "show_collection_description": true,
+        "show_collection_image": false,
+        "alignment": "horizontal-left align-content--vertical-bottom",
+        "color_background_main": "rgba(0,0,0,0)",
+        "color_text_main": "rgba(0,0,0,0)"
+      }
+    },
+    "collection_list_VyW4jY": {
+      "type": "collection-list",
+      "blocks": {
+        "collection_gGprwH": {
+          "type": "collection",
+          "settings": {
+            "collection": "landkaart-tegeltjes",
+            "image": "shopify://shop_images/109025.jpg"
+          }
+        },
+        "collection_JijMCK": {
+          "type": "collection",
+          "settings": {
+            "collection": "tegeltje-voor-papa",
+            "image": "shopify://shop_images/Jij_bent_goud_marine_blauw.webp"
+          }
+        },
+        "collection_ALXLeN": {
+          "type": "collection",
+          "settings": {
+            "collection": "tegeltje-voor-papa-kopie",
+            "image": "shopify://shop_images/bestemamaterwereld..webp"
+          }
+        },
+        "collection_6PeB3P": {
+          "type": "collection",
+          "settings": {
+            "collection": "herinnering-gedenk-tegeltjes-kopie"
+          }
+        },
+        "collection_cmDxAF": {
+          "type": "collection",
+          "settings": {
+            "collection": "gepersonaliseerd-tegeltje-kopie",
+            "image": "shopify://shop_images/Alles_is_liefde_groen.webp"
+          }
+        },
+        "collection_aQLgqa": {
+          "type": "collection",
+          "settings": {
+            "collection": "valentijn-tegeltjes-liefde-kopie-1"
+          }
+        },
+        "collection_xL43Jt": {
+          "type": "collection",
+          "settings": {
+            "collection": "valentijn-tegeltjes-liefde-kopie",
+            "image": "shopify://shop_images/Altijd_fijn_om_bij_OMA_te_zijn_beige.webp"
+          }
+        },
+        "collection_Yp3Nk6": {
+          "type": "collection",
+          "settings": {
+            "collection": "tegels",
+            "image": "shopify://shop_images/Maptile_design_2.png"
+          }
+        },
+        "collection_76Dhxj": {
+          "type": "collection",
+          "settings": {
+            "collection": "woordenboek-stijl-tegeltje"
+          }
+        },
+        "collection_tNbMDC": {
+          "type": "collection",
+          "settings": {
+            "collection": "gepersonaliseerde-tegels"
+          }
+        },
+        "collection_zNFFfB": {
+          "type": "collection",
+          "settings": {
+            "collection": "vriendschap",
+            "image": "shopify://shop_images/Lievelingsleuker_rose.webp"
+          }
+        },
+        "collection_pfFW8V": {
+          "type": "collection",
+          "settings": {
+            "collection": "gedenk"
+          }
+        }
+      },
+      "block_order": [
+        "collection_gGprwH",
+        "collection_JijMCK",
+        "collection_ALXLeN",
+        "collection_6PeB3P",
+        "collection_cmDxAF",
+        "collection_aQLgqa",
+        "collection_xL43Jt",
+        "collection_Yp3Nk6",
+        "collection_76Dhxj",
+        "collection_tNbMDC",
+        "collection_zNFFfB",
+        "collection_pfFW8V"
+      ],
+      "custom_css": [
+        "h1 {font-size: 22px;}"
+      ],
+      "name": "t:sections.collection-list.presets.name",
+      "settings": {
+        "heading": "Categorieën",
+        "subheading": "Kies een tegeltje op basis van voor wie het is, of voor welk moment.",
+        "show_view_all": false,
+        "section_heading_layout": "section-heading--left",
+        "style": "slider",
+        "layout": "grid-6 grid-portable-4 grid-lap-3 grid-palm-2",
+        "image_aspect_ratio": "1",
+        "section_background_color": "rgba(0,0,0,0)",
+        "section_background_gradient": "",
+        "section_heading_color": "rgba(0,0,0,0)",
+        "remove_margin": true,
+        "seo_h_tag": "h1"
+      }
+    },
+    "product-grid": {
+      "type": "main-collection-product-grid",
+      "blocks": {
+        "title": {
+          "type": "title",
+          "settings": {}
+        },
+        "price": {
+          "type": "price",
+          "settings": {}
+        },
+        "quick_buy": {
+          "type": "quick_buy",
+          "disabled": true,
+          "settings": {}
+        }
+      },
+      "block_order": [
+        "title",
+        "price",
+        "quick_buy"
+      ],
+      "custom_css": [],
+      "settings": {
+        "layout": "grid-4 grid-portable-3 grid-lap-2 grid-tiny-1",
+        "products_number": 64,
+        "enable_filtering": false,
+        "enable_sorting": false,
+        "image_filter_layout": "onecolumn"
+      }
+    },
+    "featured_collection_fyG6cf": {
+      "type": "featured-collection",
+      "blocks": {
+        "title_g4YUq8": {
+          "type": "title",
+          "settings": {}
+        },
+        "price_D8fdiP": {
+          "type": "price",
+          "settings": {}
+        },
+        "quick_buy_rTrWmP": {
+          "type": "quick_buy",
+          "disabled": true,
+          "settings": {}
+        }
+      },
+      "block_order": [
+        "title_g4YUq8",
+        "price_D8fdiP",
+        "quick_buy_rTrWmP"
+      ],
+      "disabled": true,
+      "custom_css": [
+        "H1 {font-size: 20px;}",
+        ".section-heading__subheading.text-size--large {font-size: 14px;}"
+      ],
+      "name": "t:sections.featured-collection.presets.name",
+      "settings": {
+        "heading": "Alle tegeltjes",
+        "subheading": "Een overzicht van al onze tegeltjes met tekst, foto en landkaart. Gebruik de categorieën om snel het juiste tegeltje te vinden.",
+        "show_view_all": true,
+        "section_heading_layout": "section-heading--left",
+        "style": "grid",
+        "layout": "grid-4 grid-portable-3 grid-lap-2 grid-tiny-1",
+        "products_number": 16,
+        "collection": "tegels",
+        "section_background_color": "rgba(0,0,0,0)",
+        "section_background_gradient": "",
+        "section_heading_color": "rgba(0,0,0,0)",
+        "remove_margin": true,
+        "seo_h_tag": "h1"
+      }
+    },
+    "ss_testimonial_8_X8bV3J": {
+      "type": "ss-testimonial-8",
+      "blocks": {
+        "testimonials_HAwzxH": {
+          "type": "testimonials",
+          "settings": {
+            "stars_count": 5,
+            "heading": "Snelle levering en goede kwaliteit",
+            "text": "Snelle levering en goede kwaliteit",
+            "author_date": "Kian de WitNL"
+          }
+        },
+        "testimonials_K86DMd": {
+          "type": "testimonials",
+          "settings": {
+            "stars_count": 5,
+            "heading": "Zeer mooi product",
+            "text": "Zeer mooi product, en heel snel geleverd. Zal zeker nog bestdllingen doen",
+            "author_date": "BVRN_Automotive “BVRN"
+          }
+        },
+        "testimonials_wKLw9D": {
+          "type": "testimonials",
+          "settings": {
+            "stars_count": 5,
+            "heading": "Een bijzonder cadeau",
+            "text": "Een bijzonder cadeau. Makkelijk te maken en snel geleverd",
+            "author_date": "Anja Eggenhuizen"
+          }
+        },
+        "testimonials_UnHUA3": {
+          "type": "testimonials",
+          "settings": {
+            "stars_count": 4,
+            "heading": "Zeer mooi gedaan!!",
+            "text": "Zeer mooi gedaan!!! Prachtige foto, groot genoeg om in te kaderen en prachtige geschreven!!!",
+            "author_date": "Pascale Depoorter"
+          }
+        },
+        "testimonials_HdertR": {
+          "type": "testimonials",
+          "settings": {
+            "stars_count": 5,
+            "heading": "Origineel product",
+            "text": "Wat problemen gehad met het leveren door Postnl, maar het product ziet er geweldig uit!",
+            "author_date": "Perry De Vries"
+          }
+        },
+        "testimonials_LiHHki": {
+          "type": "testimonials",
+          "settings": {
+            "stars_count": 5,
+            "heading": "Geweldige service",
+            "text": "Per ongeluk iets vergeten om op mijn bestelling te zetten. Een appje gestuurd naar social frame en ze hebben het per direct voor mij opgelost! Dag later had ik mijn bestelling al binnen, het is super mooi geworden. Ik ben er heel erg blij mee",
+            "author_date": "Anja broekema"
+          }
+        },
+        "testimonials_t8AU7G": {
+          "type": "testimonials",
+          "settings": {
+            "stars_count": 5,
+            "heading": "Socialframe",
+            "text": "Dit was de tweede keer dat we hierbij bestelden. De platen zijn goed verpakt, zien er uit zoals wij ze hebben ontworpen en worden snel geleverd!",
+            "author_date": "K. v. B"
+          }
+        },
+        "testimonials_mELhfn": {
+          "type": "testimonials",
+          "settings": {
+            "stars_count": 5,
+            "heading": "I love it! 😍",
+            "text": "Alweer mijn 3e bestelling. Wat een geweldige frames voor aan de muur. En supersnel geleverd. Aanrader!",
+            "author_date": "Eline van de WegeNL"
+          }
+        },
+        "testimonials_qKJbUB": {
+          "type": "testimonials",
+          "settings": {
+            "stars_count": 5,
+            "heading": "Top Service.",
+            "text": "Makkelijk besteld proces, overzichtelijk website, mooi aanbod...Leuke ontwerp tool en makkelijk in gebruik.Super snelle service qua bezorgen, alles super netjes en goed beschermd verpakt. Hulde!",
+            "author_date": "E.J. Bloks"
+          }
+        },
+        "testimonials_jV69F9": {
+          "type": "testimonials",
+          "settings": {
+            "stars_count": 5,
+            "heading": "Zeer snel geleverd",
+            "text": "Snelle en goede leveringMooie qualiteit",
+            "author_date": "Hans Brummer"
+          }
+        }
+      },
+      "block_order": [
+        "testimonials_HAwzxH",
+        "testimonials_K86DMd",
+        "testimonials_wKLw9D",
+        "testimonials_UnHUA3",
+        "testimonials_HdertR",
+        "testimonials_LiHHki",
+        "testimonials_t8AU7G",
+        "testimonials_mELhfn",
+        "testimonials_qKJbUB",
+        "testimonials_jV69F9"
+      ],
+      "name": "SS - Testimonial #8",
+      "settings": {
+        "heading": "Check onze reviews",
+        "heading_custom": false,
+        "heading_font": "josefin_sans_n4",
+        "heading_size": 40,
+        "heading_size_mobile": 24,
+        "heading_height": 130,
+        "heading_align": "center",
+        "rating_text": "Uitstekend!",
+        "rating_text_custom": false,
+        "rating_text_font": "josefin_sans_n4",
+        "rating_text_size": 24,
+        "rating_text_size_mobile": 20,
+        "rating_text_height": 130,
+        "rating": 4.6,
+        "rating_hide": false,
+        "rating_text_hide": false,
+        "rating_text_mt": 16,
+        "rating_align": "center",
+        "stars_count": 5,
+        "stars_size": 18,
+        "stars_size_mobile": 18,
+        "stars_gap": 3,
+        "stars_align": "center",
+        "text": "<p><strong>400+ </strong>reviews</p>",
+        "text_custom": false,
+        "text_font": "josefin_sans_n4",
+        "text_size": 20,
+        "text_size_mobile": 16,
+        "text_height": 130,
+        "text_align": "center",
+        "text_mt": 8,
+        "slider_width": 70,
+        "slider_view": 3,
+        "slider_view_mobile": 1.2,
+        "slider_gap": 20,
+        "slider_gap_mobile": 20,
+        "slider_mt": 24,
+        "card_padding_vertical": 32,
+        "card_padding_vertical_mobile": 24,
+        "card_padding_horizontal": 40,
+        "card_padding_horizontal_mobile": 24,
+        "card_radius": 16,
+        "card_border_thickness": 0,
+        "card_shadow": true,
+        "card_heading_custom": false,
+        "card_heading_font": "josefin_sans_n4",
+        "card_heading_size": 24,
+        "card_heading_size_mobile": 20,
+        "card_heading_height": 130,
+        "card_heading_align": "center",
+        "card_heading_mt": 8,
+        "card_text_custom": false,
+        "card_text_font": "josefin_sans_n4",
+        "card_text_size": 14,
+        "card_text_size_mobile": 14,
+        "card_text_height": 150,
+        "card_text_align": "center",
+        "card_text_mt": 16,
+        "card_text_more": "Laat meer zien",
+        "card_text_less": "laat minder zien",
+        "card_count_words": 20,
+        "card_author_date_text_custom": false,
+        "card_author_date_text_font": "josefin_sans_n4",
+        "card_author_date_text_size": 16,
+        "card_author_date_text_size_mobile": 16,
+        "card_author_date_text_height": 130,
+        "card_author_date_text_align": "center",
+        "card_author_date_text_mt": 12,
+        "arrow_show_desktop": true,
+        "arrow_show_mobile": false,
+        "arrow_size": 50,
+        "arrow_size_mobile": 50,
+        "arrow_icon_size": 28,
+        "arrow_icon_size_mobile": 28,
+        "arrow_border_thickness": 0,
+        "dots_show_desktop": true,
+        "dots_show_mobile": false,
+        "dots_size": 12,
+        "dots_size_mobile": 12,
+        "button": "Bekijk ze allemaal",
+        "button_url": "https://nl.trustpilot.com/review/socialframe.nl",
+        "new_tab": true,
+        "button_custom": false,
+        "button_font": "josefin_sans_n4",
+        "button_size": 16,
+        "button_size_mobile": 14,
+        "button_height": 100,
+        "button_padding_vertical": 20,
+        "button_padding_horizontal": 16,
+        "button_radius": 8,
+        "button_border_thickness": 0,
+        "button_mt": 24,
+        "button_align": "center",
+        "button_color": "#ffffff",
+        "button_hover_color": "#ffffff",
+        "button_bg_color": "#121212",
+        "button_bg_hover_color": "#121212",
+        "button_border_color": "#121212",
+        "button_border_hover_color": "#121212",
+        "card_heading_color": "#121212",
+        "card_text_color": "#121212",
+        "card_author_date_text_color": "#121212",
+        "card_bg_color": "#ffffff",
+        "card_border_color": "#121212",
+        "card_shadow_color": "#00b67a",
+        "arrow_color": "#121212",
+        "arrow_hover_color": "#121212",
+        "arrow_bg_color": "#ffffff",
+        "arrow_bg_hover_color": "#ffffff",
+        "arrow_border_color": "#121212",
+        "arrow_border_hover_color": "#121212",
+        "dots_color": "#121212",
+        "stars_color": "#ffffff",
+        "stars_bg_color": "#00b67a",
+        "stars_bg_half_color": "#dddddd",
+        "heading_color": "#121212",
+        "rating_text_color": "#121212",
+        "text_color": "#121212",
+        "background_color": "#ffffff",
+        "background_gradient": "linear-gradient(180deg, rgba(206, 239, 199, 1), rgba(255, 255, 255, 1) 100%)",
+        "border_color": "#121212",
+        "margin_top": 24,
+        "margin_bottom": 0,
+        "padding_top": 20,
+        "padding_bottom": 20,
+        "padding_horizontal": 5,
+        "padding_horizontal_mobile": 1.5,
+        "full_width": true,
+        "content_width": 1500,
+        "border_thickness": 0,
+        "lazy": true
+      }
+    }
+  },
+  "order": [
+    "text_columns_icons_YynfjB",
+    "banner",
+    "collection_list_VyW4jY",
+    "product-grid",
+    "featured_collection_fyG6cf",
+    "ss_testimonial_8_X8bV3J"
+  ]
+}
