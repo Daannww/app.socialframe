@@ -521,7 +521,7 @@
     // voorbeeld voor in de winkelwagen: JPEG kent geen doorzichtigheid (dat werd zwart), dus eerst op een effen ondergrond zetten
     function previewFlat() {
       var f = document.createElement('canvas'); f.width = canvas.width; f.height = canvas.height;
-      var fc = f.getContext('2d'); fc.fillStyle = white() ? '#9a9a9a' : '#fff'; fc.fillRect(0, 0, f.width, f.height); fc.drawImage(canvas, 0, 0);
+      var fc = f.getContext('2d'); fc.fillStyle = white() ? '#9a9a9a' : '#f1f1f1'; fc.fillRect(0, 0, f.width, f.height); fc.drawImage(canvas, 0, 0);
       return f;
     }
     function build() {
