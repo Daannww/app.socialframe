@@ -66,7 +66,7 @@
           </div>
           {%- if b.heading != blank -%}<h3>{{ b.heading }}</h3>{%- endif -%}
           <p>{{ b.text }}</p>
-          <div class="sfr-by"><span class="sfr-av">{{ b.author | strip | slice: 0 | upcase }}</span><span>{{ b.author }}<small>Geverifieerde klant</small></span></div>
+          <div class="sfr-by"><span class="sfr-av">{{ b.author | strip | slice: 0 | upcase }}</span><span>{{ b.author }}</span></div>
         </li>
       {%- endfor -%}
     </ul>
