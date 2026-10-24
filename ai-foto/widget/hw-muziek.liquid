@@ -123,7 +123,8 @@
   .hw-mz-lb .hw-mz-scene{margin:0;border-radius:10px;touch-action:none}
   .hw-mz-lb .hw-mz-zoom{display:none}
   .hw-mz-scene{container-type:inline-size}
-  @container (max-width:250px){.hw-mz-zoom{display:none}}
+  @container (max-width:150px){.hw-mz-zoom{display:none}}
+  @container (max-width:300px){.hw-mz-zoom{top:4px;right:4px;width:24px;height:24px}}
   .hw-mz-lb-x{position:absolute;top:max(12px,env(safe-area-inset-top));right:12px;width:44px;height:44px;border-radius:50%;border:0 !important;background:#fff !important;color:#111 !important;font-size:26px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0 !important;z-index:3}
   .hw-mz-lb-h{position:absolute;left:0;right:0;bottom:max(14px,env(safe-area-inset-bottom));text-align:center;font-size:12px;color:rgba(255,255,255,.7);pointer-events:none}
   .hw-mz-sticky{z-index:20;box-sizing:border-box;background:#fff;padding:6px 0 8px;text-align:center;box-shadow:-16px 0 0 #fff,16px 0 0 #fff,0 12px 0 #fff}
@@ -627,6 +628,7 @@
       // Het voorbeeld krimpt geleidelijk mee met het scrollen (en het vak eronder krimpt gelijk op), zodat er geen sprong en geen wit gat ontstaat
       function update() {
         busy = false;
+        topOff = headerOffset(); // de header wordt kleiner tijdens het scrollen: het voorbeeld hangt steeds direct eronder
         // iPhone-rubberband (door de rand heen scrollen): niets aanpassen, anders gaat het voorbeeld trillen
         var sy = window.pageYOffset, maxY = document.documentElement.scrollHeight - window.innerHeight;
         if (sy < 0 || sy > maxY + 0.5) return;
@@ -663,7 +665,8 @@
       }
       function req() { if (!busy) { busy = true; requestAnimationFrame(update); } }
       topOff = headerOffset();
-      window.addEventListener('scroll', req, { passive: true });
+      var settle = 0;
+      window.addEventListener('scroll', function () { req(); clearTimeout(settle); settle = setTimeout(req, 330); }, { passive: true });
       window.addEventListener('resize', function () { topOff = headerOffset(); req(); });
       update();
     })();
