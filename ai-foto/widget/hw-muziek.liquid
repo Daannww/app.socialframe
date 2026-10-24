@@ -11,6 +11,7 @@
   <div class="hw-mz-slot" data-mz-slot>
   <div class="hw-mz-sticky" data-mz-sticky>
   <div class="hw-mz-scene" data-mz-scene>
+  <button type="button" class="hw-mz-zoom" data-mz-zoom aria-label="Voorbeeld vergroten" title="Vergroten (of tik twee keer op het voorbeeld)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.8-4.8M10.5 8v5M8 10.5h5"/></svg></button>
   <div class="hw-mz-ground"></div>
   <div class="hw-mz-plate">
   <div class="hw-mz-stage" data-mz-stage>
@@ -117,6 +118,12 @@
   .hw-mz *{box-sizing:border-box}
   .hw-mz-heading{font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#111;margin:0 0 16px}
   .hw-mz-slot{margin-bottom:56px}
+  .hw-mz-zoom{position:absolute;top:8px;right:8px;z-index:8;width:38px;height:38px;border-radius:50%;border:0 !important;background:rgba(255,255,255,.92) !important;box-shadow:0 2px 8px rgba(0,0,0,.22);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0 !important;margin:0}
+  .hw-mz-lb{position:fixed;inset:0;z-index:2147483000;background:rgba(21,20,18,.94);display:flex;align-items:center;justify-content:center;padding:12px;box-sizing:border-box}
+  .hw-mz-lb .hw-mz-scene{margin:0;border-radius:10px;touch-action:none}
+  .hw-mz-lb .hw-mz-zoom{display:none}
+  .hw-mz-lb-x{position:absolute;top:max(12px,env(safe-area-inset-top));right:12px;width:44px;height:44px;border-radius:50%;border:0 !important;background:#fff !important;color:#111 !important;font-size:26px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0 !important;z-index:3}
+  .hw-mz-lb-h{position:absolute;left:0;right:0;bottom:max(14px,env(safe-area-inset-bottom));text-align:center;font-size:12px;color:rgba(255,255,255,.7);pointer-events:none}
   .hw-mz-sticky{z-index:20;box-sizing:border-box;background:#fff;padding:6px 0 8px;text-align:center;box-shadow:-16px 0 0 #fff,16px 0 0 #fff,0 12px 0 #fff}
   .hw-mz-scene{position:relative;width:min(100%,520px);aspect-ratio:41/50;margin:0 auto;overflow:hidden;border-radius:6px;background:#ece7df center top/cover no-repeat}
   .hw-mz-ground{position:absolute;left:14%;width:72%;top:86.6%;height:5.7%;background:radial-gradient(ellipse at center,rgba(60,45,30,.38),rgba(60,45,30,0) 70%);filter:blur(3px)}
@@ -657,6 +664,42 @@
       window.addEventListener('scroll', req, { passive: true });
       window.addEventListener('resize', function () { topOff = headerOffset(); req(); });
       update();
+    })();
+
+    // ----- voorbeeld vergroten: vergrootglas of dubbel tikken -----
+    (function () {
+      var scene = $('[data-mz-scene]'), zbtn = $('[data-mz-zoom]'); if (!scene || !zbtn) return;
+      var lb = null, ph = null, keep = '';
+      function size() { var vw = window.innerWidth - 24, vh = window.innerHeight - 24; return Math.floor(Math.min(vw, vh * 41 / 50, 900)); }
+      function openZ() {
+        if (lb) return;
+        ph = document.createElement('div'); ph.style.cssText = 'width:' + scene.offsetWidth + 'px;height:' + scene.offsetHeight + 'px;margin:0 auto'; keep = scene.style.width;
+        scene.parentNode.insertBefore(ph, scene);
+        lb = document.createElement('div'); lb.className = 'hw-mz-lb hw-mz';
+        var x = document.createElement('button'); x.type = 'button'; x.className = 'hw-mz-lb-x'; x.setAttribute('aria-label', 'Sluiten'); x.innerHTML = '&times;';
+        var h = document.createElement('div'); h.className = 'hw-mz-lb-h'; h.textContent = 'Tik buiten het voorbeeld om te sluiten';
+        lb.appendChild(scene); lb.appendChild(x); lb.appendChild(h); document.body.appendChild(lb);
+        scene.style.width = size() + 'px'; document.documentElement.style.overflow = 'hidden';
+        x.addEventListener('click', closeZ);
+        lb.addEventListener('click', function (e) { if (e.target === lb) closeZ(); });
+      }
+      function closeZ() {
+        if (!lb) return;
+        scene.style.width = keep; ph.parentNode.insertBefore(scene, ph); ph.remove(); lb.remove(); lb = null; ph = null;
+        document.documentElement.style.overflow = '';
+      }
+      zbtn.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); openZ(); });
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeZ(); });
+      window.addEventListener('resize', function () { if (lb) scene.style.width = size() + 'px'; });
+      // dubbel tikken (zonder te slepen) opent het grote voorbeeld
+      var lastT = 0, sx = 0, sy = 0, moved = false;
+      scene.addEventListener('touchstart', function (e) { var t = e.touches[0]; sx = t.clientX; sy = t.clientY; moved = false; }, { passive: true });
+      scene.addEventListener('touchmove', function (e) { var t = e.touches[0]; if (Math.abs(t.clientX - sx) > 8 || Math.abs(t.clientY - sy) > 8) moved = true; }, { passive: true });
+      scene.addEventListener('touchend', function (e) {
+        if (moved || lb || e.target.closest('[data-mz-zoom]')) return;
+        var n = Date.now(); if (n - lastT < 350) { lastT = 0; openZ(); } else lastT = n;
+      }, { passive: true });
+      scene.addEventListener('dblclick', function (e) { if (!lb && !e.target.closest('[data-mz-zoom]')) openZ(); });
     })();
 
     // ----- houders als visuele keuze (stuurt de variantkiezer van het thema aan) -----
