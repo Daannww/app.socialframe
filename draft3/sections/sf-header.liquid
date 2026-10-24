@@ -15,6 +15,9 @@
   .sfh-search{display:flex;align-items:center;gap:12px;max-width:300px;border-bottom:1px solid #151412;padding-bottom:8px}
   .sfh-search input{flex:1;min-width:0;border:0!important;outline:0;background:transparent!important;box-shadow:none!important;font-size:14px;font-weight:500;font-family:inherit;color:#151412;padding:0!important;height:auto!important}
   .sfh-search button{border:0;background:transparent;padding:0;cursor:pointer;display:flex}
+  .sf-wm{font-family:'Montserrat',system-ui,sans-serif;font-weight:700;font-size:34px;letter-spacing:-.055em;line-height:1;color:#151412;white-space:nowrap;transition:font-size .25s ease}
+  .sf-wm sup{font-size:.34em;font-weight:600;letter-spacing:0;margin-left:.12em;position:relative;top:-.55em;vertical-align:top;color:#e0a25a}
+  .sfh.is-compact .sf-wm{font-size:26px}
   .sfh-logo{display:flex;align-items:center;justify-self:center}
   .sfh-logo img{height:{{ section.settings.logo_height | default: 52 }}px;width:auto;display:block;transition:height .25s ease}
   .sfh.is-compact .sfh-logo img{height:{{ section.settings.logo_height | default: 52 | times: 0.72 | round }}px}
@@ -45,8 +48,8 @@
     .sfh-strip span:nth-of-type(n+2),.sfh-strip i{display:none}
     .sfh-main{height:64px;padding:0 16px;grid-template-columns:1fr auto 1fr}
     .sfh.is-compact .sfh-main{height:56px}
-    .sfh-logo img{height:34px}
-    .sfh.is-compact .sfh-logo img{height:28px}
+    .sf-wm{font-size:24px}
+    .sfh.is-compact .sf-wm{font-size:21px}
     .sfh-search,.sfh-nav,.sfh-actions .sfh-account span,.sfh-actions .sfh-cart span.sfh-label{display:none}
     .sfh-actions{gap:4px}
     .sfh-actions a{width:44px;height:44px;justify-content:center;margin-right:-10px;gap:2px}
@@ -92,11 +95,7 @@
     </div>
 
     <a class="sfh-logo" href="{{ routes.root_url }}" aria-label="{{ shop.name | escape }}">
-      {%- if logo != blank -%}
-        <img src="{{ logo | image_url: width: 800 }}" alt="{{ shop.name | escape }}" height="{{ section.settings.logo_height | default: 52 }}">
-      {%- else -%}
-        <span style="font-size:30px;font-weight:700;letter-spacing:-.04em">{{ shop.name | escape }}</span>
-      {%- endif -%}
+      <span class="sf-wm">socialframe<sup>™</sup></span>
     </a>
 
     <div class="sfh-actions">
