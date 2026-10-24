@@ -65,7 +65,7 @@
     .sfh-actions .sfh-cart:hover{background:#f6f4ef}
     .sfh-actions .sfh-account{display:none}
     .sfh-burger{display:flex}
-    .sfh-drawer{position:fixed;left:0;right:0;bottom:0;top:var(--sfh-h,98px);background:#fff;z-index:899;overflow-y:auto;padding:16px 16px 40px;transform:translateX(-100%);transition:transform .25s ease;display:block;visibility:hidden}
+    .sfh-drawer{position:fixed;left:0;right:0;bottom:0;top:var(--sfh-h,98px);background:#fff;z-index:899;overflow-y:auto;padding:16px 16px 40px;transform:translateX(-100%);transition:transform .25s ease;display:flex;flex-direction:column;visibility:hidden}
     .sfh-drawer.is-open{transform:none;visibility:visible}
     .sfh-drawer form{display:flex;align-items:center;gap:10px;height:48px;box-sizing:border-box;border-radius:999px;background:#f6f4ef;padding:0 18px;margin-bottom:8px}
     .sfh-drawer form input{flex:1;min-width:0;border:0!important;outline:0;background:transparent!important;box-shadow:none!important;font-size:16px;font-family:inherit;padding:0!important;height:auto!important}
@@ -78,7 +78,9 @@
     .sfh-dsub{padding:0 0 14px;display:flex;flex-direction:column;gap:12px}
     .sfh-dsub strong{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#6d675c;margin-top:8px}
     .sfh-dsub a{font-size:15px;color:#3b3832;text-decoration:none}
-    .sfh-dfoot{padding-top:22px;display:flex;flex-direction:column;gap:14px;font-size:14px}
+    .sfh-dfoot{padding-top:22px;display:flex;flex-direction:column;gap:16px;font-size:15px}
+    .sfh-dbar{margin:auto -16px -40px;padding:18px 16px;border-top:1px solid #ebe8e1;font-size:13px;font-weight:600;color:#151412;position:sticky;bottom:-40px;background:#fff}
+    .sfh-dbar{margin-top:32px}
     .sfh-dfoot a{color:#3b3832;text-decoration:none}
   }
 </style>
@@ -94,7 +96,7 @@
   <div class="sfh-main">
     <div class="sfh-mleft">
       <button type="button" class="sfh-burger" aria-label="Menu" aria-expanded="false" data-sfh-burger>
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#151412" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#151412" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path data-sfh-ic d="M4 7h16M4 12h16M4 17h16"/></svg>
       </button>
     </div>
 
@@ -168,6 +170,8 @@
   </form>
   {%- if menu != blank -%}
     {%- for link in menu.links -%}
+      {%- assign lt = link.title | downcase -%}
+      {%- if lt == 'home' or lt == 'service & faq' or lt == 'contact' -%}{%- continue -%}{%- endif -%}
       {%- if link.links.size > 0 -%}
         <details>
           <summary>{{ link.title | escape }}<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#151412" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="transition:transform .2s ease"><path d="M9 6l6 6-6 6"/></svg></summary>
@@ -189,8 +193,10 @@
     {%- endfor -%}
   {%- endif -%}
   <div class="sfh-dfoot">
+    {%- if menu != blank -%}{%- for link in menu.links -%}{%- assign lt = link.title | downcase -%}{%- if lt == 'service & faq' or lt == 'contact' -%}<a href="{{ link.url }}">{{ link.title | escape }}</a>{%- endif -%}{%- endfor -%}{%- endif -%}
     <a href="{% if customer %}{{ routes.account_url }}{% else %}{{ routes.account_login_url }}{% endif %}">Mijn account</a>
   </div>
+  <div class="sfh-dbar">{{ section.settings.text_left }}</div>
 </div>
 
 <script>
@@ -212,6 +218,7 @@
       }
     }
     measure(); onScroll();
+    if (window.ResizeObserver) { new ResizeObserver(function () { measure(); }).observe(h); }
     window.addEventListener('resize', function () { var w = h.classList.contains('is-compact'); h.classList.remove('is-compact'); measure(); h.classList.toggle('is-compact', w); });
     window.addEventListener('load', function () { var w = h.classList.contains('is-compact'); h.classList.remove('is-compact'); measure(); h.classList.toggle('is-compact', w); });
     window.addEventListener('scroll', onScroll, { passive: true });
@@ -225,6 +232,7 @@
       bg.addEventListener('click', function () {
         var open = !dr.classList.contains('is-open');
         dr.classList.toggle('is-open', open); bg.setAttribute('aria-expanded', open);
+        var ic = bg.querySelector('[data-sfh-ic]'); if (ic) ic.setAttribute('d', open ? 'M6 6l12 12M18 6L6 18' : 'M4 7h16M4 12h16M4 17h16');
         dr.style.top = h.offsetHeight + 'px';
         document.documentElement.style.overflow = open ? 'hidden' : '';
       });
