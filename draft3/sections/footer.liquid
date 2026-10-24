@@ -19,8 +19,8 @@
   .sff-ok{font-size:15px;font-weight:600;margin:0;color:#151412}
   .sff-cols{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;column-gap:48px;padding-top:56px;padding-bottom:40px}
   .sff-brand{max-width:300px;display:flex;flex-direction:column;gap:16px}
-  .sf-wm{font-family:'Montserrat',system-ui,sans-serif;font-weight:700;font-size:34px;letter-spacing:-.055em;line-height:1;color:#151412;white-space:nowrap}
-  .sf-wm sup{font-size:.34em;font-weight:600;letter-spacing:0;margin-left:.12em;position:relative;top:-.93em;vertical-align:baseline;color:#e0a25a}
+  .sf-wm{font-family:'Montserrat',system-ui,sans-serif;font-weight:700;font-size:34px;letter-spacing:-.045em;line-height:1;color:#151412;white-space:nowrap}
+  .sf-wm sup{font-size:.34em;font-weight:600;letter-spacing:0;margin-left:.12em;position:relative;top:-1.43em;vertical-align:baseline;color:#e0a25a}
   .sff-brand img{height:44px;width:auto;display:block;align-self:flex-start}
   .sff-brand p{margin:0;font-size:14px;line-height:1.65;color:#4a4238}
   .sff-social{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
@@ -76,7 +76,7 @@
 
     <div class="sff-cols">
       <div class="sff-brand">
-        <span class="sf-wm">socialframe<sup>™</sup></span>
+        <span class="sf-wm">SocialFrame<sup>™</sup></span>
         <p>{{ section.settings.brand_text }}</p>
         <div class="sff-social">
           {%- assign u_ig = section.settings.instagram | default: settings.social_instagram -%}{%- if u_ig != blank -%}<a href="{{ u_ig }}" target="_blank" rel="noopener">Instagram</a>{%- endif -%}
