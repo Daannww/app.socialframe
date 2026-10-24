@@ -6,37 +6,38 @@
   .sfh{position:fixed;top:0;left:0;right:0;z-index:900;background:#fff;color:#151412;font-family:inherit;transition:box-shadow .25s ease}
   .sfh a{color:inherit;text-decoration:none}
   .sfh.is-compact{box-shadow:0 8px 30px rgba(21,20,18,.08)}
-  .sfh-strip{background:#fff;color:#3b3832;height:34px;overflow:hidden;display:flex;justify-content:center;align-items:center;gap:28px;font-size:12px;font-weight:500;letter-spacing:.02em;transition:height .25s ease;padding:0 64px;box-sizing:border-box;border-bottom:1px solid #ebe8e1}
-  .sfh-strip .c::before,.sfh-strip .r::before{content:"·";margin-right:28px;font-weight:500}
-  .sfh-strip .l{color:#3b3832;display:flex;align-items:center;gap:8px}.sfh-mill{color:#c98a3a;flex:none}.sfh-dbar{display:flex;align-items:center;gap:8px}.sfh-dbar .sfh-mill{color:#e0a25a}.sfh-strip .c{font-weight:700;text-align:center;white-space:nowrap}.sfh-strip .r{color:#3b3832}
-  .sfh-strip .c a{color:#b87a2a;font-weight:600}.sfh-strip .c a:hover{text-decoration:underline;text-underline-offset:4px}
-  .sfh-nav .sfh-xl{display:none}
-  @media (min-width:1500px){.sfh-nav .sfh-xl{display:flex}}
-  .sfh.is-compact .sfh-strip{height:0;border-bottom-width:0}
-    .sfh-main{height:92px;box-sizing:border-box;padding:0 64px;display:grid;grid-template-columns:auto 1fr auto;column-gap:32px;align-items:center;background:#0f0f0e;color:#e9e4d8;position:relative;transition:height .25s ease}
-  .sfh.is-compact .sfh-main{height:64px}
+  .sfh-strip{background:#f2c48a;color:#151412;height:40px;overflow:hidden;display:flex;justify-content:center;align-items:center;gap:10px;font-size:12px;font-weight:600;letter-spacing:.02em;transition:height .25s ease;padding:0 64px;box-sizing:border-box}
+  .sfh-strip .c::before,.sfh-strip .r::before{content:"·";margin-right:10px;font-weight:600}
+  .sfh-strip .l{color:#151412;display:flex;align-items:center;gap:8px}.sfh-mill{color:#151412;flex:none}.sfh-dbar{display:flex;align-items:center;gap:8px}.sfh-dbar .sfh-mill{color:#e0a25a}.sfh-strip .c{font-weight:700;text-align:center;white-space:nowrap}.sfh-strip .r{font-weight:600}
+  .sfh-strip .c a{color:#151412;font-weight:700;text-decoration:underline;text-underline-offset:3px}.sfh-strip .c a:hover{text-decoration:underline;text-underline-offset:4px}
+    .sfh.is-compact .sfh-strip{height:0}
+    .sfh-main{height:96px;box-sizing:border-box;padding:0 64px;display:grid;grid-template-columns:1fr auto 1fr;column-gap:32px;align-items:center;transition:height .25s ease}
+  .sfh.is-compact .sfh-main{height:68px}
+  .sfh-dsearch{display:flex;align-items:center;gap:12px;max-width:300px;border-bottom:1px solid #151412;padding-bottom:8px}
+  .sfh-dsearch input{flex:1;min-width:0;border:0!important;outline:0;background:transparent!important;box-shadow:none!important;font-size:14px;font-weight:500;font-family:inherit;color:#151412;padding:0!important;height:auto!important}
+  .sfh-dsearch button{border:0;background:transparent;padding:0;display:flex;cursor:pointer}
+  .sfh-navrow{position:relative;height:58px;box-sizing:border-box;border-top:1px solid #ebe8e1;border-bottom:1px solid #ebe8e1;display:flex;justify-content:center;align-items:stretch;transition:height .25s ease}
+  .sfh.is-compact .sfh-navrow{height:50px}
   .sfh-mleft{display:none}
-  .sf-wm{font-family:'Montserrat',system-ui,sans-serif;font-weight:700;font-size:34px;letter-spacing:-.045em;line-height:1;color:#fff;white-space:nowrap;transition:font-size .25s ease}
+  .sf-wm{font-family:'Montserrat',system-ui,sans-serif;font-weight:700;font-size:38px;letter-spacing:-.045em;line-height:1;color:#151412;white-space:nowrap;transition:font-size .25s ease}
   .sf-wm sup{font-size:.34em;font-weight:600;letter-spacing:0;margin-left:.12em;position:relative;top:-1.43em;vertical-align:baseline;color:#e0a25a}
-  .sfh .sf-wm{color:#fff}
-  .sfh.is-compact .sf-wm{font-size:26px}
-  .sfh-logo{display:flex;align-items:center;justify-self:start}
+  .sfh.is-compact .sf-wm{font-size:30px}
+  .sfh-logo{display:flex;align-items:center;justify-self:center}
     .sfh-actions{display:flex;justify-content:flex-end;align-items:center;gap:6px;font-size:14px;font-weight:600}
   .sfh-actions a,.sfh-actions button{display:flex;align-items:center;justify-content:center;gap:10px;white-space:nowrap;width:44px;height:44px;border-radius:50%;border:0;background:transparent;padding:0;cursor:pointer;color:inherit}
-  .sfh-actions a:hover,.sfh-actions button:hover{background:rgba(255,255,255,.1)}
-  .sfh-actions .sfh-cart{width:auto;padding:0 20px;border-radius:999px;background:#f2c48a;color:#0f0f0e!important;font-weight:700;margin-left:6px}
-  .sfh-actions .sfh-cart:hover{background:#f7d3a6}
-  .sfh-sbar{position:absolute;left:0;right:0;top:100%;margin-top:0;background:#fff;border-bottom:1px solid #ebe8e1;box-shadow:0 24px 40px rgba(21,20,18,.07);padding:22px 64px;display:none}
+  .sfh-actions a:hover,.sfh-actions button:hover{background:#f6f4ef}
+  .sfh-actions{gap:10px}.sfh-actions a.sfh-account,.sfh-actions a.sfh-cart{width:auto;padding:0 12px;gap:8px;border-radius:999px;font-size:13px;font-weight:600}
+  .sfh-sbar{position:absolute;left:0;right:0;top:100%;background:#fff;border-bottom:1px solid #ebe8e1;box-shadow:0 24px 40px rgba(21,20,18,.07);padding:22px 64px;display:none}
   .sfh.is-search .sfh-sbar{display:block}
   .sfh-sbar form{max-width:720px;margin:0 auto;display:flex;align-items:center;gap:14px;border-bottom:2px solid #151412;padding-bottom:10px}
   .sfh-sbar input{flex:1;min-width:0;border:0!important;outline:0;background:transparent!important;box-shadow:none!important;font-size:20px;font-weight:500;font-family:inherit;color:#151412;padding:0!important;height:auto!important}
   .sfh-sbar button{border:0;background:transparent;padding:0;display:flex;cursor:pointer}
-  .sfh-nav{align-self:stretch;display:flex;justify-content:center;align-items:stretch}
-  .sfh-nav>ul{display:flex;gap:34px;list-style:none;margin:0;padding:0;align-items:stretch}
+  .sfh-nav{align-self:stretch;display:flex;justify-content:center;align-items:stretch;position:static}
+  .sfh-nav>ul{display:flex;gap:40px;list-style:none;margin:0;padding:0;align-items:stretch}
   .sfh-nav>ul>li{display:flex;align-items:stretch;margin:0;padding:0}
   .sfh-nav>ul>li::before{content:none!important}
-  .sfh-nav>ul>li>a{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;color:#e9e4d8}
-  .sfh-nav>ul>li:hover>a,.sfh-nav>ul>li:focus-within>a,.sfh-nav>ul>li>a[aria-current]{border-bottom-color:#f2c48a;color:#fff}
+  .sfh-nav>ul>li>a{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+  .sfh-nav>ul>li:hover>a,.sfh-nav>ul>li:focus-within>a,.sfh-nav>ul>li>a[aria-current]{border-bottom-color:#151412}
   .sfh-nav svg.sfh-chev{width:10px;height:10px;transition:transform .2s ease}
   .sfh-nav>ul>li:hover svg.sfh-chev{transform:rotate(180deg)}
   .sfh-panel{position:absolute;left:0;right:0;top:100%;background:#fff;border-bottom:1px solid #ebe8e1;box-shadow:0 24px 40px rgba(21,20,18,.07);padding:36px 64px 40px;display:none}
@@ -50,22 +51,23 @@
   .sfh-cols a:hover{color:#000;text-decoration:underline;text-underline-offset:4px}
   .sfh-burger{display:none;width:44px;height:44px;border:0;background:transparent;padding:0;cursor:pointer;align-items:center;justify-content:center;margin-left:-10px}
   .sfh-drawer{display:none}
-  .sfh-strip,.sfh-main,.sfh-sbar,.sfh-panel{padding-left:max(64px,calc((100% - 1312px) / 2));padding-right:max(64px,calc((100% - 1312px) / 2))}
-  @media (max-width:1279px){.sfh-nav>ul{gap:22px}.sfh-main,.sfh-panel,.sfh-strip,.sfh-sbar{padding-left:32px;padding-right:32px}.sfh-nav>ul>li>a{font-size:12px;letter-spacing:.04em}.sfh-main{column-gap:20px}}
+  .sfh-strip,.sfh-main,.sfh-panel{padding-left:max(64px,calc((100% - 1312px) / 2));padding-right:max(64px,calc((100% - 1312px) / 2))}
+  @media (max-width:1279px){.sfh-nav>ul{gap:22px}.sfh-main,.sfh-panel,.sfh-strip{padding-left:32px;padding-right:32px}.sfh-nav>ul{gap:26px}.sfh-nav>ul>li>a{font-size:12px;letter-spacing:.05em}.sfh-main{column-gap:20px}.sfh-dsearch{max-width:200px}.sfh-actions a.sfh-account .sfh-txt,.sfh-actions a.sfh-cart .sfh-txt{display:none}.sfh-actions a.sfh-account,.sfh-actions a.sfh-cart{padding:0;width:44px}}
   @media (max-width:989px){
-    .sfh-strip{height:30px;font-size:11px;padding:0 16px}
-    .sfh-strip .c::before{display:none}
-    .sfh-strip .l,.sfh-strip .r{display:none}
+    .sfh-strip{height:34px;font-size:11px;padding:0 16px}
+    .sfh-strip .l,.sfh-strip .r,.sfh-strip .c::before{display:none}
     .sfh-main{height:64px;padding:0 16px;grid-template-columns:1fr auto 1fr}
+    .sfh-dsearch,.sfh-navrow{display:none}
     .sfh-mleft{display:block}
     .sfh-logo{justify-self:center}
     .sfh.is-compact .sfh-main{height:56px}
     .sf-wm{font-size:24px}
     .sfh.is-compact .sf-wm{font-size:21px}
-    .sfh-nav,.sfh-sbar,.sfh-actions .sfh-search-btn,.sfh-actions .sfh-cart span.sfh-label{display:none}
+    .sfh-nav,.sfh-sbar,.sfh-actions .sfh-search-btn{display:none}
+    .sfh-actions a .sfh-txt{display:none}
     .sfh-actions{gap:4px}
-    .sfh-actions .sfh-cart{width:44px;padding:0;background:transparent;color:#e9e4d8!important;margin-right:-10px;margin-left:0}
-    .sfh-actions .sfh-cart:hover{background:rgba(255,255,255,.1)}
+    .sfh-actions .sfh-cart{width:44px;padding:0;background:transparent;color:#151412!important;margin-right:-10px;padding:0;width:44px}
+    .sfh-actions .sfh-cart:hover{background:#f6f4ef}
     .sfh-actions .sfh-account{display:none}
     .sfh-burger{display:flex}
     .sfh-drawer{position:fixed;left:0;right:0;bottom:0;top:var(--sfh-h,98px);background:#fff;z-index:899;overflow-y:auto;padding:16px 16px 40px;transform:translateX(-100%);transition:transform .25s ease;display:flex;flex-direction:column;visibility:hidden}
@@ -112,24 +114,42 @@
 
 <div class="sfh-spacer" data-sfh-spacer aria-hidden="true"></div>
 <header class="sfh" data-sfh {{ section.shopify_attributes }}>
+  <div class="sfh-strip">
+    <span class="l"><svg class="sfh-mill" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.2 22l1.3-9.5h3L14.8 22z"/><path d="M5.9 3.9L18.1 14.1M17.1 2.9L6.9 15.1"/><circle cx="12" cy="9" r="1" fill="currentColor"/></svg>{{ section.settings.text_left }}</span>
+    <span class="c">{{ section.settings.text_1 }}{% if section.settings.button_label != blank %} &nbsp;·&nbsp; <a href="{{ section.settings.button_url | default: routes.all_products_collection_url }}">{{ section.settings.button_label }}</a>{% endif %}</span>
+    <span class="r">{{ section.settings.text_2 }}</span>
+  </div>
+
   <div class="sfh-main">
     <div class="sfh-mleft">
       <button type="button" class="sfh-burger" aria-label="Menu" aria-expanded="false" data-sfh-burger>
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e9e4d8" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path data-sfh-ic d="M4 7h16M4 12h16M4 17h16"/></svg>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#151412" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path data-sfh-ic d="M4 7h16M4 12h16M4 17h16"/></svg>
       </button>
     </div>
+
+    <form class="sfh-dsearch" action="{{ routes.search_url }}" method="get" role="search"><button type="submit" aria-label="Zoeken"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#151412" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></button><input type="search" name="q" placeholder="Zoek naar..." aria-label="Zoeken" autocomplete="off"></form>
 
     <a class="sfh-logo" href="{{ routes.root_url }}" aria-label="{{ shop.name | escape }}">
       <span class="sf-wm">SocialFrame<sup>™</sup></span>
     </a>
 
+    <div class="sfh-actions">
+      <a class="sfh-account" href="{% if customer %}{{ routes.account_url }}{% else %}{{ routes.account_login_url }}{% endif %}" aria-label="Account">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#151412" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg><span class="sfh-txt">Account</span>
+      </a>
+      <a class="sfh-cart" href="{{ routes.cart_url }}" aria-label="Winkelwagen">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1 12H6z"/><path d="M9 8V6a3 3 0 016 0v2"/></svg><span class="sfh-txt">Winkelwagen (<span data-header-cart-count>{{ cart.item_count }}</span>)</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="sfh-navrow">
   {%- if menu != blank -%}
   <nav class="sfh-nav" aria-label="Hoofdmenu">
     <ul>
       {%- for link in menu.links -%}
         {%- assign lt = link.title | downcase -%}
-        {%- if lt == 'home' -%}{%- continue -%}{%- endif -%}
-        <li{% if lt == 'service & faq' or lt == 'contact' %} class="sfh-xl"{% endif %}>
+                <li>
           <a href="{{ link.url }}"{% if link.current %} aria-current="page"{% endif %}>{{ link.title | escape }}
             {%- if link.links.size > 0 -%}<svg class="sfh-chev" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 4l4 4 4-4"/></svg>{%- endif -%}
           </a>
@@ -161,30 +181,6 @@
   </nav>
   {%- endif -%}
 
-    <div class="sfh-actions">
-      <button type="button" class="sfh-search-btn" aria-label="Zoeken" data-sfh-search>
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#e9e4d8" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
-      </button>
-      <a class="sfh-account" href="{% if customer %}{{ routes.account_url }}{% else %}{{ routes.account_login_url }}{% endif %}" aria-label="Account">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#e9e4d8" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>
-      </a>
-      <a class="sfh-cart" href="{{ routes.cart_url }}" aria-label="Winkelwagen">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1 12H6z"/><path d="M9 8V6a3 3 0 016 0v2"/></svg><span class="sfh-label" data-header-cart-count>{{ cart.item_count }}</span>
-      </a>
-    </div>
-  </div>
-
-  <div class="sfh-strip">
-    <span class="l"><svg class="sfh-mill" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.2 22l1.3-9.5h3L14.8 22z"/><path d="M5.9 3.9L18.1 14.1M17.1 2.9L6.9 15.1"/><circle cx="12" cy="9" r="1" fill="currentColor"/></svg>{{ section.settings.text_left }}</span>
-    <span class="c">{{ section.settings.text_1 }}{% if section.settings.button_label != blank %} &nbsp;·&nbsp; <a href="{{ section.settings.button_url | default: routes.all_products_collection_url }}">{{ section.settings.button_label }}</a>{% endif %}</span>
-    <span class="r">{{ section.settings.text_2 }}</span>
-  </div>
-
-  <div class="sfh-sbar">
-    <form action="{{ routes.search_url }}" method="get" role="search">
-      <button type="submit" aria-label="Zoeken"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#151412" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></button>
-      <input type="search" name="q" placeholder="Zoek naar een frame, tegeltje of cadeau..." aria-label="Zoeken" autocomplete="off" data-sfh-sinput>
-    </form>
   </div>
 </header>
 
