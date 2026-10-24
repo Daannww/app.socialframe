@@ -5,12 +5,9 @@
     "sf_header": {
       "type": "sf-header",
       "settings": {
-        "logo": "shopify://shop_images/SocialFrame_logo_Registerd_menu_logo.svg",
-        "logo_height": 52,
         "menu": "hoofdmenu-nieuw",
         "text_1": "2e tegeltje 20% korting",
-        "text_2": "Voor 12:00 besteld = zelfde werkdag verzonden",
-        "text_3": "Gratis verzending vanaf €20"
+        "text_2": "Voor 12:00 besteld = zelfde werkdag verzonden"
       }
     }
   },
