@@ -7,9 +7,14 @@
       "settings": {
         "menu": "hoofdmenu-nieuw",
         "text_1": "2e tegeltje 20% korting",
-        "text_2": "Voor 12:00 besteld = zelfde werkdag verzonden"
+        "text_2": "Voor 12:00 besteld = zelfde werkdag verzonden",
+        "text_left": "Made in Holland",
+        "button_label": "Shop nu",
+        "button_url": "shopify://collections/tegels"
       }
     }
   },
-  "order": ["sf_header"]
+  "order": [
+    "sf_header"
+  ]
 }

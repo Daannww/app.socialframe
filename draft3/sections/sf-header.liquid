@@ -7,8 +7,10 @@
   .sfh a{color:inherit;text-decoration:none}
   .sfh.is-compact{box-shadow:0 8px 30px rgba(21,20,18,.08)}
   .sfh-strip{background:#151412;color:#f3efe7;height:40px;overflow:hidden;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:16px;font-size:12px;font-weight:500;letter-spacing:.02em;transition:height .25s ease;padding:0 64px;box-sizing:border-box}
-  .sfh-strip .l{color:#cfc8bb}.sfh-strip .c{font-weight:700;text-align:center}.sfh-strip .r{display:flex;justify-content:flex-end;gap:22px}
-  .sfh-strip .r a{color:#f2c48a;font-weight:600}.sfh-strip .r a:hover{text-decoration:underline;text-underline-offset:4px}
+  .sfh-strip .l{color:#cfc8bb}.sfh-strip .c{font-weight:700;text-align:center;white-space:nowrap}.sfh-strip .r{text-align:right;color:#cfc8bb}
+  .sfh-strip .c a{color:#f2c48a;font-weight:600}.sfh-strip .c a:hover{text-decoration:underline;text-underline-offset:4px}
+  .sfh-nav .sfh-xl{display:none}
+  @media (min-width:1500px){.sfh-nav .sfh-xl{display:flex}}
   .sfh.is-compact .sfh-strip{height:0}
     .sfh-main{height:84px;box-sizing:border-box;padding:0 64px;display:grid;grid-template-columns:auto 1fr auto;column-gap:32px;align-items:center;border-bottom:1px solid #ebe8e1;transition:height .25s ease}
   .sfh.is-compact .sfh-main{height:64px}
@@ -84,11 +86,9 @@
 <div class="sfh-spacer" data-sfh-spacer aria-hidden="true"></div>
 <header class="sfh" data-sfh {{ section.shopify_attributes }}>
   <div class="sfh-strip">
-    <span class="l">{{ section.settings.text_2 }}</span>
-    <span class="c">{{ section.settings.text_1 }}</span>
-    <span class="r">
-      {%- if menu != blank -%}{%- for link in menu.links -%}{%- assign lt = link.title | downcase -%}{%- if lt == 'service & faq' or lt == 'contact' -%}<a href="{{ link.url }}">{{ link.title | escape }}</a>{%- endif -%}{%- endfor -%}{%- endif -%}
-    </span>
+    <span class="l">{{ section.settings.text_left }}</span>
+    <span class="c">{{ section.settings.text_1 }}{% if section.settings.button_label != blank %} &nbsp;·&nbsp; <a href="{{ section.settings.button_url | default: routes.all_products_collection_url }}">{{ section.settings.button_label }}</a>{% endif %}</span>
+    <span class="r">{{ section.settings.text_2 }}</span>
   </div>
 
   <div class="sfh-main">
@@ -107,8 +107,8 @@
     <ul>
       {%- for link in menu.links -%}
         {%- assign lt = link.title | downcase -%}
-        {%- if lt == 'home' or lt == 'service & faq' or lt == 'contact' -%}{%- continue -%}{%- endif -%}
-        <li>
+        {%- if lt == 'home' -%}{%- continue -%}{%- endif -%}
+        <li{% if lt == 'service & faq' or lt == 'contact' %} class="sfh-xl"{% endif %}>
           <a href="{{ link.url }}"{% if link.current %} aria-current="page"{% endif %}>{{ link.title | escape }}
             {%- if link.links.size > 0 -%}<svg class="sfh-chev" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 4l4 4 4-4"/></svg>{%- endif -%}
           </a>
@@ -239,7 +239,10 @@
   "settings": [
     { "type": "link_list", "id": "menu", "label": "Menu", "default": "main-menu" },
     { "type": "text", "id": "text_1", "label": "Strook tekst midden", "default": "2e tegeltje 20% korting" },
-    { "type": "text", "id": "text_2", "label": "Strook tekst links", "default": "Voor 12:00 besteld = zelfde werkdag verzonden" }
+    { "type": "text", "id": "text_left", "label": "Strook tekst links", "default": "Made in Holland" },
+    { "type": "text", "id": "button_label", "label": "Strook linktekst", "default": "Shop nu" },
+    { "type": "url", "id": "button_url", "label": "Strook link" },
+    { "type": "text", "id": "text_2", "label": "Strook tekst rechts", "default": "Voor 12:00 besteld = zelfde werkdag verzonden" }
   ],
   "enabled_on": { "groups": ["header"] }
 }
