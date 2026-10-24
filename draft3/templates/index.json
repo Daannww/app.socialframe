@@ -355,105 +355,63 @@
       }
     },
     "1654161920efe5f084": {
-      "type": "text-columns-icons",
+      "type": "sf-usp",
       "blocks": {
-        "1654161920f21316cf-0": {
-          "type": "image",
+        "usp_0": {
+          "type": "usp",
           "settings": {
             "icon": "delivery",
-            "title": "Gratis Verzending",
-            "caption": "Gratis verzending vanaf €20 naar Nederland België en Duitsland.",
-            "link": "",
-            "open_in_new_window": false,
-            "color_background_main": "rgba(0,0,0,0)",
-            "color_icons_main": "rgba(0,0,0,0)",
-            "seo_h_tag": "h3"
+            "title": "Gratis verzending",
+            "text": "Gratis verzending vanaf €20 naar Nederland, België en Duitsland."
           }
         },
-        "1654161920f21316cf-1": {
-          "type": "image",
+        "usp_1": {
+          "type": "usp",
           "settings": {
-            "icon": "store",
-            "title": "Speciaal voor jou gemaakt!",
-            "caption": "Alle producten uit ons assortiment produceren wij zelf in Nederland",
-            "link": "",
-            "open_in_new_window": false,
-            "color_background_main": "rgba(0,0,0,0)",
-            "color_icons_main": "rgba(0,0,0,0)",
-            "seo_h_tag": "h3"
+            "icon": "made",
+            "title": "Speciaal voor jou gemaakt",
+            "text": "Alle producten maken wij zelf in Nederland."
           }
         },
-        "1654161920f21316cf-2": {
-          "type": "image",
+        "usp_2": {
+          "type": "usp",
           "settings": {
-            "icon": "currency",
+            "icon": "pay",
             "title": "Veilig betalen",
-            "caption": "ApplePay, iDEAL, Bancontact, Mastercard, Paypal, Visa en Klarna",
-            "link": "",
-            "open_in_new_window": false,
-            "color_background_main": "rgba(0,0,0,0)",
-            "color_icons_main": "rgba(0,0,0,0)",
-            "seo_h_tag": "h3"
+            "text": "Apple Pay, iDEAL, Bancontact, Mastercard, PayPal, Visa en Klarna."
           }
         },
-        "1654161920f21316cf-3": {
-          "type": "image",
+        "usp_3": {
+          "type": "usp",
           "settings": {
-            "icon": "like-hand",
-            "title": "4.6 / 5 Trustpilot score",
-            "caption": "Customer satisfaction #1 priority.",
-            "link": "",
-            "open_in_new_window": false,
-            "color_background_main": "rgba(0,0,0,0)",
-            "color_icons_main": "rgba(0,0,0,0)",
-            "seo_h_tag": "h3"
+            "icon": "star",
+            "title": "4,6 / 5 op Trustpilot",
+            "text": "Klanttevredenheid is onze eerste prioriteit."
           }
         }
       },
       "block_order": [
-        "1654161920f21316cf-0",
-        "1654161920f21316cf-1",
-        "1654161920f21316cf-2",
-        "1654161920f21316cf-3"
+        "usp_0",
+        "usp_1",
+        "usp_2",
+        "usp_3"
       ],
-      "custom_css": [
-        ".card__icon svg {height: 40%; width: 40%; top: 65%;}",
-        ".card__icon-size--regular {height: 90px;}",
-        ".grid--slider {margin-top: 20px;}"
-      ],
-      "settings": {
-        "heading": "",
-        "subheading": "",
-        "section_heading_layout": "section-heading--left",
-        "style": "slider",
-        "layout": "grid-4 grid-portable-3 grid-lap-2",
-        "border_radius": 20,
-        "section_background_color": "rgba(0,0,0,0)",
-        "section_background_gradient": "",
-        "section_heading_color": "rgba(0,0,0,0)",
-        "remove_margin": true,
-        "seo_h_tag": "h2"
-      }
+      "settings": {}
     },
     "media_with_text_overlay_cEtnxm": {
-      "type": "media-with-text-overlay",
+      "type": "sf-duo",
       "blocks": {
         "image_N4q7Lr": {
           "type": "image",
           "settings": {
             "image": "shopify://shop_images/Social_-_kunststofpootjes_close_up.jpg",
             "video": "shopify://files/videos/Zo Word Jouw Socialframe Gemaakt_R1.mp4",
-            "caption": "",
-            "title": "",
+            "caption": "Achter de schermen",
+            "title": "Zo wordt jouw Socialframe gemaakt",
             "subtitle": "",
             "link": "shopify://collections/socialframe-the-classics",
             "open_in_new_window": false,
-            "button_label": "",
-            "color_background_main": "rgba(0,0,0,0)",
-            "color_text_main": "rgba(0,0,0,0)",
-            "color_hide_borders": false,
-            "color_hide_shadow": false,
-            "seo_h_tag": "h3"
+            "button_label": "Bekijk frames"
           }
         },
         "image_FMxkh7": {
@@ -461,17 +419,12 @@
           "settings": {
             "image": "shopify://shop_images/IMG_9508_2.jpg",
             "video": "shopify://files/videos/IMG_9519.MOV",
-            "caption": "",
+            "caption": "Accessoire",
             "title": "Houten houder",
             "subtitle": "Inclusief led-verlichting",
             "link": "shopify://products/houtenstandaard-met-led-verlichting",
             "open_in_new_window": false,
-            "button_label": "Show more",
-            "color_background_main": "rgba(0,0,0,0)",
-            "color_text_main": "#ffffff",
-            "color_hide_borders": false,
-            "color_hide_shadow": false,
-            "seo_h_tag": "h3"
+            "button_label": "Bekijk"
           }
         }
       },
@@ -479,27 +432,9 @@
         "image_N4q7Lr",
         "image_FMxkh7"
       ],
-      "custom_css": [
-        "h2 {font-size: 20px;}"
-      ],
       "settings": {
-        "heading": "Maak het nóg specialer met de juiste accessoires!",
-        "subheading": "",
-        "section_heading_layout": "section-heading--center",
-        "layout": "grid-2 grid-lap-1",
-        "height": "small",
-        "alignment": "horizontal-left align-content--vertical-bottom",
-        "width": "60%",
-        "caption_size": "small",
-        "title_size": "h1",
-        "subtitle_size": "regular",
-        "button_size": "large",
-        "button_style": "solid",
-        "section_background_color": "rgba(0,0,0,0)",
-        "section_background_gradient": "",
-        "section_heading_color": "rgba(0,0,0,0)",
-        "remove_margin": true,
-        "seo_h_tag": "h2"
+        "heading": "Maak het nóg specialer met de juiste accessoires",
+        "height": 440
       }
     },
     "rich_text_tKanbj": {

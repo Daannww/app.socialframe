@@ -1,8 +1,9 @@
 <style>
   .sfd{max-width:1440px;margin:0 auto;padding:28px 64px 8px;box-sizing:border-box}
+  .sfd-h{margin:0 0 24px;font-size:28px;font-weight:700;letter-spacing:-.02em;color:#151412;text-align:center}
   .sfd-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
   .sfd-card{position:relative;display:block;border-radius:24px;overflow:hidden;background:#151412;color:#fff!important;text-decoration:none!important;height:{{ section.settings.height }}px;isolation:isolate}
-  .sfd-card img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .7s cubic-bezier(.2,.7,.2,1);z-index:-2}
+  .sfd-card img,.sfd-card video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .7s cubic-bezier(.2,.7,.2,1);z-index:-2}
   .sfd-card::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(21,20,18,0) 38%,rgba(21,20,18,.78) 100%);z-index:-1}
   .sfd-card:hover img{transform:scale(1.04)}
   .sfd-in{position:absolute;left:0;right:0;bottom:0;padding:40px 44px;display:flex;align-items:flex-end;justify-content:space-between;gap:24px}
@@ -12,6 +13,7 @@
   .sfd-s{margin:10px 0 0;font-size:15px;line-height:1.5;color:rgba(255,255,255,.85)}
   .sfd-btn{flex:none;display:inline-flex;align-items:center;gap:10px;height:52px;padding:0 26px;border-radius:999px;background:#fff;color:#151412;font-size:15px;font-weight:600;white-space:nowrap;transition:background .2s ease,gap .2s ease}
   .sfd-card:hover .sfd-btn{background:#f2c48a;gap:14px}
+  .sfd-card video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2}
   @media (max-width:1279px){.sfd{padding-left:32px;padding-right:32px}.sfd-in{padding:32px}.sfd-t{font-size:28px}}
   @media (max-width:989px){
     .sfd{padding:16px 16px 4px}
@@ -22,11 +24,14 @@
   }
 </style>
 <section class="sfd" {{ section.shopify_attributes }}>
+  {%- if section.settings.heading != blank -%}<h2 class="sfd-h">{{ section.settings.heading }}</h2>{%- endif -%}
   <div class="sfd-grid">
     {%- for block in section.blocks -%}
       {%- assign b = block.settings -%}
       <a class="sfd-card" href="{{ b.link | default: routes.all_products_collection_url }}"{% if b.open_in_new_window %} target="_blank" rel="noopener"{% endif %} {{ block.shopify_attributes }}>
-        {%- if b.image != blank -%}
+        {%- if b.video != blank -%}
+          <video autoplay muted loop playsinline preload="metadata"{% if b.image != blank %} poster="{{ b.image | image_url: width: 1400 }}"{% endif %}>{%- for src in b.video.sources -%}{%- if src.format == 'mp4' -%}<source src="{{ src.url }}" type="video/mp4">{%- endif -%}{%- endfor -%}</video>
+        {%- elsif b.image != blank -%}
           <img src="{{ b.image | image_url: width: 1400 }}" srcset="{{ b.image | image_url: width: 700 }} 700w, {{ b.image | image_url: width: 1100 }} 1100w, {{ b.image | image_url: width: 1600 }} 1600w" sizes="(max-width:989px) 100vw, 50vw" alt="{{ b.title | escape }}" loading="{% if forloop.first %}eager{% else %}lazy{% endif %}">
         {%- endif -%}
         <div class="sfd-in">
@@ -48,11 +53,13 @@
 {
   "name": "SocialFrame duo",
   "settings": [
+    { "type": "text", "id": "heading", "label": "Kop boven de kaarten" },
     { "type": "range", "id": "height", "min": 320, "max": 640, "step": 20, "unit": "px", "label": "Hoogte", "default": 480 }
   ],
   "blocks": [
     { "type": "image", "name": "Kaart", "settings": [
       { "type": "image_picker", "id": "image", "label": "Afbeelding" },
+      { "type": "video", "id": "video", "label": "Video (optioneel, vervangt de afbeelding)" },
       { "type": "text", "id": "caption", "label": "Label (klein, bovenaan)" },
       { "type": "text", "id": "title", "label": "Titel" },
       { "type": "text", "id": "subtitle", "label": "Ondertitel" },
