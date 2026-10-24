@@ -675,10 +675,10 @@
         if (lb) return;
         ph = document.createElement('div'); ph.style.cssText = 'width:' + scene.offsetWidth + 'px;height:' + scene.offsetHeight + 'px;margin:0 auto'; keep = scene.style.width;
         scene.parentNode.insertBefore(ph, scene);
-        lb = document.createElement('div'); lb.className = 'hw-mz-lb hw-mz';
+        lb = document.createElement('div'); lb.className = 'hw-mz-lb';
         var x = document.createElement('button'); x.type = 'button'; x.className = 'hw-mz-lb-x'; x.setAttribute('aria-label', 'Sluiten'); x.innerHTML = '&times;';
         var h = document.createElement('div'); h.className = 'hw-mz-lb-h'; h.textContent = 'Tik buiten het voorbeeld om te sluiten';
-        lb.appendChild(scene); lb.appendChild(x); lb.appendChild(h); document.body.appendChild(lb);
+        lb.appendChild(scene); lb.appendChild(x); lb.appendChild(h); root.appendChild(lb);
         scene.style.width = size() + 'px'; document.documentElement.style.overflow = 'hidden';
         x.addEventListener('click', closeZ);
         lb.addEventListener('click', function (e) { if (e.target === lb) closeZ(); });
