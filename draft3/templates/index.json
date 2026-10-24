@@ -1,0 +1,1118 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "1653646142d6a7c886": {
+      "type": "slideshow",
+      "blocks": {
+        "1653646142fd3f3126-0": {
+          "type": "image",
+          "settings": {
+            "image": "shopify://shop_images/SOCIAL_-_Website_banner_2025_hoog_d685b4e0-885c-4dce-bac9-804209748f5b.webp",
+            "caption": "",
+            "title": "Gepersonaliseerde Frames.",
+            "link": "shopify://collections/socialframe-the-classics",
+            "open_in_new_window": false,
+            "button_label": "Personaliseren.",
+            "color_background_main": "rgba(0,0,0,0)",
+            "color_text_main": "#ffffff",
+            "seo_h_tag": "h3"
+          }
+        },
+        "image_tzQKUe": {
+          "type": "image",
+          "settings": {
+            "image": "shopify://shop_images/Socialframe-_auto-frame_banner_website2_0.jpg",
+            "caption": "",
+            "title": "Wie heeft de mooiste auto?",
+            "link": "shopify://products/auto-frame-specs",
+            "open_in_new_window": false,
+            "button_label": "Personaliseer nu!",
+            "color_background_main": "rgba(0,0,0,0)",
+            "color_text_main": "#ffffff",
+            "seo_h_tag": "h4"
+          }
+        },
+        "image_inirte": {
+          "type": "image",
+          "settings": {
+            "image": "shopify://shop_images/SOCIAL_-_Website_banner_2025_led.jpg",
+            "mobile_image": "shopify://shop_images/SOCIAL_-_Website_banner_mobile_led.jpg",
+            "caption": "",
+            "title": "",
+            "link": "",
+            "open_in_new_window": false,
+            "button_label": "",
+            "color_background_main": "rgba(0,0,0,0)",
+            "color_text_main": "rgba(0,0,0,0)",
+            "seo_h_tag": "h3"
+          }
+        }
+      },
+      "block_order": [
+        "1653646142fd3f3126-0",
+        "image_tzQKUe",
+        "image_inirte"
+      ],
+      "disabled": true,
+      "settings": {
+        "desktop_height": "40vh",
+        "mobile_height": "40vh",
+        "is_auto_height": true,
+        "autorotate_enable": true,
+        "autorotate_interval": 5,
+        "alignment": "horizontal-left align-content--vertical-middle",
+        "text_size": "xlarge",
+        "title_size": "h1",
+        "button_size": "regular",
+        "button_style": "solid",
+        "is_fullwidth": true,
+        "section_background_color": "rgba(0,0,0,0)",
+        "section_background_gradient": "",
+        "section_heading_color": "rgba(0,0,0,0)",
+        "remove_margin": true,
+        "color_hide_borders": false,
+        "color_hide_shadow": false
+      }
+    },
+    "media_with_text_overlay_UQKFrg": {
+      "type": "sf-duo",
+      "blocks": {
+        "image_gi9VPa": {
+          "type": "image",
+          "settings": {
+            "image": "shopify://shop_images/Banner_website_tegel_visual.webp",
+            "caption": "Tegeltjes",
+            "title": "Zeg het met een tegeltje",
+            "subtitle": "Persoonlijk, met jouw foto of ontwerp.",
+            "link": "shopify://collections/tegels",
+            "open_in_new_window": false,
+            "button_label": "Bekijk tegeltjes"
+          }
+        },
+        "image_wTzj3Y": {
+          "type": "image",
+          "settings": {
+            "image": "shopify://shop_images/2102313---WEPDA---Spotify-Plaat-visual-2-avicii.jpg",
+            "caption": "Frames",
+            "title": "Maak jouw Socialframe",
+            "subtitle": "Jouw foto en favoriete nummer op glas.",
+            "link": "shopify://collections/socialframe-the-classics",
+            "open_in_new_window": false,
+            "button_label": "Personaliseer nu"
+          }
+        }
+      },
+      "block_order": [
+        "image_gi9VPa",
+        "image_wTzj3Y"
+      ],
+      "settings": {
+        "height": 480
+      }
+    },
+    "featured-collection": {
+      "type": "featured-collection",
+      "blocks": {
+        "icons_AAGabQ": {
+          "type": "icons",
+          "settings": {}
+        },
+        "title": {
+          "type": "title",
+          "settings": {}
+        },
+        "price": {
+          "type": "price",
+          "settings": {}
+        }
+      },
+      "block_order": [
+        "icons_AAGabQ",
+        "title",
+        "price"
+      ],
+      "custom_css": [
+        "h2 {font-size: 20px; font-weight: 400; display: inline-block; margin-left: 0; left: 2%; top: -20px; text-align: left;}"
+      ],
+      "settings": {
+        "heading": "Bestsellers",
+        "subheading": "",
+        "show_view_all": true,
+        "section_heading_layout": "section-heading--left",
+        "style": "grid",
+        "layout": "grid-4 grid-portable-3 grid-lap-2 grid-tiny-1",
+        "products_number": 16,
+        "collection": "socialframe-the-classics",
+        "section_background_color": "rgba(0,0,0,0)",
+        "section_background_gradient": "",
+        "section_heading_color": "rgba(0,0,0,0)",
+        "remove_margin": true,
+        "seo_h_tag": "h2"
+      }
+    },
+    "16551304148266b5a5": {
+      "type": "rich-text",
+      "blocks": {
+        "1655130414988486bd-0": {
+          "type": "title",
+          "settings": {
+            "title": "About us",
+            "title_size": "h2",
+            "seo_h_tag": "h2"
+          }
+        },
+        "1655130414988486bd-1": {
+          "type": "text",
+          "disabled": true,
+          "settings": {
+            "text": "<p>Write a big, bold statement about your brand. Catch your visitors attention by using some additional images with your products or store.</p>",
+            "text_size": "regular"
+          }
+        },
+        "1655130414988486bd-2": {
+          "type": "button",
+          "settings": {
+            "button_label": "Learn more",
+            "link": "",
+            "open_in_new_window": false,
+            "button_size": "large",
+            "button_style": "outline"
+          }
+        }
+      },
+      "block_order": [
+        "1655130414988486bd-0",
+        "1655130414988486bd-1",
+        "1655130414988486bd-2"
+      ],
+      "disabled": true,
+      "settings": {
+        "image_position": "top",
+        "height": "regular",
+        "image_crop": false,
+        "text_alignment": "horizontal-center",
+        "is_fullwidth": true,
+        "section_background_color": "rgba(0,0,0,0)",
+        "section_background_gradient": "",
+        "remove_margin": false,
+        "color_background_main": "#e1e0d7",
+        "color_text_main": "rgba(0,0,0,0)",
+        "color_accent_main": "rgba(0,0,0,0)",
+        "color_borders_main": "rgba(0,0,0,0)",
+        "color_shadow_main": "rgba(0,0,0,0)",
+        "color_hide_borders": false,
+        "color_hide_shadow": false
+      }
+    },
+    "16551074833cdf378e": {
+      "type": "media-with-text-overlay",
+      "blocks": {
+        "16551074836af554cd-0": {
+          "type": "image",
+          "settings": {
+            "caption": "Introducing",
+            "title": "Your best promotion yet",
+            "subtitle": "Write about it",
+            "link": "",
+            "open_in_new_window": false,
+            "button_label": "",
+            "color_background_main": "rgba(0,0,0,0)",
+            "color_text_main": "rgba(0,0,0,0)",
+            "color_hide_borders": true,
+            "color_hide_shadow": false,
+            "seo_h_tag": "h3"
+          }
+        },
+        "16551074836af554cd-1": {
+          "type": "image",
+          "settings": {
+            "caption": "Introducing",
+            "title": "Your best promotion yet",
+            "subtitle": "Write about it",
+            "link": "",
+            "open_in_new_window": false,
+            "button_label": "",
+            "color_background_main": "rgba(0,0,0,0)",
+            "color_text_main": "rgba(0,0,0,0)",
+            "color_hide_borders": true,
+            "color_hide_shadow": false,
+            "seo_h_tag": "h3"
+          }
+        }
+      },
+      "block_order": [
+        "16551074836af554cd-0",
+        "16551074836af554cd-1"
+      ],
+      "disabled": true,
+      "settings": {
+        "heading": "",
+        "subheading": "",
+        "section_heading_layout": "section-heading--left",
+        "layout": "grid-2 grid-lap-1",
+        "height": "regular",
+        "alignment": "horizontal-left align-content--vertical-bottom",
+        "width": "60%",
+        "caption_size": "small",
+        "title_size": "h3",
+        "subtitle_size": "regular",
+        "button_size": "regular",
+        "button_style": "solid",
+        "section_background_color": "rgba(0,0,0,0)",
+        "section_background_gradient": "",
+        "section_heading_color": "rgba(0,0,0,0)",
+        "remove_margin": false,
+        "seo_h_tag": "h2"
+      }
+    },
+    "1714377715a22040db": {
+      "type": "apps",
+      "blocks": {
+        "socialwidget_instagram_feed_base_widget_gwfnVQ": {
+          "type": "shopify://apps/socialwidget-instafeed/blocks/base-widget/508b8d5b-b176-4dc6-a0ba-2b222db6eb79",
+          "settings": {}
+        }
+      },
+      "block_order": [
+        "socialwidget_instagram_feed_base_widget_gwfnVQ"
+      ],
+      "disabled": true,
+      "settings": {
+        "heading": "",
+        "subheading": "",
+        "section_heading_layout": "section-heading--left",
+        "full_width": false,
+        "remove_margin": true,
+        "seo_h_tag": "h2"
+      }
+    },
+    "16546982542e923b5a": {
+      "type": "featured-product",
+      "blocks": {
+        "16546982534861ca3b-1": {
+          "type": "price",
+          "settings": {}
+        },
+        "16546982534861ca3b-0": {
+          "type": "title",
+          "settings": {
+            "seo_h_tag": "h2"
+          }
+        },
+        "16546982534861ca3b-4": {
+          "type": "description",
+          "settings": {}
+        },
+        "16546982534861ca3b-2": {
+          "type": "variant_picker",
+          "settings": {
+            "variants_style": "radio",
+            "show_quantities": "no"
+          }
+        },
+        "16546982534861ca3b-3": {
+          "type": "buy_buttons",
+          "disabled": true,
+          "settings": {
+            "show_price": true,
+            "show_quantity_selector": true,
+            "show_preorder": false,
+            "show_dynamic_checkout": true,
+            "show_gift_card_recipient": false,
+            "color_text_buttons": "rgba(0,0,0,0)",
+            "color_accent_buttons": "rgba(0,0,0,0)",
+            "style_buttons": "solid"
+          }
+        }
+      },
+      "block_order": [
+        "16546982534861ca3b-1",
+        "16546982534861ca3b-0",
+        "16546982534861ca3b-4",
+        "16546982534861ca3b-2",
+        "16546982534861ca3b-3"
+      ],
+      "disabled": true,
+      "settings": {
+        "product": "",
+        "gallery_ratio": "natural",
+        "gallery_fit": false,
+        "show_border": false,
+        "gallery_card_design": false,
+        "gallery_padding": 0,
+        "gallery_pagination": "dots",
+        "enable_zoom": true,
+        "enable_video_looping": false,
+        "default_to_first_variant": true
+      }
+    },
+    "1654161920efe5f084": {
+      "type": "text-columns-icons",
+      "blocks": {
+        "1654161920f21316cf-0": {
+          "type": "image",
+          "settings": {
+            "icon": "delivery",
+            "title": "Gratis Verzending",
+            "caption": "Gratis verzending vanaf €20 naar Nederland België en Duitsland.",
+            "link": "",
+            "open_in_new_window": false,
+            "color_background_main": "rgba(0,0,0,0)",
+            "color_icons_main": "rgba(0,0,0,0)",
+            "seo_h_tag": "h3"
+          }
+        },
+        "1654161920f21316cf-1": {
+          "type": "image",
+          "settings": {
+            "icon": "store",
+            "title": "Speciaal voor jou gemaakt!",
+            "caption": "Alle producten uit ons assortiment produceren wij zelf in Nederland",
+            "link": "",
+            "open_in_new_window": false,
+            "color_background_main": "rgba(0,0,0,0)",
+            "color_icons_main": "rgba(0,0,0,0)",
+            "seo_h_tag": "h3"
+          }
+        },
+        "1654161920f21316cf-2": {
+          "type": "image",
+          "settings": {
+            "icon": "currency",
+            "title": "Veilig betalen",
+            "caption": "ApplePay, iDEAL, Bancontact, Mastercard, Paypal, Visa en Klarna",
+            "link": "",
+            "open_in_new_window": false,
+            "color_background_main": "rgba(0,0,0,0)",
+            "color_icons_main": "rgba(0,0,0,0)",
+            "seo_h_tag": "h3"
+          }
+        },
+        "1654161920f21316cf-3": {
+          "type": "image",
+          "settings": {
+            "icon": "like-hand",
+            "title": "4.6 / 5 Trustpilot score",
+            "caption": "Customer satisfaction #1 priority.",
+            "link": "",
+            "open_in_new_window": false,
+            "color_background_main": "rgba(0,0,0,0)",
+            "color_icons_main": "rgba(0,0,0,0)",
+            "seo_h_tag": "h3"
+          }
+        }
+      },
+      "block_order": [
+        "1654161920f21316cf-0",
+        "1654161920f21316cf-1",
+        "1654161920f21316cf-2",
+        "1654161920f21316cf-3"
+      ],
+      "custom_css": [
+        ".card__icon svg {height: 40%; width: 40%; top: 65%;}",
+        ".card__icon-size--regular {height: 90px;}",
+        ".grid--slider {margin-top: 20px;}"
+      ],
+      "settings": {
+        "heading": "",
+        "subheading": "",
+        "section_heading_layout": "section-heading--left",
+        "style": "slider",
+        "layout": "grid-4 grid-portable-3 grid-lap-2",
+        "border_radius": 20,
+        "section_background_color": "rgba(0,0,0,0)",
+        "section_background_gradient": "",
+        "section_heading_color": "rgba(0,0,0,0)",
+        "remove_margin": true,
+        "seo_h_tag": "h2"
+      }
+    },
+    "media_with_text_overlay_cEtnxm": {
+      "type": "media-with-text-overlay",
+      "blocks": {
+        "image_N4q7Lr": {
+          "type": "image",
+          "settings": {
+            "image": "shopify://shop_images/Social_-_kunststofpootjes_close_up.jpg",
+            "video": "shopify://files/videos/Zo Word Jouw Socialframe Gemaakt_R1.mp4",
+            "caption": "",
+            "title": "",
+            "subtitle": "",
+            "link": "shopify://collections/socialframe-the-classics",
+            "open_in_new_window": false,
+            "button_label": "",
+            "color_background_main": "rgba(0,0,0,0)",
+            "color_text_main": "rgba(0,0,0,0)",
+            "color_hide_borders": false,
+            "color_hide_shadow": false,
+            "seo_h_tag": "h3"
+          }
+        },
+        "image_FMxkh7": {
+          "type": "image",
+          "settings": {
+            "image": "shopify://shop_images/IMG_9508_2.jpg",
+            "video": "shopify://files/videos/IMG_9519.MOV",
+            "caption": "",
+            "title": "Houten houder",
+            "subtitle": "Inclusief led-verlichting",
+            "link": "shopify://products/houtenstandaard-met-led-verlichting",
+            "open_in_new_window": false,
+            "button_label": "Show more",
+            "color_background_main": "rgba(0,0,0,0)",
+            "color_text_main": "#ffffff",
+            "color_hide_borders": false,
+            "color_hide_shadow": false,
+            "seo_h_tag": "h3"
+          }
+        }
+      },
+      "block_order": [
+        "image_N4q7Lr",
+        "image_FMxkh7"
+      ],
+      "custom_css": [
+        "h2 {font-size: 20px;}"
+      ],
+      "settings": {
+        "heading": "Maak het nóg specialer met de juiste accessoires!",
+        "subheading": "",
+        "section_heading_layout": "section-heading--center",
+        "layout": "grid-2 grid-lap-1",
+        "height": "small",
+        "alignment": "horizontal-left align-content--vertical-bottom",
+        "width": "60%",
+        "caption_size": "small",
+        "title_size": "h1",
+        "subtitle_size": "regular",
+        "button_size": "large",
+        "button_style": "solid",
+        "section_background_color": "rgba(0,0,0,0)",
+        "section_background_gradient": "",
+        "section_heading_color": "rgba(0,0,0,0)",
+        "remove_margin": true,
+        "seo_h_tag": "h2"
+      }
+    },
+    "rich_text_tKanbj": {
+      "type": "rich-text",
+      "blocks": {
+        "title_jEiTjb": {
+          "type": "title",
+          "settings": {
+            "title": "Leg jouw herinneringen vast.",
+            "title_size": "h3",
+            "seo_h_tag": "h2"
+          }
+        },
+        "text_yGkjMU": {
+          "type": "text",
+          "settings": {
+            "text": "<p>Her beleef je meest speciale momenten samen met een foto van jou en je partner of beste vriend op plexi-glas, plus het geluid van je favoriete nummer dat op de achtergrond speelt.</p>",
+            "text_size": "regular"
+          }
+        },
+        "button_YxEgjR": {
+          "type": "button",
+          "settings": {
+            "button_label": "Show more",
+            "link": "shopify://collections/socialframe-the-classics",
+            "open_in_new_window": false,
+            "button_size": "large",
+            "button_style": "outline"
+          }
+        }
+      },
+      "block_order": [
+        "title_jEiTjb",
+        "text_yGkjMU",
+        "button_YxEgjR"
+      ],
+      "disabled": true,
+      "settings": {
+        "image": "shopify://shop_images/2102313_-_Spotify_Plaat_visual_3_-guitarist.jpg",
+        "image_position": "left",
+        "height": "small",
+        "image_crop": true,
+        "text_alignment": "horizontal-center",
+        "is_fullwidth": false,
+        "section_background_color": "rgba(0,0,0,0)",
+        "section_background_gradient": "",
+        "remove_margin": false,
+        "color_background_main": "rgba(0,0,0,0)",
+        "color_text_main": "rgba(0,0,0,0)",
+        "color_accent_main": "rgba(0,0,0,0)",
+        "color_borders_main": "rgba(0,0,0,0)",
+        "color_shadow_main": "rgba(0,0,0,0)",
+        "color_hide_borders": false,
+        "color_hide_shadow": false
+      }
+    },
+    "165407625224b5d2af": {
+      "type": "rich-text",
+      "blocks": {
+        "1654076252f525bcb1-1": {
+          "type": "text",
+          "disabled": true,
+          "settings": {
+            "text": "<p><strong>Up to 50% discount</strong></p>",
+            "text_size": "regular"
+          }
+        },
+        "1654076252f525bcb1-0": {
+          "type": "title",
+          "settings": {
+            "title": "About our products",
+            "title_size": "h1",
+            "seo_h_tag": "h2"
+          }
+        },
+        "4055a9b7-fa9d-4a7a-b5e0-d052561d6f9c": {
+          "type": "text",
+          "settings": {
+            "text": "<p>Write a big, bold statement about your brand. Catch your visitors attention by using some additional images with your products or store.</p>",
+            "text_size": "regular"
+          }
+        },
+        "1654076252f525bcb1-2": {
+          "type": "button",
+          "settings": {
+            "button_label": "Learn more",
+            "link": "",
+            "open_in_new_window": false,
+            "button_size": "large",
+            "button_style": "solid"
+          }
+        }
+      },
+      "block_order": [
+        "1654076252f525bcb1-1",
+        "1654076252f525bcb1-0",
+        "4055a9b7-fa9d-4a7a-b5e0-d052561d6f9c",
+        "1654076252f525bcb1-2"
+      ],
+      "disabled": true,
+      "settings": {
+        "image_position": "right",
+        "height": "large",
+        "image_crop": true,
+        "text_alignment": "horizontal-left",
+        "is_fullwidth": true,
+        "section_background_color": "rgba(0,0,0,0)",
+        "section_background_gradient": "",
+        "remove_margin": false,
+        "color_background_main": "#e7e7e7",
+        "color_text_main": "rgba(0,0,0,0)",
+        "color_accent_main": "rgba(0,0,0,0)",
+        "color_borders_main": "#e1e1e1",
+        "color_shadow_main": "rgba(0,0,0,0)",
+        "color_hide_borders": true,
+        "color_hide_shadow": false
+      }
+    },
+    "16551212489c663a1e": {
+      "type": "featured-collection",
+      "blocks": {
+        "1655121248aee0f086-0": {
+          "type": "price",
+          "settings": {}
+        },
+        "1655121248aee0f086-1": {
+          "type": "title",
+          "settings": {}
+        },
+        "1655121248aee0f086-2": {
+          "type": "quick_buy",
+          "disabled": true,
+          "settings": {}
+        }
+      },
+      "block_order": [
+        "1655121248aee0f086-0",
+        "1655121248aee0f086-1",
+        "1655121248aee0f086-2"
+      ],
+      "disabled": true,
+      "settings": {
+        "heading": "Featured collection",
+        "subheading": "",
+        "show_view_all": true,
+        "section_heading_layout": "section-heading--left",
+        "style": "slider",
+        "layout": "grid-4 grid-portable-3 grid-lap-2 grid-tiny-1",
+        "products_number": 8,
+        "collection": "",
+        "section_background_color": "rgba(0,0,0,0)",
+        "section_background_gradient": "",
+        "section_heading_color": "rgba(0,0,0,0)",
+        "remove_margin": false,
+        "seo_h_tag": "h2"
+      }
+    },
+    "165597098555c514a4": {
+      "type": "text-columns-images",
+      "blocks": {
+        "1655970985e1e8c596-0": {
+          "type": "image",
+          "settings": {
+            "title": "Shipping",
+            "caption": "Useful information about your shipping details",
+            "link": "",
+            "open_in_new_window": false,
+            "seo_h_tag": "h3"
+          }
+        },
+        "1655970985e1e8c596-1": {
+          "type": "image",
+          "settings": {
+            "title": "Returns",
+            "caption": "Show how much time customers have for testing your products",
+            "link": "",
+            "open_in_new_window": false,
+            "seo_h_tag": "h3"
+          }
+        },
+        "1655970985e1e8c596-2": {
+          "type": "image",
+          "settings": {
+            "title": "Pickup",
+            "caption": "Let your customers know about local pickup",
+            "link": "",
+            "open_in_new_window": false,
+            "seo_h_tag": "h3"
+          }
+        }
+      },
+      "block_order": [
+        "1655970985e1e8c596-0",
+        "1655970985e1e8c596-1",
+        "1655970985e1e8c596-2"
+      ],
+      "disabled": true,
+      "settings": {
+        "heading": "",
+        "subheading": "",
+        "section_heading_layout": "section-heading--left",
+        "style": "slider",
+        "layout": "grid-3 grid-lap-2",
+        "border_radius": 200,
+        "section_background_color": "rgba(0,0,0,0)",
+        "section_background_gradient": "",
+        "section_heading_color": "rgba(0,0,0,0)",
+        "remove_margin": false,
+        "seo_h_tag": "h2"
+      }
+    },
+    "16551127939786a43a": {
+      "type": "blog-posts",
+      "blocks": {
+        "165511279388d6ad87-0": {
+          "type": "info",
+          "settings": {
+            "show_date": true,
+            "show_author": false,
+            "show_comments_number": false
+          }
+        },
+        "165511279388d6ad87-1": {
+          "type": "title",
+          "settings": {}
+        },
+        "6d7d92cc-64fe-4f89-9974-bb98f18308a0": {
+          "type": "summary",
+          "settings": {
+            "excerpt_limit": 20
+          }
+        }
+      },
+      "block_order": [
+        "165511279388d6ad87-0",
+        "165511279388d6ad87-1",
+        "6d7d92cc-64fe-4f89-9974-bb98f18308a0"
+      ],
+      "disabled": true,
+      "settings": {
+        "title": "Blog posts",
+        "subheading": "",
+        "show_view_all": true,
+        "section_heading_layout": "section-heading--left",
+        "blog": "news",
+        "emphasize_first": true,
+        "blog_show_image": true,
+        "image_aspect_ratio": "1.33333",
+        "section_background_color": "rgba(0,0,0,0)",
+        "section_background_gradient": "",
+        "section_heading_color": "rgba(0,0,0,0)",
+        "remove_margin": false,
+        "seo_h_tag": "h2"
+      }
+    },
+    "ss_testimonial_8_VxPdwp": {
+      "type": "ss-testimonial-8",
+      "blocks": {
+        "testimonials_FE7fnj": {
+          "type": "testimonials",
+          "settings": {
+            "stars_count": 5,
+            "heading": "Snelle levering en goede kwaliteit",
+            "text": "Snelle levering en goede kwaliteit",
+            "author_date": "Kian de WitNL"
+          }
+        },
+        "testimonials_WnKeAp": {
+          "type": "testimonials",
+          "settings": {
+            "stars_count": 5,
+            "heading": "Zeer mooi product",
+            "text": "Zeer mooi product, en heel snel geleverd. Zal zeker nog bestdllingen doen",
+            "author_date": "BVRN_Automotive “BVRN"
+          }
+        },
+        "testimonials_JFC4J8": {
+          "type": "testimonials",
+          "settings": {
+            "stars_count": 5,
+            "heading": "Een bijzonder cadeau",
+            "text": "Een bijzonder cadeau. Makkelijk te maken en snel geleverd",
+            "author_date": "Anja Eggenhuizen"
+          }
+        },
+        "testimonials_beYHCt": {
+          "type": "testimonials",
+          "settings": {
+            "stars_count": 4,
+            "heading": "Zeer mooi gedaan!!",
+            "text": "Zeer mooi gedaan!!! Prachtige foto, groot genoeg om in te kaderen en prachtige geschreven!!!",
+            "author_date": "Pascale Depoorter"
+          }
+        },
+        "testimonials_BdKEpi": {
+          "type": "testimonials",
+          "settings": {
+            "stars_count": 5,
+            "heading": "Origineel product",
+            "text": "Wat problemen gehad met het leveren door Postnl, maar het product ziet er geweldig uit!",
+            "author_date": "Perry De Vries"
+          }
+        },
+        "testimonials_xMYjXW": {
+          "type": "testimonials",
+          "settings": {
+            "stars_count": 5,
+            "heading": "Geweldige service",
+            "text": "Per ongeluk iets vergeten om op mijn bestelling te zetten. Een appje gestuurd naar social frame en ze hebben het per direct voor mij opgelost! Dag later had ik mijn bestelling al binnen, het is super mooi geworden. Ik ben er heel erg blij mee",
+            "author_date": "Anja broekema"
+          }
+        },
+        "testimonials_gNhitf": {
+          "type": "testimonials",
+          "settings": {
+            "stars_count": 5,
+            "heading": "Socialframe",
+            "text": "Dit was de tweede keer dat we hierbij bestelden. De platen zijn goed verpakt, zien er uit zoals wij ze hebben ontworpen en worden snel geleverd!",
+            "author_date": "K. v. B"
+          }
+        },
+        "testimonials_QqBgFJ": {
+          "type": "testimonials",
+          "settings": {
+            "stars_count": 5,
+            "heading": "I love it! 😍",
+            "text": "Alweer mijn 3e bestelling. Wat een geweldige frames voor aan de muur. En supersnel geleverd. Aanrader!",
+            "author_date": "Eline van de WegeNL"
+          }
+        },
+        "testimonials_GTJbAc": {
+          "type": "testimonials",
+          "settings": {
+            "stars_count": 5,
+            "heading": "Top Service.",
+            "text": "Makkelijk besteld proces, overzichtelijk website, mooi aanbod...Leuke ontwerp tool en makkelijk in gebruik.Super snelle service qua bezorgen, alles super netjes en goed beschermd verpakt. Hulde!",
+            "author_date": "E.J. Bloks"
+          }
+        },
+        "testimonials_M8F4hP": {
+          "type": "testimonials",
+          "settings": {
+            "stars_count": 5,
+            "heading": "Zeer snel geleverd",
+            "text": "Snelle en goede leveringMooie qualiteit",
+            "author_date": "Hans Brummer"
+          }
+        }
+      },
+      "block_order": [
+        "testimonials_FE7fnj",
+        "testimonials_WnKeAp",
+        "testimonials_JFC4J8",
+        "testimonials_beYHCt",
+        "testimonials_BdKEpi",
+        "testimonials_xMYjXW",
+        "testimonials_gNhitf",
+        "testimonials_QqBgFJ",
+        "testimonials_GTJbAc",
+        "testimonials_M8F4hP"
+      ],
+      "name": "SS - Testimonial #8",
+      "settings": {
+        "heading": "Check onze reviews",
+        "heading_custom": false,
+        "heading_font": "josefin_sans_n4",
+        "heading_size": 40,
+        "heading_size_mobile": 24,
+        "heading_height": 130,
+        "heading_align": "center",
+        "rating_text": "Uitstekend!",
+        "rating_text_custom": false,
+        "rating_text_font": "josefin_sans_n4",
+        "rating_text_size": 24,
+        "rating_text_size_mobile": 20,
+        "rating_text_height": 130,
+        "rating": 4.6,
+        "rating_hide": false,
+        "rating_text_hide": false,
+        "rating_text_mt": 16,
+        "rating_align": "center",
+        "stars_count": 5,
+        "stars_size": 18,
+        "stars_size_mobile": 18,
+        "stars_gap": 3,
+        "stars_align": "center",
+        "text": "<p><strong>400+ </strong>reviews</p>",
+        "text_custom": false,
+        "text_font": "josefin_sans_n4",
+        "text_size": 20,
+        "text_size_mobile": 16,
+        "text_height": 130,
+        "text_align": "center",
+        "text_mt": 8,
+        "slider_width": 70,
+        "slider_view": 3,
+        "slider_view_mobile": 1.2,
+        "slider_gap": 20,
+        "slider_gap_mobile": 20,
+        "slider_mt": 24,
+        "card_padding_vertical": 32,
+        "card_padding_vertical_mobile": 24,
+        "card_padding_horizontal": 40,
+        "card_padding_horizontal_mobile": 24,
+        "card_radius": 16,
+        "card_border_thickness": 0,
+        "card_shadow": true,
+        "card_heading_custom": false,
+        "card_heading_font": "josefin_sans_n4",
+        "card_heading_size": 24,
+        "card_heading_size_mobile": 20,
+        "card_heading_height": 130,
+        "card_heading_align": "center",
+        "card_heading_mt": 8,
+        "card_text_custom": false,
+        "card_text_font": "josefin_sans_n4",
+        "card_text_size": 14,
+        "card_text_size_mobile": 14,
+        "card_text_height": 150,
+        "card_text_align": "center",
+        "card_text_mt": 16,
+        "card_text_more": "Laat meer zien",
+        "card_text_less": "laat minder zien",
+        "card_count_words": 20,
+        "card_author_date_text_custom": false,
+        "card_author_date_text_font": "josefin_sans_n4",
+        "card_author_date_text_size": 16,
+        "card_author_date_text_size_mobile": 16,
+        "card_author_date_text_height": 130,
+        "card_author_date_text_align": "center",
+        "card_author_date_text_mt": 12,
+        "arrow_show_desktop": true,
+        "arrow_show_mobile": false,
+        "arrow_size": 50,
+        "arrow_size_mobile": 50,
+        "arrow_icon_size": 28,
+        "arrow_icon_size_mobile": 28,
+        "arrow_border_thickness": 0,
+        "dots_show_desktop": true,
+        "dots_show_mobile": false,
+        "dots_size": 12,
+        "dots_size_mobile": 12,
+        "button": "Bekijk ze allemaal",
+        "button_url": "https://nl.trustpilot.com/review/socialframe.nl",
+        "new_tab": true,
+        "button_custom": false,
+        "button_font": "josefin_sans_n4",
+        "button_size": 16,
+        "button_size_mobile": 14,
+        "button_height": 100,
+        "button_padding_vertical": 20,
+        "button_padding_horizontal": 16,
+        "button_radius": 8,
+        "button_border_thickness": 0,
+        "button_mt": 24,
+        "button_align": "center",
+        "button_color": "#ffffff",
+        "button_hover_color": "#ffffff",
+        "button_bg_color": "#121212",
+        "button_bg_hover_color": "#121212",
+        "button_border_color": "#121212",
+        "button_border_hover_color": "#121212",
+        "card_heading_color": "#121212",
+        "card_text_color": "#121212",
+        "card_author_date_text_color": "#121212",
+        "card_bg_color": "#ffffff",
+        "card_border_color": "#121212",
+        "card_shadow_color": "#00b67a",
+        "arrow_color": "#121212",
+        "arrow_hover_color": "#121212",
+        "arrow_bg_color": "#ffffff",
+        "arrow_bg_hover_color": "#ffffff",
+        "arrow_border_color": "#121212",
+        "arrow_border_hover_color": "#121212",
+        "dots_color": "#121212",
+        "stars_color": "#ffffff",
+        "stars_bg_color": "#00b67a",
+        "stars_bg_half_color": "#dddddd",
+        "heading_color": "#121212",
+        "rating_text_color": "#121212",
+        "text_color": "#121212",
+        "background_color": "#ffffff",
+        "background_gradient": "linear-gradient(180deg, rgba(206, 239, 199, 1), rgba(255, 255, 255, 1) 100%)",
+        "border_color": "#121212",
+        "margin_top": 24,
+        "margin_bottom": 0,
+        "padding_top": 20,
+        "padding_bottom": 20,
+        "padding_horizontal": 5,
+        "padding_horizontal_mobile": 1.5,
+        "full_width": true,
+        "content_width": 1500,
+        "border_thickness": 0,
+        "lazy": true
+      }
+    },
+    "rich_text_E3HWCy": {
+      "type": "rich-text",
+      "blocks": {
+        "title_HEz63Q": {
+          "type": "title",
+          "settings": {
+            "title": "Talk about your brand",
+            "title_size": "h2",
+            "seo_h_tag": "h2"
+          }
+        },
+        "text_fdmtjU": {
+          "type": "text",
+          "settings": {
+            "text": "<p>Use this text to share information about your brand with your customers. Describe a product, share announcements or welcome customers to your store.</p>",
+            "text_size": "regular"
+          }
+        },
+        "button_eXfNpT": {
+          "type": "button",
+          "settings": {
+            "button_label": "Show more",
+            "link": "",
+            "open_in_new_window": false,
+            "button_size": "large",
+            "button_style": "outline"
+          }
+        }
+      },
+      "block_order": [
+        "title_HEz63Q",
+        "text_fdmtjU",
+        "button_eXfNpT"
+      ],
+      "disabled": true,
+      "settings": {
+        "image": "shopify://shop_images/2102313---WEPDA---Spotify-Plaat-visual-2-avicii.jpg",
+        "image_position": "right",
+        "height": "small",
+        "image_crop": true,
+        "text_alignment": "horizontal-center",
+        "is_fullwidth": false,
+        "section_background_color": "rgba(0,0,0,0)",
+        "section_background_gradient": "",
+        "remove_margin": false,
+        "color_background_main": "rgba(0,0,0,0)",
+        "color_text_main": "rgba(0,0,0,0)",
+        "color_accent_main": "rgba(0,0,0,0)",
+        "color_borders_main": "rgba(0,0,0,0)",
+        "color_shadow_main": "rgba(0,0,0,0)",
+        "color_hide_borders": false,
+        "color_hide_shadow": false
+      }
+    },
+    "text_columns_XaMMTi": {
+      "type": "text-columns",
+      "disabled": true,
+      "settings": {
+        "heading": "Check ons ook op Instagram!",
+        "subheading": "",
+        "section_heading_layout": "section-heading--left",
+        "style": "grid",
+        "layout": "grid-4 grid-portable-3 grid-lap-2",
+        "block_text_alignment": "text-align--left",
+        "seo_h_tag": "h2"
+      }
+    },
+    "1655112847aaa4cc50": {
+      "type": "newsletter",
+      "custom_css": [
+        ".card {width: 100vw; /* Volledige schermbreedte */ margin-left: calc(-50vw + 50%); /* De gouden truc – werkt altijd */ position: relative; left: 0; border: 0;}"
+      ],
+      "settings": {
+        "show_icon": false,
+        "title": "Geef je op voor onze nieuwsbrieven en ontvang kortingscodes!",
+        "text": "",
+        "color_background_main": "#f0ede5",
+        "color_text_main": "#212529",
+        "color_borders_main": "rgba(0,0,0,0)",
+        "color_shadow_main": "rgba(0,0,0,0)",
+        "section_background_color": "rgba(0,0,0,0)",
+        "section_background_gradient": "",
+        "remove_margin": false,
+        "seo_h_tag": "h2"
+      }
+    },
+    "17846164746e66af81": {
+      "type": "apps",
+      "settings": {
+        "heading": "",
+        "subheading": "",
+        "section_heading_layout": "section-heading--left",
+        "full_width": false,
+        "remove_margin": false,
+        "seo_h_tag": "h2"
+      }
+    }
+  },
+  "order": [
+    "1653646142d6a7c886",
+    "media_with_text_overlay_UQKFrg",
+    "featured-collection",
+    "16551304148266b5a5",
+    "16551074833cdf378e",
+    "1714377715a22040db",
+    "16546982542e923b5a",
+    "1654161920efe5f084",
+    "media_with_text_overlay_cEtnxm",
+    "rich_text_tKanbj",
+    "165407625224b5d2af",
+    "16551212489c663a1e",
+    "165597098555c514a4",
+    "16551127939786a43a",
+    "ss_testimonial_8_VxPdwp",
+    "rich_text_E3HWCy",
+    "text_columns_XaMMTi",
+    "1655112847aaa4cc50",
+    "17846164746e66af81"
+  ]
+}
