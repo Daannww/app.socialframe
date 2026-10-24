@@ -11,7 +11,7 @@
   <div class="hw-mz-slot" data-mz-slot>
   <div class="hw-mz-sticky" data-mz-sticky>
   <div class="hw-mz-scene" data-mz-scene>
-  <button type="button" class="hw-mz-zoom" data-mz-zoom aria-label="Voorbeeld vergroten" title="Vergroten (of tik twee keer op het voorbeeld)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.8-4.8M10.5 8v5M8 10.5h5"/></svg></button>
+  <button type="button" class="hw-mz-zoom" data-mz-lbopen aria-label="Voorbeeld vergroten" title="Vergroten (of tik twee keer op het voorbeeld)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.8-4.8M10.5 8v5M8 10.5h5"/></svg></button>
   <div class="hw-mz-ground"></div>
   <div class="hw-mz-plate">
   <div class="hw-mz-stage" data-mz-stage>
@@ -668,7 +668,7 @@
 
     // ----- voorbeeld vergroten: vergrootglas of dubbel tikken -----
     (function () {
-      var scene = $('[data-mz-scene]'), zbtn = $('[data-mz-zoom]'); if (!scene || !zbtn) return;
+      var scene = $('[data-mz-scene]'), zbtn = $('[data-mz-lbopen]'); if (!scene || !zbtn) return;
       var lb = null, ph = null, keep = '';
       function size() { var vw = window.innerWidth - 24, vh = window.innerHeight - 24; return Math.floor(Math.min(vw, vh * 41 / 50, 900)); }
       function openZ() {
@@ -696,10 +696,10 @@
       scene.addEventListener('touchstart', function (e) { var t = e.touches[0]; sx = t.clientX; sy = t.clientY; moved = false; }, { passive: true });
       scene.addEventListener('touchmove', function (e) { var t = e.touches[0]; if (Math.abs(t.clientX - sx) > 8 || Math.abs(t.clientY - sy) > 8) moved = true; }, { passive: true });
       scene.addEventListener('touchend', function (e) {
-        if (moved || lb || e.target.closest('[data-mz-zoom]')) return;
+        if (moved || lb || e.target.closest('[data-mz-lbopen]')) return;
         var n = Date.now(); if (n - lastT < 350) { lastT = 0; openZ(); } else lastT = n;
       }, { passive: true });
-      scene.addEventListener('dblclick', function (e) { if (!lb && !e.target.closest('[data-mz-zoom]')) openZ(); });
+      scene.addEventListener('dblclick', function (e) { if (!lb && !e.target.closest('[data-mz-lbopen]')) openZ(); });
     })();
 
     // ----- houders als visuele keuze (stuurt de variantkiezer van het thema aan) -----
