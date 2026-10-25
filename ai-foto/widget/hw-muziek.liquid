@@ -664,7 +664,7 @@
         if (hint) hint.style.display = p > 0.02 ? 'none' : '';
         var hSticky = w * 50 / 41 + 14;
         slot.style.height = Math.max(hSticky + 36 * p, full.h + (smallH - full.h) * p + 36 * p) + 'px'; // extra wit onder het (gekrompen) voorbeeld, zodat stap 1 goed zichtbaar blijft
-        slot.style.marginBottom = (130 * (1 - p) + 24 * p) + 'px'; // extra wit onder het voorbeeld, zodat de uploadknop van stap 1 niet meteen wegvalt
+        slot.style.marginBottom = (130 * (1 - p) + 140 * p) + 'px'; // extra wit onder het voorbeeld, zodat de uploadknop van stap 1 niet meteen wegvalt
         var t = rr.bottom - hSticky - 8;
         if (t < topOff) {
           // einde van het blok: het voorbeeld staat vast onderin het blok en scrolt gewoon mee (geen JS meer, dus geen getril op iPhone)
