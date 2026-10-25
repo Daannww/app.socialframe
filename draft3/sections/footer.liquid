@@ -118,7 +118,7 @@
     </div>
 
     <div class="sff-bot">
-      <span>© {{ 'now' | date: '%Y' }} <a href="{{ routes.root_url }}">{{ shop.name | escape }}</a>®</span>
+      <span>© {{ 'now' | date: '%Y' }} <a href="{{ routes.root_url }}">{{ shop.name | remove: '®' | remove: '™' | strip | escape }}</a>™</span>
       <ul class="sff-pay" aria-label="Betaalmogelijkheden">
         {%- for type in shop.enabled_payment_types -%}
           <li>{{ type | payment_type_svg_tag: class: 'payment-icon' }}</li>
