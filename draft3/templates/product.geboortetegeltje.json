@@ -19,7 +19,7 @@
         "section_store_block_review_summary_HXMMKB": {
           "type": "custom_liquid",
           "settings": {
-            "custom_liquid": "{% capture sf_t1 %}<p>Uitstekend </p>{% endcapture %}{% capture sf_t2 %}<p><strong>418 </strong>reviews</p>{% endcapture %}{% render 'sf-review-summary', first_text: sf_t1, second_text: sf_t2, star_style: 'standard', stars_count: 4.5, stars_size: 17, stars_gap: 2, stars_color: '#ffffff', stars_bg_color: '#00b67a', stars_bg_half_color: '#dddddd', avatars_position: 'none', avatars_size: 20, avatars_animate: false, first_text_size: 15, first_text_color: '#000000', second_text_size: 13, second_text_color: '#000000', border: 'none', border_thickness: 1, border_color: '#000000', radius: 0, effect: 'none', block_padding_top: 0, block_padding_bottom: 0, padding_vertical: 6, padding_horizontal: 0 %}"
+            "custom_liquid": "{% capture sf_t1 %}<p>Uitstekend </p>{% endcapture %}{% capture sf_t2 %}<p><strong>400+ </strong>reviews</p>{% endcapture %}{% render 'sf-review-summary', first_text: sf_t1, second_text: sf_t2, star_style: 'standard', stars_count: 4.5, stars_size: 17, stars_gap: 2, stars_color: '#ffffff', stars_bg_color: '#00b67a', stars_bg_half_color: '#dddddd', avatars_position: 'none', avatars_size: 20, avatars_animate: false, first_text_size: 15, first_text_color: '#000000', second_text_size: 13, second_text_color: '#000000', border: 'none', border_thickness: 1, border_color: '#000000', radius: 0, effect: 'none', block_padding_top: 0, block_padding_bottom: 0, padding_vertical: 6, padding_horizontal: 0 %}"
           }
         },
         "price_WqFFz9": {

@@ -15,7 +15,7 @@
         "36d683f36498868f": {
           "type": "custom_liquid",
           "settings": {
-            "custom_liquid": "{% capture sf_t1 %}<p>&nbsp;</p>{% endcapture %}{% capture sf_t2 %}<p>4,7 uit 5 | <strong>483 beoordelingen</strong></p>{% endcapture %}{% render 'sf-review-summary', first_text: sf_t1, second_text: sf_t2, star_style: 'mild', stars_count: 4.5, stars_size: 15, stars_gap: 1, stars_color: '#2b4f8c', stars_bg_color: '#2b4f8c', stars_bg_half_color: '#d6dde8', avatars_position: 'first', avatars_size: 20, avatars_animate: false, first_text_size: 12, first_text_color: '#1a2e52', second_text_size: 12, second_text_color: '#1a2e52', border: 'none', border_thickness: 1, border_color: '#2b4f8c', radius: 0, effect: 'none', block_padding_top: 0, block_padding_bottom: 0, padding_vertical: 6, padding_horizontal: 0 %}"
+            "custom_liquid": "{% capture sf_t1 %}<p>&nbsp;</p>{% endcapture %}{% capture sf_t2 %}<p>4,7 uit 5 | <strong>400+ beoordelingen</strong></p>{% endcapture %}{% render 'sf-review-summary', first_text: sf_t1, second_text: sf_t2, star_style: 'mild', stars_count: 4.5, stars_size: 15, stars_gap: 1, stars_color: '#2b4f8c', stars_bg_color: '#2b4f8c', stars_bg_half_color: '#d6dde8', avatars_position: 'first', avatars_size: 20, avatars_animate: false, first_text_size: 12, first_text_color: '#1a2e52', second_text_size: 12, second_text_color: '#1a2e52', border: 'none', border_thickness: 1, border_color: '#2b4f8c', radius: 0, effect: 'none', block_padding_top: 0, block_padding_bottom: 0, padding_vertical: 6, padding_horizontal: 0 %}"
           }
         },
         "title": {
