@@ -1,6 +1,8 @@
 {%- comment -%} Het gekozen AI-ontwerp blijft als klein voorbeeld onder de header hangen terwijl je omlaag scrolt naar houder en bestelknop (net als bij het muziekframe). {%- endcomment -%}
 <style>
 .sf-pv{position:fixed;z-index:30;display:none;background:#fff;border-radius:12px;padding:5px;box-shadow:0 6px 22px rgba(0,0,0,.18);pointer-events:none;box-sizing:content-box}
+.hw-ai{margin-bottom:2.25rem!important}
+.hw-ai-result,.hw-ai-choose{padding-bottom:12px}
 .sf-pv img{display:block;width:100%;height:100%;object-fit:cover;border-radius:8px}
 </style>
 <script>
@@ -33,7 +35,7 @@
     var form = document.querySelector('form[data-type="add-to-cart-form"], .product-form form, form[action*="/cart/add"]');
     var endB = form ? form.getBoundingClientRect().bottom : Infinity;
     var ratio = (s.naturalHeight && s.naturalWidth) ? s.naturalHeight / s.naturalWidth : 1;
-    var small = Math.min(sr.width, Math.max(96, window.innerHeight * 0.2));
+    var small = Math.min(sr.width, Math.max(96, window.innerHeight * 0.17));
     var dist = Math.max(80, sr.height * 0.9);
     var p = Math.max(0, Math.min(1, (top - sr.top) / dist)); p = p * p * (3 - 2 * p);
     var w = sr.width + (small - sr.width) * p, h = w * ratio;
