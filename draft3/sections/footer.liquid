@@ -2,6 +2,61 @@
   assign shop_menu = linklists[section.settings.menu_shop]
   assign info_menu = linklists['footermenu']
 -%}
+{%- liquid
+  assign lc = request.locale.iso_code
+  if lc == 'de'
+    assign t_news_title = 'Bleiben Sie auf dem Laufenden'
+    assign t_news_text = 'Erfahren Sie als Erste/r von neuen Designs und Rabattcodes.'
+    assign t_thanks = 'Vielen Dank für Ihre Anmeldung!'
+    assign t_email_ph = 'Ihre E-Mail-Adresse'
+    assign t_email_lbl = 'E-Mail-Adresse'
+    assign t_sub = 'Anmelden'
+    assign t_brand = 'Personalisierte Frames und Fliesen, mit Liebe aus Ihrer Erinnerung gemacht.'
+    assign t_service = 'Kundenservice'
+    assign t_faq = 'Service &amp; FAQ'
+    assign t_ship = 'Versand'
+    assign t_ret = 'Rückgabe'
+    assign t_contact = 'Kontakt'
+    assign t_about = 'Über SocialFrame'
+    assign t_cookie = 'Cookie-Einstellungen'
+    assign t_pay = 'Zahlungsmöglichkeiten'
+  elsif lc == 'en'
+    assign t_news_title = 'Stay in the loop'
+    assign t_news_text = 'Be the first to get new designs and discount codes in your inbox.'
+    assign t_thanks = 'Thanks for signing up!'
+    assign t_email_ph = 'Enter your email address'
+    assign t_email_lbl = 'Email address'
+    assign t_sub = 'Subscribe'
+    assign t_brand = 'Personalised frames and tiles, lovingly made from your memory.'
+    assign t_service = 'Customer service'
+    assign t_faq = 'Service &amp; FAQ'
+    assign t_ship = 'Shipping'
+    assign t_ret = 'Returns'
+    assign t_contact = 'Contact'
+    assign t_about = 'About SocialFrame'
+    assign t_cookie = 'Cookie settings'
+    assign t_pay = 'Payment methods'
+  else
+    assign t_news_title = section.settings.news_title
+    assign t_news_text = section.settings.news_text
+    assign t_thanks = '{{ t_thanks }}'
+    assign t_email_ph = 'Voer je e-mailadres in'
+    assign t_email_lbl = 'E-mailadres'
+    assign t_sub = 'Aanmelden'
+    assign t_brand = section.settings.brand_text
+    assign t_service = 'Klantenservice'
+    assign t_faq = 'Service &amp; faq'
+    assign t_ship = 'Verzending'
+    assign t_ret = 'Retourneren'
+    assign t_contact = 'Contact'
+    assign t_about = 'Over SocialFrame'
+    assign t_cookie = 'Cookie-instellingen'
+    assign t_pay = 'Betaalmogelijkheden'
+  endif
+  assign skip_shop = 'home,startseite,service & faq,service & faq,contact,kontakt,meer,mehr,more' | split: ','
+  assign skip_info = 'verzending,retourneren,versenden,versand,widerrufsbelehrung,rückgabe,shipping,returns' | split: ','
+-%}
+
 <style>
   /* de losse nieuwsbrief-blokken uit de pagina's vervangen door de nieuwsbrief in deze footer */
   main .shopify-section:has(.card.newsletter){display:none!important}
@@ -59,17 +114,17 @@
   <div class="sff-wrap">
     <div class="sff-news">
       <div style="max-width:520px">
-        <h2>{{ section.settings.news_title }}</h2>
-        <p>{{ section.settings.news_text }}</p>
+        <h2>{{ t_news_title }}</h2>
+        <p>{{ t_news_text }}</p>
       </div>
       {%- form 'customer', id: 'sff-newsletter', class: 'sff-form' -%}
         {%- if form.posted_successfully? -%}
-          <p class="sff-ok">Bedankt voor je aanmelding!</p>
+          <p class="sff-ok">{{ t_thanks }}</p>
         {%- else -%}
           <fieldset>
             <input type="hidden" name="contact[tags]" value="newsletter">
-            <input type="email" name="contact[email]" placeholder="Voer je e-mailadres in" aria-label="E-mailadres" autocorrect="off" autocapitalize="off" required value="{% if customer %}{{ customer.email }}{% endif %}">
-            <button type="submit">Aanmelden</button>
+            <input type="email" name="contact[email]" placeholder="{{ t_email_ph }}" aria-label="{{ t_email_lbl }}" autocorrect="off" autocapitalize="off" required value="{% if customer %}{{ customer.email }}{% endif %}">
+            <button type="submit">{{ t_sub }}</button>
           </fieldset>
         {%- endif -%}
       {%- endform -%}
@@ -78,7 +133,7 @@
     <div class="sff-cols">
       <div class="sff-brand">
         <span class="sff-lg">{% render 'sf-logo' %}</span>
-        <p>{{ section.settings.brand_text }}</p>
+        <p>{{ t_brand }}</p>
         <div class="sff-social">
           {%- assign u_ig = section.settings.instagram | default: settings.social_instagram -%}{%- if u_ig != blank -%}<a href="{{ u_ig }}" target="_blank" rel="noopener">Instagram</a>{%- endif -%}
           {%- assign u_tt = section.settings.tiktok | default: settings.social_tiktok -%}{%- if u_tt != blank -%}<a href="{{ u_tt }}" target="_blank" rel="noopener">TikTok</a>{%- endif -%}
@@ -91,35 +146,35 @@
         <h3>Shop</h3>
         {%- for link in shop_menu.links -%}
           {%- assign t = link.title | downcase -%}
-          {%- unless t == 'home' or t == 'service & faq' or t == 'contact' or t == 'meer' -%}
+          {%- unless skip_shop contains t -%}
             <a href="{{ link.url }}">{{ link.title | escape }}</a>
           {%- endunless -%}
         {%- endfor -%}
       </nav>
 
-      <nav class="sff-col" aria-label="Klantenservice">
-        <h3>Klantenservice</h3>
-        <a href="{{ routes.root_url }}pages/verzenden">Service &amp; faq</a>
-        <a href="{{ routes.root_url }}pages/verzenden">Verzending</a>
-        <a href="{{ routes.root_url }}pages/retourneren">Retourneren</a>
-        <a href="{{ routes.root_url }}pages/contact">Contact</a>
+      <nav class="sff-col" aria-label="{{ t_service }}">
+        <h3>{{ t_service }}</h3>
+        <a href="{{ routes.root_url }}pages/verzenden">{{ t_faq }}</a>
+        <a href="{{ routes.root_url }}pages/verzenden">{{ t_ship }}</a>
+        <a href="{{ routes.root_url }}pages/retourneren">{{ t_ret }}</a>
+        <a href="{{ routes.root_url }}pages/contact">{{ t_contact }}</a>
       </nav>
 
-      <nav class="sff-col" aria-label="Over SocialFrame">
-        <h3>Over SocialFrame</h3>
+      <nav class="sff-col" aria-label="{{ t_about }}">
+        <h3>{{ t_about }}</h3>
         {%- for link in info_menu.links -%}
           {%- assign t = link.title | downcase -%}
-          {%- unless t == 'verzending' or t == 'retourneren' -%}
+          {%- unless skip_info contains t -%}
             <a href="{{ link.url }}">{{ link.title | escape }}</a>
           {%- endunless -%}
         {%- endfor -%}
-        <a href="javascript:document.querySelector('e-kookie') && document.querySelector('e-kookie').openModal()">Cookie-instellingen</a>
+        <a href="javascript:document.querySelector('e-kookie') && document.querySelector('e-kookie').openModal()">{{ t_cookie }}</a>
       </nav>
     </div>
 
     <div class="sff-bot">
       <span>© {{ 'now' | date: '%Y' }} <a href="{{ routes.root_url }}">{{ shop.name | remove: '®' | remove: '™' | strip | escape }}</a>™</span>
-      <ul class="sff-pay" aria-label="Betaalmogelijkheden">
+      <ul class="sff-pay" aria-label="{{ t_pay }}">
         {%- for type in shop.enabled_payment_types -%}
           <li>{{ type | payment_type_svg_tag: class: 'payment-icon' }}</li>
         {%- endfor -%}
