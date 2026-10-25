@@ -17,12 +17,6 @@
           "type": "price",
           "settings": {}
         },
-        "section_store_block_benefits_list_WwphWN": {
-          "type": "custom_liquid",
-          "settings": {
-            "custom_liquid": "{% capture sf_items %}<p>Hoogwaardig onbreekbaar Acrylglas.</p>§§<p>Ontwerpcontrole door onze specialisten.</p>§§<p>Met zorg speciaal voor jou geproduceerd.</p>§§<p>100% Tevredenheidsgarantie.</p>§§§§§§§§{% endcapture %}{% render 'sf-benefits', items: sf_items, items_gap: 10, icon_selection: 'icon_2', icon_size: 20, icon_color: '#000000', text_size: 15, text_color: '#000000', content_align: 'left', border: 'none', border_thickness: 1, border_color: '#000000', radius: 0, padding_vertical: 10, padding_horizontal: 0 %}"
-          }
-        },
         "space_E8HGYY": {
           "type": "space",
           "settings": {}
@@ -85,16 +79,6 @@
             "hide_block_if": true
           }
         },
-        "collapsible_tab_7mKKNj": {
-          "type": "collapsible_tab",
-          "disabled": true,
-          "settings": {
-            "heading": "Formaten",
-            "content": "<h3><strong>🌟 Tijdelijke Korting! 🌟</strong></h3><p>Koop nu <strong>twee of meer</strong> frames in <strong>formaat S, M of XL</strong> en ontvang <strong>15% korting!</strong><br/>Gebruik kortingscode <strong>SF215</strong> bij het afrekenen.</p><h3><strong>📏 Beschikbare Formaten</strong></h3><p>✔ <strong>Formaat M (Standaard - A4 formaat)</strong><br/>📐 <strong>20 cm breed x 30 cm hoog</strong><br/>🛠️ <strong>Gemaakt van 3mm lasergesneden plexiglas</strong></p><p>✔ <strong>Formaat M (Extra Dik - A4 formaat)</strong><br/>📐 <strong>20 cm breed x 30 cm hoog</strong><br/>🛠️ <strong>Gemaakt van extra dik 6mm lasergesneden plexiglas</strong></p><p>✔ <strong>Formaat S (Klein - A5 formaat)</strong><br/>📐 <strong>13 cm breed x 20 cm hoog</strong><br/>🛠️ <strong>Gemaakt van 3mm lasergesneden plexiglas</strong></p><p>✔ <strong>Formaat XL (Groot)</strong><br/>📐 <strong>47 cm breed x 70 cm hoog</strong><br/>🛠️ <strong>Gemaakt van 6mm lasergesneden plexiglas</strong></p><h3><strong>📦 Past door de brievenbus!</strong></h3><p>Met uitzondering van het <strong>XL-formaat</strong>, passen alle formaten door de brievenbus.<br/>✅ <strong>Geen thuisblijven nodig!</strong><br/>🎁 <strong>Ideaal als cadeau</strong> voor een verjaardag, trouwdag of voor een vriend(in).</p><p>🚀 <strong>Bestel nu en profiteer van de korting!</strong></p>",
-            "page": "",
-            "hide_block_if": false
-          }
-        },
         "collapsible_tab_YykCDC": {
           "type": "collapsible_tab",
           "disabled": true,
@@ -116,7 +100,6 @@
         "title",
         "section_store_block_review_summary_nwpf37",
         "price_WqFFz9",
-        "section_store_block_benefits_list_WwphWN",
         "space_E8HGYY",
         "text_ywePtW",
         "sf_kaartje_tekst",
@@ -127,7 +110,6 @@
         "space_jBcjti",
         "custom_liquid_bgTWjM",
         "collapsible_tab_yj6yQA",
-        "collapsible_tab_7mKKNj",
         "collapsible_tab_YykCDC"
       ],
       "custom_css": [
@@ -165,18 +147,6 @@
             "hide_block_if": false
           }
         },
-        "text_LEHKcm": {
-          "type": "text",
-          "settings": {
-            "title": "Formaten",
-            "subtitle": "",
-            "icon": "no-icon",
-            "button_label": "",
-            "button_link": "",
-            "body": "<h3><strong>🌟 Tijdelijke Korting! 🌟</strong></h3><p>Koop nu <strong>twee of meer</strong> frames in <strong>formaat S, M of XL</strong> en ontvang <strong>15% korting!</strong><br/>Gebruik kortingscode <strong>SF215</strong> bij het afrekenen.</p><p><strong>Formaat S – Klein (A5-formaat)</strong></p><ul><li>Afmeting: 13 × 20 cm</li><li>Materiaal: 3 mm lasergesneden plexiglas</li></ul><p><strong>Formaat M – Standaard (A4-formaat)</strong></p><ul><li>Afmeting: 20 × 30 cm</li><li>Materiaal: 3 mm lasergesneden plexiglas</li></ul><p><strong>Formaat M – Extra Dik (A4-formaat)</strong></p><ul><li>Afmeting: 20 × 30 cm</li><li>Materiaal: 6 mm lasergesneden plexiglas</li></ul><p><strong>Formaat XL – Groot</strong></p><ul><li>Afmeting: 47 × 70 cm</li><li>Materiaal: 6 mm lasergesneden plexiglas</li></ul><h3><strong>Past door de brievenbus!</strong></h3><p>Met uitzondering van het <strong>XL-formaat</strong>, passen alle formaten door de brievenbus.<br/><strong>Geen thuisblijven nodig!</strong><br/><strong>Ideaal als cadeau</strong> voor een verjaardag, trouwdag of voor een vriend(in).</p><p><strong>Bestel nu en profiteer van de korting!</strong></p>",
-            "hide_block_if": false
-          }
-        },
         "text_6JMxDh": {
           "type": "text",
           "settings": {
@@ -192,7 +162,6 @@
       },
       "block_order": [
         "text_Xq9EtQ",
-        "text_LEHKcm",
         "text_6JMxDh"
       ],
       "settings": {
