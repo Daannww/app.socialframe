@@ -682,8 +682,17 @@
                       var p=btn.querySelector('[data-sf-atc-price]'); if(!p)return;
                       var src=document.querySelector('[data-js-product-price-original]');
                       if(!src)return;
-                      function sync(){var t=(src.textContent||'').trim(); if(t&&p.textContent!==t)p.textContent=t;}
+                      var form=btn.closest('form');
+                      function qty(){var q=form&&form.querySelector('input[name="quantity"]');var n=q?parseInt(q.value,10):1;return n>0?n:1;}
+                      function num(t){var m=(t||'').replace(/[^\d.,]/g,'');if(!m)return NaN;var lc=m.lastIndexOf(','),ld=m.lastIndexOf('.');var dec=Math.max(lc,ld);if(dec>-1&&m.length-dec-1<=2){m=m.slice(0,dec).replace(/[.,]/g,'')+'.'+m.slice(dec+1);}else{m=m.replace(/[.,]/g,'');}return parseFloat(m);}
+                      function sync(){
+                        var t=(src.textContent||'').trim(); if(!t)return;
+                        var n=qty(),out=t;
+                        if(n>1){var v=num(t);if(!isNaN(v)){try{out=new Intl.NumberFormat(document.documentElement.lang||'nl',{style:'currency',currency:(window.Shopify&&Shopify.currency&&Shopify.currency.active)||'EUR'}).format(v*n);}catch(e){out=t;}}}
+                        if(p.textContent!==out)p.textContent=out;
+                      }
                       new MutationObserver(sync).observe(src,{childList:true,characterData:true,subtree:true});
+                      if(form){form.addEventListener('input',sync);form.addEventListener('change',sync);form.addEventListener('click',function(){setTimeout(sync,30)});}
                       sync();
                     })();
                     </script>
