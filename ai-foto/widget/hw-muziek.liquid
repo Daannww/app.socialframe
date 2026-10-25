@@ -117,7 +117,7 @@
   .hw-mz{position:relative;font-family:inherit;font-size:14px;color:#333;border:1.5px solid #E2E2E2;border-radius:24px;background:#fff;padding:22px 18px 20px;margin:1.75rem 0 1rem;box-sizing:border-box}
   .hw-mz *{box-sizing:border-box}
   .hw-mz-heading{font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#111;margin:0 0 16px}
-  .hw-mz-slot{margin-bottom:56px}
+  .hw-mz-slot{margin-bottom:96px}
   .hw-mz-zoom{position:absolute;top:6px;right:6px;z-index:8;width:26px;height:26px;border-radius:50%;border:0 !important;background:rgba(255,255,255,.7) !important;box-shadow:0 1px 4px rgba(0,0,0,.14);opacity:.85;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0 !important;margin:0}
   .hw-mz-lb{position:fixed;inset:0;z-index:2147483000;background:rgba(21,20,18,.94);display:flex;align-items:center;justify-content:center;padding:12px;box-sizing:border-box}
   .hw-mz-lb .hw-mz-scene{margin:0;border-radius:10px;touch-action:none}
@@ -656,7 +656,7 @@
           small = Math.min(full.w, window.innerHeight * 0.24 * 41 / 50);
           smallH = full.h - (full.w - small) * 50 / 41 - (hint ? hint.offsetHeight + 6 : 0);
         }
-        var dist = Math.max(60, (full.h - smallH) * 1.6);
+        var dist = Math.max(60, (full.h - smallH) * 0.7); // krimpt sneller, zodat stap 1 in beeld blijft
         var p = Math.max(0, Math.min(1, (topOff - sr.top) / dist));
         p = p * p * (3 - 2 * p); // zachte start en stop
         var w = full.w + (small - full.w) * p;
@@ -664,7 +664,7 @@
         if (hint) hint.style.display = p > 0.02 ? 'none' : '';
         var hSticky = w * 50 / 41 + 14;
         slot.style.height = Math.max(hSticky + 36 * p, full.h + (smallH - full.h) * p + 36 * p) + 'px'; // extra wit onder het (gekrompen) voorbeeld, zodat stap 1 goed zichtbaar blijft
-        slot.style.marginBottom = (56 * (1 - p)) + 'px'; // extra wit onder het voorbeeld, zodat de uploadknop van stap 1 niet meteen wegvalt
+        slot.style.marginBottom = (96 * (1 - p) + 24 * p) + 'px'; // extra wit onder het voorbeeld, zodat de uploadknop van stap 1 niet meteen wegvalt
         var t = rr.bottom - hSticky - 8;
         if (t < topOff) {
           // einde van het blok: het voorbeeld staat vast onderin het blok en scrolt gewoon mee (geen JS meer, dus geen getril op iPhone)
