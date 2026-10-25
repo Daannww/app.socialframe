@@ -598,11 +598,12 @@
                   <div class="flex-buttons shopify-buttons--not-{{ block.settings.style_buttons }}">
 
                     <style>
-                      .flex-buttons product-quantity.product-quantity{display:inline-flex!important;align-items:center;justify-content:space-between;width:128px!important;max-width:128px;height:44px;padding:0 6px!important;margin:0 0 12px!important;border:1px solid #d9c9a8;border-radius:999px;background:#faf6ee;box-sizing:border-box;gap:0}
+                      .flex-buttons product-quantity.product-quantity{display:inline-flex!important;align-items:center;justify-content:space-between;width:128px!important;max-width:128px;height:44px;padding:0 6px!important;margin:0 0 14px 0!important;transform:none;border:1px solid #d9c9a8;border-radius:999px;background:#faf6ee;box-sizing:border-box;gap:0}
                       product-quantity .qty-minus,product-quantity .qty-plus{width:32px!important;height:32px!important;min-width:32px;border:0!important;border-radius:50%!important;background:#fff!important;box-shadow:0 1px 3px rgba(0,0,0,.12);display:flex;align-items:center;justify-content:center;padding:0!important;cursor:pointer;transition:background .15s ease,transform .15s ease}
                       product-quantity .qty-minus:hover,product-quantity .qty-plus:hover{background:#151412!important;transform:scale(1.06)}
                       product-quantity .qty-minus:hover svg path,product-quantity .qty-plus:hover svg path{fill:#fff}
                       product-quantity .qty-selector{width:40px!important;flex:none;border:0!important;background:transparent!important;text-align:center;font-size:16px!important;font-weight:700;padding:0!important;height:32px;margin:0;box-shadow:none!important;-moz-appearance:textfield}
+                      product-quantity button:focus{outline:none}product-quantity button:focus-visible{outline:2px solid #151412;outline-offset:2px}
                       product-quantity .qty-selector::-webkit-outer-spin-button,product-quantity .qty-selector::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
                       .add-to-cart.sf-atc{background:linear-gradient(145deg,#000,#000)!important;color:#fff!important;border:0!important;box-shadow:0 4px 8px #00000033,0 2px 4px #0000001a,inset 0 1px 0 #ffffff1a,inset 0 -1px 0 #0000004d!important;display:inline-flex!important;align-items:center;justify-content:center;gap:8px;position:relative;overflow:hidden;transition:translate .25s ease,scale .25s ease,box-shadow .25s ease!important}
                       .add-to-cart.sf-atc:hover{translate:0 -2px;box-shadow:0 6px 12px #0000004d,0 3px 6px #00000033,inset 0 1px 0 #ffffff26,inset 0 -1px 0 #00000066!important}
@@ -610,6 +611,9 @@
                       .add-to-cart.sf-atc .sf-atc-icon{display:inline-flex;align-items:center;flex-shrink:0}
                       .add-to-cart.sf-atc .sf-atc-price{white-space:nowrap;min-width:88px;text-align:right;font-variant-numeric:tabular-nums;padding-left:12px;border-left:1px solid rgba(255,255,255,.35);line-height:1.2}
                       @media(max-width:480px){.add-to-cart.sf-atc .sf-atc-price{min-width:78px;font-size:14px;padding-left:9px}}
+                      .add-to-cart.sf-atc .sf-atc-old{opacity:.6;font-size:.82em;margin-right:4px;text-decoration:line-through}
+                      .add-to-cart.sf-atc .sf-atc-tag{position:absolute;top:-11px;right:22px;background:#b3261e;color:#fff;font-size:11px;font-weight:700;letter-spacing:.02em;padding:3px 10px;border-radius:999px;box-shadow:0 2px 6px rgba(0,0,0,.25);z-index:2;white-space:nowrap}
+                      .add-to-cart.sf-atc .sf-atc-price{min-width:120px}
                       .add-to-cart.sf-atc.disabled .sf-atc-price,.add-to-cart.sf-atc.disabled .sf-atc-icon{display:none}
                       .add-to-cart.sf-atc .sf-atc-shine{position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);transform:translateX(-100%);transition:transform .72s ease;pointer-events:none;z-index:1}
                       .add-to-cart.sf-atc:hover .sf-atc-shine{transform:translateX(200%)}
@@ -652,7 +656,7 @@
                     <button type="submit" name="add" class="add-to-cart sf-atc button button--{{ block.settings.style_buttons }} button--product button--loader 
                       {% unless current_variant.available %} disabled {% endunless %}
                       {% unless default_to_first_variant %} disabled {% endunless %}" 
-                    data-js-product-add-to-cart>
+                    data-js-product-add-to-cart{% for c in product.collections %}{% if c.handle == 'tegels' or c.handle == 'woordenboek-stijl-tegeltje' or c.handle == 'vriendschap' or c.handle == 'geboorte' or c.handle == 'gedenk' %} data-sf-tile="1"{% break %}{% endif %}{% endfor %}>
                       <i class="sf-atc-icon" aria-hidden="true"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></i>
                       <span class="button__text" data-js-product-add-to-cart-text {% if block.settings.show_preorder %} data-show-preorder-wording {% endif %}>
                         {%- liquid
@@ -693,9 +697,14 @@
                       function num(t){var m=(t||'').replace(/[^\d.,]/g,'');if(!m)return NaN;var lc=m.lastIndexOf(','),ld=m.lastIndexOf('.');var dec=Math.max(lc,ld);if(dec>-1&&m.length-dec-1<=2){m=m.slice(0,dec).replace(/[.,]/g,'')+'.'+m.slice(dec+1);}else{m=m.replace(/[.,]/g,'');}return parseFloat(m);}
                       function sync(){
                         var t=(src.textContent||'').trim(); if(!t)return;
-                        var n=qty(),out=t;
-                        if(n>1){var v=num(t);if(!isNaN(v)){try{out=new Intl.NumberFormat(document.documentElement.lang||'nl',{style:'currency',currency:(window.Shopify&&Shopify.currency&&Shopify.currency.active)||'EUR'}).format(v*n);}catch(e){out=t;}}}
-                        if(p.textContent!==out)p.textContent=out;
+                        var n=qty(),out=t,v=num(t),fmt=function(x){try{return new Intl.NumberFormat(document.documentElement.lang||'nl',{style:'currency',currency:(window.Shopify&&Shopify.currency&&Shopify.currency.active)||'EUR'}).format(x);}catch(e){return t;}};
+                        var host=btn.parentElement,tag=host.querySelector('.sf-atc-tag');
+                        if(!isNaN(v)&&n>1){
+                          var full=v*n,disc=btn.hasAttribute('data-sf-tile')?Math.floor(n/2)*v*0.2:0;
+                          if(disc>0){out='<s class="sf-atc-old">'+fmt(full)+'</s> '+fmt(full-disc);if(!tag){tag=document.createElement('span');tag.className='sf-atc-tag';host.style.position='relative';host.appendChild(tag);}tag.textContent='-20% op 2e tegeltje';tag.style.top=(btn.offsetTop-11)+'px';}
+                          else{out=fmt(full);if(tag)tag.remove();}
+                        } else if(tag){tag.remove();}
+                        if(p.innerHTML!==out)p.innerHTML=out;
                       }
                       new MutationObserver(sync).observe(src,{childList:true,characterData:true,subtree:true});
                       if(form){form.addEventListener('input',sync);form.addEventListener('change',sync);form.addEventListener('click',function(){setTimeout(sync,30)});}
