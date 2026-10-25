@@ -531,7 +531,7 @@
     })();
 
     // ----- opslaan en winkelwagen -----
-    function signature() { return JSON.stringify([S.filter, S.tekst, S.code, S.bg, S.heart, S.zoom, S.ox, S.oy, r1El.value, r2El.value, t0El.value, t1El.value, dotEl.value, codeLink(), qrText(), S.photo && S.photo.src]); }
+    function signature() { return JSON.stringify([S.filter, S.tekst, S.code, S.bg, S.heart, S.zoom, S.ox, S.oy, r1El.value, r2El.value, t0El.value, t1El.value, dotEl.value, codeLink(), qrText(), S.photo && S.photo.src, (function () { var a = $('[data-mz-stand]'), b = $('[data-mz-scene]'); return [a && a.getAttribute('src'), a && a.hidden, a && a.className, b && b.classList.contains('is-led')]; })()]); }
     function validate() {
       if (!S.photo) return 'Kies eerst een foto.';
       if (!r1El.value.trim()) return 'Vul Regel 1 in.';
@@ -550,6 +550,48 @@
       var fc = f.getContext('2d'); fc.fillStyle = white() ? '#9a9a9a' : '#f1f1f1'; fc.fillRect(0, 0, f.width, f.height); fc.drawImage(canvas, 0, 0);
       return f;
     }
+    // voorbeeld voor in de winkelwagen: de hele scene (plaat + gekozen houder/ledverlichting), zo zie je in het winkelwagentje ook de accessoires
+    function loadImg(src) { return new Promise(function (res) { if (!src) return res(null); var i = new Image(); i.crossOrigin = 'anonymous'; i.onload = function () { res(i); }; i.onerror = function () { res(null); }; i.src = src; }); }
+    function scenePreview() {
+      var sc = $('[data-mz-scene]'), st = $('[data-mz-stage]'), stand = $('[data-mz-stand]'), front = $('[data-mz-stand-front]'), cab = $('[data-mz-cable]'), gr = $('.hw-mz-ground');
+      var sr = sc && sc.getBoundingClientRect();
+      if (!sc || !st || !sr.width) return Promise.resolve(previewFlat());
+      var W = 900, k = W / sr.width, H = Math.round(sr.height * k);
+      function R(e) { var r = e.getBoundingClientRect(); return { x: (r.left - sr.left) * k, y: (r.top - sr.top) * k, w: r.width * k, h: r.height * k }; }
+      var led = sc.classList.contains('is-led'), clear = st.classList.contains('is-clear');
+      var bgm = /url\(["']?([^"')]+)["']?\)/.exec(sc.style.backgroundImage || '');
+      var shown = function (e) { return e && !e.hidden && e.getAttribute('src'); };
+      return Promise.all([loadImg(bgm && bgm[1]), loadImg(shown(stand) && stand.src), loadImg(shown(front) && front.src), loadImg(shown(cab) && cab.src)]).then(function (im) {
+        var c = document.createElement('canvas'); c.width = W; c.height = H; var x = c.getContext('2d');
+        x.fillStyle = '#ece7df'; x.fillRect(0, 0, W, H);
+        if (im[0]) { var sc0 = Math.max(W / im[0].width, H / im[0].height); x.drawImage(im[0], (W - im[0].width * sc0) / 2, 0, im[0].width * sc0, im[0].height * sc0); }
+        if (gr) { var g = R(gr); x.save(); x.translate(g.x + g.w / 2, g.y + g.h / 2); x.scale(g.w / 2, g.h / 2); var rg = x.createRadialGradient(0, 0, 0, 0, 0, 1); rg.addColorStop(0, 'rgba(60,45,30,.38)'); rg.addColorStop(.7, 'rgba(60,45,30,0)'); x.fillStyle = rg; x.fillRect(-1, -1, 2, 2); x.restore(); }
+        if (im[3]) { var cr = R(cab); x.save(); x.shadowColor = 'rgba(0,0,0,.35)'; x.shadowBlur = 3 * k; x.shadowOffsetY = 2 * k; x.drawImage(im[3], cr.x, cr.y, cr.w, cr.h); x.restore(); }
+        if (led) { var lg = x.createLinearGradient(0, 0, 0, H); lg.addColorStop(0, 'rgba(6,6,10,.80)'); lg.addColorStop(1, 'rgba(6,6,10,.88)'); x.fillStyle = lg; x.fillRect(0, 0, W, H); }
+        var feet = stand && stand.classList.contains('is-feet'), standTop = feet || clear;
+        function drawStand(img, e, clipTop) {
+          var r = R(e); x.save();
+          if (clipTop) { x.beginPath(); x.rect(r.x, r.y + r.h * clipTop, r.w, r.h * (1 - clipTop)); x.clip(); }
+          else { x.shadowColor = led && !feet ? 'rgba(0,0,0,.6)' : 'rgba(40,25,10,.38)'; x.shadowBlur = 8 * k; x.shadowOffsetY = 5 * k; }
+          try { if (led && !feet) x.filter = 'brightness(.55)'; } catch (e2) {}
+          x.drawImage(img, r.x, r.y, r.w, r.h); x.restore();
+        }
+        if (im[1] && !standTop) drawStand(im[1], stand);
+        if (led) { x.save(); x.globalCompositeOperation = 'screen'; x.translate(W * .5, H * .895); x.scale(W * .46, H * .15); var ag = x.createRadialGradient(0, 0, 0, 0, 0, 1); ag.addColorStop(0, 'rgba(255,238,210,.38)'); ag.addColorStop(1, 'rgba(255,238,210,0)'); x.fillStyle = ag; x.fillRect(-1, -1, 2, 2); x.restore(); }
+        var r = R(st); x.save();
+        if (!clear) { x.shadowColor = 'rgba(40,25,10,.5)'; x.shadowBlur = 12 * k; x.shadowOffsetY = 14 * k; x.fillStyle = '#fff'; x.fillRect(r.x, r.y, r.w, r.h); x.shadowColor = 'rgba(60,45,30,.25)'; x.shadowBlur = 18 * k; x.shadowOffsetX = 8 * k; x.shadowOffsetY = 8 * k; x.fillRect(r.x, r.y, r.w, r.h); }
+        x.restore(); x.save();
+        if (clear) { var cg = x.createLinearGradient(r.x, r.y, r.x + r.w, r.y + r.h); cg.addColorStop(0, led ? 'rgba(0,0,0,.28)' : 'rgba(255,255,255,.20)'); cg.addColorStop(.55, led ? 'rgba(0,0,0,.22)' : 'rgba(255,255,255,.10)'); cg.addColorStop(1, led ? 'rgba(0,0,0,.18)' : 'rgba(255,255,255,.16)'); x.fillStyle = cg; x.fillRect(r.x, r.y, r.w, r.h); }
+        try { if (led) x.filter = 'brightness(.82) contrast(1.05)'; } catch (e3) {}
+        x.drawImage(canvas, r.x, r.y, r.w, r.h); x.restore();
+        if (clear) { x.save(); x.strokeStyle = 'rgba(255,255,255,.9)'; x.lineWidth = 1.5 * k; x.strokeRect(r.x, r.y, r.w, r.h); x.restore(); }
+        if (led) { x.save(); x.globalCompositeOperation = 'screen'; var gl = x.createLinearGradient(0, r.y + r.h, 0, r.y + r.h * .66); gl.addColorStop(0, 'rgba(255,250,240,.85)'); gl.addColorStop(.2, 'rgba(255,246,230,.38)'); gl.addColorStop(1, 'rgba(255,244,225,0)'); x.fillStyle = gl; x.fillRect(r.x, r.y + r.h * .66, r.w, r.h * .34); x.restore(); }
+        if (im[2]) drawStand(im[2], front, .177);
+        if (im[1] && standTop) drawStand(im[1], stand);
+        return c;
+      }).catch(function () { return previewFlat(); });
+    }
+    root.__scenePreview = scenePreview;
     function build() {
       var sig = signature();
       if (S.result && S.result.sig === sig) return Promise.resolve(S.result);
@@ -557,7 +599,7 @@
       var side = Math.max(800, Math.min(2400, Math.max(S.photo.naturalWidth, S.photo.naturalHeight)));
       var crop = document.createElement('canvas'); crop.width = crop.height = side;
       var cc = crop.getContext('2d'); cc.fillStyle = '#fff'; cc.fillRect(0, 0, side, side); drawPhotoTo(cc, side);
-      return fontsReady().then(function () { draw(); return Promise.all([toBlob(crop, 0.92), toBlob(previewFlat(), 0.85)]); }).then(function (b) {
+      return fontsReady().then(function () { draw(); return scenePreview().then(function (pc) { return toBlob(pc, 0.85).catch(function () { return toBlob(previewFlat(), 0.85); }).then(function (pb) { return Promise.all([toBlob(crop, 0.92), pb]); }); }); }).then(function (b) {
         return Promise.all([post('/api/music/photo', 'photo', b[0], 'foto.jpg'), post('/api/music/preview', 'image', b[1], 'voorbeeld.jpg')]);
       }).then(function (u) {
         S.busy = false; S.result = { sig: sig, photo: u[0].url, preview: u[1].url }; return S.result;
