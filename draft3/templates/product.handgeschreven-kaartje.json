@@ -1,0 +1,268 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-product",
+      "blocks": {
+        "title": {
+          "type": "title",
+          "settings": {}
+        },
+        "section_store_block_review_summary_nwpf37": {
+          "type": "custom_liquid",
+          "settings": {
+            "custom_liquid": "{% capture sf_t1 %}<p>Uitstekend</p>{% endcapture %}{% capture sf_t2 %}<p><strong>375 </strong>reviews</p>{% endcapture %}{% render 'sf-review-summary', first_text: sf_t1, second_text: sf_t2, star_style: 'standard', stars_count: 4.5, stars_size: 17, stars_gap: 2, stars_color: '#ffffff', stars_bg_color: '#00b67a', stars_bg_half_color: '#dddddd', avatars_position: 'none', avatars_size: 20, avatars_animate: false, first_text_size: 15, first_text_color: '#000000', second_text_size: 13, second_text_color: '#000000', border: 'none', border_thickness: 1, border_color: '#000000', radius: 0, effect: 'none', block_padding_top: 0, block_padding_bottom: 0, padding_vertical: 6, padding_horizontal: 0 %}"
+          }
+        },
+        "price_WqFFz9": {
+          "type": "price",
+          "settings": {}
+        },
+        "section_store_block_benefits_list_WwphWN": {
+          "type": "custom_liquid",
+          "settings": {
+            "custom_liquid": "{% capture sf_items %}<p>Hoogwaardig onbreekbaar Acrylglas.</p>§§<p>Ontwerpcontrole door onze specialisten.</p>§§<p>Met zorg speciaal voor jou geproduceerd.</p>§§<p>100% Tevredenheidsgarantie.</p>§§§§§§§§{% endcapture %}{% render 'sf-benefits', items: sf_items, items_gap: 10, icon_selection: 'icon_2', icon_size: 20, icon_color: '#000000', text_size: 15, text_color: '#000000', content_align: 'left', border: 'none', border_thickness: 1, border_color: '#000000', radius: 0, padding_vertical: 10, padding_horizontal: 0 %}"
+          }
+        },
+        "space_E8HGYY": {
+          "type": "space",
+          "settings": {}
+        },
+        "text_ywePtW": {
+          "type": "text",
+          "settings": {
+            "text": "<p><strong>Personaliseren:</strong></p>",
+            "text_size": "text-size--large",
+            "text_color": "#000000",
+            "text_transform": false
+          }
+        },
+        "space_pgNTkf": {
+          "type": "space",
+          "settings": {}
+        },
+        "variant_picker": {
+          "type": "variant_picker",
+          "settings": {
+            "variants_style": "select",
+            "show_quantities": "below"
+          }
+        },
+        "space_ETkixW": {
+          "type": "space",
+          "settings": {}
+        },
+        "buy_buttons": {
+          "type": "buy_buttons",
+          "settings": {
+            "show_price": true,
+            "show_quantity_selector": false,
+            "show_preorder": false,
+            "show_dynamic_checkout": false,
+            "show_gift_card_recipient": false,
+            "color_text_buttons": "rgba(0,0,0,0)",
+            "color_accent_buttons": "rgba(0,0,0,0)",
+            "style_buttons": "solid"
+          }
+        },
+        "space_jBcjti": {
+          "type": "space",
+          "settings": {}
+        },
+        "custom_liquid_bgTWjM": {
+          "type": "custom_liquid",
+          "disabled": true,
+          "settings": {
+            "custom_liquid": "<div id='ss-buy-more'></div>"
+          }
+        },
+        "collapsible_tab_yj6yQA": {
+          "type": "collapsible_tab",
+          "disabled": true,
+          "settings": {
+            "heading": "Product informatie",
+            "content": "<p></p>{{ product.metafields.custom.product_discription_met_opmaak_ | metafield_tag }}",
+            "page": "",
+            "hide_block_if": true
+          }
+        },
+        "collapsible_tab_7mKKNj": {
+          "type": "collapsible_tab",
+          "disabled": true,
+          "settings": {
+            "heading": "Formaten",
+            "content": "<h3><strong>🌟 Tijdelijke Korting! 🌟</strong></h3><p>Koop nu <strong>twee of meer</strong> frames in <strong>formaat S, M of XL</strong> en ontvang <strong>15% korting!</strong><br/>Gebruik kortingscode <strong>SF215</strong> bij het afrekenen.</p><h3><strong>📏 Beschikbare Formaten</strong></h3><p>✔ <strong>Formaat M (Standaard - A4 formaat)</strong><br/>📐 <strong>20 cm breed x 30 cm hoog</strong><br/>🛠️ <strong>Gemaakt van 3mm lasergesneden plexiglas</strong></p><p>✔ <strong>Formaat M (Extra Dik - A4 formaat)</strong><br/>📐 <strong>20 cm breed x 30 cm hoog</strong><br/>🛠️ <strong>Gemaakt van extra dik 6mm lasergesneden plexiglas</strong></p><p>✔ <strong>Formaat S (Klein - A5 formaat)</strong><br/>📐 <strong>13 cm breed x 20 cm hoog</strong><br/>🛠️ <strong>Gemaakt van 3mm lasergesneden plexiglas</strong></p><p>✔ <strong>Formaat XL (Groot)</strong><br/>📐 <strong>47 cm breed x 70 cm hoog</strong><br/>🛠️ <strong>Gemaakt van 6mm lasergesneden plexiglas</strong></p><h3><strong>📦 Past door de brievenbus!</strong></h3><p>Met uitzondering van het <strong>XL-formaat</strong>, passen alle formaten door de brievenbus.<br/>✅ <strong>Geen thuisblijven nodig!</strong><br/>🎁 <strong>Ideaal als cadeau</strong> voor een verjaardag, trouwdag of voor een vriend(in).</p><p>🚀 <strong>Bestel nu en profiteer van de korting!</strong></p>",
+            "page": "",
+            "hide_block_if": false
+          }
+        },
+        "collapsible_tab_YykCDC": {
+          "type": "collapsible_tab",
+          "disabled": true,
+          "settings": {
+            "heading": "Verzending",
+            "content": "",
+            "page": "verzenden",
+            "hide_block_if": false
+          }
+        },
+        "sf_kaartje_tekst": {
+          "type": "custom_liquid",
+          "settings": {
+            "custom_liquid": "<div class=\"sf-kt\" data-sf-kt>\n  <label class=\"sf-kt-l\" for=\"sf-kt-text\">Jouw boodschap voor op het kaartje</label>\n  <p class=\"sf-kt-h\">Wij schrijven jouw tekst met de hand op een mooi kaartje.</p>\n  <textarea id=\"sf-kt-text\" class=\"sf-kt-t\" data-sf-kt-text maxlength=\"300\" rows=\"5\" placeholder=\"Schrijf hier je boodschap...\" required></textarea>\n  <div class=\"sf-kt-f\"><span class=\"sf-kt-e\" data-sf-kt-err hidden>Vul eerst een boodschap in.</span><span class=\"sf-kt-c\" data-sf-kt-count>0 / 300</span></div>\n</div>\n<style>\n  .sf-kt{margin:4px 0 18px}\n  .sf-kt-l{display:block;font-size:15px;font-weight:700;color:#151412;margin:0 0 4px}\n  .sf-kt-h{margin:0 0 12px;font-size:13px;line-height:1.5;color:#6d675c}\n  .sf-kt-t{display:block;width:100%;box-sizing:border-box;border:1.5px solid #d9d4c8;border-radius:16px;padding:14px 16px;font:inherit;font-size:15px;line-height:1.5;color:#151412;background:#fff;resize:vertical;min-height:140px;transition:border-color .2s ease,box-shadow .2s ease}\n  .sf-kt-t:focus{outline:0;border-color:#151412;box-shadow:0 0 0 3px rgba(242,196,138,.45)}\n  .sf-kt-t.is-err{border-color:#c0392b}\n  .sf-kt-f{display:flex;justify-content:space-between;gap:12px;margin-top:6px;font-size:12px}\n  .sf-kt-c{margin-left:auto;color:#8a8478}\n  .sf-kt-e{color:#c0392b}\n</style>\n<script>\n(function(){\n  var w=document.currentScript.previousElementSibling.previousElementSibling; if(!w||!w.hasAttribute('data-sf-kt')) w=document.querySelector('[data-sf-kt]'); if(!w) return;\n  var ta=w.querySelector('[data-sf-kt-text]'), cnt=w.querySelector('[data-sf-kt-count]'), er=w.querySelector('[data-sf-kt-err]');\n  var NAME='properties[Boodschap voor kaartje]';\n  function forms(){ var f=document.querySelectorAll('.product-form .form'); if(f.length) return f; var a=document.querySelectorAll('form[action*=\"/cart/add\"]'); return a; }\n  function sync(){\n    var v=(ta.value||'').trim();\n    forms().forEach(function(f){\n      var h=f.querySelector('input[data-sf-kt-hidden]');\n      if(!h){ h=document.createElement('input'); h.type='hidden'; h.name=NAME; h.setAttribute('data-sf-kt-hidden',''); f.appendChild(h); }\n      h.value=v;\n    });\n    cnt.textContent=ta.value.length+' / 300';\n    if(v){ er.hidden=true; ta.classList.remove('is-err'); }\n  }\n  ta.addEventListener('input',sync);\n  function block(e){\n    if(!(ta.value||'').trim()){\n      e.preventDefault(); e.stopPropagation(); if(e.stopImmediatePropagation) e.stopImmediatePropagation();\n      er.hidden=false; ta.classList.add('is-err'); ta.focus(); ta.scrollIntoView({block:'center',behavior:'smooth'}); return true;\n    }\n    sync(); return false;\n  }\n  document.addEventListener('submit',function(e){ if(e.target.closest && e.target.closest('.product-form, form[action*=\"/cart/add\"]')) block(e); },true);\n  document.addEventListener('click',function(e){\n    var b=e.target.closest && e.target.closest('.product-form button[type=\"submit\"], .product-form [name=\"add\"], form[action*=\"/cart/add\"] button[type=\"submit\"]');\n    if(b) block(e);\n  },true);\n  sync();\n})();\n</script>"
+          }
+        }
+      },
+      "block_order": [
+        "title",
+        "section_store_block_review_summary_nwpf37",
+        "price_WqFFz9",
+        "section_store_block_benefits_list_WwphWN",
+        "space_E8HGYY",
+        "text_ywePtW",
+        "sf_kaartje_tekst",
+        "space_pgNTkf",
+        "variant_picker",
+        "space_ETkixW",
+        "buy_buttons",
+        "space_jBcjti",
+        "custom_liquid_bgTWjM",
+        "collapsible_tab_yj6yQA",
+        "collapsible_tab_7mKKNj",
+        "collapsible_tab_YykCDC"
+      ],
+      "custom_css": [
+        ".effectiveAppsEGWATCImage {padding-top: 20px;}"
+      ],
+      "settings": {
+        "gallery_style": "slider",
+        "gallery_ratio": "natural",
+        "gallery_fit": false,
+        "show_border": true,
+        "gallery_card_design": false,
+        "gallery_padding": 0,
+        "gallery_pagination": "dots",
+        "enable_zoom": false,
+        "enable_video_looping": true,
+        "default_to_first_variant": true,
+        "sticky_add_to_cart": false,
+        "sticky_atc_style": "wide",
+        "sticky_bar_bgcolor": "#ffffff",
+        "sticky_bar_txtcolor": "#111111"
+      }
+    },
+    "content_toggles_ek46UQ": {
+      "type": "content-toggles",
+      "blocks": {
+        "text_Xq9EtQ": {
+          "type": "text",
+          "settings": {
+            "title": "Product Informatie",
+            "subtitle": "",
+            "icon": "no-icon",
+            "button_label": "",
+            "button_link": "",
+            "body": "{{ product.metafields.custom.product_discription_met_opmaak_ | metafield_tag }}",
+            "hide_block_if": false
+          }
+        },
+        "text_LEHKcm": {
+          "type": "text",
+          "settings": {
+            "title": "Formaten",
+            "subtitle": "",
+            "icon": "no-icon",
+            "button_label": "",
+            "button_link": "",
+            "body": "<h3><strong>🌟 Tijdelijke Korting! 🌟</strong></h3><p>Koop nu <strong>twee of meer</strong> frames in <strong>formaat S, M of XL</strong> en ontvang <strong>15% korting!</strong><br/>Gebruik kortingscode <strong>SF215</strong> bij het afrekenen.</p><p><strong>Formaat S – Klein (A5-formaat)</strong></p><ul><li>Afmeting: 13 × 20 cm</li><li>Materiaal: 3 mm lasergesneden plexiglas</li></ul><p><strong>Formaat M – Standaard (A4-formaat)</strong></p><ul><li>Afmeting: 20 × 30 cm</li><li>Materiaal: 3 mm lasergesneden plexiglas</li></ul><p><strong>Formaat M – Extra Dik (A4-formaat)</strong></p><ul><li>Afmeting: 20 × 30 cm</li><li>Materiaal: 6 mm lasergesneden plexiglas</li></ul><p><strong>Formaat XL – Groot</strong></p><ul><li>Afmeting: 47 × 70 cm</li><li>Materiaal: 6 mm lasergesneden plexiglas</li></ul><h3><strong>Past door de brievenbus!</strong></h3><p>Met uitzondering van het <strong>XL-formaat</strong>, passen alle formaten door de brievenbus.<br/><strong>Geen thuisblijven nodig!</strong><br/><strong>Ideaal als cadeau</strong> voor een verjaardag, trouwdag of voor een vriend(in).</p><p><strong>Bestel nu en profiteer van de korting!</strong></p>",
+            "hide_block_if": false
+          }
+        },
+        "text_6JMxDh": {
+          "type": "text",
+          "settings": {
+            "title": "Verzending",
+            "subtitle": "",
+            "icon": "no-icon",
+            "button_label": "",
+            "button_link": "",
+            "body": "<h1><strong>Bestel- en Verzendinginformatie</strong></h1><p><strong>Gratis verzending in Nederland, België en Duitsland!</strong></p><p>Na je bestelling ontvang je <strong>per e-mail een bestelbevestiging</strong> met:<br/>✅ <strong>Jouw bestelnummer</strong><br/>✅ <strong>Een overzicht van de bestelde producten</strong><br/>✅ <strong>Het totaalbedrag van je bestelling</strong></p><h3><strong> Bestelling volgen</strong></h3><p>Zodra je bestelling is verzonden, ontvang je een e-mail met een <strong>trackingnummer</strong> en een link naar de website van de vervoerder.</p><p>Hiermee kun je eenvoudig je bestelling volgen en de bezorgstatus controleren.</p><h2><strong>Past mijn bestelling door de brievenbus?</strong></h2><p>✔ <strong>Ja, met uitzondering van XL-frames!</strong><br/>✔ Je hoeft dus <strong>niet thuis te blijven</strong> voor de bezorging.<br/>✔ Perfect als <strong>cadeautje voor een vriend of vriendin</strong>! 🎁</p><h2><strong>Levertijden</strong></h2><h3><strong>Besteld vóór 12:00 uur → Vandaag verzonden!</strong></h3><p> <strong>Let op:</strong> Bestellingen na 12:00 uur worden de volgende werkdag verwerkt.<br/>🚨 Tijdens <strong>feestdagen of drukke periodes bij PostNL of DPD</strong> kan de levering langer duren.</p><h2><strong>Veelgestelde vragen</strong></h2><h3><strong>Kan ik de status van mijn bestelling volgen?</strong></h3><p>Ja! Zodra jouw bestelling is verzonden, ontvang je een e-mail met een <strong>trackingnummer</strong> om je pakketje te volgen.</p><h3><strong>Hoe lang duurt het voordat ik mijn bestelling ontvang?</strong></h3><p>Bestellingen geplaatst vóór <strong>12:00 uur</strong> worden <strong>dezelfde werkdag verzonden</strong>.</p><ul><li><strong>Nederland & België</strong> → Vaak de volgende dag in huis!</li><li><strong>Duitsland</strong> → Levering binnen 2-3 werkdagen.<br/>⚠️ Tijdens drukke periodes bij PostNL kan de levering iets langer duren.</li></ul><h3><strong>Waar wordt mijn SocialFrame gemaakt?</strong></h3><p>Onze SocialFrames worden <strong>100% in Nederland met eigen productie geproduceerd</strong>, in tegenstelling tot veel andere aanbieders. Hierdoor kunnen we <strong>hoge kwaliteit garanderen en snel leveren!</strong></p><h3><strong>Kan ik mijn bestelling annuleren?</strong></h3><p>Wil je je bestelling annuleren? Neem <strong>zo snel mogelijk</strong> contact met ons op via:<br/>📲 <strong>Live-chat of WhatsApp</strong><br/>📧 <strong>Mail naar </strong><a><strong>klantenservice@socialframe.nl</strong></a></p><h3><strong>😞 Mijn bestelling is defect geleverd!</strong></h3><p>Dat is natuurlijk niet de bedoeling! Neem direct contact met ons op via:<br/>📲 <strong>Live-chat of WhatsApp</strong><br/>📧 <strong>Mail naar </strong><a><strong>klantenservice@socialframe.nl</strong></a></p><p><strong>We zorgen voor een passende oplossing!</strong></p>",
+            "hide_block_if": false
+          }
+        }
+      },
+      "block_order": [
+        "text_Xq9EtQ",
+        "text_LEHKcm",
+        "text_6JMxDh"
+      ],
+      "settings": {
+        "heading": "",
+        "subheading": "",
+        "section_heading_layout": "section-heading--left",
+        "open_first": false,
+        "form_enable": false,
+        "form_title": "Contact form",
+        "seo_h_tag": "h2"
+      }
+    },
+    "product-recommendations": {
+      "type": "product-recommendations",
+      "blocks": {
+        "price": {
+          "type": "price",
+          "settings": {}
+        },
+        "title": {
+          "type": "title",
+          "settings": {}
+        },
+        "quick_buy": {
+          "type": "quick_buy",
+          "settings": {}
+        }
+      },
+      "block_order": [
+        "price",
+        "title",
+        "quick_buy"
+      ],
+      "custom_css": [
+        ".section-heading__title.h4 {font-size: 20px;}"
+      ],
+      "settings": {
+        "heading": "MAAK JE SET COMPLEET 🏆",
+        "subheading": "",
+        "section_heading_layout": "section-heading--center",
+        "layout": "grid-3 grid-lap-2 grid-tiny-1",
+        "products_number": 4,
+        "section_background_color": "rgba(0,0,0,0)",
+        "section_background_gradient": "",
+        "section_heading_color": "#000000",
+        "remove_margin": false
+      }
+    },
+    "newsletter_wNaUgE": {
+      "type": "newsletter",
+      "name": "t:sections.newsletter.name",
+      "settings": {
+        "show_icon": false,
+        "title": "Geef je op voor onze nieuwsbrieven en ontvang kortingscodes!",
+        "text": "",
+        "color_background_main": "#fff0d9",
+        "color_text_main": "rgba(0,0,0,0)",
+        "color_borders_main": "rgba(0,0,0,0)",
+        "color_shadow_main": "rgba(0,0,0,0)",
+        "section_background_color": "rgba(0,0,0,0)",
+        "section_background_gradient": "",
+        "remove_margin": false,
+        "seo_h_tag": "h2"
+      }
+    }
+  },
+  "order": [
+    "main",
+    "content_toggles_ek46UQ",
+    "product-recommendations",
+    "newsletter_wNaUgE"
+  ]
+}
