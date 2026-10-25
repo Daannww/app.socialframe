@@ -344,6 +344,17 @@
       for (var i = 0; i < px.length; i += 4) { var l = (px[i] + px[i + 1] + px[i + 2]) / 3; var a = px[i + 3] * (255 - l) / 255; px[i] = 255; px[i + 1] = 255; px[i + 2] = 253; px[i + 3] = a; }
       x.putImageData(d, 0, 0); qrW = { key: key, c: c }; return c;
     }
+    var qrD = null;
+    // QR-code in donker zonder vlak erachter: alleen de donkere vlakjes blijven over, de lichte achtergrond wordt doorzichtig
+    function qrDark(sz) {
+      if (!qrImg) return null; sz = Math.round(sz);
+      var key = qrKey + '|' + sz; if (qrD && qrD.key === key) return qrD.c;
+      var c = document.createElement('canvas'); c.width = c.height = sz; var x = c.getContext('2d');
+      x.drawImage(qrImg, 0, 0, sz, sz);
+      var d = x.getImageData(0, 0, sz, sz), px = d.data;
+      for (var i = 0; i < px.length; i += 4) { var l = (px[i] + px[i + 1] + px[i + 2]) / 3; var a = px[i + 3] * (255 - l) / 255; px[i] = 0; px[i + 1] = 0; px[i + 2] = 0; px[i + 3] = a; }
+      x.putImageData(d, 0, 0); qrD = { key: key, c: c }; return c;
+    }
     function ledOn() { var sc = $('[data-mz-scene]'); return !!(sc && sc.classList.contains('is-led') && S.bg === 'Transparant'); }
     try { var scLed = $('[data-mz-scene]'); if (scLed && window.MutationObserver) new MutationObserver(function () { draw(); }).observe(scLed, { attributes: true, attributeFilter: ['class'] }); } catch (e) {}
     function draw() {
@@ -397,7 +408,7 @@
       } else if (S.code === 'qr') {
         var qx = 161.925 * PX, qy = 247.011 * PX, qs = 20 * PX;
         if (wt) { var wq = qrWhite(qs); if (wq) ctx.drawImage(wq, qx, qy, qs, qs); }
-        else { ctx.fillStyle = '#ffffff'; ctx.fillRect(qx, qy, qs, qs); if (qrImg) ctx.drawImage(qrImg, qx, qy, qs, qs); }
+        else { var dq = qrDark(qs); if (dq) ctx.drawImage(dq, qx, qy, qs, qs); } // donkere QR zonder wit vlak erachter
       }
     }
 
