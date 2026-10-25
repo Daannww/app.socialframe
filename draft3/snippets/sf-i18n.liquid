@@ -6,7 +6,9 @@ var LC={{ request.locale.iso_code | json }},I=LC==='de'?0:1,T={"d": {"Uitstekend
 var D=T.d,keys=Object.keys(D).filter(function(k){return k.length>=8}).sort(function(a,b){return b.length-a.length});
 var RX=T.rx.map(function(r){return [new RegExp(r[0]),r[1+I]]});
 function norm(s){return s.replace(/ /g,' ').replace(/\s+/g,' ').trim()}
-function tr(s){
+function kf(s){return LC==='de'?s.replace(/Kacheln/g,'Fliesen').replace(/kacheln/g,'fliesen').replace(/Kachel/g,'Fliese').replace(/kachel/g,'fliese'):s}
+function tr(s){var r=tr0(s);return kf(r)}
+function tr0(s){
  var n=norm(s);if(!n||!/[a-zA-Z]{2}/.test(n))return s;
  var h=Object.prototype.hasOwnProperty;
  if(h.call(D,n))return s.replace(n.length?s.trim():s,D[n][I]);
