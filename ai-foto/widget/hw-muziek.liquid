@@ -653,10 +653,10 @@
         if (!fixed) {
           fixed = true; sticky.classList.add('is-stuck');
           full = { w: scene.offsetWidth, h: slot.offsetHeight };
-          small = Math.min(full.w, window.innerHeight * 0.2 * 41 / 50);
+          small = Math.min(full.w * 0.5, window.innerHeight * 0.34 * 41 / 50);
           smallH = full.h - (full.w - small) * 50 / 41 - (hint ? hint.offsetHeight + 6 : 0);
         }
-        var dist = Math.max(60, (full.h - smallH) * 0.3); // krimpt sneller, zodat stap 1 in beeld blijft
+        var dist = Math.max(60, (full.h - smallH) * 0.7); // krimpt sneller, zodat stap 1 in beeld blijft
         var p = Math.max(0, Math.min(1, (topOff - sr.top) / dist));
         p = p * p * (3 - 2 * p); // zachte start en stop
         var w = full.w + (small - full.w) * p;
