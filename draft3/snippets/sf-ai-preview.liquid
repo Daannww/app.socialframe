@@ -1,0 +1,56 @@
+{%- comment -%} Het gekozen AI-ontwerp blijft als klein voorbeeld onder de header hangen terwijl je omlaag scrolt naar houder en bestelknop (net als bij het muziekframe). {%- endcomment -%}
+<style>
+.sf-pv{position:fixed;z-index:30;display:none;background:#fff;border-radius:12px;padding:5px;box-shadow:0 6px 22px rgba(0,0,0,.18);pointer-events:none;box-sizing:content-box}
+.sf-pv img{display:block;width:100%;height:100%;object-fit:cover;border-radius:8px}
+</style>
+<script>
+(function () {
+  var root = document.querySelector('[data-hw-ai]'); if (!root) return;
+  var pv = document.createElement('div'); pv.className = 'sf-pv'; var im = document.createElement('img'); im.alt = ''; pv.appendChild(im); document.body.appendChild(pv);
+  var busy = false, srcEl = null;
+  function headerOffset() {
+    var h = 0, els = document.querySelectorAll('header, .site-header, [data-section-type="header"], .header');
+    for (var i = 0; i < els.length; i++) {
+      var cs = getComputedStyle(els[i]), r = els[i].getBoundingClientRect();
+      if ((cs.position === 'fixed' || cs.position === 'sticky') && r.top <= 1) h = Math.max(h, r.bottom);
+    }
+    return Math.round(h);
+  }
+  function source() {
+    var c = root.querySelector('.hw-ai-choice[aria-pressed="true"] img');
+    if (c && c.src) return c;
+    var res = root.querySelector('[data-hw-ai-result]'), r = res && !res.hidden && res.querySelector('img');
+    return (r && r.src) ? r : null;
+  }
+  function hide() { pv.style.display = 'none'; if (srcEl) { srcEl.style.visibility = ''; srcEl = null; } }
+  function update() {
+    busy = false;
+    var s = source(); if (!s) { hide(); return; }
+    var sy = window.pageYOffset, maxY = document.documentElement.scrollHeight - window.innerHeight;
+    if (sy < 0 || sy > maxY + 0.5) return;
+    var top = headerOffset(), sr = s.getBoundingClientRect();
+    if (!sr.width || sr.top >= top) { hide(); return; }
+    var form = document.querySelector('form[data-type="add-to-cart-form"], .product-form form, form[action*="/cart/add"]');
+    var endB = form ? form.getBoundingClientRect().bottom : Infinity;
+    var ratio = (s.naturalHeight && s.naturalWidth) ? s.naturalHeight / s.naturalWidth : 1;
+    var small = Math.min(sr.width, Math.max(96, window.innerHeight * 0.2));
+    var dist = Math.max(80, sr.height * 0.9);
+    var p = Math.max(0, Math.min(1, (top - sr.top) / dist)); p = p * p * (3 - 2 * p);
+    var w = sr.width + (small - sr.width) * p, h = w * ratio;
+    var t = Math.min(top + 6, endB - h - 18);
+    if (t + h + 10 <= top || endB < top + 40) { hide(); return; }
+    if (srcEl !== s) { if (srcEl) srcEl.style.visibility = ''; srcEl = s; }
+    s.style.visibility = 'hidden';
+    var rr = root.getBoundingClientRect();
+    im.src !== s.src && (im.src = s.src);
+    pv.style.display = 'block'; pv.style.width = w + 'px'; pv.style.height = h + 'px';
+    pv.style.left = (rr.left + (rr.width - w) / 2 - 5) + 'px'; pv.style.top = t + 'px';
+  }
+  function req() { if (!busy) { busy = true; requestAnimationFrame(update); } }
+  var settle = 0;
+  window.addEventListener('scroll', function () { req(); clearTimeout(settle); settle = setTimeout(req, 330); }, { passive: true });
+  window.addEventListener('resize', req);
+  try { new MutationObserver(req).observe(root, { subtree: true, attributes: true, attributeFilter: ['aria-pressed', 'hidden', 'src'], childList: true }); } catch (e) {}
+  req();
+})();
+</script>
