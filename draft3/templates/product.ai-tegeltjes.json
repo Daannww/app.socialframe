@@ -269,39 +269,30 @@
       }
     },
     "text_columns_images_cy4idC": {
-      "type": "text-columns-images",
+      "type": "sf-steps",
       "blocks": {
         "image_bdqLiA": {
-          "type": "image",
+          "type": "step",
           "settings": {
             "image": "shopify://shop_images/stijl_26516359-cb27-4932-bd67-3473631097be.webp",
             "title": "Geef je tegel de juiste look.",
-            "caption": "Kies links voor een neutrale stijl voor een moderne uitstraling, of rechts met bloemetjesmotief voor een traditionele touch.",
-            "link": "",
-            "open_in_new_window": false,
-            "seo_h_tag": "h3"
+            "text": "Kies links voor een neutrale stijl voor een moderne uitstraling, of rechts met bloemetjesmotief voor een traditionele touch."
           }
         },
         "image_XP6gPh": {
-          "type": "image",
+          "type": "step",
           "settings": {
             "image": "shopify://shop_images/Stelletje.webp",
             "title": "Upload een foto.",
-            "caption": "Klik op de upload knop en kies de foto die je op je tegeltje wilt vereeuwigen. Voeg eventueel een tekst toe. Of het nu een vakantieherinnering, een huisdier of een gezinsportret alles kan.",
-            "link": "",
-            "open_in_new_window": false,
-            "seo_h_tag": "h3"
+            "text": "Klik op de upload knop en kies de foto die je op je tegeltje wilt vereeuwigen. Voeg eventueel een tekst toe. Of het nu een vakantieherinnering, een huisdier of een gezinsportret alles kan."
           }
         },
         "image_iJ6aTa": {
-          "type": "image",
+          "type": "step",
           "settings": {
             "image": "shopify://shop_images/Visual_delftsblue_c377f0cd-3d33-41b5-8313-ff456145bcc0.webp",
             "title": "Eindresultaat",
-            "caption": "Voor je het weet heb je een uniek en persoonlijk kunstwerk in huis.",
-            "link": "",
-            "open_in_new_window": false,
-            "seo_h_tag": "h3"
+            "text": "Voor je het weet heb je een uniek en persoonlijk kunstwerk in huis."
           }
         }
       },
@@ -310,22 +301,9 @@
         "image_XP6gPh",
         "image_iJ6aTa"
       ],
-      "custom_css": [
-        "h1 {font-weight: bold;}"
-      ],
-      "name": "t:sections.text-columns-with-images.name",
       "settings": {
-        "heading": "",
-        "subheading": "Hoe werkt het?",
-        "section_heading_layout": "section-heading--center",
-        "style": "slider",
-        "layout": "grid-3 grid-lap-2",
-        "border_radius": 10,
-        "section_background_color": "rgba(0,0,0,0)",
-        "section_background_gradient": "",
-        "section_heading_color": "rgba(0,0,0,0)",
-        "remove_margin": false,
-        "seo_h_tag": "h1"
+        "kicker": "In 3 stappen",
+        "title": "Hoe werkt het?"
       }
     },
     "content_toggles_ek46UQ": {
