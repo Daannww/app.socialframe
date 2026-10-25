@@ -21,6 +21,8 @@
   .sf-wm{font-family:'Montserrat',system-ui,sans-serif;font-weight:700;font-size:38px;letter-spacing:-.045em;line-height:1;color:#151412;white-space:nowrap;transition:font-size .25s ease}
   .sf-wm sup{font-size:.34em;font-weight:600;letter-spacing:0;margin-left:.12em;position:relative;top:-1.43em;vertical-align:baseline;color:#e0a25a}
   .sfh.is-compact .sf-wm{font-size:30px}
+  .sfh-lg{display:block;height:66px;color:#151412;transition:height .25s ease}.sfh-lg svg{display:block;height:100%;width:auto}
+  .sfh.is-compact .sfh-lg{height:46px}
   .sfh-logo{display:flex;align-items:center;justify-self:center}
     .sfh-actions{display:flex;justify-content:flex-end;align-items:center;gap:6px;font-size:14px;font-weight:600}
   .sfh-actions a,.sfh-actions button{display:flex;align-items:center;justify-content:center;gap:10px;white-space:nowrap;width:44px;height:44px;border-radius:50%;border:0;background:transparent;padding:0;cursor:pointer;color:inherit}
@@ -61,7 +63,9 @@
     .sfh-logo{justify-self:center}
     .sfh.is-compact .sfh-main{height:56px}
     .sf-wm{font-size:24px}
+    .sfh-lg{height:42px}
     .sfh.is-compact .sf-wm{font-size:21px}
+    .sfh.is-compact .sfh-lg{height:36px}
     .sfh-nav,.sfh-sbar,.sfh-actions .sfh-search-btn{display:none}
     .sfh-actions a .sfh-txt{display:none}
     .sfh-actions{gap:4px}
@@ -129,7 +133,7 @@
     <form class="sfh-dsearch" action="{{ routes.search_url }}" method="get" role="search"><button type="submit" aria-label="Zoeken"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#151412" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></button><input type="search" name="q" placeholder="Zoek naar..." aria-label="Zoeken" autocomplete="off"></form>
 
     <a class="sfh-logo" href="{{ routes.root_url }}" aria-label="{{ shop.name | escape }}">
-      <span class="sf-wm">SocialFrame<sup>™</sup></span>
+      <span class="sfh-lg">{% render 'sf-logo' %}</span>
     </a>
 
     <div class="sfh-actions">
