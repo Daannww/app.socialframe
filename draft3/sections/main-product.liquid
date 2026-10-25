@@ -701,7 +701,7 @@
                         var host=btn.parentElement,tag=host.querySelector('.sf-atc-tag');
                         if(!isNaN(v)&&n>1){
                           var full=v*n,disc=btn.hasAttribute('data-sf-tile')?Math.floor(n/2)*v*0.2:0;
-                          if(disc>0){out='<s class="sf-atc-old">'+fmt(full)+'</s><span>'+fmt(full-disc)+'</span>';if(!tag){tag=document.createElement('span');tag.className='sf-atc-tag';host.style.position='relative';host.appendChild(tag);}tag.textContent='-20% op 2e tegeltje';tag.style.top=(btn.getBoundingClientRect().top-host.getBoundingClientRect().top-11)+'px';}
+                          if(disc>0){out='<s class="sf-atc-old">'+fmt(full)+'</s><span>'+fmt(full-disc)+'</span>';if(!tag){tag=document.createElement('span');tag.className='sf-atc-tag';host.style.position='relative';host.appendChild(tag);}tag.textContent='-20% op 2e tegeltje';var op=tag.offsetParent||host;tag.style.top=(btn.getBoundingClientRect().top-op.getBoundingClientRect().top-11)+'px';}
                           else{out=fmt(full);if(tag)tag.remove();}
                         } else if(tag){tag.remove();}
                         if(p.innerHTML!==out)p.innerHTML=out;
