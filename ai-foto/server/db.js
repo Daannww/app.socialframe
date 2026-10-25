@@ -71,8 +71,8 @@ addColumn('jobs', 'last_reused_at', 'TEXT');
 const DEFAULT_SETTINGS = {
   variants: '1',                // aantal varianten per poging; de klant kiest er één (1 = geen keuze, max 3)
   text_max: '40',               // maximaal aantal tekens dat een klant mag invullen
-  max_attempts: '5',            // pogingen per klant (browser/client_id) per 24 uur
-  max_attempts_ip: '12',        // pogingen per IP-adres per 24 uur (hoger, want gezinnen/kantoren delen een IP)
+  max_attempts: '10',           // pogingen per klant (browser/client_id) per 24 uur
+  max_attempts_ip: '25',        // pogingen per IP-adres per 24 uur (hoger, want gezinnen/kantoren delen een IP)
   upscale_model: 'fal-ai/recraft/upscale/crisp',   // goedkoop (±$0,004 per stuk); clarity-upscaler was ±30x duurder
   tegel_px: '2000',             // 13x13 cm @ 300 dpi = 1535 px; 2000 = ±390 dpi, ruim scherp (kaart/route worden op deze maat getekend)
   poster_long_px: '2800',       // 70x50 cm @ ~100 dpi
@@ -93,6 +93,13 @@ const getSetting = (k) => {
 const setSetting = (k, v) =>
   db.prepare('INSERT INTO settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value').run(k, String(v));
 const allSettings = () => Object.fromEntries(Object.keys(DEFAULT_SETTINGS).map((k) => [k, getSetting(k)]));
+
+// Eenmalig: pogingen per klant van 5 naar 10 (per IP 12 -> 25).
+if (!db.prepare("SELECT 1 FROM settings WHERE key='mig_attempts_10'").get()) {
+  db.prepare("UPDATE settings SET value='10' WHERE key='max_attempts' AND CAST(value AS INTEGER) < 10").run();
+  db.prepare("UPDATE settings SET value='25' WHERE key='max_attempts_ip' AND CAST(value AS INTEGER) < 25").run();
+  setSetting('mig_attempts_10', '1');
+}
 
 // Eenmalig: tegelresolutie van 1600 (of lager) naar 2000 voor scherpere kaart/route-tegels.
 if (!db.prepare("SELECT 1 FROM settings WHERE key='mig_tegel_2000'").get()) {
