@@ -653,7 +653,7 @@
         if (!fixed) {
           fixed = true; sticky.classList.add('is-stuck');
           full = { w: scene.offsetWidth, h: slot.offsetHeight };
-          small = Math.min(full.w, window.innerHeight * 0.34 * 41 / 50);
+          small = Math.min(full.w, window.innerHeight * 0.24 * 41 / 50);
           smallH = full.h - (full.w - small) * 50 / 41 - (hint ? hint.offsetHeight + 6 : 0);
         }
         var dist = Math.max(60, (full.h - smallH) * 1.6);
@@ -663,7 +663,7 @@
         scene.style.width = w + 'px';
         if (hint) hint.style.display = p > 0.02 ? 'none' : '';
         var hSticky = w * 50 / 41 + 14;
-        slot.style.height = Math.max(hSticky, full.h + (smallH - full.h) * p) + 'px';
+        slot.style.height = Math.max(hSticky + 36 * p, full.h + (smallH - full.h) * p + 36 * p) + 'px'; // extra wit onder het (gekrompen) voorbeeld, zodat stap 1 goed zichtbaar blijft
         slot.style.marginBottom = (56 * (1 - p)) + 'px'; // extra wit onder het voorbeeld, zodat de uploadknop van stap 1 niet meteen wegvalt
         var t = rr.bottom - hSticky - 8;
         if (t < topOff) {
