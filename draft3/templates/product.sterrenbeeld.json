@@ -144,7 +144,6 @@
         "space_ETkixW",
         "space_cFwWz9",
         "variant_picker",
-        "sf_lijst_gratis",
         "text_nDV4VH",
         "space_pF4aDR",
         "custom_liquid_Uy36HA",
@@ -154,7 +153,8 @@
         "sf_korting",
         "buy_buttons",
         "custom_liquid_kEmhep",
-        "section_store_block_tabs_Ei6r8K"
+        "section_store_block_tabs_Ei6r8K",
+        "sf_lijst_gratis"
       ],
       "custom_css": [
         ".effectiveAppsEGWATCImage {padding-top: 20px;}"

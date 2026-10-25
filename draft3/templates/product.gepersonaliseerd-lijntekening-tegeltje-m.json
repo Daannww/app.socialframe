@@ -225,7 +225,6 @@
         "custom_liquid_PPRdhX",
         "variant_picker",
         "sf_houders",
-        "sf_lijst_gratis",
         "text_ad4QK6",
         "space_Ay4gJj",
         "custom_liquid_pk4dmR",
@@ -243,7 +242,8 @@
         "collapsible_tab_7mKKNj",
         "collapsible_tab_YykCDC",
         "custom_liquid_4G4gAQ",
-        "custom_liquid_9hKwij"
+        "custom_liquid_9hKwij",
+        "sf_lijst_gratis"
       ],
       "custom_css": [
         ".effectiveAppsEGWATCImage {padding-top: 20px;}"
