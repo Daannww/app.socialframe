@@ -46,7 +46,7 @@
         "buy_buttons_ac7ixy": {
           "type": "buy_buttons",
           "settings": {
-            "show_price": true,
+            "show_price": false,
             "show_quantity_selector": false,
             "show_preorder": false,
             "show_dynamic_checkout": false,
