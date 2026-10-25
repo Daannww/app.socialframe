@@ -1,0 +1,87 @@
+{%- comment -%} Visuele houderkeuze (foto + prijs) voor tegeltjes; stuurt de variantkiezer van het thema aan. {%- endcomment -%}
+<div class="sf-hd" data-sf-hd hidden>
+  <div class="sf-hd-label">Kies een houder</div>
+  <div class="sf-hd-list" data-sf-hd-list></div>
+</div>
+<style>
+.sf-hd{margin:14px 0}
+.sf-hd-label{font-weight:600;font-size:14px;margin-bottom:8px;color:#1a1a1a}
+.sf-hd-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px}
+.sf-hd-b{appearance:none;background:#fff;border:1.5px solid #e6e2dc;border-radius:12px;padding:6px 6px 8px;text-align:center;cursor:pointer;font:inherit;color:#1a1a1a;display:flex;flex-direction:column;align-items:center;gap:4px;transition:border-color .15s,box-shadow .15s}
+.sf-hd-b:hover{border-color:#bdb6aa}
+.sf-hd-b[aria-pressed="true"]{border-color:#1a1a1a;box-shadow:0 0 0 1px #1a1a1a}
+.sf-hd-b img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:8px;background:#f4f1ec;display:block}
+.sf-hd-none{width:100%;aspect-ratio:1/1;border-radius:8px;background:#f4f1ec;display:flex;align-items:center;justify-content:center;font-size:26px;color:#9a9388}
+.sf-hd-b b{font-size:12.5px;font-weight:600;line-height:1.2}
+.sf-hd-b small{font-size:12px;color:#6b665d}
+</style>
+<script>
+(function () {
+  var root = document.querySelector('[data-sf-hd]'); if (!root) return;
+  var list = root.querySelector('[data-sf-hd-list]');
+  var m = location.pathname.match(/\/products\/([^\/?#]+)/); if (!m) return;
+  var CDN = 'https://cdn.shopify.com/s/files/1/0543/1132/1781/files/';
+  var IMGS = [
+    [/schilders/i, CDN + 'Houtenezeltjetegel.webp?v=1761682393'],
+    [/zwart.*metaal|metalen/i, CDN + 'preview_metalen-standaard.webp?v=1766668226'],
+    [/kunststof/i, CDN + 'preview_Kunststof-houderzwart.webp?v=1774599466'],
+    [/ophang/i, 'https://cdn.shopify.com/s/files/1/0543/1132/1781/products/ophangsysteem_7d9c9980-767e-4da4-a573-fb4cc195c029.jpg?v=1645886315'],
+    [/eiken|lijst/i, CDN + 'Visual_oak_frame_wall.webp?v=1784103632'],
+    [/houten/i, CDN + 'Scherm_afbeelding2023-06-28om20.37.47.png?v=1687977728']
+  ];
+  function imgFor(v) { for (var i = 0; i < IMGS.length; i++) if (IMGS[i][0].test(v)) return IMGS[i][1]; return ''; }
+  function nz(x) { return String(x == null ? '' : x).replace(/\s+/g, ' ').trim(); }
+  function money(c) { try { return new Intl.NumberFormat(document.documentElement.lang || 'nl', { style: 'currency', currency: (window.Shopify && Shopify.currency && Shopify.currency.active) || 'EUR' }).format(c / 100); } catch (e) { return '€ ' + (c / 100).toFixed(2); } }
+  fetch('/products/' + m[1] + '.js').then(function (r) { return r.json(); }).then(function (prod) {
+    var hIdx = -1; prod.options.forEach(function (o, i) { if (/houder|standaard/i.test(o.name || o)) hIdx = i; });
+    if (hIdx < 0) return;
+    var sIdx = prod.options.length > 1 ? (hIdx === 0 ? 1 : 0) : -1;
+    var holders = []; prod.variants.forEach(function (v) { var h = nz(v.options[hIdx]); if (holders.indexOf(h) < 0) holders.push(h); });
+    function selects() {
+      var hs = null, ss = null;
+      Array.prototype.forEach.call(document.querySelectorAll('select'), function (sel) {
+        var vals = Array.prototype.map.call(sel.options, function (o) { return nz(o.value); });
+        if (!hs && vals.indexOf('Geen') >= 0 && vals.some(function (v) { return v !== 'Geen' && holders.indexOf(v) >= 0; })) hs = sel;
+        else if (!ss && sIdx >= 0 && vals.some(function (v) { return prod.variants.some(function (x) { return nz(x.options[sIdx]) === v; }); })) ss = sel;
+      });
+      return { h: hs, s: ss };
+    }
+    var hidden = false;
+    function hideSel(el) {
+      if (!el) return; el.style.display = 'none';
+      var lb = el.id ? document.querySelector('label[for="' + el.id + '"]') : null; if (lb) lb.style.display = 'none';
+    }
+    function fire(sel, val) {
+      var op = Array.prototype.filter.call(sel.options, function (o) { return nz(o.value) === nz(val); })[0];
+      sel.value = op ? op.value : val;
+      sel.dispatchEvent(new Event('input', { bubbles: true })); sel.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    function render() {
+      var sel = selects(); if (!sel.h) return;
+      if (!hidden) { hidden = true; hideSel(sel.h); }
+      var size = sel.s ? nz(sel.s.value) : null;
+      var vs = prod.variants.filter(function (v) { return v.available !== false && (size === null || nz(v.options[sIdx]) === size); });
+      var base = null; vs.forEach(function (v) { if (nz(v.options[hIdx]) === 'Geen') base = v.price; });
+      if (base === null && vs.length) base = vs[0].price;
+      list.innerHTML = '';
+      vs.forEach(function (v) {
+        var name = nz(v.options[hIdx]), b = document.createElement('button'); b.type = 'button'; b.className = 'sf-hd-b';
+        b.setAttribute('aria-pressed', nz(sel.h.value) === name ? 'true' : 'false');
+        var im = imgFor(name);
+        if (name === 'Geen') { var n = document.createElement('div'); n.className = 'sf-hd-none'; n.textContent = '∅'; b.appendChild(n); }
+        else if (im) { var i = document.createElement('img'); i.src = im; i.alt = ''; i.loading = 'lazy'; b.appendChild(i); }
+        var t = document.createElement('b'); t.textContent = name === 'Geen' ? 'Geen houder' : name; b.appendChild(t);
+        var d = v.price - base, p = document.createElement('small');
+        p.textContent = name === 'Geen' ? 'Standaard' : (d > 0 ? '+ ' + money(d) : 'Gratis'); b.appendChild(p);
+        b.addEventListener('click', function () { fire(sel.h, name); render(); });
+        list.appendChild(b);
+      });
+      if (vs.length && !vs.some(function (v) { return nz(v.options[hIdx]) === nz(sel.h.value); })) fire(sel.h, 'Geen');
+      root.hidden = !vs.length;
+      if (window.__sfI18nRun) window.__sfI18nRun();
+    }
+    document.addEventListener('change', function (e) { if (e.target && e.target.tagName === 'SELECT') setTimeout(render, 50); });
+    setTimeout(render, 300); setTimeout(render, 1500);
+  }).catch(function () {});
+})();
+</script>
