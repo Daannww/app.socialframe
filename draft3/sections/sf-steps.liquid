@@ -1,18 +1,18 @@
 {%- comment -%} Hoe werkt het — genummerde stappen {%- endcomment -%}
 <style>
-  .sfs{max-width:960px;margin:0 auto;padding:40px 20px 32px;color:#151412}
-  .sfs-h{text-align:center;margin:0 0 24px}
+  .sfs{max-width:1180px;margin:0 auto;padding:64px 24px 48px;color:#151412}
+  .sfs-h{text-align:center;margin:0 0 36px}
   .sfs-k{display:block;font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#a07a2c;margin-bottom:10px}
   .sfs-t{font-size:clamp(22px,2.6vw,28px);font-weight:700;letter-spacing:-.01em;margin:0;line-height:1.15}
-  .sfs-g{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;position:relative}
+  .sfs-g{display:grid;grid-template-columns:repeat(3,minmax(0,300px));justify-content:center;gap:64px;position:relative}
   .sfs-c{background:#faf6ee;border-radius:18px;padding:10px 10px 20px;text-align:center;position:relative}
   .sfs-im{position:relative;aspect-ratio:4/3;border-radius:12px;overflow:hidden;background:#fff}
   .sfs-im img{width:100%;height:100%;object-fit:cover;object-position:center 40%;display:block}
   .sfs-n{position:absolute;top:8px;left:8px;width:30px;height:30px;border-radius:50%;background:#151412;color:#fff;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,.2)}
   .sfs-ct{font-size:16px;font-weight:700;margin:16px 12px 6px;line-height:1.25}
   .sfs-cp{font-size:13.5px;line-height:1.55;color:#5c574f;margin:0 14px}
-  .sfs-c:not(:last-child)::after{content:"";position:absolute;right:-15px;top:30%;width:10px;height:10px;border-top:2px solid #c9b88f;border-right:2px solid #c9b88f;transform:rotate(45deg)}
-  @media(max-width:800px){.sfs{padding:32px 16px 24px}.sfs-g{grid-template-columns:1fr;gap:18px}.sfs-c:not(:last-child)::after{display:none}.sfs-im{aspect-ratio:16/10}}
+  .sfs-c:not(:last-child)::after{content:"";position:absolute;right:-38px;top:30%;width:10px;height:10px;border-top:2px solid #c9b88f;border-right:2px solid #c9b88f;transform:rotate(45deg)}
+  @media(max-width:800px){.sfs{padding:32px 16px 24px}.sfs-g{grid-template-columns:1fr;gap:18px;justify-content:stretch}.sfs-c:not(:last-child)::after{display:none}.sfs-im{aspect-ratio:16/10}}
 </style>
 <section class="sfs" {{ section.shopify_attributes }}>
   <div class="sfs-h">
