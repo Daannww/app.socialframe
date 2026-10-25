@@ -1,4 +1,41 @@
 {%- liquid
+  assign lc = request.locale.iso_code
+  if lc == 'de'
+    assign h_search = 'Suchen'
+    assign h_ph = 'Suchen nach …'
+    assign h_acc = 'Konto'
+    assign h_cart = 'Warenkorb'
+    assign h_none = 'Keine Ergebnisse für'
+    assign h_try = 'Versuchen Sie einen anderen Suchbegriff.'
+    assign h_col = 'Kollektionen'
+    assign h_prod = 'Produkte'
+    assign h_all = 'Alle Ergebnisse anzeigen'
+    assign h_from = 'Ab'
+  elsif lc == 'en'
+    assign h_search = 'Search'
+    assign h_ph = 'Search for…'
+    assign h_acc = 'Account'
+    assign h_cart = 'Cart'
+    assign h_none = 'No results for'
+    assign h_try = 'Try a different search term.'
+    assign h_col = 'Collections'
+    assign h_prod = 'Products'
+    assign h_all = 'View all results'
+    assign h_from = 'From'
+  else
+    assign h_search = 'Zoeken'
+    assign h_ph = 'Zoek naar...'
+    assign h_acc = 'Account'
+    assign h_cart = 'Winkelwagen'
+    assign h_none = 'Geen resultaten voor'
+    assign h_try = 'Probeer een andere zoekterm.'
+    assign h_col = 'Collecties'
+    assign h_prod = 'Producten'
+    assign h_all = 'Alle resultaten bekijken'
+    assign h_from = 'Vanaf'
+  endif
+-%}
+{%- liquid
   assign menu = linklists[section.settings.menu]
 -%}
 <style>
@@ -146,7 +183,7 @@
     </div>
 
     <div class="sfh-dwrap">
-    <form class="sfh-dsearch" action="{{ routes.search_url }}" method="get" role="search"><button type="submit" aria-label="Zoeken"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#151412" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></button><input type="search" name="q" placeholder="Zoek naar..." aria-label="Zoeken" autocomplete="off" data-sfh-sq></form>
+    <form class="sfh-dsearch" action="{{ routes.search_url }}" method="get" role="search"><button type="submit" aria-label="{{ h_search }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#151412" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></button><input type="search" name="q" placeholder="{{ h_ph }}" aria-label="{{ h_search }}" autocomplete="off" data-sfh-sq></form>
     <div class="sfh-sug" data-sfh-sug hidden></div>
     </div>
 
@@ -155,11 +192,11 @@
     </a>
 
     <div class="sfh-actions">
-      <a class="sfh-account" href="{% if customer %}{{ routes.account_url }}{% else %}{{ routes.account_login_url }}{% endif %}" aria-label="Account">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#151412" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg><span class="sfh-txt">Account</span>
+      <a class="sfh-account" href="{% if customer %}{{ routes.account_url }}{% else %}{{ routes.account_login_url }}{% endif %}" aria-label="{{ h_acc }}">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#151412" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg><span class="sfh-txt">{{ h_acc }}</span>
       </a>
-      <a class="sfh-cart" href="{{ routes.cart_url }}" aria-label="Winkelwagen">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1 12H6z"/><path d="M9 8V6a3 3 0 016 0v2"/></svg><span class="sfh-txt">Winkelwagen (<span data-header-cart-count>{{ cart.item_count }}</span>)</span>
+      <a class="sfh-cart" href="{{ routes.cart_url }}" aria-label="{{ h_cart }}">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1 12H6z"/><path d="M9 8V6a3 3 0 016 0v2"/></svg><span class="sfh-txt">{{ h_cart }} (<span data-header-cart-count>{{ cart.item_count }}</span>)</span>
       </a>
     </div>
   </div>
@@ -207,8 +244,8 @@
 
 <div class="sfh-drawer" data-sfh-drawer>
   <form action="{{ routes.search_url }}" method="get" role="search">
-    <button type="submit" aria-label="Zoeken"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#151412" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></button>
-    <input type="search" name="q" placeholder="Zoek naar..." aria-label="Zoeken" autocomplete="off" data-sfh-sq>
+    <button type="submit" aria-label="{{ h_search }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#151412" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></button>
+    <input type="search" name="q" placeholder="{{ h_ph }}" aria-label="{{ h_search }}" autocomplete="off" data-sfh-sq>
   </form>
   <div class="sfh-sug" data-sfh-sug hidden></div>
   {%- if menu != blank -%}
@@ -295,17 +332,17 @@
       function close() { box.hidden = true; box.innerHTML = ''; }
       function render(q, r) {
         var p = (r.products || []), c = (r.collections || []);
-        if (!p.length && !c.length) { box.innerHTML = '<div class="sfh-sn">Geen resultaten voor "' + esc(q) + '". Probeer een andere zoekterm.</div>'; box.hidden = false; return; }
+        if (!p.length && !c.length) { box.innerHTML = '<div class="sfh-sn">{{ h_none | escape }} "' + esc(q) + '". {{ h_try | escape }}</div>'; box.hidden = false; return; }
         var h = '';
-        if (c.length) { h += '<span class="sfh-sh">Collecties</span><div class="sfh-sc">' + c.map(function (x) { return '<a href="' + esc(x.url) + '">' + esc(x.title) + '</a>'; }).join('') + '</div>'; }
+        if (c.length) { h += '<span class="sfh-sh">{{ h_col }}</span><div class="sfh-sc">' + c.map(function (x) { return '<a href="' + esc(x.url) + '">' + esc(x.title) + '</a>'; }).join('') + '</div>'; }
         if (p.length) {
-          h += '<span class="sfh-sh">Producten</span>' + p.map(function (x) {
+          h += '<span class="sfh-sh">{{ h_prod }}</span>' + p.map(function (x) {
             var img = x.featured_image && x.featured_image.url ? x.featured_image.url : (x.image || '');
             if (img) img = img.replace(/(\.[a-z]+)(\?|$)/i, '_160x160$1$2');
-            return '<a class="sfh-si" href="' + esc(x.url) + '"><span class="sfh-sim">' + (img ? '<img src="' + esc(img) + '" alt="" loading="lazy">' : '') + '</span><span><span class="sfh-sit">' + esc(x.title) + '</span><span class="sfh-sip">' + (x.price ? 'Vanaf ' + money(x.price) : '') + '</span></span></a>';
+            return '<a class="sfh-si" href="' + esc(x.url) + '"><span class="sfh-sim">' + (img ? '<img src="' + esc(img) + '" alt="" loading="lazy">' : '') + '</span><span><span class="sfh-sit">' + esc(x.title) + '</span><span class="sfh-sip">' + (x.price ? '{{ h_from | escape }} ' + money(x.price) : '') + '</span></span></a>';
           }).join('');
         }
-        h += '<a class="sfh-sa" href="' + SEARCH + '?q=' + encodeURIComponent(q) + '">Alle resultaten bekijken</a>';
+        h += '<a class="sfh-sa" href="' + SEARCH + '?q=' + encodeURIComponent(q) + '">{{ h_all }}</a>';
         box.innerHTML = h; box.hidden = false;
       }
       function go(q) {
