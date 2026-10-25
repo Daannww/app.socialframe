@@ -213,6 +213,12 @@
           "settings": {
             "custom_liquid": "{% render 'sf-houders' %}"
           }
+        },
+        "sf_korting": {
+          "type": "custom_liquid",
+          "settings": {
+            "custom_liquid": "{% render 'sf-korting' %}"
+          }
         }
       },
       "block_order": [
@@ -234,6 +240,7 @@
         "custom_liquid_wkfBdm",
         "custom_liquid_bcLYCA",
         "space_mYktU3",
+        "sf_korting",
         "buy_buttons",
         "custom_liquid_kEmhep",
         "section_store_block_comments_bgXCyA",

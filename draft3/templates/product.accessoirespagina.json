@@ -99,6 +99,12 @@
             "variants_style": "select",
             "show_quantities": "below"
           }
+        },
+        "sf_korting": {
+          "type": "custom_liquid",
+          "settings": {
+            "custom_liquid": "{% render 'sf-korting' %}"
+          }
         }
       },
       "block_order": [
@@ -109,6 +115,7 @@
         "section_store_block_benefits_list_7x4DeL",
         "variant_picker",
         "space_CRTDHU",
+        "sf_korting",
         "buy_buttons_ac7ixy",
         "custom_liquid_3Vg7QN",
         "custom_liquid_mERNK8",

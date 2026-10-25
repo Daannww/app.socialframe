@@ -1,0 +1,35 @@
+{%- liquid
+  assign sf_kd_tile = false
+  for c in product.collections
+    if c.handle == 'tegels' or c.handle == 'woordenboek-stijl-tegeltje' or c.handle == 'vriendschap' or c.handle == 'geboorte' or c.handle == 'gedenk'
+      assign sf_kd_tile = true
+    endif
+  endfor
+-%}
+<div class="sf-kd" data-sf-kd hidden></div>
+<style>
+  .sf-kd{margin:8px 0 14px}
+  .sf-kd-i{display:flex;align-items:center;gap:10px;padding:10px 14px;margin:0 0 8px;border-radius:14px;background:#fbf3e4;border:1px solid #ecd9b0;font-size:13px;line-height:1.45;color:#3b3832}
+  .sf-kd-i svg{flex:none;color:#a07a2c}
+  .sf-kd-i b{font-weight:700;color:#151412}
+  .sf-kd-i.sale{background:#fdeeee;border-color:#f2c9c9}.sf-kd-i.sale svg{color:#b3261e}
+  .sf-kd-i.sale b{color:#b3261e}
+</style>
+<script>
+(function(){
+  var box=document.querySelector('[data-sf-kd]');if(!box)return;
+  var P={{ product | json }};
+  var tile={{ sf_kd_tile }};
+  var tag='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.2" fill="currentColor"/></svg>';
+  function cur(){var f=document.querySelector('form[action*="/cart/add"] input[name="id"]');var id=f?parseInt(f.value,10):0;for(var i=0;i<P.variants.length;i++)if(P.variants[i].id===id)return P.variants[i];return P.variants[0];}
+  function render(){
+    var v=cur(),h='';
+    if(v&&v.compare_at_price&&v.compare_at_price>v.price){var pct=Math.round((1-v.price/v.compare_at_price)*100);h+='<div class="sf-kd-i sale">'+tag+'<span><b>'+pct+'% korting</b> op dit product, de actieprijs staat al in de prijs.</span></div>';}
+    if(tile){h+='<div class="sf-kd-i">'+tag+'<span><b>2e tegeltje 20% korting.</b> Leg er 2 in je winkelmand en de korting gaat automatisch af.</span></div>';}
+    box.innerHTML=h;box.hidden=!h;
+  }
+  render();
+  document.addEventListener('change',function(){setTimeout(render,80)});
+  document.addEventListener('click',function(){setTimeout(render,120)});
+})();
+</script>

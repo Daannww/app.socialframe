@@ -182,6 +182,12 @@
           "settings": {
             "custom_liquid": "<form id=\"uploadForm\" enctype=\"multipart/form-data\">\n  <input type=\"file\" name=\"image\" accept=\"image/*\" required />\n  <button type=\"submit\">Maak cartoon</button>\n</form>\n<img id=\"resultImage\" style=\"margin-top:20px; display:none;\" />\n\n<script>\n  document.getElementById('uploadForm').addEventListener('submit', async (e) => {\n    e.preventDefault();\n    const formData = new FormData(e.target);\n\n    const response = await fetch('https://jouw-backend-url.com/generate-cartoon', {\n      method: 'POST',\n      body: formData\n    });\n\n    const data = await response.json();\n    document.getElementById('resultImage').src = data.cartoonUrl;\n    document.getElementById('resultImage').style.display = 'block';\n  });\n</script>"
           }
+        },
+        "sf_korting": {
+          "type": "custom_liquid",
+          "settings": {
+            "custom_liquid": "{% render 'sf-korting' %}"
+          }
         }
       },
       "block_order": [
@@ -197,6 +203,7 @@
         "custom_liquid_wnyECP",
         "space_wkETRc",
         "price_WqFFz9",
+        "sf_korting",
         "buy_buttons",
         "custom_liquid_iq83WQ",
         "custom_liquid_LaqUz9",
