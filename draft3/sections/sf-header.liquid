@@ -45,6 +45,7 @@
   .sfh.is-compact{box-shadow:0 8px 30px rgba(21,20,18,.08)}
   .sfh-strip{background:#222529;color:#f3efe7;height:40px;overflow:hidden;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:16px;font-size:12px;font-weight:500;letter-spacing:.02em;transition:height .25s ease;padding:0 64px;box-sizing:border-box}
     .sfh-strip .l{color:#cfc8bb;display:flex;align-items:center;gap:8px}.sfh-mill{color:#f2c48a;opacity:.85;flex:none}.sfh-dbar{display:flex;align-items:center;gap:8px}.sfh-dbar .sfh-mill{color:#e0a25a}.sfh-strip .c{font-weight:700;text-align:center;white-space:nowrap}.sfh-strip .r{color:#cfc8bb;text-align:right}
+  .sfh-rot{display:none}
   .sfh-strip .c a{color:#f2c48a;font-weight:600;text-decoration:underline;text-underline-offset:3px}.sfh-strip .c a:hover{text-decoration:underline;text-underline-offset:4px}
     .sfh.is-compact .sfh-strip{height:0}
     .sfh-main{height:96px;box-sizing:border-box;padding:0 64px;display:grid;grid-template-columns:1fr auto 1fr;column-gap:32px;align-items:center;transition:height .25s ease}
@@ -108,7 +109,10 @@
   @media (max-width:1279px){.sfh-nav>ul{gap:22px}.sfh-main,.sfh-panel,.sfh-strip{padding-left:32px;padding-right:32px}.sfh-nav>ul{gap:26px}.sfh-nav>ul>li>a{font-size:12px;letter-spacing:.05em}.sfh-main{column-gap:20px}.sfh-dwrap{max-width:200px}.sfh-actions a.sfh-account .sfh-txt,.sfh-actions a.sfh-cart .sfh-txt{display:none}.sfh-actions a.sfh-account,.sfh-actions a.sfh-cart{padding:0;width:44px}}
   @media (max-width:989px){
     .sfh-strip{height:34px;font-size:11px;padding:0 16px;grid-template-columns:1fr}
-    .sfh-strip .l,.sfh-strip .r{display:none}
+    .sfh-strip .l,.sfh-strip .r,.sfh-strip .c{display:none}
+    .sfh-rot{display:grid;text-align:center;font-weight:700;white-space:nowrap}
+    .sfh-rs{grid-area:1/1;opacity:0;transition:opacity .5s ease;pointer-events:none}.sfh-rs.is-on{opacity:1;pointer-events:auto}
+    .sfh-rs a{color:#f2c48a;font-weight:600;text-decoration:underline;text-underline-offset:3px}
     .sfh-main{height:64px;padding:0 16px;grid-template-columns:1fr auto 1fr}
     .sfh-dwrap,.sfh-navrow{display:none}
     .sfh-mleft{display:block}
@@ -173,6 +177,12 @@
     <span class="l"><svg class="sfh-mill" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.2 22l1.3-9.5h3L14.8 22z"/><path d="M5.9 3.9L18.1 14.1M17.1 2.9L6.9 15.1"/><circle cx="12" cy="9" r="1" fill="currentColor"/></svg>{{ section.settings.text_left }}</span>
     <span class="c">{{ section.settings.text_1 }}{% if section.settings.button_label != blank %} &nbsp;·&nbsp; <a href="{{ section.settings.button_url | default: routes.all_products_collection_url }}">{{ section.settings.button_label }}</a>{% endif %}</span>
     <span class="r">{{ section.settings.text_2 }}</span>
+    <span class="sfh-rot" aria-live="off">
+      <span class="sfh-rs is-on">{{ section.settings.text_1 }}{% if section.settings.button_label != blank %} &nbsp;·&nbsp; <a href="{{ section.settings.button_url | default: routes.all_products_collection_url }}">{{ section.settings.button_label }}</a>{% endif %}</span>
+      <span class="sfh-rs">{{ section.settings.text_2 }}</span>
+      <span class="sfh-rs">{{ section.settings.text_left }}</span>
+    </span>
+    <script>(function(){var r=document.currentScript.previousElementSibling;if(!r)return;var s=r.querySelectorAll('.sfh-rs'),i=0;setInterval(function(){if(getComputedStyle(r).display==='none')return;s[i].classList.remove('is-on');i=(i+1)%s.length;s[i].classList.add('is-on')},3800)})();</script>
   </div>
 
   <div class="sfh-main">
