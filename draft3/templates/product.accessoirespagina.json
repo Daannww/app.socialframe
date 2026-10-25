@@ -1,0 +1,213 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "main": {
+      "type": "main-product",
+      "blocks": {
+        "custom_liquid_4G4gAQ": {
+          "type": "custom_liquid",
+          "disabled": true,
+          "settings": {
+            "custom_liquid": "<style>\n    .trustscore-container {\n        display: flex;\n        align-items: center; /* Centreert verticaal */\n        justify-content: center; /* Centreert horizontaal */\n        padding: 7px 20px;\n        background-color: #ffffff; /* Witte achtergrond */\n        border: 1px solid #d9d9d9;\n        border-radius: 20px;\n        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Mooie dropshadow */\n        margin-bottom: 15px;\n        max-width: 100%; /* Zorgt ervoor dat het maximaal de containerbreedte gebruikt */\n        width: fit-content;\n        margin-left: auto;\n        margin-right: auto;\n        flex-wrap: nowrap;\n    }\n\n    .trustscore-content {\n        display: flex;\n        align-items: center; /* Houdt alles netjes op dezelfde lijn */\n        gap: 12px; /* Ruimte tussen sterren en tekst */\n        white-space: nowrap; /* Voorkomt dat de tekst breekt */\n    }\n\n    .trustscore-stars {\n        display: flex;\n        gap: 6px;\n        align-items: center; /* Zorgt ervoor dat sterren verticaal gecentreerd blijven */\n    }\n\n    .star-box {\n        background: #00A650;\n        width: 18px;\n        height: 18px;\n        display: flex;\n        align-items: center;\n        justify-content: center;\n        border-radius: 4px;\n    }\n\n    .star-icon {\n        width: 12px;\n        height: 12px;\n        fill: white;\n    }\n\n    .trustscore-text {\n        font-size: 14px;\n        color: #000;\n        font-weight: bold;\n        display: flex;\n        align-items: center;\n        margin: 0px; /* Zorgt ervoor dat de tekst op dezelfde lijn als de sterren blijft */\n    }\n\n    /* RESPONSIVE DESIGN */\n    @media screen and (max-width: 480px) {\n        .trustscore-container {\n            padding: 5px 12px;\n            flex-wrap: wrap;\n        }\n\n        .trustscore-content {\n            gap: 8px; /* Iets minder ruimte tussen elementen */\n        }\n\n        .star-box {\n            width: 14px;\n            height: 14px;\n        }\n\n        .star-icon {\n            width: 10px;\n            height: 10px;\n        }\n\n        .trustscore-text {\n            font-size: 12px; /* Kleinere tekst op mobiel */\n        }\n    }\n</style>\n\n<div class=\"trustscore-container\">\n    <div class=\"trustscore-content\">\n        <div class=\"trustscore-stars\">\n            <div class=\"star-box\">\n                <svg class=\"star-icon\" viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <path d=\"M12 2L14.09 8.26H20.94L15.47 12.97L17.56 19.23L12 15.52L6.44 19.23L8.53 12.97L3.06 8.26H9.91L12 2Z\"/>\n                </svg>\n            </div>\n            <div class=\"star-box\">\n                <svg class=\"star-icon\" viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <path d=\"M12 2L14.09 8.26H20.94L15.47 12.97L17.56 19.23L12 15.52L6.44 19.23L8.53 12.97L3.06 8.26H9.91L12 2Z\"/>\n                </svg>\n            </div>\n            <div class=\"star-box\">\n                <svg class=\"star-icon\" viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <path d=\"M12 2L14.09 8.26H20.94L15.47 12.97L17.56 19.23L12 15.52L6.44 19.23L8.53 12.97L3.06 8.26H9.91L12 2Z\"/>\n                </svg>\n            </div>\n            <div class=\"star-box\">\n                <svg class=\"star-icon\" viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <path d=\"M12 2L14.09 8.26H20.94L15.47 12.97L17.56 19.23L12 15.52L6.44 19.23L8.53 12.97L3.06 8.26H9.91L12 2Z\"/>\n                </svg>\n            </div>\n            <div class=\"star-box\">\n                <svg class=\"star-icon\" viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <path d=\"M12 2L14.09 8.26H20.94L15.47 12.97L17.56 19.23L12 15.52L6.44 19.23L8.53 12.97L3.06 8.26H9.91L12 2Z\"/>\n                </svg>\n            </div>\n        </div>\n        <p class=\"trustscore-text\">\n            <strong>TrustScore 4.9</strong> \n        </p>\n    </div>\n</div>"
+          }
+        },
+        "title": {
+          "type": "title",
+          "settings": {}
+        },
+        "price_KNUcTm": {
+          "type": "price",
+          "settings": {}
+        },
+        "section_store_block_review_summary_UY99gj": {
+          "type": "custom_liquid",
+          "settings": {
+            "custom_liquid": "{% capture sf_t1 %}<p>Uitstekend&nbsp;</p>{% endcapture %}{% capture sf_t2 %}<p><strong>400+ reviews</strong></p>{% endcapture %}{% render 'sf-review-summary', first_text: sf_t1, second_text: sf_t2, star_style: 'standard', stars_count: 4.5, stars_size: 17, stars_gap: 2, stars_color: '#ffffff', stars_bg_color: '#00b67a', stars_bg_half_color: '#dddddd', avatars_position: 'none', avatars_size: 20, avatars_animate: false, first_text_size: 15, first_text_color: '#000000', second_text_size: 13, second_text_color: '#000000', border: 'none', border_thickness: 1, border_color: '#000000', radius: 0, effect: 'none', block_padding_top: 0, block_padding_bottom: 0, padding_vertical: 6, padding_horizontal: 0 %}"
+          }
+        },
+        "section_store_block_benefits_list_7x4DeL": {
+          "type": "custom_liquid",
+          "settings": {
+            "custom_liquid": "{% capture sf_items %}<p>Past op al onze frames en tegeltjes.</p>§§<p>Eenvoudig zelf op te hangen.</p>§§<p>Gratis verzending.</p>§§<p>100% Tevredenheidsgarantie.</p>§§§§§§§§{% endcapture %}{% render 'sf-benefits', items: sf_items, items_gap: 10, icon_selection: 'check_mark', icon_size: 20, icon_color: '#000000', text_size: 15, text_color: '#000000', content_align: 'left', border: 'none', border_thickness: 1, border_color: '#000000', radius: 0, padding_vertical: 10, padding_horizontal: 0 %}"
+          }
+        },
+        "space_CRTDHU": {
+          "type": "space",
+          "settings": {}
+        },
+        "buy_buttons_ac7ixy": {
+          "type": "buy_buttons",
+          "settings": {
+            "show_price": true,
+            "show_quantity_selector": false,
+            "show_preorder": false,
+            "show_dynamic_checkout": false,
+            "show_gift_card_recipient": false,
+            "color_text_buttons": "rgba(0,0,0,0)",
+            "color_accent_buttons": "rgba(0,0,0,0)",
+            "style_buttons": "solid"
+          }
+        },
+        "custom_liquid_3Vg7QN": {
+          "type": "custom_liquid",
+          "settings": {
+            "custom_liquid": "{%- assign hw_giftwrap_product = all_products['gift-wrap'] -%}\n{%- assign hw_giftwrap_variant = hw_giftwrap_product.variants.first -%}\n\n<link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css\" data-hw-fontawesome>\n\n<div\n  class=\"hw-card-addon-wrap\"\n  data-hw-giftwrap-addon\n  data-variant-id=\"{{ hw_giftwrap_variant.id }}\"\n  data-price=\"{{ hw_giftwrap_variant.price | divided_by: 100.0 }}\"\n  data-items-index=\"8\"\n  data-gate-value=\"Zwart metalen houder\"\n>\n  <label class=\"hw-card-addon-row\">\n    <span class=\"hw-card-addon-icon\" aria-hidden=\"true\">\n      <i class=\"fa-solid fa-gift\"></i>\n    </span>\n\n    <span class=\"hw-card-addon-text\">\n      <span class=\"hw-card-addon-title\">Als een cadeautje inpakken.</span>\n      <span class=\"hw-card-addon-price\">+ {{ hw_giftwrap_variant.price | money }}</span>\n    </span>\n\n    <span class=\"hw-card-addon-switch\">\n      <input type=\"checkbox\" data-hw-giftwrap-toggle>\n      <span class=\"hw-card-addon-slider\"></span>\n    </span>\n  </label>\n</div>\n\n<style>\n  .hw-card-addon-wrap {\n    font-family: inherit;\n    font-size: 12px;\n    font-weight: normal;\n    color: #000000;\n    border: 1px solid #D7D7D7;\n    border-radius: 20px;\n    background: #F6F6F6;\n    padding: 5px 7px;\n    margin: 0 0 0.5rem 0;\n  }\n\n  .hw-card-addon-row {\n    display: flex;\n    align-items: center;\n    gap: 10px;\n    cursor: pointer;\n  }\n\n  .hw-card-addon-icon {\n    flex: 0 0 32px;\n    width: 32px;\n    height: 32px;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    font-size: 20px;\n    color: #000000;\n  }\n\n  .hw-card-addon-text {\n    flex: 1 1 auto;\n    display: flex;\n    flex-direction: column;\n    gap: 2px;\n    min-width: 0;\n  }\n\n  .hw-card-addon-title {\n    font-size: 12px;\n    font-weight: normal;\n    color: #000000;\n  }\n\n  .hw-card-addon-price {\n    font-size: 12px;\n    font-weight: normal;\n    color: #000000;\n    opacity: 0.75;\n  }\n\n  .hw-card-addon-switch {\n    flex: 0 0 auto;\n    position: relative;\n    width: 42px;\n    height: 24px;\n  }\n\n  .hw-card-addon-switch input {\n    opacity: 0;\n    width: 0;\n    height: 0;\n  }\n\n  .hw-card-addon-slider {\n    position: absolute;\n    inset: 0;\n    background: #D7D7D7;\n    border-radius: 999px;\n    transition: background 0.15s ease;\n  }\n\n  .hw-card-addon-slider::before {\n    content: \"\";\n    position: absolute;\n    width: 18px;\n    height: 18px;\n    left: 3px;\n    top: 3px;\n    background: #ffffff;\n    border-radius: 50%;\n    transition: transform 0.15s ease;\n  }\n\n  .hw-card-addon-switch input:checked + .hw-card-addon-slider {\n    background: #000000;\n  }\n\n  .hw-card-addon-switch input:checked + .hw-card-addon-slider::before {\n    transform: translateX(18px);\n  }\n</style>\n\n<script>\n(function () {\n  function getWrap() {\n    var all = document.querySelectorAll('[data-hw-giftwrap-addon]');\n    return all.length ? all[all.length - 1] : null;\n  }\n\n  var wrap = getWrap();\n  if (!wrap) return;\n\n  var toggle = wrap.querySelector('[data-hw-giftwrap-toggle]');\n  var variantId = wrap.dataset.variantId;\n  var price = parseFloat(wrap.dataset.price || '0');\n  var itemsIndex = wrap.dataset.itemsIndex || '8';\n  var gateValue = wrap.dataset.gateValue || '';\n\n  function parsePrice(text) {\n    var clean = (text || '').replace(/[^\\d,.-]/g, '').replace(/\\.(?=\\d{3}(,|$))/g, '').replace(',', '.');\n    var n = parseFloat(clean);\n    return isNaN(n) ? 0 : n;\n  }\n\n  function formatPrice(n) {\n    try {\n      return new Intl.NumberFormat('nl-NL', {\n        style: 'currency',\n        currency: '{{ cart.currency.iso_code | default: shop.currency }}'\n      }).format(n);\n    } catch (e) {\n      return '€ ' + n.toFixed(2).replace('.', ',');\n    }\n  }\n\n  // Zelfde delta-aanpak als bij het kaartje: werkt zowel de zijbalkprijs\n  // als de prijs IN de \"Toevoegen aan winkelmand\"-knop bij.\n  var priceApplied = false;\n  function updatePrices() {\n    var shouldApply = !!(toggle.checked);\n    if (shouldApply === priceApplied) return;\n    var delta = shouldApply ? price : -price;\n    priceApplied = shouldApply;\n\n    document.querySelectorAll('[data-js-product-price-original]').forEach(function (el) {\n      el.textContent = formatPrice(parsePrice(el.textContent) + delta);\n    });\n    var btnPriceEl = document.querySelector('section-store--atc-price');\n    if (btnPriceEl) {\n      btnPriceEl.textContent = formatPrice(parsePrice(btnPriceEl.textContent) + delta);\n    }\n  }\n\n  function getForms() {\n    var forms = document.querySelectorAll('.product-form .form');\n    if (forms.length) return forms;\n    var fallback = document.querySelector('form[data-type=\"add-to-cart-form\"]');\n    return fallback ? [fallback] : [];\n  }\n\n  function removeFields() {\n    getForms().forEach(function (form) {\n      form.querySelectorAll('[data-hw-giftwrap-hidden]').forEach(function (el) { el.remove(); });\n    });\n  }\n\n  function addFields() {\n    removeFields();\n    getForms().forEach(function (form) {\n      var fields = {};\n      fields['items[' + itemsIndex + '][id]'] = variantId;\n      fields['items[' + itemsIndex + '][quantity]'] = '1';\n\n      Object.keys(fields).forEach(function (name) {\n        var input = document.createElement('input');\n        input.type = 'hidden';\n        input.name = name;\n        input.id = variantId;\n        input.value = fields[name];\n        input.setAttribute('data-hw-giftwrap-hidden', '');\n        form.appendChild(input);\n      });\n    });\n  }\n\n  function zetVelden() {\n    if (toggle.checked) {\n      addFields();\n    } else {\n      removeFields();\n    }\n  }\n\n  // Zet de toggle geforceerd uit (en verwijdert regel + prijs) zonder dat\n  // de klant er iets voor hoeft te doen — gebruikt bij het wisselen naar\n  // de variant die niet ingepakt kan worden.\n  function forceOff() {\n    if (!toggle.checked) return;\n    toggle.checked = false;\n    updatePrices();\n    zetVelden();\n  }\n\n  // Verbergt/toont dit blok op basis van de huidige \"Houder\"-keuze.\n  //\n  // LET OP: we zoeken NIET meer op een vaste select-id-prefix. Op\n  // verschillende productpagina's heet deze optie net even anders\n  // (\"Houder\", \"Houder:\", \"Kies houder\", ...), waardoor Shopify elke\n  // keer een andere select-id genereert. In plaats daarvan zoeken we\n  // gewoon de <select> op de pagina die zelf een keuze \"Zwart metalen\n  // houder\" bevat — dat werkt ongeacht hoe de optie heet.\n  var cachedGateSelect;\n  function findGateSelect() {\n    if (cachedGateSelect && document.body.contains(cachedGateSelect)) {\n      return cachedGateSelect;\n    }\n    cachedGateSelect = null;\n    if (!gateValue) return null;\n    var selects = document.querySelectorAll('select');\n    for (var i = 0; i < selects.length; i++) {\n      var opts = selects[i].querySelectorAll('option');\n      for (var j = 0; j < opts.length; j++) {\n        var opt = opts[j];\n        if (opt.value === gateValue || opt.textContent.trim() === gateValue) {\n          cachedGateSelect = selects[i];\n          return cachedGateSelect;\n        }\n      }\n    }\n    return null;\n  }\n\n  function applyGate() {\n    var select = findGateSelect();\n    if (!select) {\n      wrap.hidden = false;\n      return;\n    }\n    var blocked = select.value === gateValue;\n    wrap.hidden = blocked;\n    if (blocked) forceOff();\n  }\n\n  document.addEventListener('change', function (e) {\n    var t = e.target.closest && e.target.closest('[data-hw-giftwrap-toggle]');\n    if (t) {\n      updatePrices();\n      zetVelden();\n      return;\n    }\n    // Reageer ook als de \"Houder\"-select zelf verandert.\n    var select = findGateSelect();\n    if (select && e.target === select) {\n      applyGate();\n    }\n  });\n\n  // Vangnet vlak voor de echte submit.\n  document.addEventListener('submit', function (e) {\n    var w = getWrap();\n    if (!w || w.hidden) return;\n    var t = w.querySelector('[data-hw-giftwrap-toggle]');\n    if (!t || !t.checked) return;\n    addFields();\n  }, true);\n\n  // Initiële staat bij laden van de pagina (bijv. als \"Zwart metalen\n  // houder\" al vooraf geselecteerd stond).\n  applyGate();\n})();\n</script>"
+          }
+        },
+        "custom_liquid_mERNK8": {
+          "type": "custom_liquid",
+          "settings": {
+            "custom_liquid": "{%- comment -%}\n  Luxe cadeauverpakking — zelfde stijl/mechanisme als de andere twee\n  blokken (handgeschreven kaartje / cadeautje inpakken).\n\n  Variant-ID en prijs worden live van het echte product\n  \"luxe-cadeauverpakking\" gehaald (all_products), dus een prijswijziging\n  in Shopify admin komt hier automatisch door.\n\n  Voorraad: dit product staat nu op 0 voorraad. Zolang dat zo is, laat\n  dit blok GEEN schuifje zien maar netjes \"Tijdelijk uitverkocht\" (geen\n  velden worden gezet, er kan dus niets kapot toegevoegd worden). Komt\n  er weer voorraad, dan verschijnt automatisch het normale werkende\n  schuifje — zonder dat je iets aan deze code hoeft te veranderen.\n{%- endcomment -%}\n\n{%- assign hw_luxe_product = all_products['luxe-cadeauverpakking'] -%}\n{%- assign hw_luxe_variant = hw_luxe_product.variants.first -%}\n{%- assign hw_luxe_image = hw_luxe_product.featured_image -%}\n\n<link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css\" data-hw-fontawesome>\n\n<div\n  class=\"hw-card-addon-wrap{% unless hw_luxe_variant.available %} hw-card-addon-wrap--soldout{% endunless %}\"\n  data-hw-luxe-addon\n  data-variant-id=\"{{ hw_luxe_variant.id }}\"\n  data-price=\"{{ hw_luxe_variant.price | divided_by: 100.0 }}\"\n  data-items-index=\"9\"\n  data-available=\"{{ hw_luxe_variant.available }}\"\n  data-gate-value=\"Zwart metalen houder\"\n>\n  <label class=\"hw-card-addon-row\">\n    <span class=\"hw-card-addon-icon{% if hw_luxe_image %} hw-card-addon-icon--image{% endif %}\" aria-hidden=\"true\">\n      {%- if hw_luxe_image -%}\n        <img\n          class=\"hw-card-addon-image\"\n          src=\"{{ hw_luxe_image | image_url: width: 96 }}\"\n          width=\"96\"\n          height=\"96\"\n          loading=\"lazy\"\n          alt=\"{{ hw_luxe_product.title | escape }}\"\n        >\n      {%- else -%}\n        <i class=\"fa-solid fa-gift\"></i>\n      {%- endif -%}\n    </span>\n\n    <span class=\"hw-card-addon-text\">\n      <span class=\"hw-card-addon-title\">{{ hw_luxe_product.title }}</span>\n      {%- if hw_luxe_variant.available -%}\n        <span class=\"hw-card-addon-price\">+ {{ hw_luxe_variant.price | money }}</span>\n      {%- else -%}\n        <span class=\"hw-card-addon-soldout-label\">Tijdelijk uitverkocht</span>\n      {%- endif -%}\n    </span>\n\n    {%- if hw_luxe_variant.available -%}\n      <span class=\"hw-card-addon-switch\">\n        <input type=\"checkbox\" data-hw-luxe-toggle>\n        <span class=\"hw-card-addon-slider\"></span>\n      </span>\n    {%- else -%}\n      <span class=\"hw-card-addon-soldout-badge\">Uitverkocht</span>\n    {%- endif -%}\n  </label>\n</div>\n\n<style>\n  .hw-card-addon-wrap {\n    font-family: inherit;\n    font-size: 12px;\n    font-weight: normal;\n    color: #000000;\n    border: 1px solid #D7D7D7;\n    border-radius: 20px;\n    background: #F6F6F6;\n    padding: 5px 7px;\n    margin: 0 0 0.5rem 0;\n  }\n\n  .hw-card-addon-wrap--soldout {\n    background: #F6F6F6;\n    opacity: 0.85;\n  }\n\n  .hw-card-addon-row {\n    display: flex;\n    align-items: center;\n    gap: 10px;\n    cursor: pointer;\n  }\n\n  .hw-card-addon-wrap--soldout .hw-card-addon-row {\n    cursor: default;\n  }\n\n  .hw-card-addon-icon {\n    flex: 0 0 32px;\n    width: 32px;\n    height: 32px;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    font-size: 20px;\n    color: #000000;\n    overflow: hidden;\n    border-radius: 8px;\n  }\n\n  .hw-card-addon-icon--image {\n    flex: 0 0 48px;\n    width: 48px;\n    height: 48px;\n  }\n\n  .hw-card-addon-image {\n    width: 100%;\n    height: 100%;\n    object-fit: cover;\n    display: block;\n  }\n\n  .hw-card-addon-text {\n    flex: 1 1 auto;\n    display: flex;\n    flex-direction: column;\n    gap: 2px;\n    min-width: 0;\n  }\n\n  .hw-card-addon-title {\n    font-size: 12px;\n    font-weight: normal;\n    color: #000000;\n  }\n\n  .hw-card-addon-price {\n    font-size: 12px;\n    font-weight: normal;\n    color: #000000;\n    opacity: 0.75;\n  }\n\n  .hw-card-addon-soldout-label {\n    font-size: 12px;\n    font-weight: normal;\n    color: #767676;\n  }\n\n  .hw-card-addon-soldout-badge {\n    flex: 0 0 auto;\n    font-size: 11px;\n    font-weight: 600;\n    color: #767676;\n    background: #EAEAEA;\n    border-radius: 999px;\n    padding: 5px 10px;\n    white-space: nowrap;\n  }\n\n  .hw-card-addon-switch {\n    flex: 0 0 auto;\n    position: relative;\n    width: 42px;\n    height: 24px;\n  }\n\n  .hw-card-addon-switch input {\n    opacity: 0;\n    width: 0;\n    height: 0;\n  }\n\n  .hw-card-addon-slider {\n    position: absolute;\n    inset: 0;\n    background: #D7D7D7;\n    border-radius: 999px;\n    transition: background 0.15s ease;\n  }\n\n  .hw-card-addon-slider::before {\n    content: \"\";\n    position: absolute;\n    width: 18px;\n    height: 18px;\n    left: 3px;\n    top: 3px;\n    background: #ffffff;\n    border-radius: 50%;\n    transition: transform 0.15s ease;\n  }\n\n  .hw-card-addon-switch input:checked + .hw-card-addon-slider {\n    background: #000000;\n  }\n\n  .hw-card-addon-switch input:checked + .hw-card-addon-slider::before {\n    transform: translateX(18px);\n  }\n</style>\n\n<script>\n(function () {\n  function getWrap() {\n    var all = document.querySelectorAll('[data-hw-luxe-addon]');\n    return all.length ? all[all.length - 1] : null;\n  }\n\n  var wrap = getWrap();\n  if (!wrap) return;\n\n  // Bij \"Tijdelijk uitverkocht\" is er geen schuifje; dan is toggle null.\n  var toggle = wrap.querySelector('[data-hw-luxe-toggle]');\n  var gateValue = wrap.dataset.gateValue || '';\n  var variantId = wrap.dataset.variantId;\n  var price = parseFloat(wrap.dataset.price || '0');\n  var itemsIndex = wrap.dataset.itemsIndex || '9';\n\n  function parsePrice(text) {\n    var clean = (text || '').replace(/[^\\d,.-]/g, '').replace(/\\.(?=\\d{3}(,|$))/g, '').replace(',', '.');\n    var n = parseFloat(clean);\n    return isNaN(n) ? 0 : n;\n  }\n\n  function formatPrice(n) {\n    try {\n      return new Intl.NumberFormat('nl-NL', {\n        style: 'currency',\n        currency: '{{ cart.currency.iso_code | default: shop.currency }}'\n      }).format(n);\n    } catch (e) {\n      return '€ ' + n.toFixed(2).replace('.', ',');\n    }\n  }\n\n  var priceApplied = false;\n  function updatePrices() {\n    var shouldApply = !!(toggle && toggle.checked);\n    if (shouldApply === priceApplied) return;\n    var delta = shouldApply ? price : -price;\n    priceApplied = shouldApply;\n\n    document.querySelectorAll('[data-js-product-price-original]').forEach(function (el) {\n      el.textContent = formatPrice(parsePrice(el.textContent) + delta);\n    });\n    var btnPriceEl = document.querySelector('section-store--atc-price');\n    if (btnPriceEl) {\n      btnPriceEl.textContent = formatPrice(parsePrice(btnPriceEl.textContent) + delta);\n    }\n  }\n\n  function getForms() {\n    var forms = document.querySelectorAll('.product-form .form');\n    if (forms.length) return forms;\n    var fallback = document.querySelector('form[data-type=\"add-to-cart-form\"]');\n    return fallback ? [fallback] : [];\n  }\n\n  function removeFields() {\n    getForms().forEach(function (form) {\n      form.querySelectorAll('[data-hw-luxe-hidden]').forEach(function (el) { el.remove(); });\n    });\n  }\n\n  function addFields() {\n    removeFields();\n    getForms().forEach(function (form) {\n      var fields = {};\n      fields['items[' + itemsIndex + '][id]'] = variantId;\n      fields['items[' + itemsIndex + '][quantity]'] = '1';\n\n      Object.keys(fields).forEach(function (name) {\n        var input = document.createElement('input');\n        input.type = 'hidden';\n        input.name = name;\n        input.id = variantId;\n        input.value = fields[name];\n        input.setAttribute('data-hw-luxe-hidden', '');\n        form.appendChild(input);\n      });\n    });\n  }\n\n  function zetVelden() {\n    if (toggle && toggle.checked) {\n      addFields();\n    } else {\n      removeFields();\n    }\n  }\n\n  // Zet de toggle geforceerd uit (en verwijdert regel + prijs) zodra de\n  // klant een houder kiest waar niet mee ingepakt kan worden.\n  function forceOff() {\n    if (!toggle || !toggle.checked) return;\n    toggle.checked = false;\n    updatePrices();\n    zetVelden();\n  }\n\n  // Zoekt de <select> die zelf de keuze \"Zwart metalen houder\" bevat,\n  // ongeacht hoe de optie op de pagina heet (Houder / Houder: / Kies houder).\n  var cachedGateSelect;\n  function findGateSelect() {\n    if (cachedGateSelect && document.body.contains(cachedGateSelect)) {\n      return cachedGateSelect;\n    }\n    cachedGateSelect = null;\n    if (!gateValue) return null;\n    var selects = document.querySelectorAll('select');\n    for (var i = 0; i < selects.length; i++) {\n      var opts = selects[i].querySelectorAll('option');\n      for (var j = 0; j < opts.length; j++) {\n        var opt = opts[j];\n        if (opt.value === gateValue || opt.textContent.trim() === gateValue) {\n          cachedGateSelect = selects[i];\n          return cachedGateSelect;\n        }\n      }\n    }\n    return null;\n  }\n\n  function applyGate() {\n    var select = findGateSelect();\n    if (!select) {\n      wrap.hidden = false;\n      return;\n    }\n    var blocked = select.value === gateValue;\n    wrap.hidden = blocked;\n    if (blocked) forceOff();\n  }\n\n  document.addEventListener('change', function (e) {\n    var t = e.target.closest && e.target.closest('[data-hw-luxe-toggle]');\n    if (t) {\n      updatePrices();\n      zetVelden();\n      return;\n    }\n    var select = findGateSelect();\n    if (select && e.target === select) {\n      applyGate();\n    }\n  });\n\n  // Vangnet vlak voor de echte submit.\n  document.addEventListener('submit', function (e) {\n    var w = getWrap();\n    if (!w || w.hidden) return;\n    var t = w.querySelector('[data-hw-luxe-toggle]');\n    if (!t || !t.checked) return;\n    addFields();\n  }, true);\n\n  // Beginstand bij laden van de pagina.\n  applyGate();\n})();\n</script>"
+          }
+        },
+        "custom_liquid_HCzWB7": {
+          "type": "custom_liquid",
+          "settings": {
+            "custom_liquid": "{%- assign hw_kaartje_product = all_products['handgeschreven-kaartje'] -%}\n{%- assign hw_kaartje_variant = hw_kaartje_product.variants.first -%}\n{%- assign hw_kaartje_image = hw_kaartje_product.featured_image -%}\n\n<link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css\" data-hw-fontawesome>\n\n<div class=\"hw-card-addon-wrap\" data-hw-card-addon data-variant-id=\"{{ hw_kaartje_variant.id }}\" data-price=\"{{ hw_kaartje_variant.price | divided_by: 100.0 }}\" data-items-index=\"7\">\n  <label class=\"hw-card-addon-row\">\n    <span class=\"hw-card-addon-icon{% if hw_kaartje_image %} hw-card-addon-icon--image{% endif %}\" aria-hidden=\"true\">\n      {%- if hw_kaartje_image -%}\n        <img\n          class=\"hw-card-addon-image\"\n          src=\"{{ hw_kaartje_image | image_url: width: 96 }}\"\n          width=\"96\"\n          height=\"96\"\n          loading=\"lazy\"\n          alt=\"{{ hw_kaartje_product.title | escape }}\"\n        >\n      {%- else -%}\n        <i class=\"fa-regular fa-envelope\"></i>\n      {%- endif -%}\n    </span>\n\n    <span class=\"hw-card-addon-text\">\n      <span class=\"hw-card-addon-title\">Handgeschreven kaartje toevoegen.</span>\n      <span class=\"hw-card-addon-price\">+ {{ hw_kaartje_variant.price | money }}</span>\n    </span>\n\n    <span class=\"hw-card-addon-switch\">\n      <input type=\"checkbox\" data-hw-card-toggle>\n      <span class=\"hw-card-addon-slider\"></span>\n    </span>\n  </label>\n\n  <div class=\"hw-card-message\" data-hw-card-message hidden>\n    <label for=\"hw-card-text\">Jouw boodschap voor op het kaartje:</label>\n    <textarea id=\"hw-card-text\" data-hw-card-text maxlength=\"300\" rows=\"4\" placeholder=\"Schrijf hier je boodschap...\"></textarea>\n    <div class=\"hw-card-message-footer\">\n      <span class=\"hw-card-char-count\" data-hw-card-char-count>0 / 300</span>\n      <span class=\"hw-card-error\" data-hw-card-error hidden>Vul een boodschap in om een kaartje toe te voegen.</span>\n    </div>\n  </div>\n</div>\n\n<style>\n  .hw-card-addon-wrap {\n    font-family: inherit;\n    font-size: 12px;\n    font-weight: normal;\n    color: #000000;\n    border: 1px solid #D7D7D7;\n    border-radius: 20px;\n    background: #F6F6F6;\n    padding: 5px 7px;\n    margin: 0 0 0.5rem 0;\n  }\n\n  .hw-card-addon-row {\n    display: flex;\n    align-items: center;\n    gap: 10px;\n    cursor: pointer;\n  }\n\n  .hw-card-addon-icon {\n    flex: 0 0 32px;\n    width: 32px;\n    height: 32px;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    font-size: 20px;\n    color: #000000;\n    overflow: hidden;\n    border-radius: 8px;\n  }\n\n  /* Als er een echte productfoto is, mag die groter zijn dan het\n     icoon — maar blijft binnen de hoogte van de balk zelf (de rij\n     groeit mee, de buitenste kaart blijft eromheen, niets steekt\n     erbuiten). */\n  .hw-card-addon-icon--image {\n    flex: 0 0 48px;\n    width: 48px;\n    height: 48px;\n  }\n\n  .hw-card-addon-image {\n    width: 100%;\n    height: 100%;\n    object-fit: cover;\n    display: block;\n  }\n\n  .hw-card-addon-text {\n    flex: 1 1 auto;\n    display: flex;\n    flex-direction: column;\n    gap: 2px;\n    min-width: 0;\n  }\n\n  .hw-card-addon-title {\n    font-size: 12px;\n    font-weight: normal;\n    color: #000000;\n  }\n\n  .hw-card-addon-price {\n    font-size: 12px;\n    font-weight: normal;\n    color: #000000;\n    opacity: 0.75;\n  }\n\n  .hw-card-addon-switch {\n    flex: 0 0 auto;\n    position: relative;\n    width: 42px;\n    height: 24px;\n  }\n\n  .hw-card-addon-switch input {\n    opacity: 0;\n    width: 0;\n    height: 0;\n  }\n\n  .hw-card-addon-slider {\n    position: absolute;\n    inset: 0;\n    background: #D7D7D7;\n    border-radius: 999px;\n    transition: background 0.15s ease;\n  }\n\n  .hw-card-addon-slider::before {\n    content: \"\";\n    position: absolute;\n    width: 18px;\n    height: 18px;\n    left: 3px;\n    top: 3px;\n    background: #ffffff;\n    border-radius: 50%;\n    transition: transform 0.15s ease;\n  }\n\n  .hw-card-addon-switch input:checked + .hw-card-addon-slider {\n    background: #000000;\n  }\n\n  .hw-card-addon-switch input:checked + .hw-card-addon-slider::before {\n    transform: translateX(18px);\n  }\n\n  .hw-card-message {\n    margin-top: 10px;\n    padding-top: 10px;\n    border-top: 1px dashed #D7D7D7;\n  }\n\n  .hw-card-message label {\n    display: block;\n    font-size: 12px;\n    font-weight: normal;\n    color: #000000;\n    margin-bottom: 6px;\n  }\n\n  .hw-card-message textarea {\n    width: 100%;\n    box-sizing: border-box;\n    border: 1px solid #D7D7D7;\n    border-radius: 12px;\n    padding: 8px 10px;\n    font-size: 12px;\n    font-family: inherit;\n    resize: vertical;\n    background: #ffffff;\n  }\n\n  .hw-card-message-footer {\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n    margin-top: 4px;\n  }\n\n  .hw-card-char-count {\n    font-size: 11px;\n    color: #767676;\n  }\n\n  .hw-card-error {\n    font-size: 11px;\n    color: #c0392b;\n  }\n</style>\n\n<script>\n(function () {\n  function getWrap() {\n    var all = document.querySelectorAll('[data-hw-card-addon]');\n    return all.length ? all[all.length - 1] : null;\n  }\n\n  var wrap = getWrap();\n  if (!wrap) return;\n\n  var toggle = wrap.querySelector('[data-hw-card-toggle]');\n  var panel = wrap.querySelector('[data-hw-card-message]');\n  var textarea = wrap.querySelector('[data-hw-card-text]');\n  var charCount = wrap.querySelector('[data-hw-card-char-count]');\n  var errorEl = wrap.querySelector('[data-hw-card-error]');\n  var variantId = wrap.dataset.variantId;\n  var price = parseFloat(wrap.dataset.price || '0');\n  var itemsIndex = wrap.dataset.itemsIndex || '7';\n\n  function parsePrice(text) {\n    var clean = (text || '').replace(/[^\\d,.-]/g, '').replace(/\\.(?=\\d{3}(,|$))/g, '').replace(',', '.');\n    var n = parseFloat(clean);\n    return isNaN(n) ? 0 : n;\n  }\n\n  function formatPrice(n) {\n    try {\n      return new Intl.NumberFormat('nl-NL', {\n        style: 'currency',\n        currency: '{{ cart.currency.iso_code | default: shop.currency }}'\n      }).format(n);\n    } catch (e) {\n      return '€ ' + n.toFixed(2).replace('.', ',');\n    }\n  }\n\n  // Werkt zowel de prijs in de zijbalk ([data-js-product-price-original])\n  // als de prijs IN de \"Toevoegen aan winkelmand\"-knop bij\n  // (<section-store--atc-price>). Dat laatste element is precies waar\n  // de echte Addons-app (cadeauverpakking) de knop-prijs laat zien, en\n  // is een ander element dan de zijbalk-prijs — vandaar twee doelen.\n  //\n  // We werken met een delta (+prijs bij aanzetten, -prijs bij\n  // uitzetten) in plaats van \"base + addon\" opnieuw te berekenen, zodat\n  // dit correct blijft optellen als er ook een andere addon (zoals\n  // cadeauverpakking) tegelijk aan staat — precies zoals die knop-prijs\n  // ook bij de echte Addons-app werkt.\n  var priceApplied = false;\n\n  function updatePrices() {\n    var shouldApply = !!(toggle.checked);\n    if (shouldApply === priceApplied) return;\n    var delta = shouldApply ? price : -price;\n    priceApplied = shouldApply;\n\n    document.querySelectorAll('[data-js-product-price-original]').forEach(function (el) {\n      el.textContent = formatPrice(parsePrice(el.textContent) + delta);\n    });\n    var btnPriceEl = document.querySelector('section-store--atc-price');\n    if (btnPriceEl) {\n      btnPriceEl.textContent = formatPrice(parsePrice(btnPriceEl.textContent) + delta);\n    }\n  }\n\n  function updateCharCount() {\n    charCount.textContent = textarea.value.length + ' / 300';\n  }\n\n  // Exact dezelfde doel-elementen als de echte \"SS - Product Addons\"\n  // sectie gebruikt: alle formulieren binnen .product-form .form.\n  function getForms() {\n    var forms = document.querySelectorAll('.product-form .form');\n    if (forms.length) return forms;\n    // Fallback voor thema's waar die klasse-combinatie niet voorkomt.\n    var fallback = document.querySelector('form[data-type=\"add-to-cart-form\"]');\n    return fallback ? [fallback] : [];\n  }\n\n  function removeFields() {\n    getForms().forEach(function (form) {\n      form.querySelectorAll('[data-hw-card-hidden]').forEach(function (el) { el.remove(); });\n    });\n  }\n\n  function addFields(message) {\n    removeFields();\n    getForms().forEach(function (form) {\n      var fields = {};\n      fields['items[' + itemsIndex + '][id]'] = variantId;\n      fields['items[' + itemsIndex + '][quantity]'] = '1';\n      fields['items[' + itemsIndex + '][properties][Boodschap voor kaartje]'] = message;\n\n      Object.keys(fields).forEach(function (name) {\n        var input = document.createElement('input');\n        input.type = 'hidden';\n        input.name = name;\n        input.id = variantId;\n        input.value = fields[name];\n        input.setAttribute('data-hw-card-hidden', '');\n        form.appendChild(input);\n      });\n    });\n  }\n\n  function zetVelden() {\n    var msg = (textarea.value || '').trim();\n    if (toggle.checked && msg) {\n      addFields(msg);\n    } else {\n      removeFields();\n    }\n  }\n\n  // Document-niveau delegatie: zelfde als hierboven uitgelegd, zodat dit\n  // blijft werken ook als het thema de knoppen/variant-sectie vervangt.\n  document.addEventListener('change', function (e) {\n    var t = e.target.closest && e.target.closest('[data-hw-card-toggle]');\n    if (!t) return;\n    var w = t.closest('[data-hw-card-addon]');\n    if (!w) return;\n    var p = w.querySelector('[data-hw-card-message]');\n    var err = w.querySelector('[data-hw-card-error]');\n    var ta = w.querySelector('[data-hw-card-text]');\n    if (p) p.hidden = !t.checked;\n    if (t.checked) {\n      if (ta) ta.focus();\n      if (!ta || !ta.value.trim()) {\n        if (err) err.hidden = false;\n      } else if (err) {\n        err.hidden = true;\n      }\n    } else if (err) {\n      err.hidden = true;\n    }\n    updatePrices();\n    zetVelden();\n  });\n\n  document.addEventListener('input', function (e) {\n    var ta = e.target.closest && e.target.closest('[data-hw-card-text]');\n    if (!ta) return;\n    var w = ta.closest('[data-hw-card-addon]');\n    if (!w) return;\n    var err = w.querySelector('[data-hw-card-error]');\n    updateCharCount();\n    if (ta.value.trim() && err) err.hidden = true;\n    zetVelden();\n  });\n\n  // Vangnet: ook net voor de submit zelf nog een keer controleren/zetten\n  // (mocht de change/input-sync om wat voor reden dan ook gemist zijn).\n  document.addEventListener('submit', function (e) {\n    var w = getWrap();\n    if (!w) return;\n    var t = w.querySelector('[data-hw-card-toggle]');\n    var ta = w.querySelector('[data-hw-card-text]');\n    var err = w.querySelector('[data-hw-card-error]');\n    if (!t || !t.checked) return;\n    if (!ta || !ta.value.trim()) {\n      e.preventDefault();\n      removeFields();\n      if (err) err.hidden = false;\n      if (ta) ta.focus();\n      return;\n    }\n    addFields(ta.value.trim());\n  }, true);\n\n  updateCharCount();\n})();\n</script>"
+          }
+        },
+        "collapsible_tab_YykCDC": {
+          "type": "collapsible_tab",
+          "settings": {
+            "heading": "Verzending",
+            "content": "",
+            "page": "verzenden",
+            "hide_block_if": false
+          }
+        },
+        "description_zKMNEH": {
+          "type": "description",
+          "settings": {}
+        },
+        "section_store_block_payment_icons_2_E8U4GA": {
+          "type": "custom_liquid",
+          "settings": {
+            "custom_liquid": "<ul class=\"sf-pay\" style=\"display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-items:center;list-style:none;margin:0;padding:0\">{%- for t in shop.enabled_payment_types -%}<li style=\"display:block;height:20px;margin:0;padding:0\">{{ t | payment_type_svg_tag }}</li>{%- endfor -%}</ul><style>.sf-pay li::before{content:none!important}.sf-pay svg{display:block;width:auto;height:100%}</style>"
+          }
+        },
+        "variant_picker": {
+          "type": "variant_picker",
+          "settings": {
+            "variants_style": "select",
+            "show_quantities": "below"
+          }
+        }
+      },
+      "block_order": [
+        "custom_liquid_4G4gAQ",
+        "title",
+        "price_KNUcTm",
+        "section_store_block_review_summary_UY99gj",
+        "section_store_block_benefits_list_7x4DeL",
+        "variant_picker",
+        "variant_picker",
+        "space_CRTDHU",
+        "buy_buttons_ac7ixy",
+        "custom_liquid_3Vg7QN",
+        "custom_liquid_mERNK8",
+        "custom_liquid_HCzWB7",
+        "collapsible_tab_YykCDC",
+        "description_zKMNEH",
+        "section_store_block_payment_icons_2_E8U4GA"
+      ],
+      "custom_css": [
+        ".effectiveAppsEGWATCImage {padding-top: 20px;}"
+      ],
+      "settings": {
+        "gallery_style": "slider",
+        "gallery_ratio": "natural",
+        "gallery_fit": false,
+        "show_border": true,
+        "gallery_card_design": false,
+        "gallery_padding": 0,
+        "gallery_pagination": "dots",
+        "enable_zoom": false,
+        "enable_video_looping": true,
+        "default_to_first_variant": true,
+        "sticky_add_to_cart": false,
+        "sticky_atc_style": "wide",
+        "sticky_bar_bgcolor": "#ffffff",
+        "sticky_bar_txtcolor": "#111111"
+      }
+    },
+    "product-recommendations": {
+      "type": "product-recommendations",
+      "blocks": {
+        "price": {
+          "type": "price",
+          "settings": {}
+        },
+        "title": {
+          "type": "title",
+          "settings": {}
+        },
+        "quick_buy": {
+          "type": "quick_buy",
+          "settings": {}
+        }
+      },
+      "block_order": [
+        "price",
+        "title",
+        "quick_buy"
+      ],
+      "custom_css": [
+        ".section-heading__title.h4 {font-size: 20px;}"
+      ],
+      "settings": {
+        "heading": "MAAK JE SET COMPLEET 🏆",
+        "subheading": "",
+        "section_heading_layout": "section-heading--center",
+        "layout": "grid-3 grid-lap-2 grid-tiny-1",
+        "products_number": 4,
+        "section_background_color": "rgba(0,0,0,0)",
+        "section_background_gradient": "",
+        "section_heading_color": "#000000",
+        "remove_margin": false
+      }
+    },
+    "ss_product_info_boxed_aFtair": {
+      "type": "ss-product-info-boxed",
+      "custom_css": [],
+      "settings": {
+        "header-text": "Klantbeoordeling van 4.6/5",
+        "background-color": "#ffffff",
+        "header-color": "#000000",
+        "header-text-color": "#ffffff",
+        "padding": 36,
+        "custom_class": "ss-custom-class"
+      }
+    },
+    "newsletter_wzkGyG": {
+      "type": "newsletter",
+      "name": "t:sections.newsletter.name",
+      "settings": {
+        "show_icon": false,
+        "title": "Geef je op voor onze nieuwsbrieven en ontvang kortingscodes!",
+        "text": "",
+        "color_background_main": "#fff0d9",
+        "color_text_main": "rgba(0,0,0,0)",
+        "color_borders_main": "rgba(0,0,0,0)",
+        "color_shadow_main": "rgba(0,0,0,0)",
+        "section_background_color": "rgba(0,0,0,0)",
+        "section_background_gradient": "",
+        "remove_margin": false,
+        "seo_h_tag": "h2"
+      }
+    }
+  },
+  "order": [
+    "main",
+    "product-recommendations",
+    "ss_product_info_boxed_aFtair",
+    "newsletter_wzkGyG"
+  ]
+}
