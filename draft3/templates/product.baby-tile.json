@@ -1,0 +1,245 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "main": {
+      "type": "main-product",
+      "blocks": {
+        "custom_liquid_4G4gAQ": {
+          "type": "custom_liquid",
+          "disabled": true,
+          "settings": {
+            "custom_liquid": "<style>\n    .trustscore-container {\n        display: flex;\n        align-items: center; /* Centreert verticaal */\n        justify-content: center; /* Centreert horizontaal */\n        padding: 7px 20px;\n        background-color: #ffffff; /* Witte achtergrond */\n        border: 1px solid #d9d9d9;\n        border-radius: 20px;\n        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Mooie dropshadow */\n        margin-bottom: 15px;\n        max-width: 100%; /* Zorgt ervoor dat het maximaal de containerbreedte gebruikt */\n        width: fit-content;\n        margin-left: auto;\n        margin-right: auto;\n        flex-wrap: nowrap;\n    }\n\n    .trustscore-content {\n        display: flex;\n        align-items: center; /* Houdt alles netjes op dezelfde lijn */\n        gap: 12px; /* Ruimte tussen sterren en tekst */\n        white-space: nowrap; /* Voorkomt dat de tekst breekt */\n    }\n\n    .trustscore-stars {\n        display: flex;\n        gap: 6px;\n        align-items: center; /* Zorgt ervoor dat sterren verticaal gecentreerd blijven */\n    }\n\n    .star-box {\n        background: #00A650;\n        width: 18px;\n        height: 18px;\n        display: flex;\n        align-items: center;\n        justify-content: center;\n        border-radius: 4px;\n    }\n\n    .star-icon {\n        width: 12px;\n        height: 12px;\n        fill: white;\n    }\n\n    .trustscore-text {\n        font-size: 14px;\n        color: #000;\n        font-weight: bold;\n        display: flex;\n        align-items: center;\n        margin: 0px; /* Zorgt ervoor dat de tekst op dezelfde lijn als de sterren blijft */\n    }\n\n    /* RESPONSIVE DESIGN */\n    @media screen and (max-width: 480px) {\n        .trustscore-container {\n            padding: 5px 12px;\n            flex-wrap: wrap;\n        }\n\n        .trustscore-content {\n            gap: 8px; /* Iets minder ruimte tussen elementen */\n        }\n\n        .star-box {\n            width: 14px;\n            height: 14px;\n        }\n\n        .star-icon {\n            width: 10px;\n            height: 10px;\n        }\n\n        .trustscore-text {\n            font-size: 12px; /* Kleinere tekst op mobiel */\n        }\n    }\n</style>\n\n<div class=\"trustscore-container\">\n    <div class=\"trustscore-content\">\n        <div class=\"trustscore-stars\">\n            <div class=\"star-box\">\n                <svg class=\"star-icon\" viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <path d=\"M12 2L14.09 8.26H20.94L15.47 12.97L17.56 19.23L12 15.52L6.44 19.23L8.53 12.97L3.06 8.26H9.91L12 2Z\"/>\n                </svg>\n            </div>\n            <div class=\"star-box\">\n                <svg class=\"star-icon\" viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <path d=\"M12 2L14.09 8.26H20.94L15.47 12.97L17.56 19.23L12 15.52L6.44 19.23L8.53 12.97L3.06 8.26H9.91L12 2Z\"/>\n                </svg>\n            </div>\n            <div class=\"star-box\">\n                <svg class=\"star-icon\" viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <path d=\"M12 2L14.09 8.26H20.94L15.47 12.97L17.56 19.23L12 15.52L6.44 19.23L8.53 12.97L3.06 8.26H9.91L12 2Z\"/>\n                </svg>\n            </div>\n            <div class=\"star-box\">\n                <svg class=\"star-icon\" viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <path d=\"M12 2L14.09 8.26H20.94L15.47 12.97L17.56 19.23L12 15.52L6.44 19.23L8.53 12.97L3.06 8.26H9.91L12 2Z\"/>\n                </svg>\n            </div>\n            <div class=\"star-box\">\n                <svg class=\"star-icon\" viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <path d=\"M12 2L14.09 8.26H20.94L15.47 12.97L17.56 19.23L12 15.52L6.44 19.23L8.53 12.97L3.06 8.26H9.91L12 2Z\"/>\n                </svg>\n            </div>\n        </div>\n        <p class=\"trustscore-text\">\n            <strong>TrustScore 4.9</strong> \n        </p>\n    </div>\n</div>"
+          }
+        },
+        "title": {
+          "type": "title",
+          "settings": {}
+        },
+        "zepto_product_personalizer_product_personalizer_page_4zRR7U": {
+          "type": "shopify://apps/zepto-product-personalizer/blocks/product_personalizer_page/7411210d-7b32-4c09-9455-e129e3be4729",
+          "settings": {
+            "product": "{{product}}"
+          }
+        },
+        "collapsible_tab_nPzzd8": {
+          "type": "collapsible_tab",
+          "disabled": true,
+          "settings": {
+            "heading": "Welke formaten zijn er?",
+            "content": "<p><strong>Formaat normaal M</strong><br/>- 20cm breed x 30cm hoog (A4 formaat)<br/>- gemaakt van 3mm gelazerd plexi-glas </p><p><strong>Formaat normaal M</strong><br/>- 20cm breed x 30cm hoog (A4 formaat)<br/>- gemaakt van <strong>EXTRA DIK</strong> 6mm gelazerd plexi-glas</p><p><strong>Formaat klein S<br/></strong>- 13cm breed x 20cm hoog (A5 formaat)<br/>- gemaakt van 3mm gelazerd plexi-glas </p><p><strong>Formaat groot XL<br/></strong> of XL 47cm breed x 70cm hoog<br/>-gemaakt van 6mm plexi-glas</p><p>Met uitzondering van de XL frames past het pakketje door de brievenbus.</p><p>Je hoeft er dus niet voor thuis te blijven! lekker handig én dus ideaal als cadeautje voor een vriend, vriendin.</p>",
+            "page": "",
+            "hide_block_if": false
+          }
+        },
+        "variant_picker": {
+          "type": "variant_picker",
+          "settings": {
+            "variants_style": "select",
+            "show_quantities": "below"
+          }
+        },
+        "space_ETkixW": {
+          "type": "space",
+          "settings": {}
+        },
+        "text_dCmUmg": {
+          "type": "text",
+          "settings": {
+            "text": "<p></p><p><strong>Gratis verzending!! 👌🤝</strong></p>",
+            "text_size": "text-size--regular",
+            "text_color": "#000000",
+            "text_transform": false
+          }
+        },
+        "price_KNUcTm": {
+          "type": "price",
+          "settings": {}
+        },
+        "buy_buttons": {
+          "type": "buy_buttons",
+          "settings": {
+            "show_price": false,
+            "show_quantity_selector": true,
+            "show_preorder": false,
+            "show_dynamic_checkout": false,
+            "show_gift_card_recipient": false,
+            "color_text_buttons": "rgba(0,0,0,0)",
+            "color_accent_buttons": "rgba(0,0,0,0)",
+            "style_buttons": "solid"
+          }
+        },
+        "custom_liquid_8xEYB4": {
+          "type": "custom_liquid",
+          "settings": {
+            "custom_liquid": "<style>\n    .custom-shipping-container {\n        display: flex;\n        flex-wrap: wrap; /* Zorgt ervoor dat het netjes blijft op kleine schermen */\n        padding: 5px 16px;\n        justify-content: space-between;\n        height: 38px;\n        align-items: center;\n        align-self: stretch;\n        background-color: #f6f6f6;\n        border: 1px solid #d9d9d9;\n        border-radius: 20px;\n        margin-bottom: 15px;\n        max-width: 600px; /* Max breedte op desktop */\n        margin-left: auto;\n        margin-right: auto;\n    }\n\n    .custom-shipping-item {\n        display: flex;\n        align-items: center;\n        gap: 6px;\n    }\n\n    .custom-shipping-item:first-child {\n        justify-content: flex-start;\n        flex: 1; /* Laat de eerste item de linkerzijde vullen */\n    }\n\n    .custom-shipping-item:last-child {\n        justify-content: flex-end; /* Zet \"GRATIS verzending!\" naar rechts */\n        flex: 1; /* Laat de tweede item de rechterzijde vullen */\n        text-align: right;\n    }\n\n    .text-block-shipping {\n        font-size: 12px;\n        color: #000;\n        white-space: nowrap; /* Voorkomt dat tekst afbreekt op desktop */\n    }\n\n    .shipping-date {\n        font-weight: bold;\n    }\n\n    .countdown {\n        font-weight: bold;\n        color: #d9534f; /* Rode kleur voor urgentie */\n        animation: fade 1s ease-in-out infinite; /* Laat de tijd knipperen */\n        margin-left: 5px; /* Extra spatie tussen datum en tijd */\n    }\n\n    .free-shipping {\n        font-weight: bold;\n    }\n\n    .green-circle {\n        animation: fade 1s ease-in-out infinite;\n    }\n\n    @keyframes fade {\n        0%, 100% { opacity: 1; }\n        50% { opacity: 0.5; }\n    }\n\n    /* Media query voor kleinere schermen */\n    @media screen and (max-width: 480px) {\n        .custom-shipping-container {\n            flex-direction: column; /* Zet items onder elkaar op mobiel */\n            text-align: center;\n            padding: 8px 12px;\n            height: auto; /* Verwijder de vaste hoogte */\n            max-width: 100%; /* Zorgt ervoor dat de container past binnen het scherm */\n        }\n        \n        .custom-shipping-item {\n            justify-content: center;\n            width: 100%; /* Laat beide items de volledige breedte gebruiken */\n            margin-bottom: 5px;\n        }\n\n        .custom-shipping-item:first-child {\n            order: 1; /* Zet de datum bovenaan */\n            margin-bottom: 10px; /* Extra ruimte tussen datum en 'gratis verzending' */\n        }\n\n        .custom-shipping-item:last-child {\n            order: 2; /* Zet 'gratis verzending' onder de datum */\n            text-align: center;\n            justify-content: center;\n        }\n\n        .text-block-shipping {\n            font-size: 11px; /* Iets kleinere tekst op mobiel */\n            white-space: normal; /* Staat afbreken van de tekst toe */\n            text-align: center; /* Zorgt ervoor dat de tekst gecentreerd staat */\n        }\n    }\n</style>\n\n<div class=\"custom-shipping-container\">\n    <div class=\"custom-shipping-item\">\n        <svg class=\"green-circle\" xmlns=\"http://www.w3.org/2000/svg\" width=\"12\" height=\"13\" viewBox=\"0 0 12 13\" fill=\"none\">\n            <circle cx=\"6\" cy=\"6.5\" r=\"6\" fill=\"#137333\"></circle>\n        </svg>\n        <div class=\"text-block-shipping\">\n            Verzonden op: <span id=\"shipping-date\" class=\"shipping-date\"></span>  \n            <span id=\"countdown\" class=\"countdown\"></span>\n        </div>\n    </div>\n    <div class=\"custom-shipping-item\">\n        <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-box\" viewBox=\"0 0 16 16\">\n            <path d=\"M8.186 1.113a.5.5 0 0 0-.372 0L1.846 3.5 8 5.961 14.154 3.5zM15 4.239l-6.5 2.6v7.922l6.5-2.6V4.24zM7.5 14.762V6.838L1 4.239v7.923zM7.443.184a1.5.5 0 0 1 1.114 0l7.129 2.852A.5.5 0 0 1 16 3.5v8.662a1 1 0 0 1-.629.928l-7.185 2.874a.5.5 0 0 1-.372 0L.63 13.09a1 1 0 0 1-.63-.928V3.5a.5.5 0 0 1 .314-.464z\"/>\n        </svg>\n        <div class=\"text-block-shipping\">\n            <span class=\"free-shipping\">GRATIS</span> verzending!\n        </div>\n    </div>\n</div>\n\n<script>\n    document.addEventListener(\"DOMContentLoaded\", function () {\n        function updateShippingDate() {\n            var daysAfterToday = 0;\n            var now = new Date();\n\n            // Controleer of het na 12:00 uur is, dan wordt het de volgende werkdag\n            if (now.getHours() >= 12) {\n                daysAfterToday += 1;\n            }\n\n            var shipDate = new Date();\n            shipDate.setDate(shipDate.getDate() + daysAfterToday);\n\n            // Skip weekends (zaterdag = 6, zondag = 0)\n            while (shipDate.getDay() === 6 || shipDate.getDay() === 0) {\n                shipDate.setDate(shipDate.getDate() + 1);\n            }\n\n            var options = { weekday: 'short', month: 'short', day: 'numeric' };\n            var formattedDate = shipDate.toLocaleDateString('nl-NL', options);\n\n            document.getElementById('shipping-date').textContent = formattedDate;\n\n            // Start de countdown voor deze datum\n            startCountdown(shipDate);\n        }\n\n        function startCountdown(shipDate) {\n            var cutoffTime = new Date(shipDate);\n            cutoffTime.setHours(12, 0, 0, 0); // Deadline: 12:00 uur\n\n            function updateTimer() {\n                var now = new Date();\n                var timeLeft = cutoffTime - now;\n\n                if (timeLeft <= 0) {\n                    document.getElementById(\"countdown\").textContent = \"Verzending vandaag gesloten\";\n                    clearInterval(timerInterval);\n                    return;\n                }\n\n                var hours = Math.floor(timeLeft / (1000 * 60 * 60));\n                var minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));\n\n                document.getElementById(\"countdown\").textContent = hours + \"u \" + minutes + \"m\";\n            }\n\n            // Start de timer en update elke seconde\n            updateTimer();\n            var timerInterval = setInterval(updateTimer, 1000);\n        }\n\n        updateShippingDate();\n    });\n</script>"
+          }
+        },
+        "custom_liquid_LaqUz9": {
+          "type": "custom_liquid",
+          "settings": {
+            "custom_liquid": "<style>\n    .tiktokmotion-container {\n        display: flex;\n        align-items: center;\n        justify-content: center;\n        background-color: #ffeefc;\n        border: 2px solid #fac3ee;\n        color: #841F5B;\n        padding: 6px 16px;\n        border-radius: 24px;\n        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);\n        font-size: 14px;\n        font-weight: 600;\n        white-space: nowrap;\n        height: 38px;\n    }\n\n    .tiktokmotion-container b {\n        font-weight: 600;\n    }\n</style>\n\n<section class=\"tiktokmotion-section\">\n    <div class=\"tiktokmotion-container\">\n        <b>😍 Loved by 50.000+ klanten 😍</b>\n    </div>\n</section>"
+          }
+        },
+        "custom_liquid_bgTWjM": {
+          "type": "custom_liquid",
+          "settings": {
+            "custom_liquid": "<div id='ss-buy-more'></div>"
+          }
+        },
+        "collapsible_tab_7mKKNj": {
+          "type": "collapsible_tab",
+          "disabled": true,
+          "settings": {
+            "heading": "Formaten",
+            "content": "<h3><strong>🌟 Tijdelijke Korting! 🌟</strong></h3><p>Koop nu <strong>twee of meer</strong> frames in <strong>formaat S, M of XL</strong> en ontvang <strong>15% korting!</strong><br/>Gebruik kortingscode <strong>SF215</strong> bij het afrekenen.</p><h3><strong>📏 Beschikbare Formaten</strong></h3><p>✔ <strong>Formaat M (Standaard - A4 formaat)</strong><br/>📐 <strong>20 cm breed x 30 cm hoog</strong><br/>🛠️ <strong>Gemaakt van 3mm lasergesneden plexiglas</strong></p><p>✔ <strong>Formaat M (Extra Dik - A4 formaat)</strong><br/>📐 <strong>20 cm breed x 30 cm hoog</strong><br/>🛠️ <strong>Gemaakt van extra dik 6mm lasergesneden plexiglas</strong></p><p>✔ <strong>Formaat S (Klein - A5 formaat)</strong><br/>📐 <strong>13 cm breed x 20 cm hoog</strong><br/>🛠️ <strong>Gemaakt van 3mm lasergesneden plexiglas</strong></p><p>✔ <strong>Formaat XL (Groot)</strong><br/>📐 <strong>47 cm breed x 70 cm hoog</strong><br/>🛠️ <strong>Gemaakt van 6mm lasergesneden plexiglas</strong></p><h3><strong>📦 Past door de brievenbus!</strong></h3><p>Met uitzondering van het <strong>XL-formaat</strong>, passen alle formaten door de brievenbus.<br/>✅ <strong>Geen thuisblijven nodig!</strong><br/>🎁 <strong>Ideaal als cadeau</strong> voor een verjaardag, trouwdag of voor een vriend(in).</p><p>🚀 <strong>Bestel nu en profiteer van de korting!</strong></p>",
+            "page": "",
+            "hide_block_if": false
+          }
+        },
+        "collapsible_tab_yj6yQA": {
+          "type": "collapsible_tab",
+          "disabled": true,
+          "settings": {
+            "heading": "Product informatie",
+            "content": "<p></p>{{ product.metafields.custom.product_discription_met_opmaak_ | metafield_tag }}",
+            "page": "",
+            "hide_block_if": true
+          }
+        },
+        "description_zKMNEH": {
+          "type": "description",
+          "settings": {}
+        },
+        "collapsible_tab_YykCDC": {
+          "type": "collapsible_tab",
+          "settings": {
+            "heading": "Verzending",
+            "content": "",
+            "page": "verzenden",
+            "hide_block_if": false
+          }
+        },
+        "custom_liquid_hFLwye": {
+          "type": "custom_liquid",
+          "settings": {
+            "custom_liquid": "<style>\n    .trustscore-container {\n        display: flex;\n        align-items: center; /* Centreert verticaal */\n        justify-content: center; /* Centreert horizontaal */\n        padding: 7px 20px;\n        background-color: #ffffff; /* Witte achtergrond */\n        border: 1px solid #d9d9d9;\n        border-radius: 20px;\n        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Mooie dropshadow */\n        Margin-top:35px;\n        margin-bottom: 0px;\n        max-width: 100%; /* Zorgt ervoor dat het maximaal de containerbreedte gebruikt */\n        width: fit-content;\n        margin-left: auto;\n        margin-right: auto;\n        flex-wrap: nowrap;\n    }\n\n    .trustscore-content {\n        display: flex;\n        align-items: center; /* Houdt alles netjes op dezelfde lijn */\n        gap: 12px; /* Ruimte tussen sterren en tekst */\n        white-space: nowrap; /* Voorkomt dat de tekst breekt */\n    }\n\n    .trustscore-stars {\n        display: flex;\n        gap: 6px;\n        align-items: center; /* Zorgt ervoor dat sterren verticaal gecentreerd blijven */\n    }\n\n    .star-box {\n        background: #00A650;\n        width: 18px;\n        height: 18px;\n        display: flex;\n        align-items: center;\n        justify-content: center;\n        border-radius: 4px;\n    }\n\n    .star-icon {\n        width: 12px;\n        height: 12px;\n        fill: white;\n    }\n\n    .trustscore-text {\n        font-size: 14px;\n        color: #000;\n        font-weight: bold;\n        display: flex;\n        align-items: center;\n        margin: 0px; /* Zorgt ervoor dat de tekst op dezelfde lijn als de sterren blijft */\n    }\n\n    /* RESPONSIVE DESIGN */\n    @media screen and (max-width: 480px) {\n        .trustscore-container {\n            padding: 5px 12px;\n            flex-wrap: wrap;\n        }\n\n        .trustscore-content {\n            gap: 8px; /* Iets minder ruimte tussen elementen */\n        }\n\n        .star-box {\n            width: 14px;\n            height: 14px;\n        }\n\n        .star-icon {\n            width: 10px;\n            height: 10px;\n        }\n\n        .trustscore-text {\n            font-size: 12px; /* Kleinere tekst op mobiel */\n        }\n    }\n</style>\n\n<div class=\"trustscore-container\">\n    <div class=\"trustscore-content\">\n        <div class=\"trustscore-stars\">\n            <div class=\"star-box\">\n                <svg class=\"star-icon\" viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <path d=\"M12 2L14.09 8.26H20.94L15.47 12.97L17.56 19.23L12 15.52L6.44 19.23L8.53 12.97L3.06 8.26H9.91L12 2Z\"/>\n                </svg>\n            </div>\n            <div class=\"star-box\">\n                <svg class=\"star-icon\" viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <path d=\"M12 2L14.09 8.26H20.94L15.47 12.97L17.56 19.23L12 15.52L6.44 19.23L8.53 12.97L3.06 8.26H9.91L12 2Z\"/>\n                </svg>\n            </div>\n            <div class=\"star-box\">\n                <svg class=\"star-icon\" viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <path d=\"M12 2L14.09 8.26H20.94L15.47 12.97L17.56 19.23L12 15.52L6.44 19.23L8.53 12.97L3.06 8.26H9.91L12 2Z\"/>\n                </svg>\n            </div>\n            <div class=\"star-box\">\n                <svg class=\"star-icon\" viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <path d=\"M12 2L14.09 8.26H20.94L15.47 12.97L17.56 19.23L12 15.52L6.44 19.23L8.53 12.97L3.06 8.26H9.91L12 2Z\"/>\n                </svg>\n            </div>\n            <div class=\"star-box\">\n                <svg class=\"star-icon\" viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <path d=\"M12 2L14.09 8.26H20.94L15.47 12.97L17.56 19.23L12 15.52L6.44 19.23L8.53 12.97L3.06 8.26H9.91L12 2Z\"/>\n                </svg>\n            </div>\n        </div>\n        <p class=\"trustscore-text\">\n            <strong>TrustScore 4.6</strong> \n        </p>\n    </div>\n</div>"
+          }
+        }
+      },
+      "block_order": [
+        "custom_liquid_4G4gAQ",
+        "title",
+        "zepto_product_personalizer_product_personalizer_page_4zRR7U",
+        "collapsible_tab_nPzzd8",
+        "variant_picker",
+        "space_ETkixW",
+        "text_dCmUmg",
+        "price_KNUcTm",
+        "buy_buttons",
+        "custom_liquid_8xEYB4",
+        "custom_liquid_LaqUz9",
+        "custom_liquid_bgTWjM",
+        "collapsible_tab_7mKKNj",
+        "collapsible_tab_yj6yQA",
+        "description_zKMNEH",
+        "collapsible_tab_YykCDC",
+        "custom_liquid_hFLwye"
+      ],
+      "custom_css": [
+        ".effectiveAppsEGWATCImage {padding-top: 20px;}"
+      ],
+      "settings": {
+        "gallery_style": "slider",
+        "gallery_ratio": "natural",
+        "gallery_fit": false,
+        "show_border": true,
+        "gallery_card_design": false,
+        "gallery_padding": 0,
+        "gallery_pagination": "dots",
+        "enable_zoom": false,
+        "enable_video_looping": true,
+        "default_to_first_variant": true,
+        "sticky_add_to_cart": false,
+        "sticky_atc_style": "wide",
+        "sticky_bar_bgcolor": "#ffffff",
+        "sticky_bar_txtcolor": "#111111"
+      }
+    },
+    "ss_product_addons_KPbWdh": {
+      "type": "ss-product-addons",
+      "settings": {
+        "products": [
+          "chocolade-reep",
+          "gift-wrap",
+          "als-een-cadeautje-inpakken-kopie"
+        ],
+        "products_space": 14,
+        "product_border_thickness": 1,
+        "product_radius": 5,
+        "product_padding_horizontal": 14,
+        "product_padding_vertical": 12,
+        "product_heading_prefix": "",
+        "product_heading_custom": false,
+        "product_heading_font": "assistant_n4",
+        "product_heading_size": 15,
+        "product_heading_size_mobile": 15,
+        "product_heading_height": 100,
+        "product_image_size": 40,
+        "product_image_radius": 5,
+        "link_product_image": false,
+        "product_price_custom": false,
+        "product_price_font": "assistant_n4",
+        "product_price_size": 15,
+        "product_price_size_mobile": 15,
+        "product_price_height": 100,
+        "product_price_mt": 5,
+        "product_input_radius": 3,
+        "product_input_border_thickness": 1,
+        "product_background_color": "#f3f3f6",
+        "product_border_color": "#d9d9d9",
+        "product_heading_color": "#525252",
+        "product_price_color": "#525252",
+        "product_input_background_color": "#ffffff",
+        "product_input_background_active_color": "#121212",
+        "product_input_border_color": "#d9d9d9",
+        "product_input_border_active_color": "#121212",
+        "product_input_icon_color": "#ffffff",
+        "background_color": "#ffffff",
+        "background_gradient": "",
+        "border_color": "#000000",
+        "margin_top": 12,
+        "margin_bottom": 12,
+        "padding_horizontal": 0,
+        "padding_horizontal_mobile": 0,
+        "border_thickness": 0,
+        "lazy": false,
+        "form_class": ""
+      }
+    },
+    "ss_product_info_boxed_aFtair": {
+      "type": "ss-product-info-boxed",
+      "custom_css": [],
+      "settings": {
+        "header-text": "Klantbeoordeling van 4.6/5",
+        "background-color": "#ffffff",
+        "header-color": "#000000",
+        "header-text-color": "#ffffff",
+        "padding": 36,
+        "custom_class": "ss-custom-class"
+      }
+    }
+  },
+  "order": [
+    "main",
+    "ss_product_addons_KPbWdh",
+    "ss_product_info_boxed_aFtair"
+  ]
+}

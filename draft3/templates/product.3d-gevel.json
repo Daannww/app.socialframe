@@ -1,0 +1,554 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "main": {
+      "type": "main-product",
+      "blocks": {
+        "title": {
+          "type": "title",
+          "settings": {}
+        },
+        "text_qYnp7x": {
+          "type": "text",
+          "settings": {
+            "text": "<p>Jouw gevel wordt <strong>met de hand getekend</strong> op basis van foto's</p><p>Binnen enkele werkdagen ontvang je een <strong>digitaal voorbeeld ter goedkeuring via e-mail</strong></p><p>Na akkoord starten we met het 3D-printproces en afwerking</p>",
+            "text_size": "text-size--regular",
+            "text_color": "#6a6a6a",
+            "text_transform": false
+          }
+        },
+        "zepto_product_personalizer_product_personalizer_page_4zRR7U": {
+          "type": "shopify://apps/zepto-product-personalizer/blocks/product_personalizer_page/7411210d-7b32-4c09-9455-e129e3be4729",
+          "settings": {
+            "product": "{{product}}"
+          }
+        },
+        "collapsible_tab_nPzzd8": {
+          "type": "collapsible_tab",
+          "settings": {
+            "heading": "Levertijd & productie",
+            "content": "<p>Vanwege de populariteit en het ambachtelijke proces is de <strong>levertijd momenteel 10 werkdagen</strong>. We nemen de tijd om elk werk met uiterste zorg en precisie te maken.</p><p><br/><strong>Handgemaakt & persoonlijk</strong></p><ul><li>Jouw gevel wordt <strong>met de hand getekend</strong> op basis van foto's</li><li>Binnen enkele werkdagen ontvang je een <strong>digitaal voorbeeld ter goedkeuring via e-mail</strong></li><li>Na akkoord starten we met het 3D-printproces en afwerking</li></ul>",
+            "page": "",
+            "hide_block_if": false
+          }
+        },
+        "variant_picker": {
+          "type": "variant_picker",
+          "settings": {
+            "variants_style": "select",
+            "show_quantities": "below"
+          }
+        },
+        "space_ETkixW": {
+          "type": "space",
+          "settings": {}
+        },
+        "price_WqFFz9": {
+          "type": "price",
+          "settings": {}
+        },
+        "text_dCmUmg": {
+          "type": "text",
+          "settings": {
+            "text": "<p><strong> Gratis verzending!! 👌🤝</strong></p>",
+            "text_size": "text-size--regular",
+            "text_color": "#000000",
+            "text_transform": false
+          }
+        },
+        "buy_buttons": {
+          "type": "buy_buttons",
+          "settings": {
+            "show_price": false,
+            "show_quantity_selector": true,
+            "show_preorder": false,
+            "show_dynamic_checkout": false,
+            "show_gift_card_recipient": false,
+            "color_text_buttons": "rgba(0,0,0,0)",
+            "color_accent_buttons": "rgba(0,0,0,0)",
+            "style_buttons": "solid"
+          }
+        },
+        "custom_liquid_LaqUz9": {
+          "type": "custom_liquid",
+          "settings": {
+            "custom_liquid": "<style>\n    .tiktokmotion-container {\n        display: flex;\n        align-items: center;\n        justify-content: center;\n        background-color: #ffeefc;\n        border: 2px solid #fac3ee;\n        color: #841F5B;\n        padding: 6px 16px;\n        border-radius: 24px;\n        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);\n        font-size: 14px;\n        font-weight: 600;\n        white-space: nowrap;\n        height: 38px;\n    }\n\n    .tiktokmotion-container b {\n        font-weight: 600;\n    }\n</style>\n\n<section class=\"tiktokmotion-section\">\n    <div class=\"tiktokmotion-container\">\n        <b>😍 Loved by 50.000+ klanten 😍</b>\n    </div>\n</section>"
+          }
+        },
+        "space_jBcjti": {
+          "type": "space",
+          "settings": {}
+        },
+        "custom_liquid_bgTWjM": {
+          "type": "custom_liquid",
+          "settings": {
+            "custom_liquid": "<div id='ss-buy-more'></div>"
+          }
+        },
+        "collapsible_tab_yj6yQA": {
+          "type": "collapsible_tab",
+          "disabled": true,
+          "settings": {
+            "heading": "Product informatie",
+            "content": "<p></p>{{ product.metafields.custom.product_discription_met_opmaak_ | metafield_tag }}",
+            "page": "",
+            "hide_block_if": true
+          }
+        },
+        "collapsible_tab_7mKKNj": {
+          "type": "collapsible_tab",
+          "disabled": true,
+          "settings": {
+            "heading": "Formaten",
+            "content": "<h3><strong>🌟 Tijdelijke Korting! 🌟</strong></h3><p>Koop nu <strong>twee of meer</strong> frames in <strong>formaat S, M of XL</strong> en ontvang <strong>15% korting!</strong><br/>Gebruik kortingscode <strong>SF215</strong> bij het afrekenen.</p><h3><strong>📏 Beschikbare Formaten</strong></h3><p>✔ <strong>Formaat M (Standaard - A4 formaat)</strong><br/>📐 <strong>20 cm breed x 30 cm hoog</strong><br/>🛠️ <strong>Gemaakt van 3mm lasergesneden plexiglas</strong></p><p>✔ <strong>Formaat M (Extra Dik - A4 formaat)</strong><br/>📐 <strong>20 cm breed x 30 cm hoog</strong><br/>🛠️ <strong>Gemaakt van extra dik 6mm lasergesneden plexiglas</strong></p><p>✔ <strong>Formaat S (Klein - A5 formaat)</strong><br/>📐 <strong>13 cm breed x 20 cm hoog</strong><br/>🛠️ <strong>Gemaakt van 3mm lasergesneden plexiglas</strong></p><p>✔ <strong>Formaat XL (Groot)</strong><br/>📐 <strong>47 cm breed x 70 cm hoog</strong><br/>🛠️ <strong>Gemaakt van 6mm lasergesneden plexiglas</strong></p><h3><strong>📦 Past door de brievenbus!</strong></h3><p>Met uitzondering van het <strong>XL-formaat</strong>, passen alle formaten door de brievenbus.<br/>✅ <strong>Geen thuisblijven nodig!</strong><br/>🎁 <strong>Ideaal als cadeau</strong> voor een verjaardag, trouwdag of voor een vriend(in).</p><p>🚀 <strong>Bestel nu en profiteer van de korting!</strong></p>",
+            "page": "",
+            "hide_block_if": false
+          }
+        },
+        "collapsible_tab_YykCDC": {
+          "type": "collapsible_tab",
+          "disabled": true,
+          "settings": {
+            "heading": "Verzending",
+            "content": "",
+            "page": "verzenden",
+            "hide_block_if": false
+          }
+        },
+        "custom_liquid_4G4gAQ": {
+          "type": "custom_liquid",
+          "disabled": true,
+          "settings": {
+            "custom_liquid": "<style>\n    .trustscore-container {\n        display: flex;\n        align-items: center; /* Centreert verticaal */\n        justify-content: center; /* Centreert horizontaal */\n        padding: 7px 20px;\n        background-color: #ffffff; /* Witte achtergrond */\n        border: 1px solid #d9d9d9;\n        border-radius: 20px;\n        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Mooie dropshadow */\n        margin-bottom: 5px;\n        max-width: 100%; /* Zorgt ervoor dat het maximaal de containerbreedte gebruikt */\n        width: fit-content;\n        margin-left: auto;\n        margin-right: auto;\n        flex-wrap: nowrap;\n    }\n\n    .trustscore-content {\n        display: flex;\n        align-items: center; /* Houdt alles netjes op dezelfde lijn */\n        gap: 12px; /* Ruimte tussen sterren en tekst */\n        white-space: nowrap; /* Voorkomt dat de tekst breekt */\n    }\n\n    .trustscore-stars {\n        display: flex;\n        gap: 6px;\n        align-items: center; /* Zorgt ervoor dat sterren verticaal gecentreerd blijven */\n    }\n\n    .star-box {\n        background: #00A650;\n        width: 18px;\n        height: 18px;\n        display: flex;\n        align-items: center;\n        justify-content: center;\n        border-radius: 4px;\n    }\n\n    .star-icon {\n        width: 12px;\n        height: 12px;\n        fill: white;\n    }\n\n    .trustscore-text {\n        font-size: 14px;\n        color: #000;\n        font-weight: bold;\n        display: flex;\n        align-items: center;\n        margin: 0px; /* Zorgt ervoor dat de tekst op dezelfde lijn als de sterren blijft */\n    }\n\n    /* RESPONSIVE DESIGN */\n    @media screen and (max-width: 480px) {\n        .trustscore-container {\n            padding: 5px 12px;\n            flex-wrap: wrap;\n        }\n\n        .trustscore-content {\n            gap: 8px; /* Iets minder ruimte tussen elementen */\n        }\n\n        .star-box {\n            width: 14px;\n            height: 14px;\n        }\n\n        .star-icon {\n            width: 10px;\n            height: 10px;\n        }\n\n        .trustscore-text {\n            font-size: 12px; /* Kleinere tekst op mobiel */\n        }\n    }\n</style>\n\n<div class=\"trustscore-container\">\n    <div class=\"trustscore-content\">\n        <div class=\"trustscore-stars\">\n            <div class=\"star-box\">\n                <svg class=\"star-icon\" viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <path d=\"M12 2L14.09 8.26H20.94L15.47 12.97L17.56 19.23L12 15.52L6.44 19.23L8.53 12.97L3.06 8.26H9.91L12 2Z\"/>\n                </svg>\n            </div>\n            <div class=\"star-box\">\n                <svg class=\"star-icon\" viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <path d=\"M12 2L14.09 8.26H20.94L15.47 12.97L17.56 19.23L12 15.52L6.44 19.23L8.53 12.97L3.06 8.26H9.91L12 2Z\"/>\n                </svg>\n            </div>\n            <div class=\"star-box\">\n                <svg class=\"star-icon\" viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <path d=\"M12 2L14.09 8.26H20.94L15.47 12.97L17.56 19.23L12 15.52L6.44 19.23L8.53 12.97L3.06 8.26H9.91L12 2Z\"/>\n                </svg>\n            </div>\n            <div class=\"star-box\">\n                <svg class=\"star-icon\" viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <path d=\"M12 2L14.09 8.26H20.94L15.47 12.97L17.56 19.23L12 15.52L6.44 19.23L8.53 12.97L3.06 8.26H9.91L12 2Z\"/>\n                </svg>\n            </div>\n            <div class=\"star-box\">\n                <svg class=\"star-icon\" viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <path d=\"M12 2L14.09 8.26H20.94L15.47 12.97L17.56 19.23L12 15.52L6.44 19.23L8.53 12.97L3.06 8.26H9.91L12 2Z\"/>\n                </svg>\n            </div>\n        </div>\n        <p class=\"trustscore-text\">\n            <strong>TrustScore 4.9</strong> \n        </p>\n    </div>\n</div>"
+          }
+        },
+        "custom_liquid_gtQ3qk": {
+          "type": "custom_liquid",
+          "settings": {
+            "custom_liquid": "<style>\n    .trustscore-container {\n        display: flex;\n        align-items: center; /* Centreert verticaal */\n        justify-content: center; /* Centreert horizontaal */\n        padding: 7px 20px;\n        background-color: #ffffff; /* Witte achtergrond */\n        border: 1px solid #d9d9d9;\n        border-radius: 20px;\n        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Mooie dropshadow */\n        Margin-top:35px;\n        margin-bottom: 0px;\n        max-width: 100%; /* Zorgt ervoor dat het maximaal de containerbreedte gebruikt */\n        width: fit-content;\n        margin-left: auto;\n        margin-right: auto;\n        flex-wrap: nowrap;\n    }\n\n    .trustscore-content {\n        display: flex;\n        align-items: center; /* Houdt alles netjes op dezelfde lijn */\n        gap: 12px; /* Ruimte tussen sterren en tekst */\n        white-space: nowrap; /* Voorkomt dat de tekst breekt */\n    }\n\n    .trustscore-stars {\n        display: flex;\n        gap: 6px;\n        align-items: center; /* Zorgt ervoor dat sterren verticaal gecentreerd blijven */\n    }\n\n    .star-box {\n        background: #00A650;\n        width: 18px;\n        height: 18px;\n        display: flex;\n        align-items: center;\n        justify-content: center;\n        border-radius: 4px;\n    }\n\n    .star-icon {\n        width: 12px;\n        height: 12px;\n        fill: white;\n    }\n\n    .trustscore-text {\n        font-size: 14px;\n        color: #000;\n        font-weight: bold;\n        display: flex;\n        align-items: center;\n        margin: 0px; /* Zorgt ervoor dat de tekst op dezelfde lijn als de sterren blijft */\n    }\n\n    /* RESPONSIVE DESIGN */\n    @media screen and (max-width: 480px) {\n        .trustscore-container {\n            padding: 5px 12px;\n            flex-wrap: wrap;\n        }\n\n        .trustscore-content {\n            gap: 8px; /* Iets minder ruimte tussen elementen */\n        }\n\n        .star-box {\n            width: 14px;\n            height: 14px;\n        }\n\n        .star-icon {\n            width: 10px;\n            height: 10px;\n        }\n\n        .trustscore-text {\n            font-size: 12px; /* Kleinere tekst op mobiel */\n        }\n    }\n</style>\n\n<div class=\"trustscore-container\">\n    <div class=\"trustscore-content\">\n        <div class=\"trustscore-stars\">\n            <div class=\"star-box\">\n                <svg class=\"star-icon\" viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <path d=\"M12 2L14.09 8.26H20.94L15.47 12.97L17.56 19.23L12 15.52L6.44 19.23L8.53 12.97L3.06 8.26H9.91L12 2Z\"/>\n                </svg>\n            </div>\n            <div class=\"star-box\">\n                <svg class=\"star-icon\" viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <path d=\"M12 2L14.09 8.26H20.94L15.47 12.97L17.56 19.23L12 15.52L6.44 19.23L8.53 12.97L3.06 8.26H9.91L12 2Z\"/>\n                </svg>\n            </div>\n            <div class=\"star-box\">\n                <svg class=\"star-icon\" viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <path d=\"M12 2L14.09 8.26H20.94L15.47 12.97L17.56 19.23L12 15.52L6.44 19.23L8.53 12.97L3.06 8.26H9.91L12 2Z\"/>\n                </svg>\n            </div>\n            <div class=\"star-box\">\n                <svg class=\"star-icon\" viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <path d=\"M12 2L14.09 8.26H20.94L15.47 12.97L17.56 19.23L12 15.52L6.44 19.23L8.53 12.97L3.06 8.26H9.91L12 2Z\"/>\n                </svg>\n            </div>\n            <div class=\"star-box\">\n                <svg class=\"star-icon\" viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <path d=\"M12 2L14.09 8.26H20.94L15.47 12.97L17.56 19.23L12 15.52L6.44 19.23L8.53 12.97L3.06 8.26H9.91L12 2Z\"/>\n                </svg>\n            </div>\n        </div>\n        <p class=\"trustscore-text\">\n            <strong>TrustScore 4.6</strong> \n        </p>\n    </div>\n</div>"
+          }
+        },
+        "custom_liquid_9hKwij": {
+          "type": "custom_liquid",
+          "disabled": true,
+          "settings": {
+            "custom_liquid": "<form id=\"uploadForm\" enctype=\"multipart/form-data\">\n  <input type=\"file\" name=\"image\" accept=\"image/*\" required />\n  <button type=\"submit\">Maak cartoon</button>\n</form>\n<img id=\"resultImage\" style=\"margin-top:20px; display:none;\" />\n\n<script>\n  document.getElementById('uploadForm').addEventListener('submit', async (e) => {\n    e.preventDefault();\n    const formData = new FormData(e.target);\n\n    const response = await fetch('https://jouw-backend-url.com/generate-cartoon', {\n      method: 'POST',\n      body: formData\n    });\n\n    const data = await response.json();\n    document.getElementById('resultImage').src = data.cartoonUrl;\n    document.getElementById('resultImage').style.display = 'block';\n  });\n</script>"
+          }
+        }
+      },
+      "block_order": [
+        "title",
+        "text_qYnp7x",
+        "zepto_product_personalizer_product_personalizer_page_4zRR7U",
+        "collapsible_tab_nPzzd8",
+        "variant_picker",
+        "space_ETkixW",
+        "price_WqFFz9",
+        "text_dCmUmg",
+        "buy_buttons",
+        "custom_liquid_LaqUz9",
+        "space_jBcjti",
+        "custom_liquid_bgTWjM",
+        "collapsible_tab_yj6yQA",
+        "collapsible_tab_7mKKNj",
+        "collapsible_tab_YykCDC",
+        "custom_liquid_4G4gAQ",
+        "custom_liquid_gtQ3qk",
+        "custom_liquid_9hKwij"
+      ],
+      "custom_css": [
+        ".effectiveAppsEGWATCImage {padding-top: 20px;}"
+      ],
+      "settings": {
+        "gallery_style": "slider",
+        "gallery_ratio": "natural",
+        "gallery_fit": false,
+        "show_border": true,
+        "gallery_card_design": false,
+        "gallery_padding": 0,
+        "gallery_pagination": "dots",
+        "enable_zoom": false,
+        "enable_video_looping": true,
+        "default_to_first_variant": true,
+        "sticky_add_to_cart": false,
+        "sticky_atc_style": "wide",
+        "sticky_bar_bgcolor": "#ffffff",
+        "sticky_bar_txtcolor": "#111111"
+      }
+    },
+    "content_toggles_ek46UQ": {
+      "type": "content-toggles",
+      "blocks": {
+        "text_Xq9EtQ": {
+          "type": "text",
+          "settings": {
+            "title": "Product Informatie",
+            "subtitle": "",
+            "icon": "no-icon",
+            "button_label": "",
+            "button_link": "",
+            "body": "{{ product.metafields.custom.product_discription_met_opmaak_ | metafield_tag }}",
+            "hide_block_if": false
+          }
+        },
+        "text_LEHKcm": {
+          "type": "text",
+          "settings": {
+            "title": "Formaten",
+            "subtitle": "",
+            "icon": "no-icon",
+            "button_label": "",
+            "button_link": "",
+            "body": "<ul><li><strong>30x40cm </strong></li><li><strong>40×50 cm</strong></li><li><strong>50×70 cm</strong></li><li><strong>70x100 cm</strong></li></ul>",
+            "hide_block_if": false
+          }
+        },
+        "text_6JMxDh": {
+          "type": "text",
+          "settings": {
+            "title": "Verzending",
+            "subtitle": "",
+            "icon": "no-icon",
+            "button_label": "",
+            "button_link": "",
+            "body": "<h1><strong>Bestel- en Verzendinginformatie</strong></h1><p><strong>Gratis verzending in Nederland, België en Duitsland!</strong></p><p>Na je bestelling ontvang je <strong>per e-mail een bestelbevestiging</strong> met:<br/>✅ <strong>Jouw bestelnummer</strong><br/>✅ <strong>Een overzicht van de bestelde producten</strong><br/>✅ <strong>Het totaalbedrag van je bestelling</strong></p><h3><strong> Bestelling volgen</strong></h3><p>Zodra je bestelling is verzonden, ontvang je een e-mail met een <strong>trackingnummer</strong> en een link naar de website van de vervoerder.</p><p>Hiermee kun je eenvoudig je bestelling volgen en de bezorgstatus controleren.</p><h2><strong>Past mijn bestelling door de brievenbus?</strong></h2><p>✔ <strong>Ja, met uitzondering van XL-frames!</strong><br/>✔ Je hoeft dus <strong>niet thuis te blijven</strong> voor de bezorging.<br/>✔ Perfect als <strong>cadeautje voor een vriend of vriendin</strong>! 🎁</p><h2><strong>Levertijden</strong></h2><h3><strong>Besteld vóór 12:00 uur → Vandaag verzonden!</strong></h3><p> <strong>Let op:</strong> Bestellingen na 12:00 uur worden de volgende werkdag verwerkt.<br/>🚨 Tijdens <strong>feestdagen of drukke periodes bij PostNL of DPD</strong> kan de levering langer duren.</p><h2><strong>Veelgestelde vragen</strong></h2><h3><strong>Kan ik de status van mijn bestelling volgen?</strong></h3><p>Ja! Zodra jouw bestelling is verzonden, ontvang je een e-mail met een <strong>trackingnummer</strong> om je pakketje te volgen.</p><h3><strong>Hoe lang duurt het voordat ik mijn bestelling ontvang?</strong></h3><p>Bestellingen geplaatst vóór <strong>12:00 uur</strong> worden <strong>dezelfde werkdag verzonden</strong>.</p><ul><li><strong>Nederland & België</strong> → Vaak de volgende dag in huis!</li><li><strong>Duitsland</strong> → Levering binnen 2-3 werkdagen.<br/>⚠️ Tijdens drukke periodes bij PostNL kan de levering iets langer duren.</li></ul><h3><strong>Waar wordt mijn SocialFrame gemaakt?</strong></h3><p>Onze SocialFrames worden <strong>100% in Nederland met eigen productie geproduceerd</strong>, in tegenstelling tot veel andere aanbieders. Hierdoor kunnen we <strong>hoge kwaliteit garanderen en snel leveren!</strong></p><h3><strong>Kan ik mijn bestelling annuleren?</strong></h3><p>Wil je je bestelling annuleren? Neem <strong>zo snel mogelijk</strong> contact met ons op via:<br/>📲 <strong>Live-chat of WhatsApp</strong><br/>📧 <strong>Mail naar </strong><a><strong>klantenservice@socialframe.nl</strong></a></p><h3><strong>😞 Mijn bestelling is defect geleverd!</strong></h3><p>Dat is natuurlijk niet de bedoeling! Neem direct contact met ons op via:<br/>📲 <strong>Live-chat of WhatsApp</strong><br/>📧 <strong>Mail naar </strong><a><strong>klantenservice@socialframe.nl</strong></a></p><p><strong>We zorgen voor een passende oplossing!</strong></p>",
+            "hide_block_if": false
+          }
+        }
+      },
+      "block_order": [
+        "text_Xq9EtQ",
+        "text_LEHKcm",
+        "text_6JMxDh"
+      ],
+      "settings": {
+        "heading": "",
+        "subheading": "",
+        "section_heading_layout": "section-heading--left",
+        "open_first": false,
+        "form_enable": false,
+        "form_title": "Contact form",
+        "seo_h_tag": "h2"
+      }
+    },
+    "ss_product_addons_KPbWdh": {
+      "type": "ss-product-addons",
+      "settings": {
+        "products": [
+          "chocolade-reep",
+          "gift-wrap",
+          "als-een-cadeautje-inpakken-kopie"
+        ],
+        "products_space": 14,
+        "product_border_thickness": 1,
+        "product_radius": 5,
+        "product_padding_horizontal": 14,
+        "product_padding_vertical": 12,
+        "product_heading_prefix": "",
+        "product_heading_custom": false,
+        "product_heading_font": "assistant_n4",
+        "product_heading_size": 15,
+        "product_heading_size_mobile": 15,
+        "product_heading_height": 100,
+        "product_image_size": 40,
+        "product_image_radius": 5,
+        "link_product_image": false,
+        "product_price_custom": false,
+        "product_price_font": "assistant_n4",
+        "product_price_size": 15,
+        "product_price_size_mobile": 15,
+        "product_price_height": 100,
+        "product_price_mt": 5,
+        "product_input_radius": 3,
+        "product_input_border_thickness": 1,
+        "product_background_color": "#f3f3f6",
+        "product_border_color": "#d9d9d9",
+        "product_heading_color": "#525252",
+        "product_price_color": "#525252",
+        "product_input_background_color": "#ffffff",
+        "product_input_background_active_color": "#121212",
+        "product_input_border_color": "#d9d9d9",
+        "product_input_border_active_color": "#121212",
+        "product_input_icon_color": "#ffffff",
+        "background_color": "#ffffff",
+        "background_gradient": "",
+        "border_color": "#000000",
+        "margin_top": 12,
+        "margin_bottom": 12,
+        "padding_horizontal": 0,
+        "padding_horizontal_mobile": 0,
+        "border_thickness": 0,
+        "lazy": false,
+        "form_class": ""
+      }
+    },
+    "ss_product_info_boxed_aFtair": {
+      "type": "ss-product-info-boxed",
+      "custom_css": [],
+      "settings": {
+        "header-text": "Klantbeoordeling van 4.6/5",
+        "background-color": "#ffffff",
+        "header-color": "#000000",
+        "header-text-color": "#ffffff",
+        "padding": 36,
+        "custom_class": "ss-custom-class"
+      }
+    },
+    "ss_testimonial_8_iMy7PD": {
+      "type": "ss-testimonial-8",
+      "blocks": {
+        "testimonials_Ahd4NF": {
+          "type": "testimonials",
+          "settings": {
+            "stars_count": 5,
+            "heading": "Snelle levering en goede kwaliteit",
+            "text": "Snelle levering en goede kwaliteit",
+            "author_date": "Kian de WitNL"
+          }
+        },
+        "testimonials_dAyy8f": {
+          "type": "testimonials",
+          "settings": {
+            "stars_count": 5,
+            "heading": "Zeer mooi product",
+            "text": "Zeer mooi product, en heel snel geleverd. Zal zeker nog bestdllingen doen",
+            "author_date": "BVRN_Automotive “BVRN"
+          }
+        },
+        "testimonials_3NVmQV": {
+          "type": "testimonials",
+          "settings": {
+            "stars_count": 5,
+            "heading": "Een bijzonder cadeau",
+            "text": "Een bijzonder cadeau. Makkelijk te maken en snel geleverd",
+            "author_date": "Anja Eggenhuizen"
+          }
+        },
+        "testimonials_kVXKyV": {
+          "type": "testimonials",
+          "settings": {
+            "stars_count": 4,
+            "heading": "Zeer mooi gedaan!!",
+            "text": "Zeer mooi gedaan!!! Prachtige foto, groot genoeg om in te kaderen en prachtige geschreven!!!",
+            "author_date": "Pascale Depoorter"
+          }
+        },
+        "testimonials_mVRAPk": {
+          "type": "testimonials",
+          "settings": {
+            "stars_count": 5,
+            "heading": "Origineel product",
+            "text": "Wat problemen gehad met het leveren door Postnl, maar het product ziet er geweldig uit!",
+            "author_date": "Perry De Vries"
+          }
+        },
+        "testimonials_6hdMty": {
+          "type": "testimonials",
+          "settings": {
+            "stars_count": 5,
+            "heading": "Geweldige service",
+            "text": "Per ongeluk iets vergeten om op mijn bestelling te zetten. Een appje gestuurd naar social frame en ze hebben het per direct voor mij opgelost! Dag later had ik mijn bestelling al binnen, het is super mooi geworden. Ik ben er heel erg blij mee",
+            "author_date": "Anja broekema"
+          }
+        },
+        "testimonials_jQrKtE": {
+          "type": "testimonials",
+          "settings": {
+            "stars_count": 5,
+            "heading": "Socialframe",
+            "text": "Dit was de tweede keer dat we hierbij bestelden. De platen zijn goed verpakt, zien er uit zoals wij ze hebben ontworpen en worden snel geleverd!",
+            "author_date": "K. v. B"
+          }
+        },
+        "testimonials_J6hVxm": {
+          "type": "testimonials",
+          "settings": {
+            "stars_count": 5,
+            "heading": "I love it! 😍",
+            "text": "Alweer mijn 3e bestelling. Wat een geweldige frames voor aan de muur. En supersnel geleverd. Aanrader!",
+            "author_date": "Eline van de WegeNL"
+          }
+        },
+        "testimonials_Ktc4ib": {
+          "type": "testimonials",
+          "settings": {
+            "stars_count": 5,
+            "heading": "Top Service.",
+            "text": "Makkelijk besteld proces, overzichtelijk website, mooi aanbod...Leuke ontwerp tool en makkelijk in gebruik.Super snelle service qua bezorgen, alles super netjes en goed beschermd verpakt. Hulde!",
+            "author_date": "E.J. Bloks"
+          }
+        },
+        "testimonials_HKTdBC": {
+          "type": "testimonials",
+          "settings": {
+            "stars_count": 5,
+            "heading": "Zeer snel geleverd",
+            "text": "Snelle en goede leveringMooie qualiteit",
+            "author_date": "Hans Brummer"
+          }
+        }
+      },
+      "block_order": [
+        "testimonials_Ahd4NF",
+        "testimonials_dAyy8f",
+        "testimonials_3NVmQV",
+        "testimonials_kVXKyV",
+        "testimonials_mVRAPk",
+        "testimonials_6hdMty",
+        "testimonials_jQrKtE",
+        "testimonials_J6hVxm",
+        "testimonials_Ktc4ib",
+        "testimonials_HKTdBC"
+      ],
+      "name": "SS - Testimonial #8",
+      "settings": {
+        "heading": "Check onze reviews",
+        "heading_custom": false,
+        "heading_font": "josefin_sans_n4",
+        "heading_size": 40,
+        "heading_size_mobile": 24,
+        "heading_height": 130,
+        "heading_align": "center",
+        "rating_text": "Uitstekend",
+        "rating_text_custom": false,
+        "rating_text_font": "josefin_sans_n4",
+        "rating_text_size": 24,
+        "rating_text_size_mobile": 20,
+        "rating_text_height": 130,
+        "rating": 4.6,
+        "rating_hide": false,
+        "rating_text_hide": false,
+        "rating_text_mt": 16,
+        "rating_align": "center",
+        "stars_count": 5,
+        "stars_size": 18,
+        "stars_size_mobile": 18,
+        "stars_gap": 3,
+        "stars_align": "center",
+        "text": "<p><strong>400+ </strong>reviews</p>",
+        "text_custom": false,
+        "text_font": "josefin_sans_n4",
+        "text_size": 20,
+        "text_size_mobile": 16,
+        "text_height": 130,
+        "text_align": "center",
+        "text_mt": 8,
+        "slider_width": 70,
+        "slider_view": 3,
+        "slider_view_mobile": 1.2,
+        "slider_gap": 20,
+        "slider_gap_mobile": 20,
+        "slider_mt": 24,
+        "card_padding_vertical": 32,
+        "card_padding_vertical_mobile": 24,
+        "card_padding_horizontal": 40,
+        "card_padding_horizontal_mobile": 24,
+        "card_radius": 16,
+        "card_border_thickness": 0,
+        "card_shadow": true,
+        "card_heading_custom": false,
+        "card_heading_font": "josefin_sans_n4",
+        "card_heading_size": 24,
+        "card_heading_size_mobile": 20,
+        "card_heading_height": 130,
+        "card_heading_align": "center",
+        "card_heading_mt": 8,
+        "card_text_custom": false,
+        "card_text_font": "josefin_sans_n4",
+        "card_text_size": 14,
+        "card_text_size_mobile": 14,
+        "card_text_height": 150,
+        "card_text_align": "center",
+        "card_text_mt": 16,
+        "card_text_more": "View more",
+        "card_text_less": "View Less",
+        "card_count_words": 20,
+        "card_author_date_text_custom": false,
+        "card_author_date_text_font": "josefin_sans_n4",
+        "card_author_date_text_size": 16,
+        "card_author_date_text_size_mobile": 16,
+        "card_author_date_text_height": 130,
+        "card_author_date_text_align": "center",
+        "card_author_date_text_mt": 16,
+        "arrow_show_desktop": true,
+        "arrow_show_mobile": false,
+        "arrow_size": 50,
+        "arrow_size_mobile": 50,
+        "arrow_icon_size": 28,
+        "arrow_icon_size_mobile": 28,
+        "arrow_border_thickness": 0,
+        "dots_show_desktop": false,
+        "dots_show_mobile": false,
+        "dots_size": 12,
+        "dots_size_mobile": 12,
+        "button": "Bekijk ze allemaal",
+        "button_url": "https://nl.trustpilot.com/review/socialframe.nl",
+        "new_tab": true,
+        "button_custom": false,
+        "button_font": "josefin_sans_n4",
+        "button_size": 16,
+        "button_size_mobile": 14,
+        "button_height": 100,
+        "button_padding_vertical": 20,
+        "button_padding_horizontal": 16,
+        "button_radius": 8,
+        "button_border_thickness": 0,
+        "button_mt": 24,
+        "button_align": "center",
+        "button_color": "#ffffff",
+        "button_hover_color": "#ffffff",
+        "button_bg_color": "#121212",
+        "button_bg_hover_color": "#121212",
+        "button_border_color": "#121212",
+        "button_border_hover_color": "#121212",
+        "card_heading_color": "#121212",
+        "card_text_color": "#121212",
+        "card_author_date_text_color": "#121212",
+        "card_bg_color": "#ffffff",
+        "card_border_color": "#121212",
+        "card_shadow_color": "#00b67a",
+        "arrow_color": "#121212",
+        "arrow_hover_color": "#121212",
+        "arrow_bg_color": "#ffffff",
+        "arrow_bg_hover_color": "#ffffff",
+        "arrow_border_color": "#121212",
+        "arrow_border_hover_color": "#121212",
+        "dots_color": "#121212",
+        "stars_color": "#ffffff",
+        "stars_bg_color": "#00b67a",
+        "stars_bg_half_color": "#dddddd",
+        "heading_color": "#121212",
+        "rating_text_color": "#121212",
+        "text_color": "#121212",
+        "background_color": "#ffffff",
+        "background_gradient": "linear-gradient(180deg, rgba(206, 239, 199, 1), rgba(255, 255, 255, 1) 100%)",
+        "border_color": "#121212",
+        "margin_top": 0,
+        "margin_bottom": 0,
+        "padding_top": 60,
+        "padding_bottom": 60,
+        "padding_horizontal": 5,
+        "padding_horizontal_mobile": 1.5,
+        "full_width": true,
+        "content_width": 1500,
+        "border_thickness": 0,
+        "lazy": true
+      }
+    }
+  },
+  "order": [
+    "main",
+    "content_toggles_ek46UQ",
+    "ss_product_addons_KPbWdh",
+    "ss_product_info_boxed_aFtair",
+    "ss_testimonial_8_iMy7PD"
+  ]
+}

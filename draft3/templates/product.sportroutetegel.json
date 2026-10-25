@@ -143,42 +143,6 @@
         "sticky_bar_txtcolor": "#111111"
       }
     },
-    "product-recommendations": {
-      "type": "product-recommendations",
-      "blocks": {
-        "price": {
-          "type": "price",
-          "settings": {}
-        },
-        "title": {
-          "type": "title",
-          "settings": {}
-        },
-        "quick_buy": {
-          "type": "quick_buy",
-          "settings": {}
-        }
-      },
-      "block_order": [
-        "price",
-        "title",
-        "quick_buy"
-      ],
-      "custom_css": [
-        ".section-heading__title.h4 {font-size: 20px;}"
-      ],
-      "settings": {
-        "heading": "MAAK JE SET COMPLEET 🏆",
-        "subheading": "",
-        "section_heading_layout": "section-heading--center",
-        "layout": "grid-3 grid-lap-2 grid-tiny-1",
-        "products_number": 4,
-        "section_background_color": "rgba(0,0,0,0)",
-        "section_background_gradient": "",
-        "section_heading_color": "#000000",
-        "remove_margin": false
-      }
-    },
     "ss_product_info_boxed_aFtair": {
       "type": "ss-product-info-boxed",
       "disabled": true,
@@ -212,7 +176,6 @@
   },
   "order": [
     "main",
-    "product-recommendations",
     "ss_product_info_boxed_aFtair",
     "newsletter_wzkGyG"
   ]
