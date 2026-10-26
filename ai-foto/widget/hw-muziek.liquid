@@ -11,6 +11,7 @@
   <div class="hw-mz-slot" data-mz-slot>
   <div class="hw-mz-sticky" data-mz-sticky>
   <div class="hw-mz-scene" data-mz-scene>
+  <button type="button" class="hw-mz-zoom" data-mz-lbopen aria-label="Voorbeeld vergroten" title="Vergroten (of tik twee keer op het voorbeeld)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.8-4.8M10.5 8v5M8 10.5h5"/></svg></button>
   <div class="hw-mz-ground"></div>
   <div class="hw-mz-plate">
   <div class="hw-mz-stage" data-mz-stage>
@@ -19,6 +20,7 @@
     <div class="hw-mz-drag" data-mz-drag title="Sleep om de foto te verplaatsen"></div>
   </div>
   <img class="hw-mz-stand" data-mz-stand alt="" hidden>
+  <img class="hw-mz-stand hw-mz-stand-front" data-mz-stand-front alt="" aria-hidden="true" hidden>
   <img class="hw-mz-cable" data-mz-cable alt="" hidden>
   </div>
   </div>
@@ -28,6 +30,14 @@
 
   <div class="hw-mz-label">1. Kies je foto <span class="hw-mz-req">(verplicht)</span></div>
   <label class="hw-mz-filebtn"><span class="hw-mz-b">Foto kiezen</span><span class="hw-mz-n" data-mz-fname>Geen foto gekozen</span><input type="file" accept="image/*" data-mz-file hidden></label>
+  <div class="hw-mz-phone" data-mz-phone>
+    <button type="button" class="hw-mz-phonebtn" data-mz-phonebtn aria-expanded="false">Foto vanaf je telefoon of tablet?</button>
+    <div class="hw-mz-phonebox" data-mz-phonebox hidden>
+      <div class="hw-mz-phonetext">Scan de QR-code en upload je foto.</div>
+      <img class="hw-mz-qr" data-mz-qr alt="QR-code om een foto vanaf je telefoon te uploaden" width="180" height="180">
+      <div class="hw-mz-phonestatus" data-mz-phonestatus role="status" aria-live="polite"></div>
+    </div>
+  </div>
   <div class="hw-mz-row" data-mz-zoomrow hidden><span class="hw-mz-small">Inzoomen</span><input type="range" min="100" max="300" value="100" data-mz-zoom></div>
   <div class="hw-mz-modes">
     <button type="button" class="hw-mz-mode" data-mz-set="filter" data-v="Kleur" aria-pressed="true">Kleur</button>
@@ -104,19 +114,28 @@
 </div>
 
 <style>
-  .hw-mz{font-family:inherit;font-size:14px;color:#333;border:1.5px solid #E2E2E2;border-radius:24px;background:#fff;padding:22px 18px 20px;margin:1.75rem 0 1rem;box-sizing:border-box}
+  .hw-mz{position:relative;font-family:inherit;font-size:14px;color:#333;border:1.5px solid #E2E2E2;border-radius:24px;background:#fff;padding:22px 18px 20px;margin:1.75rem 0 1rem;box-sizing:border-box}
   .hw-mz *{box-sizing:border-box}
   .hw-mz-heading{font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#111;margin:0 0 16px}
-  .hw-mz-sticky{z-index:20;box-sizing:border-box;background:#fff;padding:6px 0 8px;text-align:center}
+  .hw-mz-slot{margin-bottom:210px}
+  .hw-mz-zoom{position:absolute;top:6px;right:6px;z-index:8;width:26px;height:26px;border-radius:50%;border:0 !important;background:rgba(255,255,255,.7) !important;box-shadow:0 1px 4px rgba(0,0,0,.14);opacity:.85;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0 !important;margin:0}
+  .hw-mz-lb{position:fixed;inset:0;z-index:2147483000;background:rgba(21,20,18,.94);display:flex;align-items:center;justify-content:center;padding:12px;box-sizing:border-box}
+  .hw-mz-lb .hw-mz-scene{margin:0;border-radius:10px;touch-action:none}
+  .hw-mz-lb .hw-mz-zoom{display:none}
+  .hw-mz-scene{container-type:inline-size}
+  @container (max-width:150px){.hw-mz-zoom{display:none}}
+  @container (max-width:300px){.hw-mz-zoom{top:4px;right:4px;width:24px;height:24px}}
+  .hw-mz-lb-x{position:absolute;top:max(12px,env(safe-area-inset-top));right:12px;width:44px;height:44px;border-radius:50%;border:0 !important;background:#fff !important;color:#111 !important;font-size:26px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0 !important;z-index:3}
+  .hw-mz-lb-h{position:absolute;left:0;right:0;bottom:max(14px,env(safe-area-inset-bottom));text-align:center;font-size:12px;color:rgba(255,255,255,.7);pointer-events:none}
+  .hw-mz-sticky{z-index:20;box-sizing:border-box;background:#fff;padding:6px 0 8px;text-align:center;box-shadow:-16px 0 0 #fff,16px 0 0 #fff,0 12px 0 #fff}
   .hw-mz-scene{position:relative;width:min(100%,520px);aspect-ratio:41/50;margin:0 auto;overflow:hidden;border-radius:6px;background:#ece7df center top/cover no-repeat}
   .hw-mz-ground{position:absolute;left:14%;width:72%;top:86.6%;height:5.7%;background:radial-gradient(ellipse at center,rgba(60,45,30,.38),rgba(60,45,30,0) 70%);filter:blur(3px)}
   .hw-mz-plate{position:absolute;left:17%;width:66%;top:8%}
   .hw-mz-stage{position:relative;z-index:2;width:100%;aspect-ratio:2/3;overflow:hidden;background:#fff;box-shadow:0 0 0 1px rgba(110,130,140,.3),0 14px 12px -4px rgba(40,25,10,.5),8px 8px 18px rgba(60,45,30,.25)}
   .hw-mz-stage.is-clear{background:linear-gradient(135deg,rgba(255,255,255,.20),rgba(255,255,255,.10) 55%,rgba(255,255,255,.16));-webkit-backdrop-filter:blur(.6px);backdrop-filter:blur(.6px);box-shadow:0 0 0 .75px rgba(255,255,255,.88),3px 5px 12px rgba(60,45,30,.10)}
   .hw-mz-canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
-  /* geen witte glasrand meer: de plaat is volledig doorzichtig */
   .hw-mz-drag{z-index:4}
-  .hw-mz-stand{display:block;position:relative;z-index:1;width:110%;margin:-3.6% 0 0 -5%;height:auto;background:transparent !important;border:0 !important;box-shadow:none !important;padding:0 !important;filter:drop-shadow(0 5px 5px rgba(40,25,10,.38)) drop-shadow(0 12px 12px rgba(40,25,10,.22))}
+  .hw-mz-stand{display:block;position:relative;z-index:1;width:110%;margin:-6% 0 0 -5%;height:auto;background:transparent !important;border:0 !important;box-shadow:none !important;padding:0 !important;filter:drop-shadow(0 5px 5px rgba(40,25,10,.38)) drop-shadow(0 12px 12px rgba(40,25,10,.22))}
   /* ledverlichting: donkerdere kamer, licht uit de sleuf, kabel naast de houder */
   .hw-mz-scene::before,.hw-mz-scene::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;opacity:0;transition:opacity .5s ease}
   .hw-mz-scene::before{background:linear-gradient(180deg,rgba(6,6,10,.80),rgba(6,6,10,.88))}
@@ -125,21 +144,31 @@
   .hw-mz-glow{position:absolute;left:0;right:0;bottom:0;height:34%;z-index:3;pointer-events:none;opacity:0;transition:opacity .5s ease;mix-blend-mode:screen;background:linear-gradient(to top,rgba(255,250,240,.85) 0,rgba(255,246,230,.38) 7%,rgba(255,244,225,.12) 28%,rgba(255,244,225,0) 100%)}
   .hw-mz-scene.is-led .hw-mz-glow{opacity:1}
   /* verlichte randen van het acrylaat + donkere plaat zoals in het echt */
-  .hw-mz-scene.is-led .hw-mz-stage.is-clear{background:linear-gradient(135deg,rgba(0,0,0,.28),rgba(0,0,0,.18));-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:0 0 0 1.5px rgba(255,255,255,.96),0 0 9px 2px rgba(255,255,255,.6),0 0 26px 4px rgba(255,255,255,.22),inset 0 0 12px rgba(255,255,255,.4)}
+  .hw-mz-scene.is-led .hw-mz-stage.is-clear{background:linear-gradient(135deg,rgba(0,0,0,.28),rgba(0,0,0,.18));-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:0 0 0 .75px rgba(255,255,255,.96),0 0 9px 2px rgba(255,255,255,.6),0 0 26px 4px rgba(255,255,255,.22),inset 0 0 12px rgba(255,255,255,.4)}
   .hw-mz-scene.is-led .hw-mz-stage:not(.is-clear){box-shadow:0 0 0 1px rgba(255,255,255,.7),0 0 14px 2px rgba(255,255,255,.3)}
   .hw-mz-scene.is-led .hw-mz-canvas{filter:brightness(.82) contrast(1.05)}
   .hw-mz-scene.is-led .hw-mz-stand:not(.is-feet){filter:brightness(.55) drop-shadow(0 5px 5px rgba(0,0,0,.6))}
   .hw-mz-cable{position:absolute;z-index:0;left:100%;top:96%;width:34%;height:auto;transform:translateY(-15%);pointer-events:none;filter:brightness(.85) drop-shadow(0 2px 2px rgba(0,0,0,.35))}
   .hw-mz-cable[hidden]{display:none}
   .hw-mz-stand[hidden]{display:none}
+  /* gekleurde plaat: alleen de voorste rand van de houder voor de plaat, zodat de plaat in de sleuf lijkt te staan */
+  .hw-mz-stand.hw-mz-stand-front{z-index:5;margin-top:-16.2%;clip-path:inset(17.7% 0 0 0);filter:none;pointer-events:none}
+  .hw-mz-scene.is-led .hw-mz-stand.hw-mz-stand-front{filter:brightness(.55)}
   /* kunststof pootjes: voorste helft altijd voor de plaat, voetjes aan de rand van de plaat */
   .hw-mz-stand.is-feet{z-index:5;width:75.1%;margin:-13% 0 0 14%;filter:none}
   /* transparante plaat: houder volledig zichtbaar, ervoor; gekleurd of marmer: halve houder achter de plaat */
   .hw-mz-stage.is-clear ~ .hw-mz-stand{z-index:5}
   .hw-mz-drag{position:absolute;left:10%;top:5.2%;width:80%;height:53.333%;touch-action:none;cursor:grab}
   .hw-mz-drag:active{cursor:grabbing}
+  .hw-mz-phone{margin:10px 0 0;text-align:left}
+  .hw-mz-phonebtn{background:none !important;border:0;padding:4px 0;font:inherit;font-size:13px;font-weight:600;color:#111 !important;text-decoration:underline;cursor:pointer}
+  .hw-mz-phonebox{margin-top:8px;padding:14px;border:1.5px solid #E2E2E2;border-radius:16px;background:#fff;text-align:center}
+  .hw-mz-phonetext{font-size:14px;color:#555;margin-bottom:10px}
+  .hw-mz-qr{display:block;margin:0 auto;width:180px;height:180px;border:1px solid #E2E2E2;border-radius:10px;background:#fff}
+  .hw-mz-phonestatus{margin-top:10px;font-size:13px;color:#777;min-height:18px}
+  .hw-mz-phonestatus.ok{color:#1b6e2f;font-weight:600}
   .hw-mz-hint{text-align:center;font-size:12px;color:#777;margin-top:6px}
-  .hw-mz-sticky.is-stuck{box-shadow:none}
+  .hw-mz-sticky.is-stuck{box-shadow:-16px 0 0 #fff,16px 0 0 #fff,0 12px 0 #fff}
   .hw-mz-label{display:block;font-size:14px;font-weight:700;color:#121212;margin:20px 0 8px}
   .hw-mz-req{font-weight:400;font-size:12px;color:#b3261e}
   .hw-mz-small{font-size:12px;color:#666;margin:10px 0 4px}
@@ -315,6 +344,17 @@
       for (var i = 0; i < px.length; i += 4) { var l = (px[i] + px[i + 1] + px[i + 2]) / 3; var a = px[i + 3] * (255 - l) / 255; px[i] = 255; px[i + 1] = 255; px[i + 2] = 253; px[i + 3] = a; }
       x.putImageData(d, 0, 0); qrW = { key: key, c: c }; return c;
     }
+    var qrD = null;
+    // QR-code in donker zonder vlak erachter: alleen de donkere vlakjes blijven over, de lichte achtergrond wordt doorzichtig
+    function qrDark(sz) {
+      if (!qrImg) return null; sz = Math.round(sz);
+      var key = qrKey + '|' + sz; if (qrD && qrD.key === key) return qrD.c;
+      var c = document.createElement('canvas'); c.width = c.height = sz; var x = c.getContext('2d');
+      x.drawImage(qrImg, 0, 0, sz, sz);
+      var d = x.getImageData(0, 0, sz, sz), px = d.data;
+      for (var i = 0; i < px.length; i += 4) { var l = (px[i] + px[i + 1] + px[i + 2]) / 3; var a = px[i + 3] * (255 - l) / 255; px[i] = 0; px[i + 1] = 0; px[i + 2] = 0; px[i + 3] = a; }
+      x.putImageData(d, 0, 0); qrD = { key: key, c: c }; return c;
+    }
     function ledOn() { var sc = $('[data-mz-scene]'); return !!(sc && sc.classList.contains('is-led') && S.bg === 'Transparant'); }
     try { var scLed = $('[data-mz-scene]'); if (scLed && window.MutationObserver) new MutationObserver(function () { draw(); }).observe(scLed, { attributes: true, attributeFilter: ['class'] }); } catch (e) {}
     function draw() {
@@ -368,7 +408,7 @@
       } else if (S.code === 'qr') {
         var qx = 161.925 * PX, qy = 247.011 * PX, qs = 20 * PX;
         if (wt) { var wq = qrWhite(qs); if (wq) ctx.drawImage(wq, qx, qy, qs, qs); }
-        else { ctx.fillStyle = '#ffffff'; ctx.fillRect(qx, qy, qs, qs); if (qrImg) ctx.drawImage(qrImg, qx, qy, qs, qs); }
+        else { var dq = qrDark(qs); if (dq) ctx.drawImage(dq, qx, qy, qs, qs); } // donkere QR zonder wit vlak erachter
       }
     }
 
@@ -453,8 +493,45 @@
     });
     document.addEventListener('click', function (ev) { if (!root.contains(ev.target)) suggEl.hidden = true; });
 
+    // Foto vanaf telefoon of tablet: QR-code -> telefoon stuurt een foto -> hier komt hij in het uploadveld.
+    (function () {
+      var wrap = $('[data-mz-phone]'), btn = $('[data-mz-phonebtn]'), box = $('[data-mz-phonebox]'), qrImg = $('[data-mz-qr]'), pst = $('[data-mz-phonestatus]'), fileEl = $('[data-mz-file]');
+      if (!wrap) return;
+      try { if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 600) { wrap.hidden = true; return; } } catch (e) {}
+      var session = null, timer = null, lastSeq = 0, started = 0;
+      function pmsg(t, ok) { pst.textContent = t || ''; pst.className = 'hw-mz-phonestatus' + (ok ? ' ok' : ''); }
+      function stop() { clearInterval(timer); timer = null; }
+      function fetchPhoto(code, seq) {
+        fetch(API + '/api/phone/' + code + '/photo').then(function (r) { if (!r.ok) throw new Error(); return r.blob(); }).then(function (b) {
+          var f = new File([b], 'foto-van-telefoon.jpg', { type: 'image/jpeg' });
+          var dt = new DataTransfer(); dt.items.add(f); fileEl.files = dt.files;
+          fileEl.dispatchEvent(new Event('change', { bubbles: true }));
+          lastSeq = seq; pmsg('Foto ontvangen! Wil je een andere foto? Kies er nog een op je telefoon.', true);
+        }).catch(function () { pmsg('Ontvangen, maar ophalen lukte niet. Probeer het nog eens.'); });
+      }
+      function tick() {
+        if (!session) return;
+        if (Date.now() - started > 29 * 60 * 1000) { stop(); session = null; pmsg('Deze QR-code is verlopen. Klik hierboven om een nieuwe te maken.'); return; }
+        fetch(API + '/api/phone/' + session).then(function (r) { if (!r.ok) throw new Error('gone'); return r.json(); }).then(function (j) {
+          if (j.seq > lastSeq) fetchPhoto(session, j.seq);
+        }).catch(function (e) { if (e && e.message === 'gone') { stop(); session = null; pmsg('Deze QR-code is verlopen. Klik hierboven om een nieuwe te maken.'); } });
+      }
+      function open() {
+        box.hidden = false; btn.setAttribute('aria-expanded', 'true'); pmsg('Even geduld…');
+        fetch(API + '/api/phone/session', { method: 'POST' }).then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || 'Mislukt'); return j; }); })
+          .then(function (j) {
+            session = j.code; lastSeq = 0; started = Date.now();
+            qrImg.src = API + '/api/phone/' + j.code + '/qr.svg';
+            pmsg('Wachten op je foto…');
+            stop(); timer = setInterval(tick, 2000);
+          }).catch(function (e) { pmsg(e.message || 'Er ging iets mis, probeer het opnieuw.'); });
+      }
+      function close() { stop(); session = null; box.hidden = true; btn.setAttribute('aria-expanded', 'false'); }
+      btn.addEventListener('click', function () { if (box.hidden || !session) open(); else close(); });
+    })();
+
     // ----- opslaan en winkelwagen -----
-    function signature() { return JSON.stringify([S.filter, S.tekst, S.code, S.bg, S.heart, S.zoom, S.ox, S.oy, r1El.value, r2El.value, t0El.value, t1El.value, dotEl.value, codeLink(), qrText(), S.photo && S.photo.src]); }
+    function signature() { return JSON.stringify([S.filter, S.tekst, S.code, S.bg, S.heart, S.zoom, S.ox, S.oy, r1El.value, r2El.value, t0El.value, t1El.value, dotEl.value, codeLink(), qrText(), S.photo && S.photo.src, (function () { var a = $('[data-mz-stand]'), b = $('[data-mz-scene]'); return [a && a.getAttribute('src'), a && a.hidden, a && a.className, b && b.classList.contains('is-led')]; })()]); }
     function validate() {
       if (!S.photo) return 'Kies eerst een foto.';
       if (!r1El.value.trim()) return 'Vul Regel 1 in.';
@@ -467,6 +544,54 @@
       return fetch(API + path, { method: 'POST', body: fd }).then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || 'Opslaan mislukt'); return j; }); });
     }
     function toBlob(c, q) { return new Promise(function (res) { c.toBlob(res, 'image/jpeg', q); }); }
+    // voorbeeld voor in de winkelwagen: JPEG kent geen doorzichtigheid (dat werd zwart), dus eerst op een effen ondergrond zetten
+    function previewFlat() {
+      var f = document.createElement('canvas'); f.width = canvas.width; f.height = canvas.height;
+      var fc = f.getContext('2d'); fc.fillStyle = white() ? '#9a9a9a' : '#f1f1f1'; fc.fillRect(0, 0, f.width, f.height); fc.drawImage(canvas, 0, 0);
+      return f;
+    }
+    // voorbeeld voor in de winkelwagen: de hele scene (plaat + gekozen houder/ledverlichting), zo zie je in het winkelwagentje ook de accessoires
+    function loadImg(src) { return new Promise(function (res) { if (!src) return res(null); var i = new Image(); i.crossOrigin = 'anonymous'; i.onload = function () { res(i); }; i.onerror = function () { res(null); }; i.src = src; }); }
+    function scenePreview() {
+      var sc = $('[data-mz-scene]'), st = $('[data-mz-stage]'), stand = $('[data-mz-stand]'), front = $('[data-mz-stand-front]'), cab = $('[data-mz-cable]'), gr = $('.hw-mz-ground');
+      var sr = sc && sc.getBoundingClientRect();
+      if (!sc || !st || !sr.width) return Promise.resolve(previewFlat());
+      var W = 900, k = W / sr.width, H = Math.round(sr.height * k);
+      function R(e) { var r = e.getBoundingClientRect(); return { x: (r.left - sr.left) * k, y: (r.top - sr.top) * k, w: r.width * k, h: r.height * k }; }
+      var led = sc.classList.contains('is-led'), clear = st.classList.contains('is-clear');
+      var bgm = /url\(["']?([^"')]+)["']?\)/.exec(sc.style.backgroundImage || '');
+      var shown = function (e) { return e && !e.hidden && e.getAttribute('src'); };
+      return Promise.all([loadImg(bgm && bgm[1]), loadImg(shown(stand) && stand.src), loadImg(shown(front) && front.src), loadImg(shown(cab) && cab.src)]).then(function (im) {
+        var c = document.createElement('canvas'); c.width = W; c.height = H; var x = c.getContext('2d');
+        x.fillStyle = '#ece7df'; x.fillRect(0, 0, W, H);
+        if (im[0]) { var sc0 = Math.max(W / im[0].width, H / im[0].height); x.drawImage(im[0], (W - im[0].width * sc0) / 2, 0, im[0].width * sc0, im[0].height * sc0); }
+        if (gr) { var g = R(gr); x.save(); x.translate(g.x + g.w / 2, g.y + g.h / 2); x.scale(g.w / 2, g.h / 2); var rg = x.createRadialGradient(0, 0, 0, 0, 0, 1); rg.addColorStop(0, 'rgba(60,45,30,.38)'); rg.addColorStop(.7, 'rgba(60,45,30,0)'); x.fillStyle = rg; x.fillRect(-1, -1, 2, 2); x.restore(); }
+        if (im[3]) { var cr = R(cab); x.save(); x.shadowColor = 'rgba(0,0,0,.35)'; x.shadowBlur = 3 * k; x.shadowOffsetY = 2 * k; x.drawImage(im[3], cr.x, cr.y, cr.w, cr.h); x.restore(); }
+        if (led) { var lg = x.createLinearGradient(0, 0, 0, H); lg.addColorStop(0, 'rgba(6,6,10,.80)'); lg.addColorStop(1, 'rgba(6,6,10,.88)'); x.fillStyle = lg; x.fillRect(0, 0, W, H); }
+        var feet = stand && stand.classList.contains('is-feet'), standTop = feet || clear;
+        function drawStand(img, e, clipTop) {
+          var r = R(e); x.save();
+          if (clipTop) { x.beginPath(); x.rect(r.x, r.y + r.h * clipTop, r.w, r.h * (1 - clipTop)); x.clip(); }
+          else { x.shadowColor = led && !feet ? 'rgba(0,0,0,.6)' : 'rgba(40,25,10,.38)'; x.shadowBlur = 8 * k; x.shadowOffsetY = 5 * k; }
+          try { if (led && !feet) x.filter = 'brightness(.55)'; } catch (e2) {}
+          x.drawImage(img, r.x, r.y, r.w, r.h); x.restore();
+        }
+        if (im[1] && !standTop) drawStand(im[1], stand);
+        if (led) { x.save(); x.globalCompositeOperation = 'screen'; x.translate(W * .5, H * .895); x.scale(W * .46, H * .15); var ag = x.createRadialGradient(0, 0, 0, 0, 0, 1); ag.addColorStop(0, 'rgba(255,238,210,.38)'); ag.addColorStop(1, 'rgba(255,238,210,0)'); x.fillStyle = ag; x.fillRect(-1, -1, 2, 2); x.restore(); }
+        var r = R(st); x.save();
+        if (!clear) { x.shadowColor = 'rgba(40,25,10,.5)'; x.shadowBlur = 12 * k; x.shadowOffsetY = 14 * k; x.fillStyle = '#fff'; x.fillRect(r.x, r.y, r.w, r.h); x.shadowColor = 'rgba(60,45,30,.25)'; x.shadowBlur = 18 * k; x.shadowOffsetX = 8 * k; x.shadowOffsetY = 8 * k; x.fillRect(r.x, r.y, r.w, r.h); }
+        x.restore(); x.save();
+        if (clear) { var cg = x.createLinearGradient(r.x, r.y, r.x + r.w, r.y + r.h); cg.addColorStop(0, led ? 'rgba(0,0,0,.28)' : 'rgba(255,255,255,.20)'); cg.addColorStop(.55, led ? 'rgba(0,0,0,.22)' : 'rgba(255,255,255,.10)'); cg.addColorStop(1, led ? 'rgba(0,0,0,.18)' : 'rgba(255,255,255,.16)'); x.fillStyle = cg; x.fillRect(r.x, r.y, r.w, r.h); }
+        try { if (led) x.filter = 'brightness(.82) contrast(1.05)'; } catch (e3) {}
+        x.drawImage(canvas, r.x, r.y, r.w, r.h); x.restore();
+        if (clear) { x.save(); x.strokeStyle = 'rgba(255,255,255,.9)'; x.lineWidth = 1.5 * k; x.strokeRect(r.x, r.y, r.w, r.h); x.restore(); }
+        if (led) { x.save(); x.globalCompositeOperation = 'screen'; var gl = x.createLinearGradient(0, r.y + r.h, 0, r.y + r.h * .66); gl.addColorStop(0, 'rgba(255,250,240,.85)'); gl.addColorStop(.2, 'rgba(255,246,230,.38)'); gl.addColorStop(1, 'rgba(255,244,225,0)'); x.fillStyle = gl; x.fillRect(r.x, r.y + r.h * .66, r.w, r.h * .34); x.restore(); }
+        if (im[2]) drawStand(im[2], front, .177);
+        if (im[1] && standTop) drawStand(im[1], stand);
+        return c;
+      }).catch(function () { return previewFlat(); });
+    }
+    root.__scenePreview = scenePreview;
     function build() {
       var sig = signature();
       if (S.result && S.result.sig === sig) return Promise.resolve(S.result);
@@ -474,7 +599,7 @@
       var side = Math.max(800, Math.min(2400, Math.max(S.photo.naturalWidth, S.photo.naturalHeight)));
       var crop = document.createElement('canvas'); crop.width = crop.height = side;
       var cc = crop.getContext('2d'); cc.fillStyle = '#fff'; cc.fillRect(0, 0, side, side); drawPhotoTo(cc, side);
-      return fontsReady().then(function () { draw(); return Promise.all([toBlob(crop, 0.92), toBlob(canvas, 0.85)]); }).then(function (b) {
+      return fontsReady().then(function () { draw(); return scenePreview().then(function (pc) { return toBlob(pc, 0.85).catch(function () { return toBlob(previewFlat(), 0.85); }).then(function (pb) { return Promise.all([toBlob(crop, 0.92), pb]); }); }); }).then(function (b) {
         return Promise.all([post('/api/music/photo', 'photo', b[0], 'foto.jpg'), post('/api/music/preview', 'image', b[1], 'voorbeeld.jpg')]);
       }).then(function (u) {
         S.busy = false; S.result = { sig: sig, photo: u[0].url, preview: u[1].url }; return S.result;
@@ -556,34 +681,83 @@
       // Het voorbeeld krimpt geleidelijk mee met het scrollen (en het vak eronder krimpt gelijk op), zodat er geen sprong en geen wit gat ontstaat
       function update() {
         busy = false;
+        topOff = headerOffset(); // de header wordt kleiner tijdens het scrollen: het voorbeeld hangt steeds direct eronder
+        // iPhone-rubberband (door de rand heen scrollen): niets aanpassen, anders gaat het voorbeeld trillen
+        var sy = window.pageYOffset, maxY = document.documentElement.scrollHeight - window.innerHeight;
+        if (sy < 0 || sy > maxY + 0.5) return;
         var sr = slot.getBoundingClientRect(), rr = root.getBoundingClientRect();
-        if (sr.top >= topOff || rr.bottom <= 0) {
-          if (fixed) { fixed = false; sticky.classList.remove('is-stuck'); sticky.style.cssText = ''; scene.style.width = ''; if (hint) hint.style.display = ''; slot.style.height = ''; }
+        if (!fixed && rr.bottom <= 0) return;
+        if (fixed && sr.top < topOff && rr.bottom <= 0) return; // blok ver voorbij: niets meer veranderen (anders verspringt de pagina)
+        if (sr.top >= topOff) {
+          if (fixed) { fixed = false; sticky.classList.remove('is-stuck'); sticky.style.cssText = ''; scene.style.width = ''; if (hint) hint.style.display = ''; slot.style.height = ''; slot.style.marginBottom = ''; }
           return;
         }
         if (!fixed) {
           fixed = true; sticky.classList.add('is-stuck');
-          var cs0 = getComputedStyle(scene);
           full = { w: scene.offsetWidth, h: slot.offsetHeight };
-          small = Math.min(full.w, window.innerHeight * 0.34 * 41 / 50);
+          small = Math.min(full.w * 0.5, window.innerHeight * 0.34 * 41 / 50);
           smallH = full.h - (full.w - small) * 50 / 41 - (hint ? hint.offsetHeight + 6 : 0);
         }
-        var dist = Math.max(60, (full.h - smallH) * 1.6);
+        var dist = Math.max(60, (full.h - smallH) * 0.7); // krimpt sneller, zodat stap 1 in beeld blijft
         var p = Math.max(0, Math.min(1, (topOff - sr.top) / dist));
         p = p * p * (3 - 2 * p); // zachte start en stop
         var w = full.w + (small - full.w) * p;
         scene.style.width = w + 'px';
         if (hint) hint.style.display = p > 0.02 ? 'none' : '';
         var hSticky = w * 50 / 41 + 14;
-        slot.style.height = Math.max(hSticky, full.h + (smallH - full.h) * p) + 'px';
-        var t = Math.min(topOff, rr.bottom - hSticky - 8);
-        sticky.style.cssText = 'position:fixed;left:' + sr.left + 'px;width:' + sr.width + 'px;top:' + t + 'px';
+        slot.style.height = Math.max(hSticky + 36 * p, full.h + (smallH - full.h) * p + 36 * p) + 'px'; // extra wit onder het (gekrompen) voorbeeld, zodat stap 1 goed zichtbaar blijft
+        slot.style.marginBottom = (210 * (1 - p) + 170 * p) + 'px'; // extra wit onder het voorbeeld, zodat de uploadknop van stap 1 niet meteen wegvalt
+        var t = rr.bottom - hSticky - 8;
+        if (t < topOff) {
+          // einde van het blok: het voorbeeld staat vast onderin het blok en scrolt gewoon mee (geen JS meer, dus geen getril op iPhone)
+          var rcs = getComputedStyle(root), bl = parseFloat(rcs.borderLeftWidth) || 0, bb = parseFloat(rcs.borderBottomWidth) || 0;
+          sticky.style.cssText = 'position:absolute;left:' + (sr.left - rr.left - bl) + 'px;width:' + sr.width + 'px;bottom:' + (8 - bb) + 'px';
+        } else {
+          sticky.style.cssText = 'position:fixed;left:' + sr.left + 'px;width:' + sr.width + 'px;top:' + topOff + 'px';
+        }
       }
       function req() { if (!busy) { busy = true; requestAnimationFrame(update); } }
       topOff = headerOffset();
-      window.addEventListener('scroll', req, { passive: true });
+      var settle = 0;
+      window.addEventListener('scroll', function () { req(); clearTimeout(settle); settle = setTimeout(req, 330); }, { passive: true });
       window.addEventListener('resize', function () { topOff = headerOffset(); req(); });
       update();
+    })();
+
+    // ----- voorbeeld vergroten: vergrootglas of dubbel tikken -----
+    (function () {
+      var scene = $('[data-mz-scene]'), zbtn = $('[data-mz-lbopen]'); if (!scene || !zbtn) return;
+      var lb = null, ph = null, keep = '';
+      function size() { var vw = window.innerWidth - 24, vh = window.innerHeight - 24; return Math.floor(Math.min(vw, vh * 41 / 50, 900)); }
+      function openZ() {
+        if (lb) return;
+        ph = document.createElement('div'); ph.style.cssText = 'width:' + scene.offsetWidth + 'px;height:' + scene.offsetHeight + 'px;margin:0 auto'; keep = scene.style.width;
+        scene.parentNode.insertBefore(ph, scene);
+        lb = document.createElement('div'); lb.className = 'hw-mz-lb';
+        var x = document.createElement('button'); x.type = 'button'; x.className = 'hw-mz-lb-x'; x.setAttribute('aria-label', 'Sluiten'); x.innerHTML = '&times;';
+        var h = document.createElement('div'); h.className = 'hw-mz-lb-h'; h.textContent = 'Tik buiten het voorbeeld om te sluiten';
+        lb.appendChild(scene); lb.appendChild(x); lb.appendChild(h); root.appendChild(lb);
+        scene.style.width = size() + 'px'; document.documentElement.style.overflow = 'hidden';
+        x.addEventListener('click', closeZ);
+        lb.addEventListener('click', function (e) { if (e.target === lb) closeZ(); });
+      }
+      function closeZ() {
+        if (!lb) return;
+        scene.style.width = keep; ph.parentNode.insertBefore(scene, ph); ph.remove(); lb.remove(); lb = null; ph = null;
+        document.documentElement.style.overflow = '';
+      }
+      zbtn.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); openZ(); });
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeZ(); });
+      window.addEventListener('resize', function () { if (lb) scene.style.width = size() + 'px'; });
+      // dubbel tikken (zonder te slepen) opent het grote voorbeeld
+      var lastT = 0, sx = 0, sy = 0, moved = false;
+      scene.addEventListener('touchstart', function (e) { var t = e.touches[0]; sx = t.clientX; sy = t.clientY; moved = false; }, { passive: true });
+      scene.addEventListener('touchmove', function (e) { var t = e.touches[0]; if (Math.abs(t.clientX - sx) > 8 || Math.abs(t.clientY - sy) > 8) moved = true; }, { passive: true });
+      scene.addEventListener('touchend', function (e) {
+        if (moved || lb || e.target.closest('[data-mz-lbopen]')) return;
+        var n = Date.now(); if (n - lastT < 350) { lastT = 0; openZ(); } else lastT = n;
+      }, { passive: true });
+      scene.addEventListener('dblclick', function (e) { if (!lb && !e.target.closest('[data-mz-lbopen]')) openZ(); });
     })();
 
     // ----- houders als visuele keuze (stuurt de variantkiezer van het thema aan) -----
@@ -596,7 +770,7 @@
         [/marmer/i, CDN + 'Socialframe_-_marmerlook.png?v=1732050804'],
         [/pootjes/i, CDN + 'SOCIAL_-_kunststof_pootjes.png?v=1633857786'],
         [/ophang/i, CDN + 'ophangsysteem.jpg?v=1645886442'],
-        [/houten/i, (document.querySelector('[data-hw-mz]').getAttribute('data-api') + '/widget-img/houten-keuze.webp?v=2')]
+        [/houten/i, (document.querySelector('[data-hw-mz]').getAttribute('data-api') + '/widget-img/houten-keuze.webp?v=3')]
       ];
       function imgFor(v) { for (var i = 0; i < IMGS.length; i++) if (IMGS[i][0].test(v)) return IMGS[i][1]; return ''; }
       function nz(x) { return String(x == null ? '' : x).replace(/\s+/g, ' ').trim(); }
@@ -671,6 +845,12 @@
           if (on && stand.getAttribute('data-want') !== want) { stand.setAttribute('data-want', want); stand.src = api + want; }
           stand.classList.toggle('is-feet', feet);
           stand.hidden = !on;
+          var front = $('[data-mz-stand-front]');
+          if (front) {
+            var showFront = wood && !clear;
+            if (showFront && front.getAttribute('src') !== stand.getAttribute('src')) front.src = stand.getAttribute('src');
+            front.hidden = !showFront;
+          }
           var led = /\bled\b/i.test(hv), cab = $('[data-mz-cable]'), sc = $('[data-mz-scene]');
           if (cab) { if (led && !cab.getAttribute('src')) cab.src = api + 'kabel.webp?v=1'; cab.hidden = !led; }
           if (sc) sc.classList.toggle('is-led', led);
