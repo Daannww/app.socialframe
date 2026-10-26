@@ -1,3 +1,4 @@
+{%- if section.blocks.size == 0 -%}{%- if request.design_mode -%}<p style="text-align:center;padding:24px">Store finder: voeg locaties toe via “Blok toevoegen”.</p>{%- endif -%}{%- else -%}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <style>
   .sfs2{max-width:1440px;margin:0 auto;padding:24px 64px 56px;box-sizing:border-box;color:#151412}
@@ -91,6 +92,7 @@
   if(!items.length)empty.hidden=false;
 })();
 </script>
+{%- endif -%}
 {% schema %}
 {
   "name": "Store finder",

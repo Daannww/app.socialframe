@@ -15,34 +15,8 @@
     },
     "sf_stores": {
       "type": "sf-stores",
-      "blocks": {
-        "t1": {
-          "type": "location",
-          "settings": {
-            "name": "TESTLOCATIE winkel",
-            "type": "winkel",
-            "address": "Markt 1",
-            "city": "Zwolle",
-            "note": "",
-            "end_date": ""
-          }
-        },
-        "t2": {
-          "type": "location",
-          "settings": {
-            "name": "TESTLOCATIE markt",
-            "type": "markt",
-            "address": "Grote Markt 1",
-            "city": "Groningen",
-            "note": "za 7 nov, 9-17u",
-            "end_date": "2099-01-01"
-          }
-        }
-      },
-      "block_order": [
-        "t1",
-        "t2"
-      ],
+      "blocks": {},
+      "block_order": [],
       "settings": {
         "eyebrow": "Winkels & markten",
         "title": "Waar vind je ons?",
