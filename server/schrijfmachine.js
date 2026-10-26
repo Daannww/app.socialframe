@@ -69,7 +69,17 @@ for (const kolom of ['opdracht TEXT', 'voortgang INTEGER', 'gepauzeerd INTEGER']
 
 // Thema van het kaartje (verjaardag / algemeen / condoleance): alleen een label
 // in het dashboard. Kolom later toegevoegd, dus per start controleren.
-const THEMAS = ['verjaardag', 'algemeen', 'condoleance'];
+const THEMAS = ['verjaardag', 'algemeen', 'condoleance', 'kerst'];
+
+// Thema automatisch herkennen uit de kaarttekst als de client geen geldig thema meestuurt.
+function detecteerThema(tekst) {
+  const t = String(tekst || '').toLowerCase();
+  if (/gecondoleerd|condoleer|condoleance|deelneming|innig medeleven|medeleven|veel sterkte|overlijden|overleden|in memoriam|rouw|afscheid van|gemis|verlies van|in gedachten bij je|in liefdevolle herinnering/.test(t)) return 'condoleance';
+  if (/verjaardag|jarig|hartelijk gefeliciteerd met (je|jouw|uw) \d+|een jaartje ouder|\d+ jaar geworden|lang zal (hij|ze|zij) leven/.test(t)) return 'verjaardag';
+  if (/kerst|prettige feestdagen|fijne feestdagen|warme feestdagen|merry christmas|gelukkig nieuwjaar|gelukkig nieuw jaar|oud en nieuw|oud & nieuw|voor het nieuwe jaar|een gezond (en gelukkig )?20\d\d/.test(t)) return 'kerst';
+  return 'algemeen';
+}
+
 try { db.exec("ALTER TABLE schrijf_jobs ADD COLUMN thema TEXT NOT NULL DEFAULT 'algemeen'"); } catch (e) { /* bestaat al */ }
 
 if (db.prepare('SELECT COUNT(*) AS c FROM schrijf_teksten').get().c === 0) {
@@ -263,7 +273,7 @@ function registreerDashboardRoutes(app) {
       const r = db.prepare(`INSERT INTO schrijf_jobs (order_id, order_number, naam, adres_json, tekst, sjabloon, lettertype, thema, status)
                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`)
         .run(order_id || null, order_number || null, naam || null, JSON.stringify(Array.isArray(adres) ? adres : []),
-             String(tekst).slice(0, 2000), sjabloon, lettertype, THEMAS.includes(thema) ? thema : 'algemeen', direct ? 'wachtrij' : 'concept');
+             String(tekst).slice(0, 2000), sjabloon, lettertype, THEMAS.includes(thema) ? thema : detecteerThema(tekst), direct ? 'wachtrij' : 'concept');
       if (direct) zetMeta('schrijf_kaart_klaar', '1');
       res.json(jobNaarJson(db.prepare('SELECT * FROM schrijf_jobs WHERE id = ?').get(r.lastInsertRowid)));
     } catch (e) {

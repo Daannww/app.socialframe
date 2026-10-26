@@ -261,6 +261,7 @@
   }
 
   function planVoorbeeld() {
+    updateAutoThema();
     clearTimeout(voorbeeldTimer);
     voorbeeldTimer = setTimeout(tekenVoorbeeld, 120);
   }
@@ -300,6 +301,20 @@
     planVoorbeeld();
   }
 
+  // Thema herkennen uit de kaarttekst (condoleance > verjaardag > kerst > algemeen)
+  function detecteerThema(tekst) {
+    const t = String(tekst || '').toLowerCase();
+    if (/gecondoleerd|condoleer|condoleance|deelneming|innig medeleven|medeleven|veel sterkte|overlijden|overleden|in memoriam|rouw|afscheid van|gemis|verlies van|in gedachten bij je|in liefdevolle herinnering/.test(t)) return 'condoleance';
+    if (/verjaardag|jarig|hartelijk gefeliciteerd met (je|jouw|uw) \d+|een jaartje ouder|\d+ jaar geworden|lang zal (hij|ze|zij) leven/.test(t)) return 'verjaardag';
+    if (/kerst|prettige feestdagen|fijne feestdagen|warme feestdagen|merry christmas|gelukkig nieuwjaar|gelukkig nieuw jaar|oud en nieuw|oud & nieuw|voor het nieuwe jaar|een gezond (en gelukkig )?20\d\d/.test(t)) return 'kerst';
+    return 'algemeen';
+  }
+
+  function updateAutoThema() {
+    const o = document.querySelector('#kaartThema option[value="auto"]');
+    if (o) o.textContent = 'Automatisch (herkend: ' + THEMA_LABEL[detecteerThema(definitieveTekst())] + ')';
+  }
+
   // ---------- Wachtrij ----------
   const STATUS = {
     concept: ['Bewaard', 'other'],
@@ -311,7 +326,7 @@
   };
   let bezigJob = null;
 
-  const THEMA_LABEL = { algemeen: 'Algemeen', verjaardag: 'Verjaardag', condoleance: 'Condoleance' };
+  const THEMA_LABEL = { algemeen: 'Algemeen', verjaardag: 'Verjaardag', condoleance: 'Condoleance', kerst: 'Kerst' };
 
   async function laadJobs() {
     try {
@@ -362,7 +377,7 @@
                 Object.entries(info.sjablonen).map(([id, s]) => `<option value="${id}"${id === j.sjabloon ? ' selected' : ''}>${esc(s.naam)}</option>`).join('')}</select>
                <select class="kaart-rij-select kaart-rij-klein" data-instelling="lettertype" data-id="${j.id}" title="Handschrift wijzigen">${
                 info.lettertypes.map(l => `<option${l === j.lettertype ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select>`}</td>
-          <td class="kaartjes-tekstcel" title="${esc(j.tekst)}">${esc(j.tekst.replace(/\n+/g, ' · '))}</td>
+          <td class="kaartjes-tekstcel" title="${esc(j.tekst)}"><div class="kaartjes-clamp">${esc(j.tekst.replace(/\n+/g, ' · '))}</div></td>
           <td><span class="badge ${cls}">${label}</span>${j.fout ? `<div class="kaartjes-fout">${esc(j.fout)}</div>` : ''}</td>
           <td class="kaartjes-acties">${acties.join('')}</td>
         </tr>`;
