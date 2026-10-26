@@ -1,0 +1,116 @@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+  .sfs2{max-width:1440px;margin:0 auto;padding:24px 64px 56px;box-sizing:border-box;color:#151412}
+  .sfs2-head{text-align:center;max-width:680px;margin:0 auto 28px}
+  .sfs2-eb{display:block;font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#b87a2a;margin-bottom:12px}
+  .sfs2-h{margin:0 0 12px;font-size:34px;line-height:1.15;font-weight:700;letter-spacing:-.02em}
+  .sfs2-p{margin:0;font-size:16px;line-height:1.6;color:#4a4238}
+  .sfs2-tabs{display:flex;gap:8px;justify-content:center;margin:0 0 22px;flex-wrap:wrap}
+  .sfs2-tab{border:1.5px solid #d9d4c8;background:#fff;border-radius:999px;padding:9px 18px;font:inherit;font-size:14px;font-weight:600;cursor:pointer;color:#151412}
+  .sfs2-tab.on{background:#151412;border-color:#151412;color:#fff}
+  .sfs2-grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:24px;align-items:start}
+  .sfs2-list{display:grid;gap:12px;max-height:560px;overflow:auto;padding-right:4px}
+  .sfs2-it{background:#faf6ee;border-radius:18px;padding:18px 20px;cursor:pointer;border:1.5px solid transparent;transition:border-color .15s ease}
+  .sfs2-it:hover,.sfs2-it.on{border-color:#e0a25a}
+  .sfs2-top{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+  .sfs2-name{margin:0;font-size:16px;font-weight:700}
+  .sfs2-badge{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 9px;border-radius:999px;background:#fff;color:#b87a2a}
+  .sfs2-badge.m{background:#151412;color:#f2c48a}
+  .sfs2-addr,.sfs2-note{margin:0;font-size:14px;line-height:1.5;color:#4a4238}
+  .sfs2-note{margin-top:4px;font-weight:600;color:#151412}
+  .sfs2-go{display:inline-block;margin-top:8px;font-size:13px;font-weight:600;color:#151412;text-decoration:underline;text-underline-offset:3px;text-decoration-color:#e0a25a}
+  .sfs2-map{height:560px;border-radius:22px;overflow:hidden;background:#efe9db;z-index:0}
+  .sfs2-empty{padding:20px;text-align:center;color:#6d675c;font-size:15px}
+  .sfs2-pin{width:28px;height:28px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:#151412;border:3px solid #f2c48a;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+  .sfs2-pin.m{background:#b87a2a;border-color:#fff}
+  @media(max-width:989px){.sfs2{padding:16px 16px 40px}.sfs2-h{font-size:26px}.sfs2-grid{grid-template-columns:1fr}.sfs2-map{order:-1;height:320px}.sfs2-list{max-height:none}}
+</style>
+<section class="sfs2" data-sfs2 {{ section.shopify_attributes }}>
+  <div class="sfs2-head">
+    {%- if section.settings.eyebrow != blank -%}<span class="sfs2-eb">{{ section.settings.eyebrow }}</span>{%- endif -%}
+    <h2 class="sfs2-h">{{ section.settings.title }}</h2>
+    {%- if section.settings.text != blank -%}<p class="sfs2-p">{{ section.settings.text }}</p>{%- endif -%}
+  </div>
+  <div class="sfs2-tabs" data-tabs>
+    <button type="button" class="sfs2-tab on" data-f="all">Alles</button>
+    <button type="button" class="sfs2-tab" data-f="winkel">Winkels</button>
+    <button type="button" class="sfs2-tab" data-f="markt">Markten &amp; events</button>
+  </div>
+  <div class="sfs2-grid">
+    <div class="sfs2-list" data-list>
+      {%- for block in section.blocks -%}
+        <div class="sfs2-it" data-it data-type="{{ block.settings.type }}" data-addr="{{ block.settings.address | escape }}, {{ block.settings.city | escape }}" data-name="{{ block.settings.name | escape }}" data-lat="{{ block.settings.lat }}" data-lng="{{ block.settings.lng }}" data-end="{{ block.settings.end_date }}" {{ block.shopify_attributes }}>
+          <div class="sfs2-top"><h3 class="sfs2-name">{{ block.settings.name }}</h3><span class="sfs2-badge{% if block.settings.type == 'markt' %} m{% endif %}">{% if block.settings.type == 'markt' %}Markt{% else %}Winkel{% endif %}</span></div>
+          <p class="sfs2-addr">{{ block.settings.address }}{% if block.settings.address != blank and block.settings.city != blank %}, {% endif %}{{ block.settings.city }}</p>
+          {%- if block.settings.note != blank -%}<p class="sfs2-note">{{ block.settings.note }}</p>{%- endif -%}
+          <a class="sfs2-go" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination={{ block.settings.name | append: ' ' | append: block.settings.address | append: ' ' | append: block.settings.city | url_encode }}">Route</a>
+        </div>
+      {%- endfor -%}
+      <div class="sfs2-empty" data-empty hidden>Geen locaties gevonden.</div>
+    </div>
+    <div class="sfs2-map" data-map></div>
+  </div>
+</section>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+(function(){
+  var root=document.querySelector('[data-sfs2]');if(!root||!window.L)return;
+  var items=[].slice.call(root.querySelectorAll('[data-it]')),empty=root.querySelector('[data-empty]');
+  var today=new Date().toISOString().slice(0,10);
+  items.forEach(function(it){var e=it.getAttribute('data-end');if(e&&e<today)it.remove()});
+  items=items.filter(function(it){return document.contains(it)});
+  var map=L.map(root.querySelector('[data-map]'),{scrollWheelZoom:false}).setView([52.2,6.2],8);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'&copy; OpenStreetMap'}).addTo(map);
+  var cache={};try{cache=JSON.parse(localStorage.getItem('sfs2geo')||'{}')}catch(e){}
+  function save(){try{localStorage.setItem('sfs2geo',JSON.stringify(cache))}catch(e){}}
+  function geocode(q){
+    if(cache[q])return Promise.resolve(cache[q]);
+    return fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=nl,de,be&q='+encodeURIComponent(q)).then(function(r){return r.json()}).then(function(d){if(d&&d[0]){cache[q]=[parseFloat(d[0].lat),parseFloat(d[0].lon)];save();return cache[q]}return null}).catch(function(){return null});
+  }
+  var markers=[];
+  function icon(t){return L.divIcon({className:'',html:'<div class="sfs2-pin'+(t==='markt'?' m':'')+'"></div>',iconSize:[28,28],iconAnchor:[14,28]})}
+  items.reduce(function(p,it){return p.then(function(){
+    var lat=parseFloat(it.getAttribute('data-lat')),lng=parseFloat(it.getAttribute('data-lng'));
+    var g=(!isNaN(lat)&&!isNaN(lng))?Promise.resolve([lat,lng]):geocode(it.getAttribute('data-addr'));
+    return g.then(function(c){
+      if(!c)return;var m=L.marker(c,{icon:icon(it.getAttribute('data-type'))}).addTo(map);m.bindPopup('<b>'+it.getAttribute('data-name')+'</b><br>'+it.getAttribute('data-addr'));
+      m.on('click',function(){select(it,false)});markers.push({it:it,m:m,c:c});fit();
+    }).then(function(){return new Promise(function(r){setTimeout(r,cacheHit(it)?0:1100)})});
+  })},Promise.resolve());
+  function cacheHit(it){return !!cache[it.getAttribute('data-addr')]}
+  function fit(){var v=markers.filter(function(x){return x.it.style.display!=='none'}).map(function(x){return x.c});if(v.length>1)map.fitBounds(v,{padding:[40,40],maxZoom:12});else if(v.length===1)map.setView(v[0],13)}
+  function select(it,pan){items.forEach(function(x){x.classList.toggle('on',x===it)});var f=markers.filter(function(x){return x.it===it})[0];if(f){if(pan)map.setView(f.c,14);f.m.openPopup()}if(!pan)it.scrollIntoView({block:'nearest',behavior:'smooth'})}
+  items.forEach(function(it){it.addEventListener('click',function(e){if(e.target.closest('a'))return;select(it,true)})});
+  root.querySelector('[data-tabs]').addEventListener('click',function(e){
+    var b=e.target.closest('[data-f]');if(!b)return;var f=b.getAttribute('data-f');
+    [].forEach.call(root.querySelectorAll('.sfs2-tab'),function(t){t.classList.toggle('on',t===b)});
+    var n=0;items.forEach(function(it){var show=f==='all'||it.getAttribute('data-type')===f;it.style.display=show?'':'none';if(show)n++});
+    markers.forEach(function(x){var show=x.it.style.display!=='none';if(show)x.m.addTo(map);else map.removeLayer(x.m)});
+    empty.hidden=n>0;fit();
+  });
+  if(!items.length)empty.hidden=false;
+})();
+</script>
+{% schema %}
+{
+  "name": "Store finder",
+  "settings": [
+    {"type":"text","id":"eyebrow","label":"Klein label","default":"Winkels & markten"},
+    {"type":"text","id":"title","label":"Titel","default":"Waar vind je ons?"},
+    {"type":"textarea","id":"text","label":"Tekst","default":"Socialframe ligt in de Broekhuis boekhandels bij jou in de buurt en staat regelmatig op markten. Kom gerust langs om de tegeltjes en frames in het echt te zien."}
+  ],
+  "blocks": [
+    {"type":"location","name":"Locatie","settings":[
+      {"type":"text","id":"name","label":"Naam","default":"Broekhuis Boekhandel"},
+      {"type":"select","id":"type","label":"Soort","options":[{"value":"winkel","label":"Winkel"},{"value":"markt","label":"Markt / event"}],"default":"winkel"},
+      {"type":"text","id":"address","label":"Straat en nummer"},
+      {"type":"text","id":"city","label":"Plaats"},
+      {"type":"text","id":"note","label":"Extra regel (bijv. datum en tijd van de markt)"},
+      {"type":"text","id":"end_date","label":"Verberg na datum (JJJJ-MM-DD, voor markten)"},
+      {"type":"text","id":"lat","label":"Breedtegraad (optioneel, anders automatisch)"},
+      {"type":"text","id":"lng","label":"Lengtegraad (optioneel)"}
+    ]}
+  ],
+  "presets": [{"name":"Store finder"}]
+}
+{% endschema %}

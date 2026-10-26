@@ -12,9 +12,46 @@
     "main": {
       "type": "sf-contact",
       "settings": {}
+    },
+    "sf_stores": {
+      "type": "sf-stores",
+      "blocks": {
+        "t1": {
+          "type": "location",
+          "settings": {
+            "name": "TESTLOCATIE winkel",
+            "type": "winkel",
+            "address": "Markt 1",
+            "city": "Zwolle",
+            "note": "",
+            "end_date": ""
+          }
+        },
+        "t2": {
+          "type": "location",
+          "settings": {
+            "name": "TESTLOCATIE markt",
+            "type": "markt",
+            "address": "Grote Markt 1",
+            "city": "Groningen",
+            "note": "za 7 nov, 9-17u",
+            "end_date": "2099-01-01"
+          }
+        }
+      },
+      "block_order": [
+        "t1",
+        "t2"
+      ],
+      "settings": {
+        "eyebrow": "Winkels & markten",
+        "title": "Waar vind je ons?",
+        "text": "Socialframe ligt in de Broekhuis boekhandels bij jou in de buurt en staat regelmatig op markten. Kom gerust langs om de tegeltjes en frames in het echt te zien."
+      }
     }
   },
   "order": [
-    "main"
+    "main",
+    "sf_stores"
   ]
 }
