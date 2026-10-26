@@ -24,6 +24,11 @@
   .sfs2-empty{padding:20px;text-align:center;color:#6d675c;font-size:15px}
   .sfs2-pin{width:28px;height:28px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:#151412;border:3px solid #f2c48a;box-shadow:0 2px 6px rgba(0,0,0,.3)}
   .sfs2-pin.m{background:#b87a2a;border-color:#fff}
+  .sfs2-pin.p{background:#a8a39a;border-color:#fff}
+  .sfs2-it.past{opacity:.7}
+  .sfs2-it.past .sfs2-name,.sfs2-it.past .sfs2-addr{text-decoration:line-through;text-decoration-thickness:1.5px}
+  .sfs2-it.past .sfs2-badge{background:#e6e1d6;color:#6d675c}
+  .sfs2-it.past .sfs2-go{display:none}
   @media(max-width:989px){.sfs2{padding:16px 16px 40px}.sfs2-h{font-size:26px}.sfs2-grid{grid-template-columns:1fr}.sfs2-map{order:-1;height:320px}.sfs2-list{max-height:none}}
 </style>
 <section class="sfs2" data-sfs2 {{ section.shopify_attributes }}>
@@ -58,8 +63,9 @@
   var root=document.querySelector('[data-sfs2]');if(!root||!window.L)return;
   var items=[].slice.call(root.querySelectorAll('[data-it]')),empty=root.querySelector('[data-empty]');
   var today=new Date().toISOString().slice(0,10);
-  items.forEach(function(it){var e=it.getAttribute('data-end');if(e&&e<today)it.remove()});
-  items=items.filter(function(it){return document.contains(it)});
+  items.forEach(function(it){var e=it.getAttribute('data-end');if(e&&e<today){it.classList.add('past');var b=it.querySelector('.sfs2-badge');if(b){b.textContent='Geweest';b.classList.remove('m')}}});
+  var lst=root.querySelector('[data-list]'),em=root.querySelector('[data-empty]');
+  items.filter(function(it){return it.classList.contains('past')}).forEach(function(it){lst.insertBefore(it,em)});
   var map=L.map(root.querySelector('[data-map]'),{scrollWheelZoom:false}).setView([52.2,6.2],8);
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'&copy; OpenStreetMap'}).addTo(map);
   var cache={};try{cache=JSON.parse(localStorage.getItem('sfs2geo')||'{}')}catch(e){}
@@ -69,12 +75,12 @@
     return fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=nl,de,be&q='+encodeURIComponent(q)).then(function(r){return r.json()}).then(function(d){if(d&&d[0]){cache[q]=[parseFloat(d[0].lat),parseFloat(d[0].lon)];save();return cache[q]}return null}).catch(function(){return null});
   }
   var markers=[];
-  function icon(t){return L.divIcon({className:'',html:'<div class="sfs2-pin'+(t==='markt'?' m':'')+'"></div>',iconSize:[28,28],iconAnchor:[14,28]})}
+  function icon(t,p){return L.divIcon({className:'',html:'<div class="sfs2-pin'+(p?' p':(t==='markt'?' m':''))+'"></div>',iconSize:[28,28],iconAnchor:[14,28]})}
   items.reduce(function(p,it){return p.then(function(){
     var lat=parseFloat(it.getAttribute('data-lat')),lng=parseFloat(it.getAttribute('data-lng'));
     var g=(!isNaN(lat)&&!isNaN(lng))?Promise.resolve([lat,lng]):geocode(it.getAttribute('data-addr'));
     return g.then(function(c){
-      if(!c)return;var m=L.marker(c,{icon:icon(it.getAttribute('data-type'))}).addTo(map);m.bindPopup('<b>'+it.getAttribute('data-name')+'</b><br>'+it.getAttribute('data-addr'));
+      if(!c)return;var past=it.classList.contains('past');if(past&&items.some(function(o){return o!==it&&!o.classList.contains('past')&&o.getAttribute('data-addr')===it.getAttribute('data-addr')}))return;var m=L.marker(c,{icon:icon(it.getAttribute('data-type'),past)}).addTo(map);m.bindPopup('<b>'+it.getAttribute('data-name')+'</b><br>'+it.getAttribute('data-addr'));
       m.on('click',function(){select(it,false)});markers.push({it:it,m:m,c:c});fit();
     }).then(function(){return new Promise(function(r){setTimeout(r,cacheHit(it)?0:1100)})});
   })},Promise.resolve());

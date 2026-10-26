@@ -86,6 +86,39 @@
             "note": "29 & 30 oktober 2026 · Hangar 10, Vliegveld Twenthe · 75 exposanten",
             "end_date": "2026-10-30"
           }
+        },
+        "boeskool_2025": {
+          "type": "location",
+          "settings": {
+            "name": "Boeskool is Lös 2025",
+            "type": "markt",
+            "address": "Bisschopsplein",
+            "city": "Oldenzaal",
+            "note": "12–17 juli 2025",
+            "end_date": "2025-07-17"
+          }
+        },
+        "boeskool_2026": {
+          "type": "location",
+          "settings": {
+            "name": "Boeskool is Lös 2026",
+            "type": "markt",
+            "address": "Bisschopsplein",
+            "city": "Oldenzaal",
+            "note": "wo 5 t/m za 8 augustus 2026 (festival 4–9 aug)",
+            "end_date": "2026-08-09"
+          }
+        },
+        "boeskool_2027": {
+          "type": "location",
+          "settings": {
+            "name": "Boeskool is Lös 2027",
+            "type": "markt",
+            "address": "Bisschopsplein",
+            "city": "Oldenzaal",
+            "note": "wo 11 t/m za 14 augustus 2027 (festival 10–15 aug)",
+            "end_date": "2027-08-15"
+          }
         }
       },
       "block_order": [
@@ -95,7 +128,10 @@
         "broekhuis_deventer",
         "broekhuis_apeldoorn",
         "broekhuis_oldenzaal",
-        "evenso_2026"
+        "evenso_2026",
+        "boeskool_2025",
+        "boeskool_2026",
+        "boeskool_2027"
       ],
       "settings": {
         "eyebrow": "Winkels & markten",
