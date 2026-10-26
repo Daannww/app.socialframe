@@ -39,6 +39,10 @@
   assign menu = linklists[section.settings.menu]
 -%}
 <style>
+/* WhatsApp-knop (app-embed) links onder, boven de cookie-knop */
+.whatsapp-floating-button{right:auto!important;left:14px!important;bottom:100px!important;top:auto!important;inset:auto auto 100px 14px!important}
+@media(max-width:767px){.whatsapp-floating-button{inset:auto auto 88px 10px!important}}
+
   .sfh-spacer{width:100%}
   .sfh{position:fixed;top:0;left:0;right:0;z-index:900;background:#fff;color:#151412;font-family:inherit;transition:box-shadow .25s ease}
   .sfh a{color:inherit;text-decoration:none}
