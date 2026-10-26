@@ -213,6 +213,22 @@ const EMOJI_REGEX = /(\p{Regional_Indicator}{2}|[0-9#*]\ufe0f?\u20e3|\p{Extended
 // cursor door, als was er wél iets getekend).
 const HEBREW_CHAR_REGEX = /[\u0590-\u05FF\uFB1D-\uFB4F]/u;
 
+// Arabisch schrift (incl. Perzisch/Urdu-uitbreidingen en de "Presentation
+// Forms"). Net als Hebreeuws viel dit vroeger buiten SAFE_TEXT_CHAR_REGEX en
+// werd het dus als "emoji" behandeld — er werd tevergeefs een emoji-plaatje
+// voor gezocht en de tekst verdween stilzwijgend uit het drukwerkbestand
+// (ontdekt bij een Spotify-frame met "محمد عبدالجبار - أسجل روحي"). Anders dan
+// bij Hebreeuws mag de tekst hier NIET handmatig omgedraaid worden: Arabische
+// letters krijgen per positie in het woord een andere vorm (begin/midden/
+// eind/los), en dat bepaalt fontkit zelf uit de tekst in LEESvolgorde — die
+// zet de glyphs daarna ook zelf rechts-naar-links neer. Dus: de Arabische
+// frase blijft in originele volgorde en gaat als 1 stuk naar drawText.
+const ARABIC_CHAR_REGEX = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/u;
+// Tekens die midden in een Arabische frase mogen staan zonder dat de frase
+// breekt (spatie, streepje, leestekens, cijfers) — alleen als er daarna nog
+// Arabische tekst volgt.
+const ARABIC_NEUTRAL_REGEX = /[\s\-\u2010-\u2015.,:;!?()'"0-9\u0660-\u0669]/u;
+
 // Vangnet: elk los teken dat overblijft in een "tekst"-stuk, maar buiten het
 // normale Latijnse schrift valt (dus geen normale letters/cijfers/leestekens/
 // accenten), wordt ALSNOG als "emoji" behandeld. Dit vangt nieuwere/zeldzame
@@ -242,6 +258,13 @@ function splitTextEmoji(text) {
 // tekenvolgorde omgedraaid — zie drawMixedText voor de toelichting waarom),
 // en alles daarbuiten wordt als "emoji" behandeld (vangnet, zie
 // SAFE_TEXT_CHAR_REGEX hierboven).
+// Komt na positie i (over alleen neutrale tekens heen) nog Arabische tekst?
+function arabischVolgt(chars, i) {
+  let j = i;
+  while (j < chars.length && ARABIC_NEUTRAL_REGEX.test(chars[j])) j++;
+  return j < chars.length && ARABIC_CHAR_REGEX.test(chars[j]);
+}
+
 function splitRemainderSafely(text) {
   const out = [];
   let buffer = '';
@@ -251,9 +274,17 @@ function splitRemainderSafely(text) {
     out.push({ type: bufferType, value: bufferType === 'hebrew' ? [...buffer].reverse().join('') : buffer });
     buffer = '';
   };
-  for (const char of text) {
+  const chars = [...text];
+  for (let i = 0; i < chars.length; i++) {
+    const char = chars[i];
     let type;
-    if (HEBREW_CHAR_REGEX.test(char)) {
+    if (ARABIC_CHAR_REGEX.test(char)) {
+      type = 'arabic';
+    } else if (bufferType === 'arabic' && ARABIC_NEUTRAL_REGEX.test(char) && arabischVolgt(chars, i)) {
+      // Spatie/streepje MIDDEN in een Arabische frase: bij die frase houden
+      // (er volgt nog Arabisch, en er zit geen ander schrift tussen).
+      type = 'arabic';
+    } else if (HEBREW_CHAR_REGEX.test(char)) {
       type = 'hebrew';
     } else if (char === ' ' && bufferType === 'hebrew') {
       // Spatie MIDDEN in een Hebreeuwse frase: bij die frase houden, i.p.v.
@@ -336,6 +367,15 @@ async function preloadEmojiImages(doc, texts, sizePx = 128) {
 function measureMixedTextWidth(parts, font, sizePt, hebrewFont) {
   return parts.reduce((total, p) => {
     if (p.type === 'emoji') return total + sizePt;
+    if (p.type === 'arabic') {
+      const arabicFont = hebrewFont && hebrewFont.__arabicFont;
+      if (!arabicFont) return total; // geen Arabisch lettertype: telt niet mee, crasht niet
+      try {
+        return total + arabicFont.widthOfTextAtSize(p.value, sizePt);
+      } catch (e) {
+        return total;
+      }
+    }
     if (p.type === 'hebrew') {
       if (!hebrewFont) return total; // geen lettertype beschikbaar: telt niet mee, crasht niet
       try {
@@ -443,6 +483,15 @@ function drawMixedText(page, parts, font, sizePt, xPt, baselineYPt, color, emoji
         });
       }
       cursorX += sizePt;
+    } else if (p.type === 'arabic') {
+      const arabicFont = hebrewFont && hebrewFont.__arabicFont;
+      if (!arabicFont) return; // geen Arabisch lettertype: overslaan, niet crashen
+      try {
+        page.drawText(p.value, { x: cursorX, y: baselineYPt, size: sizePt, font: arabicFont, color });
+        cursorX += arabicFont.widthOfTextAtSize(p.value, sizePt);
+      } catch (e) {
+        console.warn('[pdf-shared] kon Arabisch tekstdeel niet tekenen, wordt overgeslagen:', e.message);
+      }
     } else if (p.type === 'hebrew') {
       if (!hebrewFont) return; // geen lettertype beschikbaar: overslaan, niet crashen
       try {
@@ -1233,7 +1282,21 @@ async function loadHebrewFont(doc, gewicht = 'Regular') {
     console.warn(`[pdf-shared] ${bestandsnaam} niet gevonden in server/fonts/ — Hebreeuwse tekst kan niet getekend worden (blijft leeg i.p.v. verkeerd lettertype). Zie README voor hoe je het toevoegt.`);
     return null;
   }
-  return doc.embedFont(fs.readFileSync(bestandsPad));
+  const hebrewFont = await doc.embedFont(fs.readFileSync(bestandsPad));
+  // Arabisch lettertype meeleveren op ditzelfde font-object (zo hoeven alle
+  // producten die al `hebrewFont` doorgeven niets te wijzigen). Ontbreekt het
+  // bestand, dan blijft Arabische tekst leeg (met waarschuwing) i.p.v. crashen.
+  const arabischPad = path.join(__dirname, 'fonts', `NotoSansArabic-${gewicht}.ttf`);
+  if (fs.existsSync(arabischPad)) {
+    try {
+      hebrewFont.__arabicFont = await doc.embedFont(fs.readFileSync(arabischPad), { subset: true });
+    } catch (e) {
+      console.warn('[pdf-shared] kon Arabisch lettertype niet laden:', e.message);
+    }
+  } else {
+    console.warn(`[pdf-shared] NotoSansArabic-${gewicht}.ttf niet gevonden in server/fonts/ — Arabische tekst kan niet getekend worden.`);
+  }
+  return hebrewFont;
 }
 
 // Voorkomt dubbeltelling bij de "cadeautje inpakken"-valstrik: Shopify/de
