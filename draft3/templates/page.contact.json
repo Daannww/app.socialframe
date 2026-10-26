@@ -75,6 +75,17 @@
             "city": "Oldenzaal",
             "note": "Socialframe tegeltjes en frames te koop in de winkel."
           }
+        },
+        "evenso_2026": {
+          "type": "location",
+          "settings": {
+            "name": "Evenso Ladies Events",
+            "type": "markt",
+            "address": "Hamerstraat 10",
+            "city": "Hengelo",
+            "note": "29 & 30 oktober 2026 · Hangar 10, Vliegveld Twenthe · 75 exposanten",
+            "end_date": "2026-10-30"
+          }
         }
       },
       "block_order": [
@@ -83,7 +94,8 @@
         "broekhuis_enschede",
         "broekhuis_deventer",
         "broekhuis_apeldoorn",
-        "broekhuis_oldenzaal"
+        "broekhuis_oldenzaal",
+        "evenso_2026"
       ],
       "settings": {
         "eyebrow": "Winkels & markten",
