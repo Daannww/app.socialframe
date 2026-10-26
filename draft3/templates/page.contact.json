@@ -15,8 +15,54 @@
     },
     "sf_stores": {
       "type": "sf-stores",
-      "blocks": {},
-      "block_order": [],
+      "blocks": {
+        "broekhuis_hengelo": {
+          "type": "location",
+          "settings": {
+            "name": "Boekhandel Broekhuis Hengelo",
+            "type": "winkel",
+            "address": "Wemenstraat 45, 7551 EW",
+            "city": "Hengelo",
+            "note": "Socialframe tegeltjes en frames te koop in de winkel."
+          }
+        },
+        "broekhuis_almelo": {
+          "type": "location",
+          "settings": {
+            "name": "Boekhandel Broekhuis Almelo",
+            "type": "winkel",
+            "address": "Koornmarkt 24, 7607 HZ",
+            "city": "Almelo",
+            "note": "Socialframe tegeltjes en frames te koop in de winkel."
+          }
+        },
+        "broekhuis_enschede": {
+          "type": "location",
+          "settings": {
+            "name": "Boekhandel Broekhuis Enschede",
+            "type": "winkel",
+            "address": "Marktstraat 12, 7511 GD",
+            "city": "Enschede",
+            "note": "Socialframe tegeltjes en frames te koop in de winkel."
+          }
+        },
+        "broekhuis_deventer": {
+          "type": "location",
+          "settings": {
+            "name": "Boekhandel Broekhuis Deventer",
+            "type": "winkel",
+            "address": "Lange Bisschopstraat 5-7, 7411 KG",
+            "city": "Deventer",
+            "note": "Socialframe tegeltjes en frames te koop in de winkel."
+          }
+        }
+      },
+      "block_order": [
+        "broekhuis_hengelo",
+        "broekhuis_almelo",
+        "broekhuis_enschede",
+        "broekhuis_deventer"
+      ],
       "settings": {
         "eyebrow": "Winkels & markten",
         "title": "Waar vind je ons?",
