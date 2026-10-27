@@ -281,11 +281,19 @@
             "question": "Kan ik een proefafbeelding zien voor ik besteld?",
             "answer": "<p>Ja, na het invullen van je gegevens genereren we een preview van je muziekframe die je kunt bekijken voordat je 'm toevoegt aan je winkelmand.</p>"
           }
+        },
+        "faq_8": {
+          "type": "item",
+          "settings": {
+            "question": "Kan ik ook een playlist of andere link gebruiken?",
+            "answer": "<p>Ja, een playlist kan ook. Een podcast kan met de Spotify-code niet. Kies je een QR-code, dan kan dat elke willekeurige link zijn.</p>"
+          }
         }
       },
       "block_order": [
         "faq_1",
         "faq_2",
+        "faq_8",
         "faq_3",
         "faq_4",
         "faq_5",
