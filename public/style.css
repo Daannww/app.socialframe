@@ -45,7 +45,7 @@ button, input, select, textarea {
 
 .topbar h1 { font-size: 18px; margin: 0; color: #ffffff; }
 .topbar-left { display: flex; align-items: center; gap: 12px; }
-.logo { height: 56px; width: auto; display: block; filter: invert(1); }
+.logo { height: 56px; width: auto; display: block; filter: brightness(0) invert(1); }
 .topbar-right { display: flex; align-items: center; gap: 12px; }
 .last-sync { font-size: 13px; color: #cbd5e1; }
 .stock-warning {
