@@ -274,6 +274,13 @@
             "question": "Blijft de code altijd werken?",
             "answer": "<p>Zolang het nummer op Spotify of YouTube beschikbaar blijft, blijft de code scanbaar.</p>"
           }
+        },
+        "faq_7": {
+          "type": "item",
+          "settings": {
+            "question": "Kan ik een proefafbeelding zien voor ik besteld?",
+            "answer": "<p>Ja, na het invullen van je gegevens genereren we een preview van je muziekframe die je kunt bekijken voordat je 'm toevoegt aan je winkelmand.</p>"
+          }
         }
       },
       "block_order": [
@@ -282,7 +289,8 @@
         "faq_3",
         "faq_4",
         "faq_5",
-        "faq_6"
+        "faq_6",
+        "faq_7"
       ],
       "settings": {
         "kicker": "FAQ",
