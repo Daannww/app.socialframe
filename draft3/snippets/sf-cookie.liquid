@@ -32,6 +32,9 @@
   try{s=JSON.parse(localStorage.getItem('sf_consent')||'null');}catch(e){}
   if(!s){var c=document.cookie.match(/(?:^|; )sf_consent=([01])([01])/);if(c)s={a:c[1]==='1',m:c[2]==='1'};}
   var a=!!(s&&s.a),m=!!(s&&s.m),tries=0;
+  /* Google: de Shopify-app zet zelf een standaard "granted" vlak na de onze; overschrijf direct met de echte stand. */
+  window.dataLayer=window.dataLayer||[];
+  (function(){function gt(){dataLayer.push(arguments);}var g=function(v){return v?'granted':'denied'};gt('consent','update',{ad_storage:g(m),ad_user_data:g(m),ad_personalization:g(m),analytics_storage:g(a)});})();
   function go(){
     if(!(window.Shopify&&Shopify.loadFeatures)){if(tries++<300)setTimeout(go,10);return;}
     Shopify.loadFeatures([{name:'consent-tracking-api',version:'0.1'}],function(err){
