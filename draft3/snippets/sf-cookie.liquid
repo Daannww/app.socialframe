@@ -47,43 +47,44 @@
 </script>
 {%- elsif mode == 'body' -%}
 <style>
-  #sfck{position:fixed;left:16px;bottom:16px;z-index:2147483000;width:min(440px,calc(100vw - 32px));background:#fff;color:#151412;border:1px solid #e8dcc3;border-radius:18px;box-shadow:0 18px 50px rgba(21,20,18,.18);padding:22px 22px 18px;font:14px/1.55 inherit;font-family:inherit;opacity:0;transform:translateY(12px);pointer-events:none;transition:opacity .3s ease,transform .3s ease}
+  #sfck{position:fixed;left:16px;bottom:16px;z-index:2147483000;width:min(330px,calc(100vw - 32px));background:#fff;color:#151412;border:1px solid #eee6d4;border-radius:14px;box-shadow:0 8px 28px rgba(21,20,18,.12);padding:14px 16px 14px;font:13px/1.5 inherit;font-family:inherit;opacity:0;transform:translateY(12px);pointer-events:none;transition:opacity .3s ease,transform .3s ease}
   #sfck.on{opacity:1;transform:none;pointer-events:auto}
   #sfck[hidden]{display:none}
-  #sfck h2{margin:0 0 6px;font-size:16px;font-weight:700;letter-spacing:-.005em;line-height:1.3;text-transform:none}
-  #sfck p{margin:0;color:#4a4238;font-size:13.5px}
+  #sfck h2{margin:0 0 4px;font-size:13.5px;font-weight:700;letter-spacing:-.005em;line-height:1.3;text-transform:none}
+  #sfck p{margin:0;color:#5a5144;font-size:12px;line-height:1.5}
   #sfck p a{color:#151412;text-decoration:underline;text-underline-offset:3px;text-decoration-color:#e0a25a}
-  #sfck .sfck-b{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
-  #sfck button{font:inherit;font-size:13.5px;font-weight:700;cursor:pointer;border-radius:999px;padding:11px 18px;border:1.5px solid #151412;background:#fff;color:#151412;line-height:1.1;transition:background .2s ease,color .2s ease,border-color .2s ease;-webkit-tap-highlight-color:transparent;text-transform:none;letter-spacing:0;min-height:0}
+  #sfck .sfck-b{display:flex;gap:6px;margin-top:12px;flex-wrap:nowrap}
+  #sfck .sfck-x{display:inline-block;margin:0 0 6px;padding:0;border:0;background:none;font-size:11px;font-weight:600;color:#6b6252;text-decoration:underline;text-underline-offset:3px;border-radius:0;line-height:1.2}
+  #sfck .sfck-x:hover{background:none;color:#151412}
+  #sfck button{font:inherit;font-size:12px;font-weight:700;cursor:pointer;border-radius:999px;padding:8px 12px;border:1px solid #cfc5ae;background:#fff;color:#151412;line-height:1.1;transition:background .2s ease,color .2s ease,border-color .2s ease;-webkit-tap-highlight-color:transparent;text-transform:none;letter-spacing:0;min-height:0}
   #sfck button:hover{background:#faf6ee}
-  #sfck button.p{background:#151412;color:#fff}
+  #sfck button.p{background:#151412;color:#fff;border-color:#151412}
   #sfck button.p:hover{background:#000}
-  #sfck button.l{border-color:transparent;background:transparent;text-decoration:underline;text-underline-offset:3px;padding:11px 6px;margin-left:auto}
   #sfck button:focus-visible{outline:2px solid #151412;outline-offset:2px}
-  #sfck .sfck-b button{flex:1 1 auto}
-  #sfck .sfck-b button.l{flex:0 0 auto}
-  #sfck .sfck-s{display:none;margin-top:14px;border-top:1px solid #efe6d2;padding-top:6px}
+  #sfck .sfck-b button{flex:1 1 0;white-space:nowrap}
+  #sfck .sfck-s{display:none;margin-top:10px;border-top:1px solid #efe6d2;padding-top:6px}
   #sfck.set .sfck-s{display:block}
   #sfck.set .sfck-b.m{display:none}
-  #sfck .sfck-r{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:10px 0;border-bottom:1px solid #efe6d2}
+  #sfck .sfck-r{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:8px 0;border-bottom:1px solid #efe6d2}
   #sfck .sfck-r:last-of-type{border-bottom:0}
-  #sfck .sfck-r strong{display:block;font-size:13.5px}
-  #sfck .sfck-r span{display:block;font-size:12.5px;color:#6b6252;line-height:1.45}
-  #sfck .sfck-sw{position:relative;flex:none;width:44px;height:26px;margin-top:2px}
+  #sfck .sfck-r strong{display:block;font-size:12.5px}
+  #sfck .sfck-r span{display:block;font-size:11.5px;color:#6b6252;line-height:1.45}
+  #sfck .sfck-sw{position:relative;flex:none;width:38px;height:22px;margin-top:2px}
   #sfck .sfck-sw input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer;z-index:1}
   #sfck .sfck-sw i{position:absolute;inset:0;border-radius:999px;background:#d9d0bd;transition:background .2s ease}
-  #sfck .sfck-sw i::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .2s ease}
+  #sfck .sfck-sw i::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .2s ease}
   #sfck .sfck-sw input:checked+i{background:#151412}
-  #sfck .sfck-sw input:checked+i::after{transform:translateX(18px)}
+  #sfck .sfck-sw input:checked+i::after{transform:translateX(16px)}
   #sfck .sfck-sw input:disabled{cursor:not-allowed}
   #sfck .sfck-sw input:disabled+i{opacity:.55}
   #sfck .sfck-sw input:focus-visible+i{outline:2px solid #151412;outline-offset:2px}
   body.sfck-open .whatsapp-floating-button{display:none!important}
   [data-sf-cookie-open]{cursor:pointer}
-  @media(max-width:560px){#sfck{left:8px;right:8px;bottom:8px;width:auto;padding:18px 16px 14px;border-radius:16px}#sfck .sfck-b button{flex:1 1 100%}#sfck .sfck-b button.l{margin:0 auto}}
+  @media(max-width:560px){#sfck{left:8px;right:8px;bottom:8px;width:auto;padding:12px 14px 12px;border-radius:14px}}
   @media(prefers-reduced-motion:reduce){#sfck,#sfck *{transition:none!important}}
 </style>
 <div id="sfck" role="dialog" aria-modal="false" aria-labelledby="sfck-t" aria-describedby="sfck-d" hidden>
+  <button type="button" class="sfck-x" id="sfck-no"></button>
   <h2 id="sfck-t"></h2>
   <p id="sfck-d"></p>
   <div class="sfck-s" id="sfck-s">
@@ -93,8 +94,7 @@
   </div>
   <div class="sfck-b m" id="sfck-b1">
     <button type="button" class="p" id="sfck-ok"></button>
-    <button type="button" id="sfck-no"></button>
-    <button type="button" class="l" id="sfck-cf"></button>
+    <button type="button" id="sfck-cf"></button>
   </div>
   <div class="sfck-b" id="sfck-b2" style="display:none">
     <button type="button" class="p" id="sfck-sv"></button>
@@ -105,11 +105,11 @@
 (function(){
   var LC={{ sfck_lc | json }};
   var TX={
-    nl:{t:'Cookies bij SocialFrame',d:'We gebruiken cookies om de shop te laten werken en – alleen met jouw toestemming – om te meten hoe de site wordt gebruikt en om onze advertenties (o.a. Google Ads en Meta) relevanter te maken. Je kunt je keuze altijd wijzigen. <a href="{{ routes.root_url }}policies/privacy-policy">Privacybeleid</a>',ok:'Alles accepteren',no:'Alleen noodzakelijk',cf:'Instellen',sv:'Keuze opslaan',
+    nl:{t:'Cookies bij SocialFrame',d:'We gebruiken cookies voor de werking van de shop en, alleen met jouw toestemming, voor statistiek en advertenties (o.a. Google Ads en Meta). <a href="{{ routes.root_url }}policies/privacy-policy">Privacybeleid</a>',ok:'Alles accepteren',no:'Alleen noodzakelijk',cf:'Instellingen',sv:'Keuze opslaan',
       n_t:'Noodzakelijk',n_d:'Winkelwagen, afrekenen en beveiliging. Altijd aan.',a_t:'Statistiek',a_d:'Anonieme statistieken over bezoek en gebruik, zodat we de site kunnen verbeteren.',m_t:'Marketing',m_d:'Advertenties meten en personaliseren, o.a. via Google Ads en Meta.',fl:'Cookie-instellingen'},
-    de:{t:'Cookies bei SocialFrame',d:'Wir verwenden Cookies, damit der Shop funktioniert und – nur mit deiner Einwilligung – um die Nutzung zu messen und unsere Werbung (u. a. Google Ads und Meta) relevanter zu machen. Du kannst deine Auswahl jederzeit ändern. <a href="{{ routes.root_url }}policies/privacy-policy">Datenschutzerklärung</a>',ok:'Alle akzeptieren',no:'Nur notwendige',cf:'Einstellen',sv:'Auswahl speichern',
+    de:{t:'Cookies bei SocialFrame',d:'Wir verwenden Cookies für den Shop und, nur mit deiner Einwilligung, für Statistik und Werbung (u. a. Google Ads und Meta). <a href="{{ routes.root_url }}policies/privacy-policy">Datenschutzerklärung</a>',ok:'Alle akzeptieren',no:'Nur notwendige',cf:'Einstellungen',sv:'Auswahl speichern',
       n_t:'Notwendig',n_d:'Warenkorb, Kasse und Sicherheit. Immer aktiv.',a_t:'Statistik',a_d:'Anonyme Statistiken zu Besuch und Nutzung, damit wir die Seite verbessern können.',m_t:'Marketing',m_d:'Werbung messen und personalisieren, u. a. über Google Ads und Meta.',fl:'Cookie-Einstellungen'},
-    en:{t:'Cookies at SocialFrame',d:'We use cookies to make the shop work and – only with your consent – to measure how the site is used and to make our ads (including Google Ads and Meta) more relevant. You can change your choice at any time. <a href="{{ routes.root_url }}policies/privacy-policy">Privacy policy</a>',ok:'Accept all',no:'Necessary only',cf:'Customise',sv:'Save choice',
+    en:{t:'Cookies at SocialFrame',d:'We use cookies to run the shop and, only with your consent, for statistics and advertising (including Google Ads and Meta). <a href="{{ routes.root_url }}policies/privacy-policy">Privacy policy</a>',ok:'Accept all',no:'Necessary only',cf:'Settings',sv:'Save choice',
       n_t:'Necessary',n_d:'Cart, checkout and security. Always on.',a_t:'Statistics',a_d:'Anonymous statistics about visits and usage so we can improve the site.',m_t:'Marketing',m_d:'Measure and personalise ads, including via Google Ads and Meta.',fl:'Cookie settings'}
   };
   var T=TX[LC]||TX.en;
