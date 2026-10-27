@@ -141,19 +141,19 @@
   // Beslis of de banner getoond moet worden
   var decided=!!read();
   function sync(cp){
-    // Bezoeker met een eerdere keuze in Shopify (cookie) maar zonder localStorage: neem over.
-    try{
-      var cur=cp.currentVisitorConsent&&cp.currentVisitorConsent();
-      if(cur&&(cur.analytics==='yes'||cur.analytics==='no'||cur.marketing==='yes'||cur.marketing==='no')&&!decided){
+    var need=true;
+    try{need=cp.shouldShowBanner?cp.shouldShowBanner():true;}catch(e){}
+    // Shopify kent al een keuze (bijv. eerder gegeven via de oude banner): neem die over.
+    if(!need&&!decided){
+      try{
+        var cur=cp.currentVisitorConsent();
         var a=cur.analytics==='yes',m=cur.marketing==='yes';
         store(a,m);decided=true;
         var g=function(v){return v?'granted':'denied'};
         gtag('consent','update',{ad_storage:g(m),ad_user_data:g(m),ad_personalization:g(m),analytics_storage:g(a)});
-      }
-    }catch(e){}
-    var need=true;
-    try{need=cp.shouldShowBanner?cp.shouldShowBanner():true;}catch(e){}
-    if(need&&!decided)open(false);
+      }catch(e){}
+    }
+    if(need&&!decided){open(false);return;}
     // Keuze bestaat lokaal maar Shopify kent hem nog niet: opnieuw doorgeven
     if(decided){var s=read();try{cp.setTrackingConsent({analytics:!!s.a,marketing:!!s.m,preferences:!!s.a,sale_of_data:!!s.m},function(){});}catch(e){}}
   }
