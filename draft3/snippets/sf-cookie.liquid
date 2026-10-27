@@ -23,6 +23,25 @@
   gtag('set','url_passthrough',true);
 })();
 </script>
+{%- elsif mode == 'head2' -%}
+<script>
+(function(){
+  /* Zet de Shopify-toestemming zo vroeg mogelijk op de keuze van de bezoeker, of op "geweigerd" zolang er nog geen keuze is.
+     Zo starten Google Ads, Meta en Clarity niet met standaard "ja". */
+  var s=null;
+  try{s=JSON.parse(localStorage.getItem('sf_consent')||'null');}catch(e){}
+  if(!s){var c=document.cookie.match(/(?:^|; )sf_consent=([01])([01])/);if(c)s={a:c[1]==='1',m:c[2]==='1'};}
+  var a=!!(s&&s.a),m=!!(s&&s.m),tries=0;
+  function go(){
+    if(!(window.Shopify&&Shopify.loadFeatures)){if(tries++<300)setTimeout(go,10);return;}
+    Shopify.loadFeatures([{name:'consent-tracking-api',version:'0.1'}],function(err){
+      if(err||!Shopify.customerPrivacy)return;
+      try{Shopify.customerPrivacy.setTrackingConsent({analytics:a,marketing:m,preferences:a,sale_of_data:m},function(){});}catch(e){}
+    });
+  }
+  go();
+})();
+</script>
 {%- elsif mode == 'body' -%}
 <style>
   #sfck{position:fixed;left:16px;bottom:16px;z-index:2147483000;width:min(440px,calc(100vw - 32px));background:#fff;color:#151412;border:1px solid #e8dcc3;border-radius:18px;box-shadow:0 18px 50px rgba(21,20,18,.18);padding:22px 22px 18px;font:14px/1.55 inherit;font-family:inherit;opacity:0;transform:translateY(12px);pointer-events:none;transition:opacity .3s ease,transform .3s ease}
@@ -147,32 +166,11 @@
   });
   window.sfCookie={open:function(){open(true)}};
 
-  // Beslis of de banner getoond moet worden
+  // Toon de banner zolang de bezoeker nog niets gekozen heeft
   var decided=!!read();
-  function sync(cp){
-    var need=true;
-    try{need=cp.shouldShowBanner?cp.shouldShowBanner():true;}catch(e){}
-    // Shopify kent al een keuze (bijv. eerder gegeven via de oude banner): neem die over.
-    if(!need&&!decided){
-      try{
-        var cur=cp.currentVisitorConsent();
-        var a=cur.analytics==='yes',m=cur.marketing==='yes';
-        store(a,m);decided=true;
-        var g=function(v){return v?'granted':'denied'};
-        gtag('consent','update',{ad_storage:g(m),ad_user_data:g(m),ad_personalization:g(m),analytics_storage:g(a)});
-      }catch(e){}
-    }
-    if(need&&!decided){open(false);return;}
-    // Keuze bestaat lokaal maar Shopify kent hem nog niet: opnieuw doorgeven
-    if(decided){var s=read();try{cp.setTrackingConsent({analytics:!!s.a,marketing:!!s.m,preferences:!!s.a,sale_of_data:!!s.m},function(){});}catch(e){}}
-  }
   function boot(){
-    if(window.Shopify&&Shopify.loadFeatures){
-      Shopify.loadFeatures([{name:'consent-tracking-api',version:'0.1'}],function(err){
-        if(err||!Shopify.customerPrivacy){if(!decided)open(false);return;}
-        sync(Shopify.customerPrivacy);
-      });
-    }else if(!decided){open(false);}
+    if(!decided){open(false);return;}
+    // Keuze bestaat lokaal: Shopify heeft hem al ontvangen via het head-script
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
