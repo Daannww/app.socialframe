@@ -331,42 +331,63 @@
           "type": "item",
           "settings": {
             "question": "Hoe wordt mijn foto een lijntekening?",
-            "answer": "<p>Je uploadt je foto, en die wordt met de hand/digitaal omgezet naar een minimalistische lijnillustratie — geen kleur of schaduw, puur vorm en karakter van het origineel.</p>"
+            "answer": "<p>Je uploadt je foto en kiest een stijl (zonder achtergrond of met achtergrond). Na het klikken op \"Maak mijn tegeltje\" wordt je foto automatisch omgezet naar een verfijnde lijntekening — dit duurt 20 tot 60 seconden.</p>"
           }
         },
         "faq_2": {
           "type": "item",
           "settings": {
-            "question": "Welke foto's werken het beste?",
-            "answer": "<p>Een scherpe foto met een duidelijk herkenbaar silhouet (bijv. een gezicht, lichaam of huisdier en face profiel) geeft het beste resultaat. Te donkere, onscherpe of drukke foto's zijn moeilijker te vertalen.</p>"
+            "question": "Kan ik ook tekst toevoegen?",
+            "answer": "<p>Ja, optioneel kun je tekst op de afbeelding laten plaatsen (max. 100 tekens).</p>"
           }
         },
         "faq_3": {
+          "type": "item",
+          "settings": {
+            "question": "Kan ik het resultaat zien voordat ik besteld?",
+            "answer": "<p>Ja. Na het genereren krijg je een preview te zien. Niet tevreden? Dan kun je het opnieuw proberen — je hebt hiervoor een beperkt aantal pogingen. Pas als je tevreden bent, voeg je het toe aan je winkelmand.</p>"
+          }
+        },
+        "faq_4": {
+          "type": "item",
+          "settings": {
+            "question": "Welke foto's werken het beste?",
+            "answer": "<p>Een scherpe foto met een duidelijk herkenbaar silhouet (gezicht, lichaam of huisdier, bij voorkeur van de zijkant of recht van voren) geeft het beste resultaat. Donkere, onscherpe of drukke foto's zijn moeilijker goed te vertalen.</p>"
+          }
+        },
+        "faq_5": {
           "type": "item",
           "settings": {
             "question": "Welke formaten zijn er?",
             "answer": "<p>10x10 cm en 13x13 cm.</p>"
           }
         },
-        "faq_4": {
-          "type": "item",
-          "settings": {
-            "question": "Waar is het tegeltje van gemaakt?",
-            "answer": "<p>Handgevormd keramiek, met een natuurlijke, ambachtelijke afwerking — elk exemplaar heeft daardoor subtiele, unieke oneffenheden.</p>"
-          }
-        },
-        "faq_5": {
-          "type": "item",
-          "settings": {
-            "question": "Kan ik het neerzetten én ophangen?",
-            "answer": "<p>Ja, los neerzetten kan, en er zijn ook een houder en een muurophangsysteem als optie te kiezen.</p>"
-          }
-        },
         "faq_6": {
           "type": "item",
           "settings": {
+            "question": "Waar is het tegeltje van gemaakt?",
+            "answer": "<p>Handgevormd keramiek, met zorg en vakmanschap in eigen productie vervaardigd — elk tegeltje is daardoor uniek.</p>"
+          }
+        },
+        "faq_7": {
+          "type": "item",
+          "settings": {
+            "question": "Kan ik het neerzetten én ophangen?",
+            "answer": "<p>Ja. Naast los neerzetten kun je kiezen uit een houten houder, muurophangsysteem, schildersezeltje, kunststof houder, zwart metalen houder of een eikenhouten lijst.</p>"
+          }
+        },
+        "faq_8": {
+          "type": "item",
+          "settings": {
+            "question": "Hoe weet ik welk formaat het beste past?",
+            "answer": "<p>Gebruik de AR-functie op de productpagina om het tegeltje meteen in jouw eigen interieur te bekijken.</p>"
+          }
+        },
+        "faq_9": {
+          "type": "item",
+          "settings": {
             "question": "Is het geschikt als cadeau?",
-            "answer": "<p>Ja, bijvoorbeeld voor een trouwmoment, gezin, huisdier of andere dierbare herinnering.</p>"
+            "answer": "<p>Ja — er is een optie voor cadeauverpakking en een handgeschreven kaartje, direct bij te bestellen op de productpagina.</p>"
           }
         }
       },
@@ -376,7 +397,10 @@
         "faq_3",
         "faq_4",
         "faq_5",
-        "faq_6"
+        "faq_6",
+        "faq_7",
+        "faq_8",
+        "faq_9"
       ],
       "settings": {
         "kicker": "FAQ",
