@@ -164,7 +164,7 @@
   $('sfck-cf').onclick=function(){open(true);$('sfck-a').focus()};
   $('sfck-sv').onclick=function(){apply($('sfck-a').checked,$('sfck-m').checked)};
   document.addEventListener('click',function(e){
-    var t=e.target.closest&&e.target.closest('[data-sf-cookie-open]');
+    var t=e.target.closest&&e.target.closest('[data-sf-cookie-open],a[href*="e-kookie"],a[href="#cookies"]');
     if(t){e.preventDefault();open(true);}
   });
   window.sfCookie={open:function(){open(true)}};
