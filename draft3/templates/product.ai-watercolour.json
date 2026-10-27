@@ -400,12 +400,90 @@
         "remove_margin": false,
         "seo_h_tag": "h2"
       }
+    },
+    "sf_faq": {
+      "type": "sf-faq",
+      "blocks": {
+        "faq_1": {
+          "type": "item",
+          "settings": {
+            "question": "Hoe werkt de personalisatie van dit watercolour tegeltje?",
+            "answer": "<p>Je uploadt een foto en kiest een stijl: zonder achtergrond of met achtergrond. Optioneel voeg je tekst toe op de afbeelding (max. 100 tekens). Na het klikken op \"Maak mijn tegeltje\" wordt jouw foto vertaald naar een zachte, artistieke watercolourstijl (20-60 seconden).</p>"
+          }
+        },
+        "faq_2": {
+          "type": "item",
+          "settings": {
+            "question": "Kan ik het resultaat zien voordat ik besteld?",
+            "answer": "<p>Ja. Na het genereren krijg je een preview te zien. Niet tevreden? Dan kun je het opnieuw laten genereren — je hebt hiervoor een beperkt aantal pogingen. Pas als je tevreden bent, voeg je het toe aan je winkelmand.</p>"
+          }
+        },
+        "faq_3": {
+          "type": "item",
+          "settings": {
+            "question": "Welke foto's werken het beste voor de watercolourstijl?",
+            "answer": "<p>Een scherpe foto met goed licht en een duidelijk onderwerp geeft het mooiste, zachte aquarel-effect.</p>"
+          }
+        },
+        "faq_4": {
+          "type": "item",
+          "settings": {
+            "question": "Van welk materiaal is het tegeltje gemaakt?",
+            "answer": "<p>Handgevormd keramiek, met zorg in eigen productie afgewerkt — elk tegeltje is daardoor uniek.</p>"
+          }
+        },
+        "faq_5": {
+          "type": "item",
+          "settings": {
+            "question": "Welke afmetingen zijn er?",
+            "answer": "<p>10x10 cm en 13x13 cm.</p>"
+          }
+        },
+        "faq_6": {
+          "type": "item",
+          "settings": {
+            "question": "Kan ik het neerzetten én ophangen?",
+            "answer": "<p>Ja. Naast los neerzetten kun je kiezen uit een houten houder, muurophangsysteem, zwart metalen houder, schildersezeltje, kunststof houder of een eikenhouten lijst (die lijsten we gratis voor je in).</p>"
+          }
+        },
+        "faq_7": {
+          "type": "item",
+          "settings": {
+            "question": "Hoe weet ik welk formaat het beste past?",
+            "answer": "<p>Gebruik de AR-functie op de productpagina om het tegeltje meteen in jouw eigen interieur te bekijken.</p>"
+          }
+        },
+        "faq_8": {
+          "type": "item",
+          "settings": {
+            "question": "Is dit geschikt als cadeau?",
+            "answer": "<p>Ja — er is een optie voor cadeauverpakking en een handgeschreven kaartje, direct bij te bestellen.</p>"
+          }
+        }
+      },
+      "block_order": [
+        "faq_1",
+        "faq_2",
+        "faq_3",
+        "faq_4",
+        "faq_5",
+        "faq_6",
+        "faq_7",
+        "faq_8"
+      ],
+      "settings": {
+        "kicker": "FAQ",
+        "title": "Veelgestelde vragen",
+        "first_open": false,
+        "only_handle": "gepersonaliseerd-watercolour-tegeltje-met-eigen-foto"
+      }
     }
   },
   "order": [
     "main",
     "text_columns_images_cy4idC",
     "content_toggles_ek46UQ",
+    "sf_faq",
     "newsletter_wNaUgE",
     "17722640634621c8e5"
   ]
