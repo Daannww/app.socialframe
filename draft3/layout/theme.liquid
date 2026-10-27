@@ -1,0 +1,516 @@
+<!doctype html>
+{%- liquid
+  assign direction = 'ltr'
+  assign rtl_iso_codes = 'ar,he,ur,fa,pa,sd,ku' | split: ','
+  if rtl_iso_codes contains request.locale.iso_code
+    assign direction = 'rtl'
+  endif
+-%}
+<html class="no-js" lang="{{ request.locale.iso_code }}" dir="{{ direction }}">
+  
+<head>
+{%- if template == 'index' -%}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Kan ik mijn bestelling volgen?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Ja. Je ontvangt automatisch een trackinglink zodra je pakket verzonden is."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Hoe snel wordt mijn bestelling geleverd?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Bestellingen vóór 12:00 uur worden dezelfde werkdag verzonden. Bezorging in Nederland, België en Duitsland duurt meestal 1 werkdag."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Waar worden de SocialFrames geproduceerd?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Onze frames worden 100% lokaal geproduceerd in Nederland – zonder tussenpartijen."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Kan ik mijn bestelling annuleren of wijzigen?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Ja. Neem zo snel mogelijk contact op via live-chat, WhatsApp of per e-mail via klantenservice@socialframe.nl."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Wat als mijn bestelling beschadigd is aangekomen?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Neem direct contact met ons op via live-chat, WhatsApp of klantenservice@socialframe.nl. We zorgen altijd voor een passende oplossing."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Wat zijn de producteigenschappen van SocialFrames?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "De frames zijn gemaakt van forex of plexiglas, beschikbaar in 13×20, 20×30 en 50×70 cm. Je kunt kiezen voor een mat of glanzende afwerking, met optionele houten, marmeren of verlichte standaarden met timer en afstandsbediening."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Hebben jullie ook 3D gepersonaliseerde producten?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Ja. We maken 3D-producten op maat, zoals jouw huis, trouwlocatie of coördinaten in een uniek frame."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Zijn SocialFrames geschikt als kraam- of geboortecadeau?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Zeker! Denk aan geboorteframes met naam en geboortedatum of 3D-silhouetten van het gezin. Perfect als blijvend cadeau."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Bieden jullie korting bij meerdere stuks?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Ja. Bij aankoop van 2 of meer stuks ontvang je korting met kortingscode: sf215."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Kan ik mijn eigen foto of ontwerp gebruiken?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Ja. Je uploadt eenvoudig je eigen afbeelding tijdens het bestelproces en ziet direct een voorbeeld."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Kan ik een persoonlijke boodschap toevoegen?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Ja. Tijdens het afrekenen kun je een korte boodschap toevoegen – ideaal voor cadeaus."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Zijn jullie producten duurzaam?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Ja. We gebruiken milieuvriendelijke materialen, produceren lokaal en verpakken zonder verspilling."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Kan ik een factuur ontvangen?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Ja. Je ontvangt automatisch een factuur per mail. Voor zakelijke facturen kun je contact met ons opnemen."
+      }
+    }
+  ]
+}
+</script>
+{%- endif -%}
+	<meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, height=device-height, minimum-scale=1.0">
+
+	{%- if settings.favicon -%}
+		<link rel="shortcut icon" href="{{ settings.favicon | image_url: width: 48, height: 48 }}" type="image/png" />
+	{%- endif -%}
+
+	{%- capture seo_title -%}
+    {%- if template contains 'search' -%}
+      {{ search.terms | replace: '*', '' | split: ' AND ' | last }} - {{ shop.name | escape }}
+    {%- else -%}
+      {{ page_title }}{% if current_tags %}{% assign meta_tags = current_tags | join: ', ' %} &ndash; {{ 'general.meta.tags' | t: tags: meta_tags }}{% endif %}{% if current_page != 1 %} &ndash; {{ 'general.meta.page' | t: page: current_page }}{% endif %}{% unless page_title contains shop.name %} &ndash; {{ shop.name | escape }}{% endunless %}
+    {%- endif -%}
+  {%- endcapture -%}
+
+	<title>{{ seo_title }}</title>
+
+
+  <meta name="google-site-verification" content="egfH_rI5-wZwhkae3QkA0qD4A51UtpxCAWHMhd8RQy4" />
+
+	{%- if page_description -%}
+		<meta name="description" content="{{ page_description | escape }}">
+	{%- endif -%}
+
+  {%- liquid
+    render 'open-graph'
+    unless settings.disable_microdata 
+      render 'microdata-schema'
+    endunless
+  -%}
+
+  <link rel="canonical" href="{{ canonical_url }}">
+
+  <link rel="preconnect" href="https://cdn.shopify.com">
+  {%- if template contains 'product' -%}
+    <link rel="preconnect" href="https://ai-foto.socialframe.nl" crossorigin>
+  {%- endif -%}
+  {%- unless settings.headings_font.system? and settings.body_font.system? -%}
+    <link rel="preconnect" href="https://fonts.shopifycdn.com" crossorigin>
+  {%- endunless -%}
+
+  {%- render 'head-preloader' -%}
+  {%- render 'head-variables', direction: direction -%}
+
+  {{ 'theme.css' | asset_url | stylesheet_tag }}
+
+	{%- render 'sf-cookie', mode: 'head' -%}
+	{{ content_for_header }}
+
+  <script>
+    const rbi = [];
+    const ribSetSize = (img) => {
+      if ( img.offsetWidth / img.dataset.ratio < img.offsetHeight ) {
+        img.setAttribute('sizes', `${Math.ceil(img.offsetHeight * img.dataset.ratio)}px`);
+      } else {
+        img.setAttribute('sizes', `${Math.ceil(img.offsetWidth)}px`);
+      }
+    }
+    const debounce = (fn, wait) => {
+      let t;
+      return (...args) => {
+        clearTimeout(t);
+        t = setTimeout(() => fn.apply(this, args), wait);
+      };
+    }
+    window.KEYCODES = {
+      TAB: 9,
+      ESC: 27,
+      DOWN: 40,
+      RIGHT: 39,
+      UP: 38,
+      LEFT: 37,
+      RETURN: 13
+    };
+    window.addEventListener('resize', debounce(()=>{
+      for ( let img of rbi ) {
+        ribSetSize(img);
+      }
+    }, 250));
+  </script>
+	
+  {%- if template == 'customers/addresses' or request.design_mode -%}
+	  <script src="{{ 'shopify_common.js' | shopify_asset_url }}" defer></script>
+	{%- endif -%}
+
+  <noscript>
+    <link rel="stylesheet" href="{{ 'theme-noscript.css' | asset_url }}">
+  </noscript>
+
+  <style>
+    
+  cart-recommendations,
+  #cart-recommendations {
+    display: none !important;
+  }
+#site-cart-sidebar {
+  grid-template-rows: min-content min-content min-content !important;
+  align-content: start !important;
+}
+#site-cart-sidebar .sidebar__footer {
+  position: sticky;
+  bottom: 0;
+}
+#site-cart-sidebar .cart-continue {
+  display: none;
+}
+</style>
+
+</head>
+
+<body id="{{ page_title | handle }}" class="no-touchevents 
+  {% if customer %} customer-logged-in {% endif %} 
+  template-{{ template.name }} template-{{ template | replace: '.', ' ' | handle }} 
+  {% if settings.shadow_cards_x < 0 %} has-negative-shadow-x {% endif %}
+  {% if settings.shadow_cards_y < 0 %} has-negative-shadow-y {% endif %}
+  {% unless settings.show_sidebars_scrollbar %} sidebars-has-scrollbars {% endunless %}
+">
+
+  <script type="text/javascript">
+    if ( 'ontouchstart' in window || window.DocumentTouch && document instanceof DocumentTouch ) { document.querySelector('body').classList.remove('no-touchevents'); document.querySelector('body').classList.add('touchevents'); } 
+  </script>
+
+  <a href="#main" class="visually-hidden skip-to-content" tabindex="0" data-js-inert>{{ 'general.accessibility_labels.skip_to_content' | t }}</a>
+  <div id="screen-reader-info" aria-live="polite" class="visually-hidden"></div>
+
+  {{ 'section-header.css' | asset_url | stylesheet_tag }}
+  {%- sections 'header-group' -%}
+
+  {{ 'component-slider.css' | asset_url | stylesheet_tag }}
+  <script src="{{ 'component-product-form.js' | asset_url }}" defer></script>
+
+  <main id="main" class="main-content 
+    {% if settings.product_card_align_buy %} main-content--align-product-items {% endif %}
+  ">
+    {%- render 'breadcrumb' -%}
+    {{ content_for_layout }}
+  </main>
+
+  {%- sections 'footer-group' -%}
+  {%- section 'popups' -%}
+  {%- section 'popup-age-verification' -%}
+  {%- section 'exit-intent-popup' -%}
+  {%- section 'store-selector' -%}
+  
+  <script src="{{ 'component-modal.js' | asset_url }}" defer></script>
+  <link rel="stylesheet" href="{{ 'component-modal.css' | asset_url }}" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="{{ 'component-popup.css' | asset_url }}" media="print" onload="this.media='all'">
+
+	<script type="text/javascript">
+
+    KROWN = {
+      themeName: "Local",
+      themeVersion: "2.4.0.1",
+      settings: {
+        shop_money_format: '{{ shop.money_format }}',
+        iso_code: '{% if settings.show_currency_codes %} {{ localization.country.currency.iso_code }}{% endif %}',
+        cart_action: "{{ settings.cart_action }}",
+        google_maps_api_key: "{{ settings.google_maps_api_key }}",
+        routes: {
+          cart_url: "{{ routes.cart_url }}",
+          cart_add_url: "{{ routes.cart_add_url }}",
+          cart_change_url: "{{ routes.cart_change_url }}",
+          predictive_search_url: "{{ routes.predictive_search_url }}",
+          product_recommendations_url: "{{ routes.product_recommendations_url }}"
+        },
+        locales: {
+          products_add_to_cart_button: `{{ 'products.page.add_to_cart_button' | t }}`,
+          products_preorder_button: `{{ 'products.page.preorder_button' | t }}`,
+          products_sold_out_variant: `{{ 'products.page.inventory.sold_out_variant' | t }}`,
+          products_unavailable_variant: `{{ 'products.page.inventory.unavailable_variant' | t }}`,
+          products_one_product: `{{ 'products.page.inventory.one_product' | t }}`,
+          products_few_products: `{{ 'products.page.inventory.few_products' | t }}`,
+          products_many_products: `{{ 'products.page.inventory.many_products' | t }}`,
+          products_no_products: `{{ 'products.page.inventory.no_products' | t }}`,
+          products_preorder: `{{ 'products.page.inventory.preorder' | t }}`,
+          products_enough_products: ``,
+          product_sku: `{{ 'products.page.sku' | t }}`,
+          product_barcode: `{{ 'products.page.barcode' | t }}`,
+          product_compare_price: `{{ 'products.page.sales_amount_html' | t: amount: '$SAVE_PRICE' }}`,
+          cart_add_error: `<span class="alert__icon">{%- render 'theme-symbols', icon: 'alert-error' -%}</span>{{ 'cart.add_error' | t }}`,
+          cart_general_error: `{{ 'cart.general_error' | t }}`,
+          cart_announcement: `{{ 'general.accessibility_labels.item_added' | t }}`,
+          store_selector_title_default: `{{ 'store_availability.store_selector.picking_up' | t }}`,
+          store_selector_title_selected: `{{ 'store_availability.store_selector.my_store' | t }}`,
+          store_selector_label: `{{ 'store_availability.store_selector.select_store_label' | t }}`,
+          shipping_calculator_results_heading_one: `{{ 'cart.shipping_calculator.results_heading_one' | t }}`,
+          shipping_calculator_results_heading_multiple: `{{ 'cart.shipping_calculator.results_heading_multiple' | t }}`,
+          shipping_notice_remaining_to_free: `{{ 'cart.free_shipping_remaining_html' | t }}`,
+          shipping_notice_eligible_for_free: `{{ 'cart.free_shipping_eligible' | t }}`
+        },
+        symbols: {
+          zoom_out: `{%- render 'theme-symbols', icon: 'zoom-out' -%}`,
+          zoom_in: `{%- render 'theme-symbols', icon: 'zoom-in' -%}`,
+          zoom_loader: `<svg class="zoom__loader-element" viewBox="25 25 50 50"><circle cx="50" cy="50" r="20" fill="none" stroke-width="4"/></svg>`,
+          close: `{%- render 'theme-symbols', icon: 'close' -%}`,
+          toggle_pack: `<span class="toggle__icon">{%- render 'theme-symbols', icon: 'chevron' -%}</span>`,
+          toggle_pack_alternate: `<span class="toggle__icon-alternate"><span class="toggle__icon--plus">{%- render 'theme-symbols', icon: 'plus' -%}</span><span class="toggle__icon--minus">{%- render 'theme-symbols', icon: 'minus' -%}</span></span>`
+        },
+        predictive_search_enabled: "true",
+        predictive_search_script: "{{ 'component-predictive-search.js' | asset_url }}",
+        predictive_search_placeholder: `<div class="search-results"><div class="search-block"><a class="search-item search-item--blank"><div class="thumbnail"></div><div class="content"><span class="title"></span><span class="caption"></span></div></a><a class="search-item search-item--blank"><div class="thumbnail"></div><div class="content"><span class="title"></span><span class="caption"></span></div></a><a class="search-item search-item--blank"><div class="thumbnail"></div><div class="content"><span class="title"></span><span class="caption"></span></div></a></div></div>`
+      }
+    }
+    
+	</script>
+
+  <script src="{{ 'component-quick-buy.js' | asset_url }}" defer></script>
+  <script src="{{ 'component-pickup-availability.js' | asset_url }}" defer></script>
+
+  <script src="{{ 'component-slider.js' | asset_url }}" defer></script>
+
+  {%- if request.design_mode -%}
+    <script src="{{ 'theme-editor.js' | asset_url }}" defer></script>
+  {%- endif -%}
+  
+  {%- unless settings.cart_action == "no-overlay" or template.name contains "cart" -%}
+
+    <sidebar-drawer id="site-cart-sidebar" class="sidebar sidebar--right {% if cart.item_count == 0 %} cart-is-empty {% endif %}" tabindex="-1" role="dialog" aria-modal="true" data-cart-items="{{ cart.item_count }}" style="display:none" data-js-site-cart-sidebar>
+      
+      <div class="sidebar__header">
+        <span class="sidebar__title h5">
+          {{ 'cart.title' | t }}
+          (<span data-header-cart-count>{{ cart.item_count }}</span>)
+        </span>
+        <button class="sidebar__close" data-js-close>
+          <span class="visually-hidden">{{ 'general.accessibility_labels.close_sidebar' | t }}</span>
+          <span aria-hidden="true" aria-role="img">{%- render 'theme-symbols', icon: 'close' -%}</span>
+        </button>
+      </div>
+
+      <div class="sidebar__body">
+
+        <div class="cart-form sidebar-large-padding">
+          {%- render 'cart-form', type: 'sidebar' -%}
+          <a href="{{ routes.all_products_collection_url }}" class="cart-continue button button--fullwidth button--solid button--regular">
+            {{ 'cart.continue_browsing' | t }}
+          </a>
+        </div>
+
+        {%- if settings.cart_notes_enable -%}
+          <div class="cart-instructions hide-if-empty-cart">
+            <div class="form-field">
+              <label for="cartSpecialInstructions">{{ 'cart.note' | t }}</label>
+              <textarea name="note" id="cartSpecialInstructions" form="cart">{{ cart.note }}</textarea>
+            </div>
+          </div>
+        {%- endif -%}
+
+      </div>
+
+      <div class="sidebar__footer hide-if-empty-cart" 
+        {% if settings.sticky_cart_actions %} style="position: sticky;" {% endif %}
+      >
+        {%- render 'cart-subtotal', type: 'sidebar' -%}
+      </div>
+
+    </sidebar-drawer>
+
+    <script>
+      new MutationObserver((mutations, observer) => {
+        if ( document.getElementById('cart').classList.contains('cart--empty') ) {
+          document.getElementById('site-cart-sidebar').classList.add('cart-is-empty');
+        } else {
+          document.getElementById('site-cart-sidebar').classList.remove('cart-is-empty');
+        }
+      }).observe(document.querySelector('.cart-form'), {
+        attributes: false, childList: true, subtree: true
+      })
+    </script>
+
+  {%- endunless -%}
+
+  <link rel="stylesheet" href="{{ 'component-cart.css' | asset_url }}" media="print" onload="this.media='all'">
+
+  <script src="{{ 'component-quantity-selector.js' | asset_url }}" defer></script>
+  {%- if settings.cart_action == "overlay" or template.name contains "cart" -%}
+    <script src="{{ 'component-cart.js' | asset_url }}" defer></script>
+  {%- endif -%}
+
+  <link rel="stylesheet" href="{{ 'component-sidebar.css' | asset_url }}" media="print" onload="this.media='all';">
+  <script src="{{ 'section-header.js' | asset_url }}" defer></script>
+
+  <script>
+    if ( document.getElementById('shopify-product-reviews') ) {
+      var element = document.createElement("link");
+      element.setAttribute("rel", "stylesheet");
+      element.setAttribute("type", "text/css");
+      element.setAttribute("href", "{{ 'component-shopify-reviews.css' | asset_url }}");
+      document.body.appendChild(element);
+    }
+  </script>
+
+  <!-- zepto custom script block -->
+  {% if template == "product" and product.metafields.customify['cstmfy_req'] == '1' %}
+    <script src="{{ 'zepto-custom.js' | asset_url }}" defer></script>
+  {% endif %}
+  <!-- zepto custom script block -->
+
+  {%- if settings.cart_notes_enable -%}
+    <script src="{{ 'component-order-instructions.js' | asset_url }}" defer></script>
+  {%- endif -%}
+  
+  {%- if request.design_mode -%}
+    <script src="{{ 'section-announcement-bar.js' | asset_url }}" defer></script>
+    <script src="{{ 'component-toggle.js' | asset_url }}" defer></script>
+    <script src="{{ 'section-main-product.js' | asset_url }}" defer></script>
+    <script src="{{ 'component-video.js' | asset_url }}" defer></script>
+    <script src="{{ 'component-store-selector.js' | asset_url }}" defer></script>
+    <script src="{{ 'component-interactive-map.js' | asset_url }}" defer></script>
+    <script src="{{ 'component-image-hotspots.js' | asset_url }}" defer></script>
+    <script src="{{ 'component-localization-form.js' | asset_url }}" defer></script>
+    <script src="{{ 'component-predictive-search.js' | asset_url }}" defer></script>
+    <script src="{{ 'component-shipping-calculator.js' | asset_url }}" defer></script>
+    <script src="{{ 'component-scrolling-text.js' | asset_url }}" defer></script>
+    <script src="{{ 'component-before-after.js' | asset_url }}" defer></script>
+  {%- endif -%}
+
+  <div class="site-overlay" style="display:none"></div>
+
+  <link rel="stylesheet" href="{{ 'section-main-product.css' | asset_url }}" media="print" onload="this.media='all';">
+
+  {%- if settings.show_gotop -%}
+    <span id="go-top" class="main-go-top"
+      onclick="window.scrollTo({ top: 0, behavior: 'smooth' })"
+    >
+      <span class="visually-hidden">{{ 'general.accessibility_labels.go_to_top' | t }}</span>
+      <span class="main-go-top__icon" aria-hidden="true">{%- render 'theme-symbols', icon: 'chevron' -%}</span>
+    </span>
+    <script>
+      window.addEventListener('scroll', ()=>{
+        if ( window.scrollY > 100 ) {
+          document.getElementById('go-top').classList.add('show');
+        } else {
+          document.getElementById('go-top').classList.remove('show');
+        }
+      }, {passive: true});
+    </script>
+  {%- endif -%}
+    
+  <script>
+    document.querySelectorAll('.rte a img').forEach(elm=>{
+  		elm.parentNode.style.border = 'none';
+    });
+  </script>
+
+  {%- if settings.enable_instapage -%}
+    <script src="{{ 'instantpage.js' | asset_url }}" type="module" defer></script>
+  {%- endif -%}
+    
+    {%- if settings.disable_all_image_animations -%}
+      <style>
+        img,
+        img:hover {
+          transition: all 0ms !important;
+          opacity: 1 !important;
+          transform: none !important;
+        }
+
+        .no-touchevents a:hover .lazy-image.lazy-image--zoom-animation img,
+        .no-touchevents .card--animation:hover .lazy-image.lazy-image--animation img  {
+          top: 0;
+          left: 0;
+          height: 100%;
+          width: 100%;
+          object-fit: cover;
+        }
+      </style>
+    {%- endif -%}
+
+    
+  {%- render 'sf-cookie', mode: 'body' -%}
+</body>
+
+            <div id="standaardModal" style="
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.65);
+  z-index:9999;
+  align-items:center;
+  justify-content:center;
+">
+<div onclick="closeStandaard()" style="position:fixed;top:50%;left:50%;transform:translate(-50%, -50%);background:#fff;padding:20px;max-width:min(90vw, 600px);max-height:min(90vh, 800px);overflow:auto;border-radius:10px;text-align:center;cursor:pointer;z-index:1000;">
+    <img id="standaardPreview" onclick="event.stopPropagation()" style="max-width:100%;height:auto;display:block;margin:0 auto;">
+    <button onclick="closeStandaard(); event.stopPropagation();" style="margin-top:12px;width:30%;display:block;margin-left:auto;margin-right:auto;background-color:#000000;color:white;border:none;border-radius:10px;padding:8px 16px;cursor:pointer;min-width:200px;max-width:100%;">
+      Sluiten
+    </button>
+  </div>
+</div>
+</html>
