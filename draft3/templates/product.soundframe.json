@@ -1,4 +1,3 @@
-
 {
   "sections": {
     "main": {
@@ -303,11 +302,88 @@
         "remove_margin": false,
         "seo_h_tag": "h2"
       }
+    },
+    "sf_faq": {
+      "type": "sf-faq",
+      "blocks": {
+        "faq_1": {
+          "type": "item",
+          "settings": {
+            "question": "Hoe werkt het Sound-Frame?",
+            "answer": "<p>Je foto komt op hoogwaardig, onbreekbaar acrylglas. Je personaliseert het frame op de productpagina en onze specialisten controleren je ontwerp voordat het in productie gaat.</p>"
+          }
+        },
+        "faq_2": {
+          "type": "item",
+          "settings": {
+            "question": "Welke formaten zijn er?",
+            "answer": "<p>Formaat S: 13 × 20 cm (3 mm). Formaat M standaard: 20 × 30 cm (3 mm). Formaat M extra dik: 20 × 30 cm (6 mm). Formaat XL: 47 × 70 cm (6 mm). Alle formaten zijn lasergesneden plexiglas.</p>"
+          }
+        },
+        "faq_3": {
+          "type": "item",
+          "settings": {
+            "question": "Waar is het frame van gemaakt?",
+            "answer": "<p>Van hoogwaardig, onbreekbaar acrylglas (plexiglas), op maat lasergesneden. Afhankelijk van het formaat is het 3 mm of 6 mm dik.</p>"
+          }
+        },
+        "faq_4": {
+          "type": "item",
+          "settings": {
+            "question": "Welke houders zijn er?",
+            "answer": "<p>Je kunt kiezen uit een kunststof houder, een zwart metalen houder of een schildersezeltje. Het frame kan ook zonder houder.</p>"
+          }
+        },
+        "faq_5": {
+          "type": "item",
+          "settings": {
+            "question": "Hoe weet ik welk formaat het beste past?",
+            "answer": "<p>Gebruik de VR-functie op de productpagina om het frame virtueel in jouw woonkamer te plaatsen.</p>"
+          }
+        },
+        "faq_6": {
+          "type": "item",
+          "settings": {
+            "question": "Hoe snel wordt mijn bestelling verzonden?",
+            "answer": "<p>Bestellingen die je op werkdagen vóór 12:00 uur plaatst, worden dezelfde werkdag verzonden. Daarna volgt de eerstvolgende werkdag. Levering is meestal binnen 1–2 werkdagen in Nederland en België en binnen 2–3 werkdagen in Duitsland.</p>"
+          }
+        },
+        "faq_7": {
+          "type": "item",
+          "settings": {
+            "question": "Zijn er verzendkosten?",
+            "answer": "<p>Verzending is gratis binnen Nederland, België en Duitsland.</p>"
+          }
+        },
+        "faq_8": {
+          "type": "item",
+          "settings": {
+            "question": "Is het geschikt als cadeau?",
+            "answer": "<p>Ja. Je kunt op de productpagina een cadeauverpakking en een handgeschreven kaartje bijbestellen.</p>"
+          }
+        }
+      },
+      "block_order": [
+        "faq_1",
+        "faq_2",
+        "faq_3",
+        "faq_4",
+        "faq_5",
+        "faq_6",
+        "faq_7",
+        "faq_8"
+      ],
+      "settings": {
+        "kicker": "FAQ",
+        "title": "Veelgestelde vragen",
+        "first_open": false
+      }
     }
   },
   "order": [
     "main",
     "content_toggles_ek46UQ",
+    "sf_faq",
     "newsletter_wNaUgE"
   ]
 }

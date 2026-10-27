@@ -1,4 +1,3 @@
-
 {
   "sections": {
     "main": {
@@ -420,6 +419,82 @@
         "remove_margin": false,
         "seo_h_tag": "h2"
       }
+    },
+    "sf_faq": {
+      "type": "sf-faq",
+      "blocks": {
+        "faq_1": {
+          "type": "item",
+          "settings": {
+            "question": "Hoe wordt mijn foto een lijntekening?",
+            "answer": "<p>Je uploadt je foto en kiest een stijl. Onze tool zet je foto automatisch om naar een verfijnde lijntekening, dat duurt ongeveer 20 tot 60 seconden. Optioneel voeg je eigen tekst toe en kies je liggend of staand.</p>"
+          }
+        },
+        "faq_2": {
+          "type": "item",
+          "settings": {
+            "question": "Kan ik het resultaat zien voordat ik bestel?",
+            "answer": "<p>Ja. Na het genereren krijg je een preview te zien en kies je je favoriet. Pas daarna voeg je het toe aan je winkelmand.</p>"
+          }
+        },
+        "faq_3": {
+          "type": "item",
+          "settings": {
+            "question": "Welke formaten zijn er?",
+            "answer": "<p>Ingelijst: 70 × 50 cm, 50 × 40 cm of 50 × 50 cm. Of op acrylglas: 70 × 50 cm.</p>"
+          }
+        },
+        "faq_4": {
+          "type": "item",
+          "settings": {
+            "question": "Kan ik een eerder ontwerp opnieuw bestellen?",
+            "answer": "<p>Ja, kies bij 'Herbestelling' op de productpagina om je ontwerp opnieuw te gebruiken.</p>"
+          }
+        },
+        "faq_5": {
+          "type": "item",
+          "settings": {
+            "question": "Hoe weet ik welk formaat het beste past?",
+            "answer": "<p>Gebruik de AR-functie op de productpagina om het product meteen in jouw eigen interieur te bekijken.</p>"
+          }
+        },
+        "faq_6": {
+          "type": "item",
+          "settings": {
+            "question": "Wordt mijn ontwerp gecontroleerd?",
+            "answer": "<p>Ja, onze specialisten controleren je ontwerp voordat het in productie gaat.</p>"
+          }
+        },
+        "faq_7": {
+          "type": "item",
+          "settings": {
+            "question": "Hoe snel wordt mijn bestelling verzonden?",
+            "answer": "<p>Bestellingen die je op werkdagen vóór 12:00 uur plaatst, worden dezelfde werkdag verzonden. Daarna volgt de eerstvolgende werkdag. Levering is meestal binnen 1–2 werkdagen in Nederland en België en binnen 2–3 werkdagen in Duitsland.</p>"
+          }
+        },
+        "faq_8": {
+          "type": "item",
+          "settings": {
+            "question": "Is het geschikt als cadeau?",
+            "answer": "<p>Ja. Je kunt op de productpagina een cadeauverpakking en een handgeschreven kaartje bijbestellen.</p>"
+          }
+        }
+      },
+      "block_order": [
+        "faq_1",
+        "faq_2",
+        "faq_3",
+        "faq_4",
+        "faq_5",
+        "faq_6",
+        "faq_7",
+        "faq_8"
+      ],
+      "settings": {
+        "kicker": "FAQ",
+        "title": "Veelgestelde vragen",
+        "first_open": false
+      }
     }
   },
   "order": [
@@ -427,6 +502,7 @@
     "text_columns_images_cy4idC",
     "content_toggles_ek46UQ",
     "ss_product_addons_KPbWdh",
+    "sf_faq",
     "newsletter_wNaUgE",
     "178863528367b41e46"
   ]

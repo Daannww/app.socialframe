@@ -542,6 +542,67 @@
         "border_thickness": 0,
         "lazy": true
       }
+    },
+    "sf_faq": {
+      "type": "sf-faq",
+      "blocks": {
+        "faq_1": {
+          "type": "item",
+          "settings": {
+            "question": "Hoe werkt het 3D Gevel-frame?",
+            "answer": "<p>Jouw gevel wordt met de hand getekend op basis van foto's. Binnen enkele werkdagen ontvang je een digitaal voorbeeld ter goedkeuring via e-mail. Na jouw akkoord starten we met het 3D-printproces en de afwerking.</p>"
+          }
+        },
+        "faq_2": {
+          "type": "item",
+          "settings": {
+            "question": "Kan ik het ontwerp zien voordat het wordt gemaakt?",
+            "answer": "<p>Ja. Je ontvangt een digitaal voorbeeld per e-mail en pas na jouw akkoord gaat het in productie.</p>"
+          }
+        },
+        "faq_3": {
+          "type": "item",
+          "settings": {
+            "question": "Hoe lang duurt de levering?",
+            "answer": "<p>Omdat het ambachtelijk wordt gemaakt, is de levertijd momenteel ongeveer 10 werkdagen, gerekend vanaf jouw akkoord op het digitale ontwerp.</p>"
+          }
+        },
+        "faq_4": {
+          "type": "item",
+          "settings": {
+            "question": "Welke formaten zijn er?",
+            "answer": "<p>Je kunt kiezen uit een lijst van 30 × 40 cm, 40 × 50 cm of 50 × 70 cm.</p>"
+          }
+        },
+        "faq_5": {
+          "type": "item",
+          "settings": {
+            "question": "Zijn er verzendkosten?",
+            "answer": "<p>Nee, verzending is gratis.</p>"
+          }
+        },
+        "faq_6": {
+          "type": "item",
+          "settings": {
+            "question": "Hoe weet ik welk formaat het beste past?",
+            "answer": "<p>Gebruik de AR-functie op de productpagina om het product meteen in jouw eigen interieur te bekijken.</p>"
+          }
+        }
+      },
+      "block_order": [
+        "faq_1",
+        "faq_2",
+        "faq_3",
+        "faq_4",
+        "faq_5",
+        "faq_6"
+      ],
+      "settings": {
+        "kicker": "FAQ",
+        "title": "Veelgestelde vragen",
+        "first_open": false,
+        "only_handle": "3d-gevel-frame"
+      }
     }
   },
   "order": [
@@ -549,6 +610,7 @@
     "content_toggles_ek46UQ",
     "ss_product_addons_KPbWdh",
     "ss_product_info_boxed_aFtair",
-    "ss_testimonial_8_iMy7PD"
+    "ss_testimonial_8_iMy7PD",
+    "sf_faq"
   ]
 }

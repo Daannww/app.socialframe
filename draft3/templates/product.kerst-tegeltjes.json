@@ -305,11 +305,72 @@
         "remove_margin": false,
         "seo_h_tag": "h2"
       }
+    },
+    "sf_faq": {
+      "type": "sf-faq",
+      "blocks": {
+        "faq_1": {
+          "type": "item",
+          "settings": {
+            "question": "Waar is het tegeltje van gemaakt?",
+            "answer": "<p>Handgevormd, echt keramiek, met zorg in eigen huis geproduceerd. De tekst is echt gedrukt, het is dus geen sticker.</p>"
+          }
+        },
+        "faq_2": {
+          "type": "item",
+          "settings": {
+            "question": "Welke formaten zijn er?",
+            "answer": "<p>Kijk bij 'Formaat' op de productpagina welke maten beschikbaar zijn. 10 × 10 cm is de meest gekozen maat.</p>"
+          }
+        },
+        "faq_3": {
+          "type": "item",
+          "settings": {
+            "question": "Kan ik het neerzetten én ophangen?",
+            "answer": "<p>Ja. Kies bij 'Houder' een houten houder, schildersezeltje, zwart metalen houder of muurophangsysteem. Staat de tekst onderaan je tegel, kies dan liever geen houten houder, want die kan de tekst gedeeltelijk afdekken.</p>"
+          }
+        },
+        "faq_4": {
+          "type": "item",
+          "settings": {
+            "question": "Kan ik het tegeltje laten inlijsten?",
+            "answer": "<p>Ja. Kies je een eikenhouten lijst, dan lijsten wij je tegeltje gratis voor je in.</p>"
+          }
+        },
+        "faq_5": {
+          "type": "item",
+          "settings": {
+            "question": "Hoe snel wordt mijn bestelling verzonden?",
+            "answer": "<p>Bestellingen die je op werkdagen vóór 12:00 uur plaatst, worden dezelfde werkdag verzonden. Daarna volgt de eerstvolgende werkdag. Levering is meestal binnen 1–2 werkdagen in Nederland en België en binnen 2–3 werkdagen in Duitsland.</p>"
+          }
+        },
+        "faq_6": {
+          "type": "item",
+          "settings": {
+            "question": "Is het geschikt als cadeau?",
+            "answer": "<p>Ja. Je kunt op de productpagina een cadeauverpakking en een handgeschreven kaartje bijbestellen.</p>"
+          }
+        }
+      },
+      "block_order": [
+        "faq_1",
+        "faq_2",
+        "faq_3",
+        "faq_4",
+        "faq_5",
+        "faq_6"
+      ],
+      "settings": {
+        "kicker": "FAQ",
+        "title": "Veelgestelde vragen",
+        "first_open": false
+      }
     }
   },
   "order": [
     "main",
     "content_toggles_ek46UQ",
+    "sf_faq",
     "newsletter_wNaUgE"
   ]
 }

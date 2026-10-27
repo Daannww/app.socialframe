@@ -298,12 +298,81 @@
         "remove_margin": false,
         "seo_h_tag": "h2"
       }
+    },
+    "sf_faq": {
+      "type": "sf-faq",
+      "blocks": {
+        "faq_1": {
+          "type": "item",
+          "settings": {
+            "question": "Waar is het tegeltje van gemaakt?",
+            "answer": "<p>Handgevormd, echt keramiek, met zorg in eigen huis geproduceerd. De tekst is echt gedrukt, het is dus geen sticker.</p>"
+          }
+        },
+        "faq_2": {
+          "type": "item",
+          "settings": {
+            "question": "Kan ik de tekst zelf bepalen?",
+            "answer": "<p>Dat hangt af van het tegeltje. Bij de personaliseerbare tegeltjes vul je zelf je tekst of quote in op de productpagina. Heb je een andere wens? Neem gerust contact met ons op.</p>"
+          }
+        },
+        "faq_3": {
+          "type": "item",
+          "settings": {
+            "question": "Welke formaten zijn er?",
+            "answer": "<p>Kijk bij 'Formaat' op de productpagina welke maten beschikbaar zijn. 10 × 10 cm is de meest gekozen maat.</p>"
+          }
+        },
+        "faq_4": {
+          "type": "item",
+          "settings": {
+            "question": "Kan ik het neerzetten én ophangen?",
+            "answer": "<p>Ja. Kies bij 'Houder' een houten houder, schildersezeltje, zwart metalen houder of muurophangsysteem. Staat de tekst onderaan je tegel, kies dan liever geen houten houder, want die kan de tekst gedeeltelijk afdekken.</p>"
+          }
+        },
+        "faq_5": {
+          "type": "item",
+          "settings": {
+            "question": "Hoe weet ik welk formaat het beste past?",
+            "answer": "<p>Gebruik de AR-functie op de productpagina om het product meteen in jouw eigen interieur te bekijken.</p>"
+          }
+        },
+        "faq_6": {
+          "type": "item",
+          "settings": {
+            "question": "Hoe snel wordt mijn bestelling verzonden?",
+            "answer": "<p>Bestellingen die je op werkdagen vóór 12:00 uur plaatst, worden dezelfde werkdag verzonden. Daarna volgt de eerstvolgende werkdag. Levering is meestal binnen 1–2 werkdagen in Nederland en België en binnen 2–3 werkdagen in Duitsland.</p>"
+          }
+        },
+        "faq_7": {
+          "type": "item",
+          "settings": {
+            "question": "Is het geschikt als cadeau?",
+            "answer": "<p>Ja. Je kunt op de productpagina een cadeauverpakking en een handgeschreven kaartje bijbestellen.</p>"
+          }
+        }
+      },
+      "block_order": [
+        "faq_1",
+        "faq_2",
+        "faq_3",
+        "faq_4",
+        "faq_5",
+        "faq_6",
+        "faq_7"
+      ],
+      "settings": {
+        "kicker": "FAQ",
+        "title": "Veelgestelde vragen",
+        "first_open": false
+      }
     }
   },
   "order": [
     "main",
     "17556726484e9f7e04",
     "ss_product_info_boxed_aFtair",
+    "sf_faq",
     "newsletter_4BinLr"
   ]
 }

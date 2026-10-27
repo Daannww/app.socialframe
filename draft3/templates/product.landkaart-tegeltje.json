@@ -523,11 +523,64 @@
         "border_thickness": 0,
         "lazy": true
       }
+    },
+    "sf_faq": {
+      "type": "sf-faq",
+      "blocks": {
+        "faq_1": {
+          "type": "item",
+          "settings": {
+            "question": "Welke formaten zijn er?",
+            "answer": "<p>10 × 10 cm en 13 × 13 cm.</p>"
+          }
+        },
+        "faq_2": {
+          "type": "item",
+          "settings": {
+            "question": "Waar is het tegeltje van gemaakt?",
+            "answer": "<p>Handgevormd, echt keramiek, met zorg in eigen huis geproduceerd. De tekst is echt gedrukt, het is dus geen sticker.</p>"
+          }
+        },
+        "faq_3": {
+          "type": "item",
+          "settings": {
+            "question": "Kan ik het neerzetten én ophangen?",
+            "answer": "<p>Ja. Naast los neerzetten kun je kiezen uit een houten houder, muurophangsysteem, schildersezeltje, eikenhouten lijst, zwart metalen houder of kunststof houder zwart.</p>"
+          }
+        },
+        "faq_4": {
+          "type": "item",
+          "settings": {
+            "question": "Hoe snel wordt mijn bestelling verzonden?",
+            "answer": "<p>Bestellingen die je op werkdagen vóór 12:00 uur plaatst, worden dezelfde werkdag verzonden. Daarna volgt de eerstvolgende werkdag. Levering is meestal binnen 1–2 werkdagen in Nederland en België en binnen 2–3 werkdagen in Duitsland.</p>"
+          }
+        },
+        "faq_5": {
+          "type": "item",
+          "settings": {
+            "question": "Is het geschikt als cadeau?",
+            "answer": "<p>Ja. Je kunt op de productpagina een cadeauverpakking en een handgeschreven kaartje bijbestellen.</p>"
+          }
+        }
+      },
+      "block_order": [
+        "faq_1",
+        "faq_2",
+        "faq_3",
+        "faq_4",
+        "faq_5"
+      ],
+      "settings": {
+        "kicker": "FAQ",
+        "title": "Veelgestelde vragen",
+        "first_open": false
+      }
     }
   },
   "order": [
     "main",
     "ss_product_addons_KPbWdh",
-    "ss_testimonial_8_Webchm"
+    "ss_testimonial_8_Webchm",
+    "sf_faq"
   ]
 }

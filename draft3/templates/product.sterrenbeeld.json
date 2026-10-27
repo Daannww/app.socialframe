@@ -245,11 +245,80 @@
         "remove_margin": false,
         "seo_h_tag": "h2"
       }
+    },
+    "sf_faq": {
+      "type": "sf-faq",
+      "blocks": {
+        "faq_1": {
+          "type": "item",
+          "settings": {
+            "question": "Hoe werkt het sterrenbeeld geboortetegeltje?",
+            "answer": "<p>Je kiest het sterrenbeeld en vult de naam en datum in. Op de productpagina zie je direct hoe jouw tegeltje eruitziet.</p>"
+          }
+        },
+        "faq_2": {
+          "type": "item",
+          "settings": {
+            "question": "Welke formaten zijn er?",
+            "answer": "<p>10 × 10 cm en 13 × 13 cm.</p>"
+          }
+        },
+        "faq_3": {
+          "type": "item",
+          "settings": {
+            "question": "Waar is het tegeltje van gemaakt?",
+            "answer": "<p>Handgevormd keramiek, elk tegeltje is uniek gevormd en met zorg in eigen huis geproduceerd.</p>"
+          }
+        },
+        "faq_4": {
+          "type": "item",
+          "settings": {
+            "question": "Kan ik het neerzetten én ophangen?",
+            "answer": "<p>Ja. Kies bij 'Houder' een houten houder, schildersezeltje, zwart metalen houder of muurophangsysteem. Staat de tekst onderaan je tegel, kies dan liever geen houten houder, want die kan de tekst gedeeltelijk afdekken.</p>"
+          }
+        },
+        "faq_5": {
+          "type": "item",
+          "settings": {
+            "question": "Hoe weet ik welk formaat het beste past?",
+            "answer": "<p>Gebruik de AR-functie op de productpagina om het product meteen in jouw eigen interieur te bekijken.</p>"
+          }
+        },
+        "faq_6": {
+          "type": "item",
+          "settings": {
+            "question": "Hoe snel wordt mijn bestelling verzonden?",
+            "answer": "<p>Bestellingen die je op werkdagen vóór 12:00 uur plaatst, worden dezelfde werkdag verzonden. Daarna volgt de eerstvolgende werkdag. Levering is meestal binnen 1–2 werkdagen in Nederland en België en binnen 2–3 werkdagen in Duitsland.</p>"
+          }
+        },
+        "faq_7": {
+          "type": "item",
+          "settings": {
+            "question": "Is het geschikt als geboortecadeau?",
+            "answer": "<p>Ja, het is een persoonlijk cadeau voor een geboorte, verjaardag of herinnering. Je kunt een cadeauverpakking en een handgeschreven kaartje bijbestellen.</p>"
+          }
+        }
+      },
+      "block_order": [
+        "faq_1",
+        "faq_2",
+        "faq_3",
+        "faq_4",
+        "faq_5",
+        "faq_6",
+        "faq_7"
+      ],
+      "settings": {
+        "kicker": "FAQ",
+        "title": "Veelgestelde vragen",
+        "first_open": false
+      }
     }
   },
   "order": [
     "main",
     "content_toggles_ek46UQ",
+    "sf_faq",
     "newsletter_wNaUgE",
     "17722640634621c8e5"
   ]

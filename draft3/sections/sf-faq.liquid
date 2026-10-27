@@ -1,6 +1,6 @@
 {%- comment -%} Veelgestelde vragen — uitklapbaar, met FAQ-schema voor Google {%- endcomment -%}
 {%- assign sfq_show = true -%}
-{%- if section.settings.only_handle != blank and product.handle != section.settings.only_handle -%}{%- assign sfq_show = false -%}{%- endif -%}
+{%- if section.settings.only_handle != blank -%}{%- assign sfq_list = section.settings.only_handle | remove: ' ' | split: ',' -%}{%- unless sfq_list contains product.handle -%}{%- assign sfq_show = false -%}{%- endunless -%}{%- endif -%}
 {%- if section.blocks.size > 0 and sfq_show -%}
 <style>
   .sfq{max-width:820px;margin:0 auto;padding:56px 24px 48px;color:#151412}
@@ -56,7 +56,7 @@
   "settings": [
     {"type":"text","id":"kicker","label":"Klein label","default":"FAQ"},
     {"type":"text","id":"title","label":"Titel","default":"Veelgestelde vragen"},
-    {"type":"text","id":"only_handle","label":"Alleen tonen bij dit product (handle, leeg = overal)","info":"Handig als meerdere producten dezelfde template delen."},
+    {"type":"text","id":"only_handle","label":"Alleen tonen bij deze producten (handles, gescheiden door komma; leeg = overal)","info":"Handig als meerdere producten dezelfde template delen."},
     {"type":"checkbox","id":"first_open","label":"Eerste vraag standaard open","default":false}
   ],
   "blocks": [
