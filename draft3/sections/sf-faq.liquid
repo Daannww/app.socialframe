@@ -1,0 +1,71 @@
+{%- comment -%} Veelgestelde vragen — uitklapbaar, met FAQ-schema voor Google {%- endcomment -%}
+{%- if section.blocks.size > 0 -%}
+<style>
+  .sff{max-width:820px;margin:0 auto;padding:56px 24px 48px;color:#151412}
+  .sff-h{text-align:center;margin:0 0 28px}
+  .sff-k{display:block;font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#a07a2c;margin-bottom:10px}
+  .sff-t{font-size:clamp(22px,2.6vw,28px);font-weight:700;letter-spacing:-.01em;margin:0;line-height:1.15}
+  .sff-l{display:grid;gap:10px}
+  .sff-i{background:#faf6ee;border-radius:16px;border:1.5px solid transparent;transition:border-color .2s ease,background .2s ease}
+  .sff-i[open]{background:#fff;border-color:#e8dcc3;box-shadow:0 6px 24px rgba(21,20,18,.05)}
+  .sff-q{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 22px;font-size:16px;font-weight:700;line-height:1.35;-webkit-tap-highlight-color:transparent}
+  .sff-q::-webkit-details-marker{display:none}
+  .sff-q::marker{content:""}
+  .sff-q:focus-visible{outline:2px solid #151412;outline-offset:2px;border-radius:14px}
+  .sff-pm{flex:none;position:relative;width:28px;height:28px;border-radius:50%;background:#fff;border:1.5px solid #e0d6bf;transition:background .2s ease,border-color .2s ease,transform .25s ease}
+  .sff-pm::before,.sff-pm::after{content:"";position:absolute;left:50%;top:50%;width:10px;height:1.8px;background:#151412;border-radius:2px;transform:translate(-50%,-50%);transition:transform .25s ease,background .2s ease}
+  .sff-pm::after{transform:translate(-50%,-50%) rotate(90deg)}
+  .sff-i[open] .sff-pm{background:#151412;border-color:#151412}
+  .sff-i[open] .sff-pm::before,.sff-i[open] .sff-pm::after{background:#fff}
+  .sff-i[open] .sff-pm::after{transform:translate(-50%,-50%) rotate(0deg)}
+  .sff-a{padding:0 22px 20px;font-size:15px;line-height:1.65;color:#4a4238}
+  .sff-a p{margin:0 0 10px}.sff-a p:last-child{margin:0}
+  .sff-a a{color:#151412;text-decoration:underline;text-underline-offset:3px;text-decoration-color:#e0a25a}
+  .sff-i[open] .sff-a{animation:sffin .25s ease}
+  @keyframes sffin{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+  @media(max-width:749px){.sff{padding:36px 16px 28px}.sff-q{padding:16px 16px;font-size:15px}.sff-a{padding:0 16px 18px;font-size:14.5px}}
+  @media(prefers-reduced-motion:reduce){.sff-i[open] .sff-a{animation:none}.sff-pm,.sff-pm::before,.sff-pm::after{transition:none}}
+</style>
+<section class="sff" {{ section.shopify_attributes }}>
+  <div class="sff-h">
+    {%- if section.settings.kicker != blank -%}<span class="sff-k">{{ section.settings.kicker }}</span>{%- endif -%}
+    <h2 class="sff-t">{{ section.settings.title }}</h2>
+  </div>
+  <div class="sff-l">
+    {%- for block in section.blocks -%}
+      <details class="sff-i" {% if section.settings.first_open and forloop.first %}open{% endif %} {{ block.shopify_attributes }}>
+        <summary class="sff-q"><span>{{ block.settings.question }}</span><span class="sff-pm" aria-hidden="true"></span></summary>
+        <div class="sff-a">{{ block.settings.answer }}</div>
+      </details>
+    {%- endfor -%}
+  </div>
+</section>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{%- for block in section.blocks -%}
+{"@type":"Question","name":{{ block.settings.question | json }},"acceptedAnswer":{"@type":"Answer","text":{{ block.settings.answer | strip_html | json }}}}{% unless forloop.last %},{% endunless %}
+{%- endfor -%}
+]}
+</script>
+{%- endif -%}
+{% schema %}
+{
+  "name": "Veelgestelde vragen",
+  "settings": [
+    {"type":"text","id":"kicker","label":"Klein label","default":"FAQ"},
+    {"type":"text","id":"title","label":"Titel","default":"Veelgestelde vragen"},
+    {"type":"checkbox","id":"first_open","label":"Eerste vraag standaard open","default":false}
+  ],
+  "blocks": [
+    {
+      "type": "item",
+      "name": "Vraag",
+      "settings": [
+        {"type":"text","id":"question","label":"Vraag","default":"Jouw vraag"},
+        {"type":"richtext","id":"answer","label":"Antwoord","default":"<p>Jouw antwoord.</p>"}
+      ]
+    }
+  ],
+  "presets": [{"name": "Veelgestelde vragen"}]
+}
+{% endschema %}

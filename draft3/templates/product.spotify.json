@@ -1,4 +1,3 @@
-
 {
   "sections": {
     "main": {
@@ -230,11 +229,72 @@
         "remove_margin": false,
         "seo_h_tag": "h2"
       }
+    },
+    "sf_faq": {
+      "type": "sf-faq",
+      "blocks": {
+        "faq_1": {
+          "type": "item",
+          "settings": {
+            "question": "Hoe werkt een muziekframe precies?",
+            "answer": "<p>Je kiest je favoriete nummer, voegt optioneel een foto toe, en wij genereren daar een scanbare Spotify- of QR-code bij. Alles wordt gedrukt op helder plexiglas. Scan de code met je telefoon en het nummer start direct af te spelen.</p>"
+          }
+        },
+        "faq_2": {
+          "type": "item",
+          "settings": {
+            "question": "Welk nummer kan ik gebruiken?",
+            "answer": "<p>Elk nummer dat op Spotify of YouTube te vinden is. Zoek het op in de personalisatietool op de productpagina en selecteer de juiste versie (bijv. live-opname of album-versie).</p>"
+          }
+        },
+        "faq_3": {
+          "type": "item",
+          "settings": {
+            "question": "Moet ik zelf een foto uploaden?",
+            "answer": "<p>Dat is optioneel. Je kunt het frame ook zonder foto bestellen, met alleen de songtitel, artiest en de scanbare code.</p>"
+          }
+        },
+        "faq_4": {
+          "type": "item",
+          "settings": {
+            "question": "Welke formaten en houders zijn er?",
+            "answer": "<p>Het frame is verkrijgbaar in meerdere formaten, met een houten standaard, kunststof pootjes, marmerlook standaard of een muurophangsysteem — kies wat het beste past bij waar je het neerzet of hangt.</p>"
+          }
+        },
+        "faq_5": {
+          "type": "item",
+          "settings": {
+            "question": "Hoe lang duurt de levering?",
+            "answer": "<p>Voor 12:00 besteld = dezelfde dag verzonden. Verzending is gratis binnen Nederland, België en Duitsland.</p>"
+          }
+        },
+        "faq_6": {
+          "type": "item",
+          "settings": {
+            "question": "Blijft de code altijd werken?",
+            "answer": "<p>Zolang het nummer op Spotify of YouTube beschikbaar blijft, blijft de code scanbaar.</p>"
+          }
+        }
+      },
+      "block_order": [
+        "faq_1",
+        "faq_2",
+        "faq_3",
+        "faq_4",
+        "faq_5",
+        "faq_6"
+      ],
+      "settings": {
+        "kicker": "FAQ",
+        "title": "Veelgestelde vragen",
+        "first_open": false
+      }
     }
   },
   "order": [
     "main",
     "content_toggles_ek46UQ",
+    "sf_faq",
     "newsletter_wNaUgE"
   ]
 }
