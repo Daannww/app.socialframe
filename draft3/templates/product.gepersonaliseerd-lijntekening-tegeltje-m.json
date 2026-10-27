@@ -323,11 +323,72 @@
         "remove_margin": false,
         "seo_h_tag": "h2"
       }
+    },
+    "sf_faq": {
+      "type": "sf-faq",
+      "blocks": {
+        "faq_1": {
+          "type": "item",
+          "settings": {
+            "question": "Hoe wordt mijn foto een lijntekening?",
+            "answer": "<p>Je uploadt je foto, en die wordt met de hand/digitaal omgezet naar een minimalistische lijnillustratie — geen kleur of schaduw, puur vorm en karakter van het origineel.</p>"
+          }
+        },
+        "faq_2": {
+          "type": "item",
+          "settings": {
+            "question": "Welke foto's werken het beste?",
+            "answer": "<p>Een scherpe foto met een duidelijk herkenbaar silhouet (bijv. een gezicht, lichaam of huisdier en face profiel) geeft het beste resultaat. Te donkere, onscherpe of drukke foto's zijn moeilijker te vertalen.</p>"
+          }
+        },
+        "faq_3": {
+          "type": "item",
+          "settings": {
+            "question": "Welke formaten zijn er?",
+            "answer": "<p>10x10 cm en 13x13 cm.</p>"
+          }
+        },
+        "faq_4": {
+          "type": "item",
+          "settings": {
+            "question": "Waar is het tegeltje van gemaakt?",
+            "answer": "<p>Handgevormd keramiek, met een natuurlijke, ambachtelijke afwerking — elk exemplaar heeft daardoor subtiele, unieke oneffenheden.</p>"
+          }
+        },
+        "faq_5": {
+          "type": "item",
+          "settings": {
+            "question": "Kan ik het neerzetten én ophangen?",
+            "answer": "<p>Ja, los neerzetten kan, en er zijn ook een houder en een muurophangsysteem als optie te kiezen.</p>"
+          }
+        },
+        "faq_6": {
+          "type": "item",
+          "settings": {
+            "question": "Is het geschikt als cadeau?",
+            "answer": "<p>Ja, bijvoorbeeld voor een trouwmoment, gezin, huisdier of andere dierbare herinnering.</p>"
+          }
+        }
+      },
+      "block_order": [
+        "faq_1",
+        "faq_2",
+        "faq_3",
+        "faq_4",
+        "faq_5",
+        "faq_6"
+      ],
+      "settings": {
+        "kicker": "FAQ",
+        "title": "Veelgestelde vragen",
+        "first_open": false
+      }
     }
   },
   "order": [
     "main",
     "content_toggles_ek46UQ",
+    "sf_faq",
     "newsletter_wNaUgE"
   ]
 }
