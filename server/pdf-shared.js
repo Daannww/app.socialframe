@@ -236,7 +236,21 @@ const ARABIC_NEUTRAL_REGEX = /[\s\-\u2010-\u2015.,:;!?()'"0-9\u0660-\u0669]/u;
 // nieuwe emoji die recenter is dan de Unicode-versie van de server) — zonder
 // dit vangnet zou zo'n teken gewoon als tekst naar het lettertype gaan, dat er
 // geen icoontje voor heeft, en als kapot vierkantje verschijnen.
-const SAFE_TEXT_CHAR_REGEX = /[\u0000-\u036F\u1E00-\u1EFF\u2010-\u2027\u2030-\u205E\u20A0-\u20CF]/u;
+const SAFE_TEXT_CHAR_REGEX = /[\u0000-\u036F\u0370-\u052F\u1E00-\u1EFF\u2010-\u2027\u2030-\u205E\u20A0-\u20CF]/u;
+
+// Grieks en Cyrillisch (bv. "Душа моя") horen bij de gewone tekst: die tekens
+// zitten in Montserrat. Vroeger vielen ze buiten SAFE_TEXT_CHAR_REGEX, werden ze
+// als "emoji" behandeld en verdween de tekst stilzwijgend uit het drukbestand.
+// Heeft het gebruikte lettertype een teken NIET (bv. Sacramento), dan laten we
+// dat teken weg i.p.v. dat het hele PDF crasht (zelfde gedrag als voorheen).
+// Tekens t/m U+036F (Latijn) worden hier nooit aangeraakt.
+function tekstVoorFont(font, tekst) {
+  if (!/[^\u0000-\u036F\u1E00-\u1EFF\u2010-\u2027\u2030-\u205E\u20A0-\u20CF]/u.test(tekst)) return tekst;
+  let set = null;
+  try { set = font && font.getCharacterSet ? new Set(font.getCharacterSet()) : null; } catch (e) { set = null; }
+  if (!set) return tekst;
+  return [...tekst].filter(ch => ch.codePointAt(0) <= 0x36F || set.has(ch.codePointAt(0))).join('');
+}
 
 function splitTextEmoji(text) {
   const parts = [];
@@ -384,7 +398,7 @@ function measureMixedTextWidth(parts, font, sizePt, hebrewFont) {
         return total;
       }
     }
-    return total + widthOfTextLigatuurVeiligAtSize(font, p.value, sizePt);
+    return total + widthOfTextLigatuurVeiligAtSize(font, tekstVoorFont(font, p.value), sizePt);
   }, 0);
 }
 
@@ -501,8 +515,9 @@ function drawMixedText(page, parts, font, sizePt, xPt, baselineYPt, color, emoji
         console.warn('[pdf-shared] kon Hebreeuws tekstdeel niet tekenen, wordt overgeslagen:', e.message);
       }
     } else {
-      drawTextLigatuurVeilig(page, font, p.value, cursorX, baselineYPt, sizePt, color);
-      cursorX += widthOfTextLigatuurVeiligAtSize(font, p.value, sizePt);
+      const tekst = tekstVoorFont(font, p.value);
+      drawTextLigatuurVeilig(page, font, tekst, cursorX, baselineYPt, sizePt, color);
+      cursorX += widthOfTextLigatuurVeiligAtSize(font, tekst, sizePt);
     }
   });
 }
