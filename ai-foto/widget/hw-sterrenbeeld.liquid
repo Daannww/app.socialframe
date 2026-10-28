@@ -118,12 +118,23 @@
     if (dateStr() === null) return 'Vul de datum in als dd, mm en jjjj.';
     return '';
   }
+  var AI = null; // { key, print_url, job_id } van het laatst gemaakte drukbestand
+  function stateKey() { return [S.sign, nameStr(), dateStr() || ''].join('|'); }
   function setProps() {
     var P = { 'properties[Uw personalisatie]': previewUrl(), 'properties[Sterrenbeeld]': signNl(), 'properties[Naam]': nameStr(), 'properties[Datum]': dateStr() || '' };
+    if (AI && AI.key === stateKey()) { P['properties[_AI drukbestand]'] = AI.print_url; P['properties[_AI job]'] = AI.job_id; }
     getForms().forEach(function (form) {
       form.querySelectorAll('[data-hw-sb-prop]').forEach(function (el) { el.remove(); });
       Object.keys(P).forEach(function (n) { if (P[n] === '') return; var i = document.createElement('input'); i.type = 'hidden'; i.name = n; i.value = P[n]; i.setAttribute('data-hw-sb-prop', ''); form.appendChild(i); });
     });
+  }
+  function makePrint() {
+    var key = stateKey();
+    if (AI && AI.key === key) return Promise.resolve();
+    return fetch(API + '/api/sterrenbeeld/print', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sign: S.sign, name: nameStr(), date: dateStr() || '' }) })
+      .then(function (r) { return r.json().then(function (j) { if (!r.ok || !j.print_url) throw new Error(j.error || 'fout'); return j; }); })
+      .then(function (j) { AI = { key: key, print_url: j.print_url, job_id: j.job_id }; });
   }
   var toastEl = null, toastTimer = null;
   function toast(anchor, msg) {
@@ -136,13 +147,25 @@
     toastEl.textContent = msg; toastEl.style.left = (r.left + r.width / 2) + 'px'; toastEl.style.top = (r.top + r.height / 2) + 'px'; toastEl.style.opacity = '1'; toastEl.style.display = 'block';
     clearTimeout(toastTimer); toastTimer = setTimeout(function () { toastEl.style.opacity = '0'; setTimeout(function () { toastEl.style.display = 'none'; }, 260); }, 3200);
   }
+  var passing = false;
   function intercept(e, target) {
+    if (passing) return;
     if (root.hidden || root.offsetParent === null) return;
     if (!target || !target.closest || !target.closest('.product-form, form[data-type="add-to-cart-form"]')) return;
     var btn = target.matches && target.matches('button, input') ? target : (target.querySelector && target.querySelector('button[type="submit"], button[name="add"]')) || target;
     var bad = validate();
     if (bad) { e.preventDefault(); e.stopImmediatePropagation(); toast(btn, bad); return; }
-    setProps();
+    if (AI && AI.key === stateKey()) { setProps(); return; }
+    // Eerst het drukbestand laten maken, daarna de klik opnieuw uitvoeren
+    e.preventDefault(); e.stopImmediatePropagation();
+    if (btn.getAttribute('data-sb-busy')) return;
+    btn.setAttribute('data-sb-busy', '1');
+    makePrint().then(function () {
+      btn.removeAttribute('data-sb-busy'); setProps(); passing = true;
+      try { btn.click(); } finally { passing = false; }
+    }, function () {
+      btn.removeAttribute('data-sb-busy'); toast(btn, 'Er ging iets mis, probeer het opnieuw.');
+    });
   }
   document.addEventListener('submit', function (e) { intercept(e, e.target); }, true);
   document.addEventListener('click', function (e) {

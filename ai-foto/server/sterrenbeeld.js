@@ -7,7 +7,8 @@ const opentype = require('opentype.js');
 const fs = require('fs');
 const path = require('path');
 const { clientIp } = require('./clientip');
-const { DATA_DIR, getSetting } = require('./db');
+const crypto = require('crypto');
+const { db, DATA_DIR, getSetting } = require('./db');
 const fal = require('./fal');
 
 const DIR = path.join(DATA_DIR, 'sterrenbeelden');           // goedgekeurde tekeningen: <slug>.png
@@ -221,6 +222,29 @@ module.exports = ({ looksLikeBot }) => {
     try {
       const buf = await render({ slug: String(req.query.sign || ''), name: req.query.name, date: req.query.date, size: 900 });
       res.set({ 'Cache-Control': 'public, max-age=600', 'Access-Control-Allow-Origin': '*' }).type('jpeg').send(buf);
+    } catch (e) {
+      res.status(400).json({ error: e.message });
+    }
+  });
+
+  // Klant: drukbestand laten maken bij "In winkelwagen". Slaat een onraadbaar bestand op en geeft de link terug,
+  // die de widget als _AI drukbestand aan de bestelling hangt (zo pakt de orderapp het op).
+  r.post('/api/sterrenbeeld/print', guard, lim(30, 60 * 60 * 1000), async (req, res) => {
+    try {
+      const b = req.body || {};
+      const buf = await render({ slug: String(b.sign || ''), name: b.name, date: b.date, size: 1800 });
+      const rid = () => crypto.randomBytes(16).toString('hex');
+      const FILES = path.join(DATA_DIR, 'files');
+      fs.mkdirSync(FILES, { recursive: true });
+      const base = (process.env.PUBLIC_BASE_URL || '').replace(/\/$/, '');
+      const id = rid(), printFile = `${rid()}-print.jpg`, previewFile = `${rid()}-preview.jpg`;
+      fs.writeFileSync(path.join(FILES, printFile), buf);
+      fs.writeFileSync(path.join(FILES, previewFile), await sharp(buf).resize(900, 900, { fit: 'inside' }).jpeg({ quality: 85 }).toBuffer());
+      const label = ['Sterrenbeeld ' + String(b.sign || '').slice(0, 20), String(b.name || '').slice(0, 40), String(b.date || '').slice(0, 10)].filter(Boolean).join(' · ');
+      // profile 'kaart' zodat het niet meetelt als AI-poging van de klant
+      db.prepare("INSERT INTO jobs(id,client_id,ip,design_id,profile,orientation,status,preview_file,print_file,print_w,print_h,chosen,custom_text,ua,country,finished_at) VALUES(?,?,?,0,'kaart','landscape','done',?,?,1800,1800,0,?,?,?,CURRENT_TIMESTAMP)")
+        .run(id, 'sterrenbeeld', clientIp(req), previewFile, printFile, label.slice(0, 200), String(req.headers['user-agent'] || '').slice(0, 200), String(req.headers['cf-ipcountry'] || '').slice(0, 4));
+      res.json({ job_id: id, preview_url: `${base}/files/${previewFile}`, print_url: `${base}/files/${printFile}` });
     } catch (e) {
       res.status(400).json({ error: e.message });
     }
