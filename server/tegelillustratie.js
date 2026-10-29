@@ -41,12 +41,24 @@ const ONTWERPEN = [
     // opgeschaald naar 1575x1575 en bijna-wit naar zuiver wit gezet.
     herken: /meisje\s*met\s*de\s*parel/i,
     assetBestand: 'meisje-met-de-parel.jpg'
+  },
+  {
+    id: 'driving-home-for-christmas',
+    // Titel in Shopify: "Tegeltje Driving home for Christmas – auto met
+    // kerstboom" (vierde titel-familie, zonder "met tekst"/"met recept" —
+    // vandaar de uitgebreide poort-check hieronder). Vaste, volledig
+    // gekleurde illustratie (goudkleurige auto + dennenboom) op een witte
+    // achtergrond; de klant kiest alleen het formaat (10x10 of 13x13). Asset:
+    // aangeleverde afbeelding (1254px), opgeschaald naar 1575x1575 en
+    // bijna-wit naar zuiver wit gezet.
+    herken: /driving\s*home\s*for\s*christmas/i,
+    assetBestand: 'driving-home-for-christmas.jpg'
   }
 ];
 
 function matchTegelIllustratieOntwerp(li) {
   const titel = li.title || '';
-  if (!/tegeltje met (tekst|recept)|wc\s*tegeltje/i.test(titel)) return null;
+  if (!/tegeltje met (tekst|recept)|wc\s*tegeltje|tegeltje\s+driving\s*home/i.test(titel)) return null;
   return ONTWERPEN.find(o => o.herken.test(titel)) || null;
 }
 
