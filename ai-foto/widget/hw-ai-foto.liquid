@@ -214,7 +214,7 @@
       leftEl.className = 'hw-ai-left' + (state.left <= 1 ? ' low' : '') + (state.left === 0 ? ' out' : '');
     }
     var needText = state.allowsText && state.textRequired && !textEl.value.trim();
-    goBtn.textContent = state.design ? 'Maak mijn tegeltje' : 'Kies eerst jouw stijl';
+    goBtn.textContent = state.design ? (textChanged() ? 'Maak mijn tegeltje opnieuw met tekst' : 'Maak mijn tegeltje') : 'Kies eerst jouw stijl';
     goBtn.disabled = state.busy || !state.design || !fileEl.files[0] || state.left === 0 || needText;
   }
   function fmtDate(iso) {
@@ -263,8 +263,11 @@
     });
   }
 
+  // Tekst die bij het maken van het resultaat in het veld stond. Wordt de tekst daarna aangepast, dan moet het tegeltje opnieuw gemaakt worden (de tekst zit in de afbeelding).
+  function textChanged() { return !!state.result && state.allowsText && textEl.value.trim() !== (state.textSnap || ''); }
+  var TEXT_MSG = 'Je hebt de tekst aangepast na het maken. Klik op "Maak mijn tegeltje" om je tegeltje opnieuw te maken met je tekst. Je foto blijft staan.';
   function showResult(r) {
-    state.result = r; state.pending = null;
+    state.result = r; state.pending = null; state.textSnap = textEl.value.trim();
     if (r.reused) { chooseBox.hidden = true; chooseList.replaceChildren(); }
     imgEl.src = r.preview_url; resultEl.hidden = false; setProps(true);
     resultEl.querySelector('.hw-ai-ok').textContent = r.reused
@@ -338,7 +341,7 @@
           designsEl.querySelectorAll('.hw-ai-design').forEach(function (o) { o.setAttribute('aria-pressed', 'false'); });
           b.setAttribute('aria-pressed', 'true');
           state.design = x.id; state.designName = x.name; state.allowsText = !!x.allows_text; state.textRequired = !!x.text_required;
-          optEl.textContent = x.text_required ? '(verplicht)' : '(optioneel)';
+          optEl.textContent = x.text_required ? '(verplicht)' : '(optioneel, vul in vóór je op "Maak mijn tegeltje" klikt)';
           textWrap.hidden = !x.allows_text; textLabel.textContent = x.text_label || 'Eigen tekst';
           if (!x.allows_text) textEl.value = '';
           count();
@@ -470,7 +473,12 @@
     var left = (textEl.maxLength > 0 ? textEl.maxLength : 40) - textEl.value.length;
     countEl.textContent = left + ' tekens over';
   }
-  textEl.addEventListener('input', function () { count(); refresh(); });
+  textEl.addEventListener('input', function () {
+    count();
+    // Tekst aangepast terwijl er al een resultaat is: meteen melden dat opnieuw maken nodig is (tekst zit in de afbeelding).
+    if (textChanged()) say(TEXT_MSG, true); else if (statusEl.textContent === TEXT_MSG) say('');
+    refresh();
+  });
 
 
   // Voorbeelden: geen slepen/rechtsklik/lang indrukken. Volledig kopieerbaar voorkomen kan een website niet (printscreen), daarom staat er ook een watermerk in het voorbeeld.
@@ -616,15 +624,17 @@
 
   // Zonder gekozen afbeelding niet in de winkelwagen: anders krijgen we een bestelling zonder afbeelding.
   function blockIfNoResult(e, target) {
-    if (root.hidden || root.offsetParent === null || state.result) return;
+    if (root.hidden || root.offsetParent === null) return;
+    if (state.result && !textChanged()) return;
     if (!target || !target.closest || !target.closest('.product-form, form[data-type="add-to-cart-form"]')) return;
     e.preventDefault(); e.stopImmediatePropagation();
-    var msg = (state.pending || chooseList.children.length) ? 'Kies eerst een van de varianten' : (!fileEl.files[0] ? 'Upload en selecteer eerst een afbeelding' : (!state.design ? 'Kies eerst jouw stijl' : 'Klik eerst op "Maak mijn tegeltje"'));
+    var msg = state.result ? TEXT_MSG : (state.pending || chooseList.children.length) ? 'Kies eerst een van de varianten' : (!fileEl.files[0] ? 'Upload en selecteer eerst een afbeelding' : (!state.design ? 'Kies eerst jouw stijl' : 'Klik eerst op "Maak mijn tegeltje"'));
     var anchor = target.matches && target.matches('button, input') ? target : (target.querySelector && target.querySelector('button[type="submit"], button[name="add"]')) || target;
-    toast(anchor, msg);
+    if (state.result) say(TEXT_MSG, true);
+    toast(anchor, msg, state.result ? 6000 : 0);
   }
   var toastEl = null, toastTimer = null;
-  function toast(anchor, msg) {
+  function toast(anchor, msg, ms) {
     if (!toastEl) {
       toastEl = document.createElement('div');
       toastEl.setAttribute('role', 'alert');
@@ -640,7 +650,7 @@
     toastTimer = setTimeout(function () {
       toastEl.style.opacity = '0';
       setTimeout(function () { toastEl.style.display = 'none'; }, 260);
-    }, 2500);
+    }, ms || 2500);
   }
   document.addEventListener('submit', function (e) { blockIfNoResult(e, e.target); }, true);
   // Veel thema's versturen via een klik op de knop (zonder gewone submit); die vangen we ook af.
