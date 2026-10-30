@@ -336,7 +336,10 @@ async function generateMusicFramePdf(data) {
   // onnodig "los blokje" op elke plaat-achtergrond.) ---
   const codeBgIsNearWhite = hasPageBackground(data.achtergrondKleur);
   const codeBackgroundColor = codeBgIsNearWhite ? nearWhiteCmyk(cmyk) : rgb(1, 1, 1);
-  const qrLightColorHex = codeBgIsNearWhite ? 'fffffd' : null;
+  // Witte stijl = witte QR-balkjes (voor een DONKERE plaat): de lichte modules
+  // moeten dan doorzichtig zijn en er mag geen lichte vlak achter, anders
+  // staat er wit op wit en is de QR-code onzichtbaar.
+  const qrLightColorHex = isWhite ? '00000000' : (codeBgIsNearWhite ? 'fffffd' : null);
 
   if (hasCode) {
     if (codeType === 'qr') {
@@ -349,7 +352,7 @@ async function generateMusicFramePdf(data) {
       const codeTopMm = 247.011;
       const codeYPdf = fromTopMm(codeTopMm + CODE_SIZE_MM);
 
-      page.drawRectangle({
+      if (!isWhite) page.drawRectangle({
         x: codeXMm * MM,
         y: codeYPdf,
         width: CODE_SIZE_MM * MM,

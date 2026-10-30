@@ -224,7 +224,7 @@ async function generateAutoFramePdf(data) {
     // niet alleen een groot wit vlak. Alleen bij "Transparant" (geen
     // getekende achtergrond) is puur wit geen probleem.
     const codeBgIsNearWhite = hasPageBackground(data.achtergrondKleur);
-    const qrLightColorHex = codeBgIsNearWhite ? 'fffffd' : null;
+    const qrLightColorHex = isWhite ? '00000000' : (codeBgIsNearWhite ? 'fffffd' : null); // witte stijl: doorzichtige lichte modules
     const codeSvg = await getCodeSvg('qr', data.link, qrBarColorHex, qrLightColorHex);
     // Kan null zijn als het genereren om wat voor reden dan ook mislukte —
     // dan liever de rest van het bestand gewoon compleet, zonder code, dan
@@ -242,7 +242,7 @@ async function generateAutoFramePdf(data) {
       // bij "Transparant" blijft puur wit prima.
       const codeBackgroundColor = codeBgIsNearWhite ? nearWhiteCmyk(cmyk) : rgb(1, 1, 1);
 
-      page.drawRectangle({
+      if (!isWhite) page.drawRectangle({
         x: box.xMm * MM,
         y: fromTopMm(box.topMm + box.sizeMm),
         width: box.sizeMm * MM,
