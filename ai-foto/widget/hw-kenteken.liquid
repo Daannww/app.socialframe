@@ -137,8 +137,8 @@
   function $$(s) { return Array.prototype.slice.call(root.querySelectorAll(s)); }
 
   // ---- maten in millimeter (zelfde als de orderapp: vel 526 x 132,5 mm, onderrand met de bedrukking) ----
-  var SHEET_W = 526, STRIP_H = 15, PLATE_H = 118, TOP = 3, H = TOP + PLATE_H + STRIP_H; // STRIP_H: zichtbare bedrukbare rand onderaan
-  var MARGIN = 15, TEXT_MM = 16, TEXT_MIN = 8, BASE_MM = 2, GAP = 6, LOGO_H = 11, CY_ONLY = STRIP_H / 2, CY_BOTH = STRIP_H / 2; // bedrukbare rand 15 mm, 2 mm marge boven en onder
+  var SHEET_W = 526, STRIP_H = 17.5, H = 141.3; // STRIP_H: zichtbare bedrukbare rand onderaan
+  var MARGIN = 15, TEXT_MM = 16, TEXT_MIN = 8, BASE_MM = 3.3, GAP = 6, LOGO_H = 11, CY = 8.8, CY_ONLY = CY, CY_BOTH = CY, BAND_LO = 3.3, BAND_HI = 14.3; // zwarte rand onder de plaat (17,5 mm); inhoud max 11 mm hoog, met marge boven en onder
   var INK = '#fffffe';
   var FONTS = [
     { id: 'Helvetica-bold', name: 'Helvetica', css: '"Helvetica Neue",Helvetica,Arial,sans-serif', w: 700 },
@@ -240,7 +240,7 @@
       if (S.lx !== null) {
         // zelf gekozen plek: logo op de gekozen positie, tekst blijft in het midden
         if (lw > maxW) { lw = maxW; lh = lw / asp; }
-        var cx = Math.min(SHEET_W - 6 - lw / 2, Math.max(6 + lw / 2, S.lx)), cy = Math.min(STRIP_H - 2 - lh / 2, Math.max(2 + lh / 2, S.ly === null ? STRIP_H / 2 : S.ly));
+        var cx = Math.min(SHEET_W - 6 - lw / 2, Math.max(6 + lw / 2, S.lx)), cy = Math.min(BAND_HI - lh / 2, Math.max(BAND_LO + lh / 2, S.ly === null ? CY : S.ly));
         L.logo = { x: cx - lw / 2, y: cy - lh / 2, w: lw, h: lh };
         if (showT) L.text = { cx: SHEET_W / 2, size: size, w: tw };
       } else if (showT) {
@@ -259,28 +259,14 @@
 
   // ---- tekenen: houder met kenteken + bedrukte rand ----
   function rr(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+  var plateImg = new Image(); plateImg.crossOrigin = 'anonymous';
+  plateImg.onload = function () { draw(); }; plateImg.src = API + '/widget-img/kenteken-plaat.png';
   function drawScene(c, withPlate) {
     var s = scale, W = SHEET_W * s, Ht = H * s;
     c.clearRect(0, 0, W, Ht);
-    var bgc = c.createLinearGradient(0, 0, 0, Ht); bgc.addColorStop(0, '#26282e'); bgc.addColorStop(1, '#0f1013');
-    c.fillStyle = bgc; c.fillRect(0, 0, W, Ht);
-    if (withPlate) {
-      var px = 8 * s, py = (TOP + 2) * s, pw = (SHEET_W - 16) * s, ph = (PLATE_H - 6) * s;
-      // plaat: geel met dunne gouden binnenrand, blauwe EU-band met sterren en NL
-      var yg = c.createLinearGradient(0, py, 0, py + ph); yg.addColorStop(0, '#efc646'); yg.addColorStop(1, '#e6b937');
-      c.save(); c.shadowColor = 'rgba(0,0,0,.5)'; c.shadowBlur = 8 * s; rr(c, px, py, pw, ph, 5 * s); c.fillStyle = yg; c.fill(); c.restore();
-      c.save(); rr(c, px, py, pw, ph, 5 * s); c.clip();
-      var bw = 51 * s; c.fillStyle = '#3f67a8'; c.fillRect(px, py, bw, ph);
-      c.fillStyle = '#f3d23a'; var cxs = px + bw / 2, cys = py + ph * 0.3, R = 15 * s;
-      for (var i = 0; i < 12; i++) { var an = i / 12 * Math.PI * 2; c.beginPath(); c.arc(cxs + Math.cos(an) * R, cys + Math.sin(an) * R, 1.9 * s, 0, 7); c.fill(); }
-      c.fillStyle = '#fff'; c.font = '500 ' + 27 * s + 'px "Helvetica Neue",Arial,sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('NL', cxs, py + ph * 0.78);
-      c.fillStyle = '#161512'; c.font = '700 ' + 76 * s + 'px "Montserrat","Arial Black",Arial,sans-serif'; c.fillText('SO-FRA-ME', px + bw + (pw - bw) / 2, py + ph * 0.52);
-      c.restore();
-      rr(c, px + 2.5 * s, py + 2.5 * s, pw - 5 * s, ph - 5 * s, 3 * s); c.lineWidth = 1.1 * s; c.strokeStyle = 'rgba(120,85,0,.75)'; c.stroke();
-    }
+    if (plateImg.complete && plateImg.naturalWidth) c.drawImage(plateImg, 0, 0, W, Ht);
+    else { c.fillStyle = '#231f20'; rr(c, 0, 0, W, Ht, 8 * s); c.fill(); }
     // bedrukte onderrand
-    var stripTop = (H - STRIP_H) * s;
-    c.fillStyle = 'rgba(255,255,255,.04)'; c.fillRect(0, stripTop, W, 1 * s);
     var L = layout();
     if (L.logo) { var lg = L.logo; c.drawImage(S.logo, lg.x * s, (H - lg.y - lg.h) * s, lg.w * s, lg.h * s); }
     if (L.text) {
@@ -365,7 +351,7 @@
   function setSize(v) { S.size = Math.max(20, Math.min(100, v)); sizeEl.value = S.size; draw(); syncPos(); }
   $('[data-kt-smaller]').addEventListener('click', function () { setSize(S.size - 10); });
   $('[data-kt-bigger]').addEventListener('click', function () { setSize(S.size + 10); });
-  posEl.addEventListener('input', function () { var L = layout(); S.lx = 6 + (+posEl.value) / 100 * (SHEET_W - 12); if (S.ly === null) S.ly = STRIP_H / 2; draw(); });
+  posEl.addEventListener('input', function () { var L = layout(); S.lx = 6 + (+posEl.value) / 100 * (SHEET_W - 12); if (S.ly === null) S.ly = CY; draw(); });
   $('[data-kt-reset]').addEventListener('click', function () { S.lx = null; S.ly = null; draw(); syncPos(); });
   (function () {
     var drag = null;
@@ -397,7 +383,8 @@
   function toBlob(c, type, q) { return new Promise(function (res) { c.toBlob(res, type, q); }); }
   function previewCanvas() {
     var c = document.createElement('canvas'); c.width = canvas.width; c.height = canvas.height;
-    drawScene(c.getContext('2d'), true); return c;
+    var pc = c.getContext('2d'); pc.fillStyle = '#ffffff'; pc.fillRect(0, 0, c.width, c.height);
+    drawScene(pc, true); return c;
   }
   function validate() {
     if (S.mode !== 'logo' && !S.text) return 'Vul eerst jouw tekst in.';
@@ -505,7 +492,7 @@
       if (fixed && sr.top < topOff && rr_.bottom <= 0) return;
       if (sr.top >= topOff) { if (fixed) reset(); return; }
       if (!fixed) { fixed = true; full = { w: scene.offsetWidth, h: slot.offsetHeight }; }
-      var w = full.w, ch = w * AR, z1 = zoomEnd(), hEnd = (STRIP_H + 3) * (w / SHEET_W) * z1;
+      var w = full.w, ch = w * AR, z1 = zoomEnd(), hEnd = (STRIP_H + 0.4) * (w / SHEET_W) * z1;
       var dist = Math.max(80, full.h * 0.8);
       var p = Math.max(0, Math.min(1, (topOff - sr.top) / dist)); p = p * p * (3 - 2 * p);
       var hv = ch + (hEnd - ch) * p, z = 1 + (z1 - 1) * p;
