@@ -129,7 +129,7 @@
   function $$(s) { return Array.prototype.slice.call(root.querySelectorAll(s)); }
 
   // ---- maten in millimeter (zelfde als de orderapp: vel 526 x 132,5 mm, onderrand met de bedrukking) ----
-  var SHEET_W = 526, STRIP_H = 15, PLATE_H = 16, TOP = 4, H = TOP + PLATE_H + STRIP_H; // STRIP_H: zichtbare bedrukbare rand onderaan
+  var SHEET_W = 526, STRIP_H = 15, PLATE_H = 110, TOP = 3, H = TOP + PLATE_H + STRIP_H; // STRIP_H: zichtbare bedrukbare rand onderaan
   var MARGIN = 15, TEXT_MM = 16, TEXT_MIN = 8, BASE_MM = 2, GAP = 6, LOGO_H = 11, CY_ONLY = STRIP_H / 2, CY_BOTH = STRIP_H / 2; // bedrukbare rand 15 mm, 2 mm marge boven en onder
   var INK = '#fffffe';
   var FONTS = [
@@ -251,11 +251,13 @@
     var bgc = c.createLinearGradient(0, 0, 0, Ht); bgc.addColorStop(0, '#26282e'); bgc.addColorStop(1, '#0f1013');
     c.fillStyle = bgc; c.fillRect(0, 0, W, Ht);
     if (withPlate) {
-      var px = 8 * s, py = -40 * s, pw = (SHEET_W - 16) * s, ph = (40 + TOP + PLATE_H - 4) * s;
+      var px = 8 * s, py = TOP * s + 2 * s, pw = (SHEET_W - 16) * s, ph = (PLATE_H - 4) * s;
       c.save(); c.shadowColor = 'rgba(0,0,0,.5)'; c.shadowBlur = 10 * s; c.shadowOffsetY = 2 * s; rr(c, px, py, pw, ph, 7 * s); c.fillStyle = '#f6c90e'; c.fill(); c.restore();
       c.save(); rr(c, px, py, pw, ph, 7 * s); c.clip();
       c.fillStyle = '#1f3f9c'; c.fillRect(px, py, 40 * s, ph);
-      c.fillStyle = '#fff'; c.font = '700 ' + 9 * s + 'px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('NL', px + 20 * s, py + ph - 8 * s);
+      c.fillStyle = '#ffd400'; c.font = '700 ' + 15 * s + 'px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('\u2605', px + 20 * s, py + ph * 0.36);
+      c.fillStyle = '#fff'; c.font = '700 ' + 17 * s + 'px sans-serif'; c.fillText('NL', px + 20 * s, py + ph * 0.72);
+      c.fillStyle = '#1b1b1b'; c.font = '700 ' + 78 * s + 'px "Montserrat",Arial,sans-serif'; c.fillText('AB-123-C', px + pw / 2 + 18 * s, py + ph * 0.54);
       c.restore();
       rr(c, px, py, pw, ph, 7 * s); c.lineWidth = 1.5 * s; c.strokeStyle = 'rgba(0,0,0,.45)'; c.stroke();
     }
@@ -432,10 +434,10 @@
     if (btn) intercept(e, btn);
   }, true);
 
-  // ---- voorbeeld blijft bovenaan hangen en wordt kleiner tijdens het scrollen ----
+  // ---- voorbeeld blijft bovenaan hangen: bovenaan de hele houder, tijdens het scrollen alleen de bedrukte rand (ingezoomd) ----
   (function () {
     var slot = $('[data-kt-slot]'), sticky = $('[data-kt-sticky]'), scene = $('[data-kt-scene]'), hint = $('[data-kt-hint]');
-    var busy = false, topOff = 0, fixed = false, full = null, small = 0, smallH = 0, AR = H / SHEET_W;
+    var busy = false, topOff = 0, fixed = false, full = null, AR = H / SHEET_W;
     function headerOffset() {
       var h = 0, els = document.querySelectorAll('header, .site-header, [data-section-type="header"], .header');
       for (var i = 0; i < els.length; i++) {
@@ -444,7 +446,14 @@
       }
       return Math.round(h);
     }
-    function reset() { fixed = false; sticky.style.cssText = ''; scene.style.width = ''; hint.style.display = ''; slot.style.height = ''; }
+    function reset() { fixed = false; sticky.style.cssText = ''; scene.style.height = ''; canvas.style.cssText = ''; hint.style.display = ''; slot.style.height = ''; }
+    function zoomEnd() {
+      var L = layout(), x0 = SHEET_W, x1 = 0;
+      if (L.text) { x0 = Math.min(x0, L.text.cx - L.text.w / 2); x1 = Math.max(x1, L.text.cx + L.text.w / 2); }
+      if (L.logo) { x0 = Math.min(x0, L.logo.x); x1 = Math.max(x1, L.logo.x + L.logo.w); }
+      var cw = x1 > x0 ? x1 - x0 : SHEET_W * 0.5;
+      return Math.max(1, Math.min(3.5, SHEET_W / (cw + 30)));
+    }
     function update() {
       busy = false; topOff = headerOffset();
       var sy = window.pageYOffset, maxY = document.documentElement.scrollHeight - window.innerHeight;
@@ -453,17 +462,15 @@
       if (!fixed && rr_.bottom <= 0) return;
       if (fixed && sr.top < topOff && rr_.bottom <= 0) return;
       if (sr.top >= topOff) { if (fixed) reset(); return; }
-      if (!fixed) {
-        fixed = true; full = { w: scene.offsetWidth, h: slot.offsetHeight };
-        small = Math.min(full.w, Math.max(190, Math.min(full.w * 0.62, window.innerHeight * 0.22 / AR)));
-        smallH = small * AR + 14;
-      }
-      var dist = Math.max(60, (full.h - smallH) * 0.9);
+      if (!fixed) { fixed = true; full = { w: scene.offsetWidth, h: slot.offsetHeight }; }
+      var w = full.w, ch = w * AR, z1 = zoomEnd(), hEnd = (STRIP_H + 3) * (w / SHEET_W) * z1;
+      var dist = Math.max(80, full.h * 0.8);
       var p = Math.max(0, Math.min(1, (topOff - sr.top) / dist)); p = p * p * (3 - 2 * p);
-      var w = full.w + (small - full.w) * p;
-      scene.style.width = w + 'px'; hint.style.display = p > 0.02 ? 'none' : '';
-      var hs = w * AR + 14 + (p > 0.02 ? 0 : 26);
-      slot.style.height = Math.max(hs, full.h + (smallH - full.h) * p) + 'px';
+      var hv = ch + (hEnd - ch) * p, z = 1 + (z1 - 1) * p;
+      scene.style.height = hv + 'px'; canvas.style.cssText = 'margin-top:' + (hv - ch) + 'px;transform-origin:50% 100%;transform:scale(' + z + ');width:100%';
+      hint.style.display = p > 0.02 ? 'none' : '';
+      var hs = hv + 14 + (p > 0.02 ? 0 : 26);
+      slot.style.height = hs + 'px';
       var t = rr_.bottom - hs - 8;
       if (t < topOff) {
         var rcs = getComputedStyle(root), bl = parseFloat(rcs.borderLeftWidth) || 0, bb = parseFloat(rcs.borderBottomWidth) || 0, rect = root.getBoundingClientRect();
