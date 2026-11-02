@@ -132,6 +132,14 @@
 (function () {
   var root = document.querySelector('[data-hw-kt]');
   if (!root || root.__ktInit) return; root.__ktInit = true;
+  // Zepto (oude personalizer-app) staat nog aan voor dit product in de app zelf: haal zijn velden weg zodat er geen dubbele eigenschappen (Tekst, Lettertype) meegaan
+  (function () {
+    var st = document.createElement('style'); st.textContent = '.product-personalizer,.pplr_background{display:none!important}'; document.head.appendChild(st);
+    function kill() { document.querySelectorAll('.product-personalizer').forEach(function (e) { e.remove(); }); }
+    kill();
+    try { new MutationObserver(kill).observe(document.body, { childList: true, subtree: true }); } catch (e) {}
+    var t = 0; var iv = setInterval(function () { kill(); if (++t > 20) clearInterval(iv); }, 500);
+  })();
   var API = (root.getAttribute('data-api') || '').replace(/\/$/, '');
   function $(s) { return root.querySelector(s); }
   function $$(s) { return Array.prototype.slice.call(root.querySelectorAll(s)); }
