@@ -2,7 +2,7 @@ const { PDFDocument, StandardFonts, cmyk } = require('pdf-lib');
 const fontkit = require('@pdf-lib/fontkit');
 const fs = require('fs');
 const path = require('path');
-const { MM, splitTextEmoji, preloadEmojiImages, measureMixedTextWidth, drawMixedText, meetGrootsteLetterHoogtePt } = require('./pdf-shared');
+const { MM, splitTextEmoji, preloadEmojiImages, measureMixedTextWidth, drawMixedText, meetGrootsteLetterHoogtePt, embedPhoto } = require('./pdf-shared');
 
 // Afmetingen 1-op-1 gemeten uit het door de gebruiker aangeleverde
 // referentiebestand ("kentekensjabloon.pdf", voertuig "Auto"): 526,0 x
@@ -71,10 +71,18 @@ function extractKentekenplaathouderData(li) {
   const voertuigRuw = getProp(/voertuig/i).toLowerCase();
   const voertuig = VOERTUIG_FORMATEN[voertuigRuw] ? voertuigRuw : 'auto'; // terugval op "auto" bij een (nog) onbekend voertuigtype
 
+  // Eigen ontwerper (widget "hw-kenteken"): logo-URL (verborgen eigenschap _Logo) en de exacte plaatsing in mm (_Ontwerp, JSON),
+  // zodat het drukbestand 1-op-1 gelijk is aan het voorbeeld dat de klant zag.
+  let ontwerp = null;
+  try { const o = JSON.parse(getProp(/^_ontwerp$/i) || 'null'); if (o && typeof o === 'object') ontwerp = o; } catch (e) { ontwerp = null; }
+  const logoUrl = getProp(/^_logo$/i);
+
   return {
     voertuig,
     tekst: getProp(/^tekst$/i) || getProp(/\btekst\b/i),
-    lettertype: getProp(/lettertype/i)
+    lettertype: getProp(/lettertype/i),
+    logoUrl: /^https?:\/\//i.test(logoUrl) ? logoUrl : '',
+    ontwerp
   };
 }
 
@@ -110,7 +118,21 @@ async function generateKentekenplaathouderPdf(data) {
     font = await doc.embedFont(lettertypeInfo.standaard);
   }
 
-  const tekst = data.tekst || '';
+  // Logo (alleen bij de eigen ontwerper): op de door de widget berekende plek, in mm vanaf linksonder.
+  const ontwerp = data.ontwerp || null;
+  const num = (v, min, max) => { const n = Number(v); return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : null; };
+  if (data.logoUrl && ontwerp && ontwerp.logo) {
+    const lg = ontwerp.logo;
+    const x = num(lg.x, 0, formaat.breedteMm), y = num(lg.y, 0, formaat.hoogteMm), w = num(lg.w, 1, formaat.breedteMm), h = num(lg.h, 1, formaat.hoogteMm);
+    if (x === null || y === null || w === null || h === null) throw new Error('Ongeldige logo-plaatsing in _Ontwerp');
+    const { image } = await embedPhoto(doc, data.logoUrl, 'kleur', Math.max(w, h)); // zelfde anti-gaten-kleurcorrectie als foto's; PNG met doorzichtigheid blijft doorzichtig
+    page.drawImage(image, { x: x * MM, y: y * MM, width: w * MM, height: h * MM });
+  } else if (data.logoUrl) {
+    throw new Error('Logo aanwezig maar geen _Ontwerp (plaatsing) gevonden');
+  }
+
+  const alleenLogo = ontwerp && ontwerp.mode === 'logo';
+  const tekst = alleenLogo ? '' : (data.tekst || '');
   if (tekst) {
     // Emoji's (bv. 😂) kunnen niet met een gewoon lettertype getekend worden
     // (geen glyph aanwezig) — ontdekt doordat een emoji in de klant se tekst
@@ -138,7 +160,10 @@ async function generateKentekenplaathouderPdf(data) {
     // tekst ("IJSSELSTEIN AUTOBEDRIJF..."), dus 5mm veiligheidsmarge geeft
     // ruim voldoende marge zodat de daadwerkelijk zichtbare marge ook in
     // het ongunstigste geval nooit onder de vereiste 1cm zakt.
-    let sizePt = STANDAARD_LETTERGROOTTE_MM * MM;
+    // Eigen ontwerper: lettergrootte en middelpunt komen uit het voorbeeld (bij logo + tekst staat de tekst niet in het midden).
+    const ontwerpTekst = ontwerp && ontwerp.text ? ontwerp.text : null;
+    const startMm = ontwerpTekst && num(ontwerpTekst.size, 2, STANDAARD_LETTERGROOTTE_MM) !== null ? num(ontwerpTekst.size, 2, STANDAARD_LETTERGROOTTE_MM) : STANDAARD_LETTERGROOTTE_MM;
+    let sizePt = startMm * MM;
     const veiligheidsmargeMm = 5;
     const maxBreedtePt = (formaat.breedteMm - 2 * (MARGE_MM + veiligheidsmargeMm)) * MM;
     while (sizePt > 2 * MM && measureMixedTextWidth(delen, font, sizePt) > maxBreedtePt) {
@@ -146,7 +171,8 @@ async function generateKentekenplaathouderPdf(data) {
     }
 
     const tekstBreedtePt = measureMixedTextWidth(delen, font, sizePt);
-    const xPt = (formaat.breedteMm * MM - tekstBreedtePt) / 2;
+    const middenMm = ontwerpTekst && num(ontwerpTekst.cx, 0, formaat.breedteMm) !== null ? num(ontwerpTekst.cx, 0, formaat.breedteMm) : formaat.breedteMm / 2;
+    const xPt = middenMm * MM - tekstBreedtePt / 2;
     // Baseline op exact 4mm vanaf de onderkant van het canvas — pdf-lib se
     // "y" bij drawText is namelijk al de baseline-positie vanaf onder (PDF-
     // coördinaten lopen van onder naar boven), dus dit is een rechtstreekse
