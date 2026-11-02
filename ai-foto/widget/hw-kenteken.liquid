@@ -50,7 +50,9 @@
         <label><input type="radio" name="hw-kt-col" value="color" checked><span>Originele kleuren</span></label>
         <label><input type="radio" name="hw-kt-col" value="white"><span>Wit (1 kleur)</span></label>
       </div>
-      <div class="hw-kt-range"><span>Grootte</span><input type="range" min="45" max="100" value="100" data-kt-size></div>
+      <div class="hw-kt-range"><span>Grootte</span><button type="button" class="hw-kt-btn" data-kt-smaller aria-label="Kleiner">&minus;</button><input type="range" min="20" max="100" value="100" data-kt-size><button type="button" class="hw-kt-btn" data-kt-bigger aria-label="Groter">+</button></div>
+      <div class="hw-kt-range"><span>Positie</span><input type="range" min="0" max="100" value="50" data-kt-pos aria-label="Logo naar links of rechts"></div>
+      <div class="hw-kt-move"><span>Je kunt het logo ook in het voorbeeld slepen.</span> <button type="button" class="hw-kt-link" data-kt-reset>Terug naar automatisch</button></div>
       <div class="hw-kt-warn" data-kt-warn hidden>Je logo is donker en valt weg op de donkere houder. Kies &lsquo;Wit (1 kleur)&rsquo; voor een goed leesbaar resultaat.</div>
     </div>
   </div>
@@ -112,6 +114,12 @@
   .hw-kt-pills{display:grid;grid-template-columns:1fr 1fr;gap:8px}
   .hw-kt-pills span{display:block;text-align:center;padding:10px 6px;border:1.5px solid var(--kt-line);border-radius:10px;font-size:13.5px;font-weight:600;transition:border-color .15s,background .15s}
   .hw-kt-pills input:checked+span{border-color:var(--kt-acc);background:#f4f5f7;box-shadow:0 0 0 1px var(--kt-acc) inset}
+  .hw-kt-btn{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--kt-line);background:#fff;font-size:20px;line-height:1;cursor:pointer;flex:none;color:var(--kt-ink)}
+  .hw-kt-btn:active{background:#f1f2f4}
+  .hw-kt-move{font-size:12.5px;color:var(--kt-mut)}
+  .hw-kt-link{background:none;border:0;padding:0;color:var(--kt-ink);text-decoration:underline;cursor:pointer;font:inherit}
+  .hw-kt-canvas.is-logo{cursor:grab;touch-action:pan-y}
+  .hw-kt-canvas.is-drag{cursor:grabbing}
   .hw-kt-info{font-size:13px;color:var(--kt-mut)}
   .hw-kt-info[hidden]{display:none}
   .hw-kt-pills[hidden]{display:none}
@@ -129,7 +137,7 @@
   function $$(s) { return Array.prototype.slice.call(root.querySelectorAll(s)); }
 
   // ---- maten in millimeter (zelfde als de orderapp: vel 526 x 132,5 mm, onderrand met de bedrukking) ----
-  var SHEET_W = 526, STRIP_H = 15, PLATE_H = 110, TOP = 3, H = TOP + PLATE_H + STRIP_H; // STRIP_H: zichtbare bedrukbare rand onderaan
+  var SHEET_W = 526, STRIP_H = 15, PLATE_H = 118, TOP = 3, H = TOP + PLATE_H + STRIP_H; // STRIP_H: zichtbare bedrukbare rand onderaan
   var MARGIN = 15, TEXT_MM = 16, TEXT_MIN = 8, BASE_MM = 2, GAP = 6, LOGO_H = 11, CY_ONLY = STRIP_H / 2, CY_BOTH = STRIP_H / 2; // bedrukbare rand 15 mm, 2 mm marge boven en onder
   var INK = '#fffffe';
   var FONTS = [
@@ -139,7 +147,7 @@
     { id: 'Oswald-regular', name: 'Oswald', css: '"Oswald",sans-serif', w: 400, g: 'Oswald:wght@400' },
     { id: 'Opensans-bold', name: 'Open Sans', css: '"Open Sans",sans-serif', w: 700, g: 'Open+Sans:wght@700' }
   ];
-  var S = { mode: 'text', font: FONTS[1], text: '', img: null, fname: '', logo: null, bg: false, tol: 42, vec: false, col: 'color', size: 100, busy: false, result: null, pass: false, lid: 0 };
+  var S = { mode: 'text', font: FONTS[1], text: '', img: null, fname: '', logo: null, lx: null, ly: null, bg: false, tol: 42, vec: false, col: 'color', size: 100, busy: false, result: null, pass: false, lid: 0 };
   var canvas = $('[data-kt-canvas]'), ctx = canvas.getContext('2d'), scale = canvas.width / SHEET_W;
   canvas.height = Math.round(H * scale);
 
@@ -229,7 +237,13 @@
     if (showT) { tw = textWidthMm(S.text, size); if (tw > maxW) { size = Math.max(2, size * maxW / tw); tw = textWidthMm(S.text, size); } }
     if (showL) {
       var asp = S.logo.width / S.logo.height, lh = LOGO_H * S.size / 100, lw = lh * asp;
-      if (showT) {
+      if (S.lx !== null) {
+        // zelf gekozen plek: logo op de gekozen positie, tekst blijft in het midden
+        if (lw > maxW) { lw = maxW; lh = lw / asp; }
+        var cx = Math.min(SHEET_W - 6 - lw / 2, Math.max(6 + lw / 2, S.lx)), cy = Math.min(STRIP_H - 2 - lh / 2, Math.max(2 + lh / 2, S.ly === null ? STRIP_H / 2 : S.ly));
+        L.logo = { x: cx - lw / 2, y: cy - lh / 2, w: lw, h: lh };
+        if (showT) L.text = { cx: SHEET_W / 2, size: size, w: tw };
+      } else if (showT) {
         var availT = maxW - lw - GAP;
         if (tw > availT) { size = size * availT / tw; if (size < TEXT_MIN) { size = TEXT_MIN; var need = textWidthMm(S.text, size); lw = Math.max(8, maxW - GAP - need); lh = lw / asp; } tw = textWidthMm(S.text, size); }
         var total = lw + GAP + tw, x0 = (SHEET_W - total) / 2;
@@ -251,15 +265,18 @@
     var bgc = c.createLinearGradient(0, 0, 0, Ht); bgc.addColorStop(0, '#26282e'); bgc.addColorStop(1, '#0f1013');
     c.fillStyle = bgc; c.fillRect(0, 0, W, Ht);
     if (withPlate) {
-      var px = 8 * s, py = TOP * s + 2 * s, pw = (SHEET_W - 16) * s, ph = (PLATE_H - 4) * s;
-      c.save(); c.shadowColor = 'rgba(0,0,0,.5)'; c.shadowBlur = 10 * s; c.shadowOffsetY = 2 * s; rr(c, px, py, pw, ph, 7 * s); c.fillStyle = '#f6c90e'; c.fill(); c.restore();
-      c.save(); rr(c, px, py, pw, ph, 7 * s); c.clip();
-      c.fillStyle = '#1f3f9c'; c.fillRect(px, py, 40 * s, ph);
-      c.fillStyle = '#ffd400'; c.font = '700 ' + 15 * s + 'px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('\u2605', px + 20 * s, py + ph * 0.36);
-      c.fillStyle = '#fff'; c.font = '700 ' + 17 * s + 'px sans-serif'; c.fillText('NL', px + 20 * s, py + ph * 0.72);
-      c.fillStyle = '#1b1b1b'; c.font = '700 ' + 78 * s + 'px "Montserrat",Arial,sans-serif'; c.fillText('AB-123-C', px + pw / 2 + 18 * s, py + ph * 0.54);
+      var px = 8 * s, py = (TOP + 2) * s, pw = (SHEET_W - 16) * s, ph = (PLATE_H - 6) * s;
+      // plaat: geel met dunne gouden binnenrand, blauwe EU-band met sterren en NL
+      var yg = c.createLinearGradient(0, py, 0, py + ph); yg.addColorStop(0, '#efc646'); yg.addColorStop(1, '#e6b937');
+      c.save(); c.shadowColor = 'rgba(0,0,0,.5)'; c.shadowBlur = 8 * s; rr(c, px, py, pw, ph, 5 * s); c.fillStyle = yg; c.fill(); c.restore();
+      c.save(); rr(c, px, py, pw, ph, 5 * s); c.clip();
+      var bw = 51 * s; c.fillStyle = '#3f67a8'; c.fillRect(px, py, bw, ph);
+      c.fillStyle = '#f3d23a'; var cxs = px + bw / 2, cys = py + ph * 0.3, R = 15 * s;
+      for (var i = 0; i < 12; i++) { var an = i / 12 * Math.PI * 2; c.beginPath(); c.arc(cxs + Math.cos(an) * R, cys + Math.sin(an) * R, 1.9 * s, 0, 7); c.fill(); }
+      c.fillStyle = '#fff'; c.font = '500 ' + 27 * s + 'px "Helvetica Neue",Arial,sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('NL', cxs, py + ph * 0.78);
+      c.fillStyle = '#161512'; c.font = '700 ' + 76 * s + 'px "Montserrat","Arial Black",Arial,sans-serif'; c.fillText('SO-FRA-ME', px + bw + (pw - bw) / 2, py + ph * 0.52);
       c.restore();
-      rr(c, px, py, pw, ph, 7 * s); c.lineWidth = 1.5 * s; c.strokeStyle = 'rgba(0,0,0,.45)'; c.stroke();
+      rr(c, px + 2.5 * s, py + 2.5 * s, pw - 5 * s, ph - 5 * s, 3 * s); c.lineWidth = 1.1 * s; c.strokeStyle = 'rgba(120,85,0,.75)'; c.stroke();
     }
     // bedrukte onderrand
     var stripTop = (H - STRIP_H) * s;
@@ -278,8 +295,8 @@
     return L;
   }
   var raf = 0;
-  function draw() { cancelAnimationFrame(raf); raf = requestAnimationFrame(function () { drawScene(ctx, true); S.result = null; }); }
-  function signature() { return JSON.stringify([S.mode, S.font.id, S.mode !== 'logo' ? S.text : '', S.mode !== 'text' && S.logo ? [S.logo.width, S.logo.height, S.col, S.vec, S.size, S.fname] : 0]); }
+  function draw() { if (root.__ktCursor) root.__ktCursor(); cancelAnimationFrame(raf); raf = requestAnimationFrame(function () { drawScene(ctx, true); S.result = null; }); }
+  function signature() { return JSON.stringify([S.mode, S.font.id, S.mode !== 'logo' ? S.text : '', S.mode !== 'text' && S.logo ? [S.logo.width, S.logo.height, S.col, S.vec, S.size, S.fname, S.lx, S.ly] : 0]); }
 
   // ---- invoer ----
   var textEl = $('[data-kt-text]'), countEl = $('[data-kt-count]');
@@ -312,7 +329,7 @@
     });
   }
   function acceptLogo(img, f, vec) {
-    S.img = img; S.vec = vec; S.fname = f.name; S.result = null;
+    S.img = img; S.vec = vec; S.lx = null; S.ly = null; S.fname = f.name; S.result = null;
     $('[data-kt-fname]').textContent = f.name; $('[data-kt-dropin]').hidden = true; $('[data-kt-thumb]').hidden = false; $('[data-kt-logoopts]').hidden = false;
     var info = $('[data-kt-info]'); info.hidden = false;
     info.textContent = vec ? 'Drukwerkbestand herkend: je logo wordt zonder achtergrond geprint.' : 'Dit is een PNG/JPG, geen drukwerkbestand. We plaatsen je logo op een wit vak. Upload een SVG of PDF voor een logo zonder wit vak.';
@@ -343,8 +360,33 @@
   ['dragenter', 'dragover'].forEach(function (ev) { dropEl.addEventListener(ev, function (e) { e.preventDefault(); dropEl.classList.add('is-over'); }); });
   ['dragleave', 'drop'].forEach(function (ev) { dropEl.addEventListener(ev, function (e) { e.preventDefault(); dropEl.classList.remove('is-over'); }); });
   dropEl.addEventListener('drop', function (e) { var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; if (f) setLogoFile(f); });
-  var sizeEl = $('[data-kt-size]');
-  sizeEl.addEventListener('input', function () { S.size = +sizeEl.value; draw(); });
+  var sizeEl = $('[data-kt-size]'), posEl = $('[data-kt-pos]');
+  function syncPos() { var L = layout(); if (L.logo) { var c = L.logo.x + L.logo.w / 2; posEl.value = Math.round((c - 6) / (SHEET_W - 12) * 100); } }
+  function setSize(v) { S.size = Math.max(20, Math.min(100, v)); sizeEl.value = S.size; draw(); syncPos(); }
+  $('[data-kt-smaller]').addEventListener('click', function () { setSize(S.size - 10); });
+  $('[data-kt-bigger]').addEventListener('click', function () { setSize(S.size + 10); });
+  posEl.addEventListener('input', function () { var L = layout(); S.lx = 6 + (+posEl.value) / 100 * (SHEET_W - 12); if (S.ly === null) S.ly = STRIP_H / 2; draw(); });
+  $('[data-kt-reset]').addEventListener('click', function () { S.lx = null; S.ly = null; draw(); syncPos(); });
+  (function () {
+    var drag = null;
+    function mm(e) { var r = canvas.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width * SHEET_W, y: (r.bottom - e.clientY) / r.height * H }; }
+    canvas.addEventListener('pointerdown', function (e) {
+      if (S.mode === 'text' || !S.logo) return;
+      var L = layout(); if (!L.logo) return; var m = mm(e), g = L.logo;
+      if (m.x < g.x - 8 || m.x > g.x + g.w + 8 || m.y < g.y - 8 || m.y > g.y + g.h + 8) return;
+      drag = { dx: m.x - (g.x + g.w / 2), dy: m.y - (g.y + g.h / 2), id: e.pointerId };
+      try { canvas.setPointerCapture(e.pointerId); } catch (x) {}
+      canvas.classList.add('is-drag'); e.preventDefault();
+    });
+    canvas.addEventListener('pointermove', function (e) {
+      if (!drag) return; var m = mm(e);
+      S.lx = m.x - drag.dx; S.ly = m.y - drag.dy; draw(); syncPos();
+    });
+    function end() { drag = null; canvas.classList.remove('is-drag'); }
+    canvas.addEventListener('pointerup', end); canvas.addEventListener('pointercancel', end);
+    root.__ktCursor = function () { canvas.classList.toggle('is-logo', S.mode !== 'text' && !!S.logo); };
+  })();
+  sizeEl.addEventListener('input', function () { S.size = +sizeEl.value; draw(); syncPos(); });
   $$('input[name="hw-kt-col"]').forEach(function (r) { r.addEventListener('change', function () { if (r.checked) { S.col = r.value; refreshLogo(); } }); });
 
   // ---- opslaan + winkelwagen ----
