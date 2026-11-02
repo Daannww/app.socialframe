@@ -127,8 +127,8 @@
   function $$(s) { return Array.prototype.slice.call(root.querySelectorAll(s)); }
 
   // ---- maten in millimeter (zelfde als de orderapp: vel 526 x 132,5 mm, onderrand met de bedrukking) ----
-  var SHEET_W = 526, STRIP_H = 26, PLATE_H = 16, TOP = 4, H = TOP + PLATE_H + STRIP_H; // STRIP_H: zichtbare bedrukbare rand onderaan
-  var MARGIN = 15, TEXT_MM = 16, TEXT_MIN = 8, BASE_MM = 4, GAP = 8, LOGO_H = 18, CY_ONLY = STRIP_H / 2, CY_BOTH = 10;
+  var SHEET_W = 526, STRIP_H = 15, PLATE_H = 16, TOP = 4, H = TOP + PLATE_H + STRIP_H; // STRIP_H: zichtbare bedrukbare rand onderaan
+  var MARGIN = 15, TEXT_MM = 16, TEXT_MIN = 8, BASE_MM = 2, GAP = 6, LOGO_H = 11, CY_ONLY = STRIP_H / 2, CY_BOTH = STRIP_H / 2; // bedrukbare rand 15 mm, 2 mm marge boven en onder
   var INK = '#fffffe';
   var FONTS = [
     { id: 'Helvetica-bold', name: 'Helvetica', css: '"Helvetica Neue",Helvetica,Arial,sans-serif', w: 700 },
@@ -221,11 +221,11 @@
         var availT = maxW - lw - GAP;
         if (tw > availT) { size = size * availT / tw; if (size < TEXT_MIN) { size = TEXT_MIN; var need = textWidthMm(S.text, size); lw = Math.max(8, maxW - GAP - need); lh = lw / asp; } tw = textWidthMm(S.text, size); }
         var total = lw + GAP + tw, x0 = (SHEET_W - total) / 2;
-        L.logo = { x: x0, y: Math.max(0.5, CY_BOTH - lh / 2), w: lw, h: lh };
+        L.logo = { x: x0, y: CY_BOTH - lh / 2, w: lw, h: lh };
         L.text = { cx: x0 + lw + GAP + tw / 2, size: size, w: tw };
       } else {
         if (lw > maxW) { lw = maxW; lh = lw / asp; }
-        L.logo = { x: (SHEET_W - lw) / 2, y: Math.max(0.5, CY_ONLY - lh / 2), w: lw, h: lh };
+        L.logo = { x: (SHEET_W - lw) / 2, y: CY_ONLY - lh / 2, w: lw, h: lh };
       }
     } else if (showT) L.text = { cx: SHEET_W / 2, size: size, w: tw };
     return L;
@@ -345,7 +345,7 @@
   function r2(n) { return Math.round(n * 100) / 100; }
   function setProps(r) {
     var L = r.layout, design = { v: 1, mode: S.mode, sheet: [SHEET_W, 132.5] };
-    if (L.text) design.text = { cx: r2(L.text.cx), size: r2(L.text.size) };
+    if (L.text) design.text = { cx: r2(L.text.cx), size: r2(L.text.size), base: BASE_MM };
     if (L.logo) design.logo = { x: r2(L.logo.x), y: r2(L.logo.y), w: r2(L.logo.w), h: r2(L.logo.h) };
     var P = {
       'properties[Voertuig]': 'Auto',
