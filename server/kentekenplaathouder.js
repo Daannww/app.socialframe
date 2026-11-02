@@ -179,7 +179,8 @@ async function generateKentekenplaathouderPdf(data) {
     // toewijzing, geen omrekening nodig. Blijft ONGEWIJZIGD ongeacht de
     // lettergrootte (dus ook bij automatisch verkleinde tekst) — precies
     // zoals opgegeven.
-    const yPt = BASELINE_VANAF_ONDER_MM * MM;
+    const baseMm = ontwerpTekst && num(ontwerpTekst.base, 0, 30) !== null ? num(ontwerpTekst.base, 0, 30) : BASELINE_VANAF_ONDER_MM;
+    const yPt = baseMm * MM;
 
     // Emoji's (bv. 😂) werden standaard 15% GROTER dan de puntgrootte
     // getekend (zie drawMixedText in pdf-shared.js) — bedoeld om een emoji
