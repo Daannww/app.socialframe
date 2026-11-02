@@ -1,0 +1,448 @@
+{%- comment -%}
+  Kentekenplaathouder-ontwerper: tekst en/of logo, live voorbeeld op een echte houder, voorbeeld blijft (kleiner) in beeld tijdens het scrollen.
+  Schrijft cart-eigenschappen die de orderapp (kentekenplaathouder.js) uitleest: Voertuig, Tekst, Lettertype, Indeling, Voorbeeld en de verborgen _Logo / _Ontwerp.
+  Zet dit in een Custom Liquid-blok op de productpagina van de kentekenplaathouder (en haal daar de Zepto-personalizer weg).
+{%- endcomment -%}
+{%- assign hw_kt_api = 'https://ai-foto.socialframe.nl' -%}
+
+<div class="hw-kt" data-hw-kt data-api="{{ hw_kt_api }}">
+  <div class="hw-kt-heading">Ontwerp jouw houder</div>
+
+  <div class="hw-kt-slot" data-kt-slot>
+    <div class="hw-kt-sticky" data-kt-sticky>
+      <div class="hw-kt-scene" data-kt-scene>
+        <canvas class="hw-kt-canvas" data-kt-canvas width="2104" height="556"></canvas>
+      </div>
+      <div class="hw-kt-hint" data-kt-hint>Zo komt jouw houder eruit te zien.</div>
+    </div>
+  </div>
+
+  <div class="hw-kt-step">
+    <div class="hw-kt-label"><span class="hw-kt-num">1</span> Wat wil je erop?</div>
+    <div class="hw-kt-seg" role="radiogroup" aria-label="Indeling">
+      <label><input type="radio" name="hw-kt-mode" value="text" checked><span><i class="hw-kt-ic">Aa</i>Tekst</span></label>
+      <label><input type="radio" name="hw-kt-mode" value="both"><span><i class="hw-kt-ic">◩</i>Logo + tekst</span></label>
+      <label><input type="radio" name="hw-kt-mode" value="logo"><span><i class="hw-kt-ic">◆</i>Alleen logo</span></label>
+    </div>
+  </div>
+
+  <div class="hw-kt-step" data-kt-textbox>
+    <div class="hw-kt-label"><span class="hw-kt-num">2</span> Jouw tekst</div>
+    <input class="hw-kt-input" type="text" maxlength="40" autocomplete="off" placeholder="Bijv. AUTOBEDRIJF DE BOER" data-kt-text>
+    <div class="hw-kt-count"><span data-kt-count>0</span>/40</div>
+    <div class="hw-kt-fonts" role="radiogroup" aria-label="Lettertype" data-kt-fonts></div>
+  </div>
+
+  <div class="hw-kt-step" data-kt-logobox hidden>
+    <div class="hw-kt-label"><span class="hw-kt-num" data-kt-lognum>2</span> Jouw logo</div>
+    <label class="hw-kt-drop" data-kt-drop>
+      <input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml,image/gif,image/heic,image/heif,.svg" data-kt-file>
+      <span class="hw-kt-drop-in" data-kt-dropin>
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M6 10l6-6 6 6M4 20h16"/></svg>
+        <b>Upload je logo</b>
+        <small>PNG, JPG of SVG · sleep het hierheen of tik om te kiezen</small>
+      </span>
+      <span class="hw-kt-thumb" data-kt-thumb hidden><canvas data-kt-thumbc width="120" height="120"></canvas><span><b data-kt-fname>logo</b><small>Tik om te vervangen</small></span></span>
+    </label>
+    <div class="hw-kt-opts" data-kt-logoopts hidden>
+      <label class="hw-kt-switch"><input type="checkbox" data-kt-bg checked><span></span>Achtergrond weghalen</label>
+      <div class="hw-kt-range" data-kt-tolwrap><span>Gevoeligheid</span><input type="range" min="8" max="110" value="42" data-kt-tol></div>
+      <div class="hw-kt-pills" role="radiogroup" aria-label="Kleur van het logo">
+        <label><input type="radio" name="hw-kt-col" value="color" checked><span>Originele kleuren</span></label>
+        <label><input type="radio" name="hw-kt-col" value="white"><span>Wit (1 kleur)</span></label>
+      </div>
+      <div class="hw-kt-range"><span>Grootte</span><input type="range" min="45" max="100" value="100" data-kt-size></div>
+      <div class="hw-kt-warn" data-kt-warn hidden>Je logo is donker en valt weg op de donkere houder. Kies &lsquo;Wit (1 kleur)&rsquo; voor een goed leesbaar resultaat.</div>
+    </div>
+  </div>
+
+  <div class="hw-kt-note">Heb je een bijzonder ontwerp of lukt het niet? Mail ons gerust, we helpen je graag.</div>
+</div>
+
+<style>
+  .hw-kt{--kt-ink:#15161a;--kt-mut:#6b6f76;--kt-line:#e3e5e8;--kt-acc:#111;--kt-bg:#fff;font-family:inherit;color:var(--kt-ink);margin:0 0 18px;box-sizing:border-box}
+  .hw-kt *{box-sizing:border-box}
+  .hw-kt[hidden]{display:none}
+  .hw-kt-heading{font-weight:700;font-size:18px;margin:0 0 10px}
+  .hw-kt-slot{position:relative}
+  .hw-kt-sticky{z-index:20;background:#fff;padding:6px 0 8px;text-align:center;box-shadow:-16px 0 0 #fff,16px 0 0 #fff,0 12px 0 #fff}
+  .hw-kt-scene{margin:0 auto;width:100%;border-radius:14px;overflow:hidden;background:#eef0f3;box-shadow:0 6px 22px rgba(0,0,0,.14)}
+  .hw-kt-canvas{display:block;width:100%;height:auto}
+  .hw-kt-hint{font-size:12.5px;color:var(--kt-mut);margin-top:6px}
+  .hw-kt-step{margin:16px 0 0;padding:14px;border:1px solid var(--kt-line);border-radius:14px;background:var(--kt-bg)}
+  .hw-kt-step[hidden]{display:none}
+  .hw-kt-label{font-weight:700;font-size:15px;margin:0 0 10px;display:flex;align-items:center;gap:8px}
+  .hw-kt-num{display:inline-flex;width:22px;height:22px;border-radius:50%;background:var(--kt-acc);color:#fff;font-size:12.5px;align-items:center;justify-content:center;flex:none}
+  .hw-kt-seg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .hw-kt-seg label,.hw-kt-pills label{cursor:pointer;display:block;margin:0}
+  .hw-kt input[type=radio],.hw-kt input[type=checkbox]{position:absolute;opacity:0;pointer-events:none}
+  .hw-kt-seg span{display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;padding:12px 6px;border:1.5px solid var(--kt-line);border-radius:12px;font-size:13.5px;font-weight:600;transition:border-color .15s,background .15s,box-shadow .15s;min-height:68px;justify-content:center;line-height:1.2}
+  .hw-kt-ic{font-style:normal;font-size:18px;line-height:1}
+  .hw-kt-seg input:checked+span{border-color:var(--kt-acc);background:#f4f5f7;box-shadow:0 0 0 1px var(--kt-acc) inset}
+  .hw-kt-seg input:focus-visible+span,.hw-kt-pills input:focus-visible+span,.hw-kt-fonts input:focus-visible+span{outline:2px solid #2563eb;outline-offset:2px}
+  .hw-kt-input{width:100%;font:inherit;font-size:16px;font-weight:600;letter-spacing:.02em;text-transform:uppercase;padding:13px 14px;border:1.5px solid var(--kt-line);border-radius:12px;background:#fff;color:var(--kt-ink);outline:none;transition:border-color .15s}
+  .hw-kt-input:focus{border-color:var(--kt-acc)}
+  .hw-kt-count{font-size:12px;color:var(--kt-mut);text-align:right;margin:4px 2px 0}
+  .hw-kt-fonts{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px;margin-top:8px}
+  .hw-kt-fonts label{cursor:pointer;margin:0}
+  .hw-kt-fonts span{display:flex;align-items:center;justify-content:center;min-height:46px;padding:6px 8px;border:1.5px solid var(--kt-line);border-radius:10px;font-size:15px;text-align:center;line-height:1.1;transition:border-color .15s,background .15s}
+  .hw-kt-fonts input:checked+span{border-color:var(--kt-acc);background:#f4f5f7;box-shadow:0 0 0 1px var(--kt-acc) inset}
+  .hw-kt-drop{display:block;position:relative;border:2px dashed #c3c7cd;border-radius:14px;padding:18px 12px;text-align:center;cursor:pointer;background:#fafafb;transition:border-color .15s,background .15s;margin:0}
+  .hw-kt-drop:hover,.hw-kt-drop.is-over{border-color:var(--kt-acc);background:#f1f2f4}
+  .hw-kt-drop input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+  .hw-kt-drop-in{display:flex;flex-direction:column;align-items:center;gap:4px;pointer-events:none}
+  .hw-kt-drop-in b{font-size:15px}
+  .hw-kt-drop-in small,.hw-kt-thumb small{color:var(--kt-mut);font-size:12.5px}
+  .hw-kt-thumb{display:flex;align-items:center;gap:12px;text-align:left;pointer-events:none}
+  .hw-kt-thumb[hidden],.hw-kt-drop-in[hidden]{display:none}
+  .hw-kt-thumb canvas{width:64px;height:64px;border-radius:10px;background:#15161a;flex:none}
+  .hw-kt-thumb span{display:flex;flex-direction:column;min-width:0}
+  .hw-kt-thumb b{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .hw-kt-opts{margin-top:12px;display:flex;flex-direction:column;gap:12px}
+  .hw-kt-opts[hidden]{display:none}
+  .hw-kt-switch{display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px;font-weight:600;margin:0;position:relative}
+  .hw-kt-switch span{width:42px;height:24px;border-radius:12px;background:#c3c7cd;position:relative;transition:background .15s;flex:none}
+  .hw-kt-switch span:after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .15s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+  .hw-kt-switch input:checked+span{background:var(--kt-acc)}
+  .hw-kt-switch input:checked+span:after{transform:translateX(18px)}
+  .hw-kt-switch input:focus-visible+span{outline:2px solid #2563eb;outline-offset:2px}
+  .hw-kt-range{display:flex;align-items:center;gap:12px;font-size:13.5px;font-weight:600}
+  .hw-kt-range span{min-width:92px}
+  .hw-kt-range input{flex:1;accent-color:#111;min-width:0}
+  .hw-kt-range[hidden]{display:none}
+  .hw-kt-pills{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .hw-kt-pills span{display:block;text-align:center;padding:10px 6px;border:1.5px solid var(--kt-line);border-radius:10px;font-size:13.5px;font-weight:600;transition:border-color .15s,background .15s}
+  .hw-kt-pills input:checked+span{border-color:var(--kt-acc);background:#f4f5f7;box-shadow:0 0 0 1px var(--kt-acc) inset}
+  .hw-kt-warn{background:#fff6e0;border:1px solid #f0d28a;color:#6a4b00;font-size:13px;padding:10px 12px;border-radius:10px}
+  .hw-kt-note{font-size:12.5px;color:var(--kt-mut);margin-top:12px;text-align:center}
+  @media (max-width:420px){.hw-kt-seg span{font-size:12.5px;padding:10px 4px}}
+</style>
+
+<script>
+(function () {
+  var root = document.querySelector('[data-hw-kt]');
+  if (!root || root.__ktInit) return; root.__ktInit = true;
+  var API = (root.getAttribute('data-api') || '').replace(/\/$/, '');
+  function $(s) { return root.querySelector(s); }
+  function $$(s) { return Array.prototype.slice.call(root.querySelectorAll(s)); }
+
+  // ---- maten in millimeter (zelfde als de orderapp: vel 526 x 132,5 mm, onderrand met de bedrukking) ----
+  var SHEET_W = 526, STRIP_H = 26, PLATE_H = 16, TOP = 4, H = TOP + PLATE_H + STRIP_H; // STRIP_H: zichtbare bedrukbare rand onderaan
+  var MARGIN = 15, TEXT_MM = 16, TEXT_MIN = 8, BASE_MM = 4, GAP = 8, LOGO_H = 18, CY_ONLY = STRIP_H / 2, CY_BOTH = 10;
+  var INK = '#fffffe';
+  var FONTS = [
+    { id: 'Helvetica-bold', name: 'Helvetica', css: '"Helvetica Neue",Helvetica,Arial,sans-serif', w: 700 },
+    { id: 'Montserrat-bold', name: 'Montserrat', css: '"Montserrat",sans-serif', w: 700, g: 'Montserrat:wght@700' },
+    { id: 'BebasNeue-bold', name: 'Bebas Neue', css: '"Bebas Neue",sans-serif', w: 400, g: 'Bebas+Neue' },
+    { id: 'Oswald-regular', name: 'Oswald', css: '"Oswald",sans-serif', w: 400, g: 'Oswald:wght@400' },
+    { id: 'Opensans-bold', name: 'Open Sans', css: '"Open Sans",sans-serif', w: 700, g: 'Open+Sans:wght@700' }
+  ];
+  var S = { mode: 'text', font: FONTS[1], text: '', img: null, fname: '', logo: null, bg: true, tol: 42, col: 'color', size: 100, busy: false, result: null, pass: false, lid: 0 };
+  var canvas = $('[data-kt-canvas]'), ctx = canvas.getContext('2d'), scale = canvas.width / SHEET_W;
+  canvas.height = Math.round(H * scale);
+
+  // lettertypes laden
+  (function () {
+    var g = FONTS.filter(function (f) { return f.g; }).map(function (f) { return 'family=' + f.g; }).join('&');
+    if (!document.querySelector('link[data-hw-kt-fonts]')) { var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'https://fonts.googleapis.com/css2?' + g + '&display=swap'; l.setAttribute('data-hw-kt-fonts', ''); document.head.appendChild(l); }
+  })();
+  function fontsReady() {
+    var p = FONTS.map(function (f) { return document.fonts && document.fonts.load ? document.fonts.load(f.w + ' 40px ' + f.css.split(',')[0], 'AaBb123').catch(function () {}) : Promise.resolve(); });
+    return Promise.all(p);
+  }
+  var fbox = $('[data-kt-fonts]');
+  FONTS.forEach(function (f, i) {
+    var lb = document.createElement('label');
+    lb.innerHTML = '<input type="radio" name="hw-kt-font" value="' + f.id + '"' + (i === 1 ? ' checked' : '') + '><span style="font-family:' + f.css + ';font-weight:' + f.w + '">' + f.name + '</span>';
+    lb.querySelector('input').addEventListener('change', function () { S.font = f; draw(); });
+    fbox.appendChild(lb);
+  });
+
+  // ---- logo verwerken: achtergrond weghalen (vanaf de rand), wit maken, bijsnijden ----
+  function processLogo() {
+    if (!S.img) { S.logo = null; return; }
+    var iw = S.img.naturalWidth || S.img.width, ih = S.img.naturalHeight || S.img.height;
+    if (!iw || !ih) { S.logo = null; return; }
+    var k = Math.min(1, 1400 / Math.max(iw, ih)), w = Math.max(1, Math.round(iw * k)), h = Math.max(1, Math.round(ih * k));
+    var c = document.createElement('canvas'); c.width = w; c.height = h;
+    var x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(S.img, 0, 0, w, h);
+    var id = x.getImageData(0, 0, w, h), d = id.data, n = w * h;
+    function px(i) { return i * 4; }
+    var corners = [0, w - 1, (h - 1) * w, h * w - 1], hasAlpha = false, r = 0, g = 0, b = 0, opaque = 0;
+    corners.forEach(function (ci) { var p = px(ci); if (d[p + 3] < 200) hasAlpha = true; else { r += d[p]; g += d[p + 1]; b += d[p + 2]; opaque++; } });
+    if (S.bg && !hasAlpha && opaque) {
+      r /= opaque; g /= opaque; b /= opaque;
+      var tol = S.tol, tol2 = tol * tol, seen = new Uint8Array(n), stack = [];
+      function near(i) { var p = px(i), dr = d[p] - r, dg = d[p + 1] - g, db = d[p + 2] - b; return d[p + 3] < 200 || dr * dr + dg * dg + db * db <= tol2 * 3; }
+      for (var xx = 0; xx < w; xx++) { stack.push(xx, (h - 1) * w + xx); }
+      for (var yy = 0; yy < h; yy++) { stack.push(yy * w, yy * w + w - 1); }
+      while (stack.length) {
+        var i = stack.pop(); if (seen[i]) continue; seen[i] = 1;
+        if (!near(i)) continue;
+        d[px(i) + 3] = 0;
+        var cx = i % w;
+        if (cx > 0) stack.push(i - 1); if (cx < w - 1) stack.push(i + 1); if (i >= w) stack.push(i - w); if (i < n - w) stack.push(i + w);
+      }
+      // zachte rand: pixels die tegen een weggehaalde pixel liggen en bijna achtergrondkleur zijn, half doorzichtig
+      for (var j = 0; j < n; j++) {
+        if (d[px(j) + 3] === 0) continue;
+        var cxj = j % w, edge = (cxj > 0 && d[px(j - 1) + 3] === 0) || (cxj < w - 1 && d[px(j + 1) + 3] === 0) || (j >= w && d[px(j - w) + 3] === 0) || (j < n - w && d[px(j + w) + 3] === 0);
+        if (edge) { var p2 = px(j), a = d[p2] - r, bb = d[p2 + 1] - g, cc = d[p2 + 2] - b, dist = Math.sqrt(a * a + bb * bb + cc * cc) / Math.sqrt(3); if (dist < tol * 1.7) d[p2 + 3] = Math.round(255 * Math.max(0.25, (dist - tol) / (tol * 0.7))); }
+      }
+    }
+    var minX = w, minY = h, maxX = -1, maxY = -1, lum = 0, cnt = 0;
+    for (var yy2 = 0; yy2 < h; yy2++) for (var xx2 = 0; xx2 < w; xx2++) {
+      var p3 = px(yy2 * w + xx2);
+      if (d[p3 + 3] > 10) {
+        if (xx2 < minX) minX = xx2; if (xx2 > maxX) maxX = xx2; if (yy2 < minY) minY = yy2; if (yy2 > maxY) maxY = yy2;
+        if (d[p3 + 3] > 128) { lum += 0.299 * d[p3] + 0.587 * d[p3 + 1] + 0.114 * d[p3 + 2]; cnt++; }
+      }
+    }
+    if (maxX < 0) { S.logo = null; return; }
+    if (S.col === 'white') { for (var q = 0; q < n; q++) { var p4 = q * 4; if (d[p4 + 3] > 0) { d[p4] = 255; d[p4 + 1] = 255; d[p4 + 2] = 254; } } }
+    x.putImageData(id, 0, 0);
+    var tw = maxX - minX + 1, th = maxY - minY + 1, out = document.createElement('canvas'); out.width = tw; out.height = th;
+    out.getContext('2d').drawImage(c, minX, minY, tw, th, 0, 0, tw, th);
+    S.logo = out; S.dark = S.col !== 'white' && cnt > 0 && (lum / cnt) < 70;
+    $('[data-kt-warn]').hidden = !S.dark;
+    var tc = $('[data-kt-thumbc]'), tx = tc.getContext('2d'); tx.clearRect(0, 0, tc.width, tc.height);
+    var tk = Math.min((tc.width - 12) / tw, (tc.height - 12) / th); tx.drawImage(out, (tc.width - tw * tk) / 2, (tc.height - th * tk) / 2, tw * tk, th * tk);
+  }
+
+  // ---- indeling in mm (wordt 1-op-1 door de orderapp gebruikt) ----
+  var meas = document.createElement('canvas').getContext('2d');
+  function textWidthMm(t, size) { meas.font = S.font.w + ' 200px ' + S.font.css; return meas.measureText(t).width / 200 * size; }
+  function layout() {
+    var showT = S.mode !== 'logo' && S.text, showL = S.mode !== 'text' && S.logo, L = { text: null, logo: null }, maxW = SHEET_W - 2 * MARGIN, tw = 0, size = TEXT_MM;
+    if (showT) { tw = textWidthMm(S.text, size); if (tw > maxW) { size = Math.max(2, size * maxW / tw); tw = textWidthMm(S.text, size); } }
+    if (showL) {
+      var asp = S.logo.width / S.logo.height, lh = LOGO_H * S.size / 100, lw = lh * asp;
+      if (showT) {
+        var availT = maxW - lw - GAP;
+        if (tw > availT) { size = size * availT / tw; if (size < TEXT_MIN) { size = TEXT_MIN; var need = textWidthMm(S.text, size); lw = Math.max(8, maxW - GAP - need); lh = lw / asp; } tw = textWidthMm(S.text, size); }
+        var total = lw + GAP + tw, x0 = (SHEET_W - total) / 2;
+        L.logo = { x: x0, y: Math.max(0.5, CY_BOTH - lh / 2), w: lw, h: lh };
+        L.text = { cx: x0 + lw + GAP + tw / 2, size: size, w: tw };
+      } else {
+        if (lw > maxW) { lw = maxW; lh = lw / asp; }
+        L.logo = { x: (SHEET_W - lw) / 2, y: Math.max(0.5, CY_ONLY - lh / 2), w: lw, h: lh };
+      }
+    } else if (showT) L.text = { cx: SHEET_W / 2, size: size, w: tw };
+    return L;
+  }
+
+  // ---- tekenen: houder met kenteken + bedrukte rand ----
+  function rr(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+  function drawScene(c, withPlate) {
+    var s = scale, W = SHEET_W * s, Ht = H * s;
+    c.clearRect(0, 0, W, Ht);
+    var bgc = c.createLinearGradient(0, 0, 0, Ht); bgc.addColorStop(0, '#26282e'); bgc.addColorStop(1, '#0f1013');
+    c.fillStyle = bgc; c.fillRect(0, 0, W, Ht);
+    if (withPlate) {
+      var px = 8 * s, py = -40 * s, pw = (SHEET_W - 16) * s, ph = (40 + TOP + PLATE_H - 4) * s;
+      c.save(); c.shadowColor = 'rgba(0,0,0,.5)'; c.shadowBlur = 10 * s; c.shadowOffsetY = 2 * s; rr(c, px, py, pw, ph, 7 * s); c.fillStyle = '#f6c90e'; c.fill(); c.restore();
+      c.save(); rr(c, px, py, pw, ph, 7 * s); c.clip();
+      c.fillStyle = '#1f3f9c'; c.fillRect(px, py, 40 * s, ph);
+      c.fillStyle = '#fff'; c.font = '700 ' + 9 * s + 'px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('NL', px + 20 * s, py + ph - 8 * s);
+      c.restore();
+      rr(c, px, py, pw, ph, 7 * s); c.lineWidth = 1.5 * s; c.strokeStyle = 'rgba(0,0,0,.45)'; c.stroke();
+    }
+    // bedrukte onderrand
+    var stripTop = (H - STRIP_H) * s;
+    c.fillStyle = 'rgba(255,255,255,.04)'; c.fillRect(0, stripTop, W, 1 * s);
+    var L = layout();
+    if (L.logo) { var lg = L.logo; c.drawImage(S.logo, lg.x * s, (H - lg.y - lg.h) * s, lg.w * s, lg.h * s); }
+    if (L.text) {
+      c.fillStyle = INK; c.textAlign = 'center'; c.textBaseline = 'alphabetic';
+      c.font = S.font.w + ' ' + L.text.size * s + 'px ' + S.font.css;
+      c.fillText(S.text, L.text.cx * s, (H - BASE_MM) * s);
+    }
+    if (!L.logo && !L.text) {
+      c.fillStyle = 'rgba(255,255,255,.35)'; c.textAlign = 'center'; c.textBaseline = 'alphabetic';
+      c.font = '700 ' + 11 * s + 'px sans-serif'; c.fillText(S.mode === 'logo' ? 'Upload je logo' : 'Jouw tekst of logo komt hier', (SHEET_W / 2) * s, (H - 8) * s);
+    }
+    return L;
+  }
+  var raf = 0;
+  function draw() { cancelAnimationFrame(raf); raf = requestAnimationFrame(function () { drawScene(ctx, true); S.result = null; }); }
+  function signature() { return JSON.stringify([S.mode, S.font.id, S.mode !== 'logo' ? S.text : '', S.mode !== 'text' && S.logo ? [S.logo.width, S.logo.height, S.col, S.bg, S.tol, S.size, S.fname] : 0]); }
+
+  // ---- invoer ----
+  var textEl = $('[data-kt-text]'), countEl = $('[data-kt-count]');
+  textEl.addEventListener('input', function () { S.text = textEl.value.replace(/\s+/g, ' ').replace(/^\s+/, '').toUpperCase(); if (textEl.value !== S.text) textEl.value = S.text; countEl.textContent = S.text.length; draw(); });
+  $$('input[name="hw-kt-mode"]').forEach(function (r) {
+    r.addEventListener('change', function () {
+      if (!r.checked) return; S.mode = r.value;
+      var tb = $('[data-kt-textbox]'), lb = $('[data-kt-logobox]');
+      tb.hidden = S.mode === 'logo'; lb.hidden = S.mode === 'text';
+      $('[data-kt-lognum]').textContent = S.mode === 'both' ? '3' : '2';
+      draw();
+    });
+  });
+  var fileEl = $('[data-kt-file]'), dropEl = $('[data-kt-drop]');
+  function setLogoFile(f) {
+    if (!f) return;
+    if (!/^image\//.test(f.type) && !/\.(png|jpe?g|webp|svg|gif|heic|heif)$/i.test(f.name)) { notify('Upload een PNG-, JPG- of SVG-bestand.'); return; }
+    if (f.size > 12 * 1024 * 1024) { notify('Dit bestand is te groot (maximaal 12 MB).'); return; }
+    var url = URL.createObjectURL(f), im = new Image();
+    im.onload = function () {
+      // SVG zonder vaste afmetingen krijgt een bruikbare raster-grootte
+      S.img = im; S.fname = f.name; S.rawFile = f; S.result = null;
+      $('[data-kt-fname]').textContent = f.name; $('[data-kt-dropin]').hidden = true; $('[data-kt-thumb]').hidden = false; $('[data-kt-logoopts]').hidden = false;
+      refreshLogo(true);
+    };
+    im.onerror = function () { notify('Dit bestand kon niet worden gelezen. Probeer een PNG of JPG.'); URL.revokeObjectURL(url); };
+    im.src = url;
+  }
+  function refreshLogo(first) {
+    processLogo();
+    if (first && S.logo && S.dark) { var wr = $('input[name="hw-kt-col"][value="white"]'); }
+    draw();
+  }
+  fileEl.addEventListener('change', function () { setLogoFile(fileEl.files && fileEl.files[0]); });
+  ['dragenter', 'dragover'].forEach(function (ev) { dropEl.addEventListener(ev, function (e) { e.preventDefault(); dropEl.classList.add('is-over'); }); });
+  ['dragleave', 'drop'].forEach(function (ev) { dropEl.addEventListener(ev, function (e) { e.preventDefault(); dropEl.classList.remove('is-over'); }); });
+  dropEl.addEventListener('drop', function (e) { var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; if (f) setLogoFile(f); });
+  var bgEl = $('[data-kt-bg]'), tolEl = $('[data-kt-tol]'), sizeEl = $('[data-kt-size]');
+  bgEl.addEventListener('change', function () { S.bg = bgEl.checked; $('[data-kt-tolwrap]').hidden = !S.bg; refreshLogo(); });
+  var tolT = 0; tolEl.addEventListener('input', function () { S.tol = +tolEl.value; clearTimeout(tolT); tolT = setTimeout(refreshLogo, 60); });
+  sizeEl.addEventListener('input', function () { S.size = +sizeEl.value; draw(); });
+  $$('input[name="hw-kt-col"]').forEach(function (r) { r.addEventListener('change', function () { if (r.checked) { S.col = r.value; refreshLogo(); } }); });
+
+  // ---- opslaan + winkelwagen ----
+  function post(path, field, blob, name) {
+    var fd = new FormData(); fd.append(field, blob, name);
+    return fetch(API + path, { method: 'POST', body: fd }).then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || 'Opslaan mislukt'); return j; }); });
+  }
+  function toBlob(c, type, q) { return new Promise(function (res) { c.toBlob(res, type, q); }); }
+  function previewCanvas() {
+    var c = document.createElement('canvas'); c.width = canvas.width; c.height = canvas.height;
+    drawScene(c.getContext('2d'), true); return c;
+  }
+  function validate() {
+    if (S.mode !== 'logo' && !S.text) return 'Vul eerst jouw tekst in.';
+    if (S.mode !== 'text' && !S.logo) return 'Upload eerst jouw logo.';
+    return '';
+  }
+  function build() {
+    var sig = signature();
+    if (S.result && S.result.sig === sig) return Promise.resolve(S.result);
+    S.busy = true;
+    var needLogo = S.mode !== 'text' && S.logo;
+    return fontsReady().then(function () {
+      var L = drawScene(ctx, true), pc = previewCanvas();
+      return Promise.all([needLogo ? toBlob(S.logo, 'image/png') : null, toBlob(pc, 'image/jpeg', 0.88)]).then(function (b) {
+        return Promise.all([b[0] ? post('/api/kenteken/logo', 'logo', b[0], 'logo.png') : null, post('/api/kenteken/preview', 'image', b[1], 'voorbeeld.jpg')]).then(function (u) {
+          S.busy = false; S.result = { sig: sig, logo: u[0] && u[0].url, preview: u[1].url, layout: L }; return S.result;
+        });
+      });
+    }).catch(function (e) { S.busy = false; throw e; });
+  }
+  function getForms() {
+    var f = document.querySelectorAll('.product-form .form'); if (f.length) return f;
+    var fb = document.querySelectorAll('form[action*="/cart/add"]'); return fb;
+  }
+  function r2(n) { return Math.round(n * 100) / 100; }
+  function setProps(r) {
+    var L = r.layout, design = { v: 1, mode: S.mode, sheet: [SHEET_W, 132.5] };
+    if (L.text) design.text = { cx: r2(L.text.cx), size: r2(L.text.size) };
+    if (L.logo) design.logo = { x: r2(L.logo.x), y: r2(L.logo.y), w: r2(L.logo.w), h: r2(L.logo.h) };
+    var P = {
+      'properties[Voertuig]': 'Auto',
+      'properties[Indeling]': S.mode === 'text' ? 'Alleen tekst' : S.mode === 'logo' ? 'Alleen logo' : 'Logo + tekst',
+      'properties[Tekst]': S.mode === 'logo' ? '' : S.text,
+      'properties[Lettertype]': S.mode === 'logo' ? '' : S.font.id,
+      'properties[Uw personalisatie]': r.preview,
+      'properties[_Logo]': r.logo || '',
+      'properties[_Ontwerp]': JSON.stringify(design)
+    };
+    getForms().forEach(function (form) {
+      form.querySelectorAll('[data-hw-kt-prop]').forEach(function (el) { el.remove(); });
+      Object.keys(P).forEach(function (n) { if (P[n] === '') return; var i = document.createElement('input'); i.type = 'hidden'; i.name = n; i.value = P[n]; i.setAttribute('data-hw-kt-prop', ''); form.appendChild(i); });
+    });
+  }
+  var toastEl = null, toastTimer = null;
+  function toast(anchor, msg, ms) {
+    if (!toastEl) {
+      toastEl = document.createElement('div'); toastEl.setAttribute('role', 'alert');
+      toastEl.style.cssText = 'position:fixed;z-index:99999;background:#fff;color:#444;font:500 15px/1.3 inherit;font-family:inherit;padding:14px 20px;border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,.22);text-align:center;max-width:90vw;pointer-events:none;transform:translate(-50%,-50%);transition:opacity .25s';
+      document.body.appendChild(toastEl);
+    }
+    var r = anchor.getBoundingClientRect();
+    toastEl.textContent = msg; toastEl.style.left = (r.left + r.width / 2) + 'px'; toastEl.style.top = (r.top + r.height / 2) + 'px';
+    toastEl.style.opacity = '1'; toastEl.style.display = 'block';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toastEl.style.opacity = '0'; setTimeout(function () { toastEl.style.display = 'none'; }, 260); }, ms || 2500);
+  }
+  function notify(msg) { toast(root, msg, 3500); }
+  function intercept(e, target) {
+    if (S.pass) return;
+    if (root.hidden || root.offsetParent === null) return;
+    if (!target || !target.closest || !target.closest('.product-form, form[action*="/cart/add"]')) return;
+    var btn = target.matches && target.matches('button, input') ? target : (target.querySelector && target.querySelector('button[type="submit"], button[name="add"]')) || target;
+    if (S.result && S.result.sig === signature()) { setProps(S.result); return; }
+    e.preventDefault(); e.stopImmediatePropagation();
+    var bad = validate(); if (bad) { toast(btn, bad, 3500); return; }
+    if (S.busy) { toast(btn, 'Even geduld, je ontwerp wordt opgeslagen…', 2500); return; }
+    toast(btn, 'Even geduld, je ontwerp wordt opgeslagen…', 30000);
+    build().then(function (r) {
+      setProps(r); toast(btn, 'Klaar!', 600);
+      S.pass = true; btn.click(); setTimeout(function () { S.pass = false; }, 2000);
+    }, function (err) { toast(btn, (err && err.message) || 'Er ging iets mis, probeer het opnieuw.', 3500); });
+  }
+  document.addEventListener('submit', function (e) { intercept(e, e.target); }, true);
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest && e.target.closest('button[type="submit"], button[name="add"], input[type="submit"]');
+    if (btn) intercept(e, btn);
+  }, true);
+
+  // ---- voorbeeld blijft bovenaan hangen en wordt kleiner tijdens het scrollen ----
+  (function () {
+    var slot = $('[data-kt-slot]'), sticky = $('[data-kt-sticky]'), scene = $('[data-kt-scene]'), hint = $('[data-kt-hint]');
+    var busy = false, topOff = 0, fixed = false, full = null, small = 0, smallH = 0, AR = H / SHEET_W;
+    function headerOffset() {
+      var h = 0, els = document.querySelectorAll('header, .site-header, [data-section-type="header"], .header');
+      for (var i = 0; i < els.length; i++) {
+        var cs = getComputedStyle(els[i]);
+        if ((cs.position === 'fixed' || cs.position === 'sticky') && els[i].getBoundingClientRect().top <= 1) h = Math.max(h, els[i].getBoundingClientRect().height);
+      }
+      return Math.round(h);
+    }
+    function reset() { fixed = false; sticky.style.cssText = ''; scene.style.width = ''; hint.style.display = ''; slot.style.height = ''; }
+    function update() {
+      busy = false; topOff = headerOffset();
+      var sy = window.pageYOffset, maxY = document.documentElement.scrollHeight - window.innerHeight;
+      if (sy < 0 || sy > maxY + 0.5) return;
+      var sr = slot.getBoundingClientRect(), rr_ = root.getBoundingClientRect();
+      if (!fixed && rr_.bottom <= 0) return;
+      if (fixed && sr.top < topOff && rr_.bottom <= 0) return;
+      if (sr.top >= topOff) { if (fixed) reset(); return; }
+      if (!fixed) {
+        fixed = true; full = { w: scene.offsetWidth, h: slot.offsetHeight };
+        small = Math.min(full.w, Math.max(190, Math.min(full.w * 0.62, window.innerHeight * 0.22 / AR)));
+        smallH = small * AR + 14;
+      }
+      var dist = Math.max(60, (full.h - smallH) * 0.9);
+      var p = Math.max(0, Math.min(1, (topOff - sr.top) / dist)); p = p * p * (3 - 2 * p);
+      var w = full.w + (small - full.w) * p;
+      scene.style.width = w + 'px'; hint.style.display = p > 0.02 ? 'none' : '';
+      var hs = w * AR + 14 + (p > 0.02 ? 0 : 26);
+      slot.style.height = Math.max(hs, full.h + (smallH - full.h) * p) + 'px';
+      var t = rr_.bottom - hs - 8;
+      if (t < topOff) {
+        var rcs = getComputedStyle(root), bl = parseFloat(rcs.borderLeftWidth) || 0, bb = parseFloat(rcs.borderBottomWidth) || 0, rect = root.getBoundingClientRect();
+        sticky.style.cssText = 'position:absolute;left:' + (sr.left - rect.left - bl) + 'px;width:' + sr.width + 'px;bottom:' + (8 - bb) + 'px';
+      } else sticky.style.cssText = 'position:fixed;left:' + sr.left + 'px;width:' + sr.width + 'px;top:' + topOff + 'px';
+    }
+    function req() { if (!busy) { busy = true; requestAnimationFrame(update); } }
+    var settle = 0;
+    window.addEventListener('scroll', function () { req(); clearTimeout(settle); settle = setTimeout(req, 330); }, { passive: true });
+    window.addEventListener('resize', function () { reset(); req(); });
+    update();
+  })();
+
+  drawScene(ctx, true);
+  fontsReady().then(function () { drawScene(ctx, true); });
+  if (document.fonts && document.fonts.addEventListener) document.fonts.addEventListener('loadingdone', function () { draw(); });
+})();
+</script>

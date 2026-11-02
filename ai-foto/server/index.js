@@ -165,6 +165,7 @@ app.post('/api/map/print', mapLimiter, (req, res, next) => (looksLikeBot(req) ? 
 // Foto's vanaf de telefoon (QR-code)
 app.use(require('./phone')({ looksLikeBot, base: BASE }));
 app.use(require('./music')({ looksLikeBot, base: BASE, FILES }));
+app.use(require('./kenteken')({ looksLikeBot, base: BASE, FILES }));
 
 // ---------- Routes (sporttegeltje) ----------
 app.get('/api/routes', (req, res) => {
