@@ -36,18 +36,17 @@
   <div class="hw-kt-step" data-kt-logobox hidden>
     <div class="hw-kt-label"><span class="hw-kt-num" data-kt-lognum>2</span> Jouw logo</div>
     <label class="hw-kt-drop" data-kt-drop>
-      <input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml,image/gif,image/heic,image/heif,.svg" data-kt-file>
+      <input type="file" accept=".svg,.pdf,image/svg+xml,application/pdf,image/png,image/jpeg,image/webp,image/gif" data-kt-file>
       <span class="hw-kt-drop-in" data-kt-dropin>
         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M6 10l6-6 6 6M4 20h16"/></svg>
         <b>Upload je logo</b>
-        <small>PNG, JPG of SVG · sleep het hierheen of tik om te kiezen</small>
+        <small>Beste resultaat: SVG of PDF (drukwerkbestand) · PNG/JPG komt op een wit vak</small>
       </span>
       <span class="hw-kt-thumb" data-kt-thumb hidden><canvas data-kt-thumbc width="120" height="120"></canvas><span><b data-kt-fname>logo</b><small>Tik om te vervangen</small></span></span>
     </label>
     <div class="hw-kt-opts" data-kt-logoopts hidden>
-      <label class="hw-kt-switch"><input type="checkbox" data-kt-bg checked><span></span>Achtergrond weghalen</label>
-      <div class="hw-kt-range" data-kt-tolwrap><span>Gevoeligheid</span><input type="range" min="8" max="110" value="42" data-kt-tol></div>
-      <div class="hw-kt-pills" role="radiogroup" aria-label="Kleur van het logo">
+      <div class="hw-kt-info" data-kt-info></div>
+      <div class="hw-kt-pills" data-kt-pills role="radiogroup" aria-label="Kleur van het logo">
         <label><input type="radio" name="hw-kt-col" value="color" checked><span>Originele kleuren</span></label>
         <label><input type="radio" name="hw-kt-col" value="white"><span>Wit (1 kleur)</span></label>
       </div>
@@ -113,6 +112,9 @@
   .hw-kt-pills{display:grid;grid-template-columns:1fr 1fr;gap:8px}
   .hw-kt-pills span{display:block;text-align:center;padding:10px 6px;border:1.5px solid var(--kt-line);border-radius:10px;font-size:13.5px;font-weight:600;transition:border-color .15s,background .15s}
   .hw-kt-pills input:checked+span{border-color:var(--kt-acc);background:#f4f5f7;box-shadow:0 0 0 1px var(--kt-acc) inset}
+  .hw-kt-info{font-size:13px;color:var(--kt-mut)}
+  .hw-kt-info[hidden]{display:none}
+  .hw-kt-pills[hidden]{display:none}
   .hw-kt-warn{background:#fff6e0;border:1px solid #f0d28a;color:#6a4b00;font-size:13px;padding:10px 12px;border-radius:10px}
   .hw-kt-note{font-size:12.5px;color:var(--kt-mut);margin-top:12px;text-align:center}
   @media (max-width:420px){.hw-kt-seg span{font-size:12.5px;padding:10px 4px}}
@@ -137,7 +139,7 @@
     { id: 'Oswald-regular', name: 'Oswald', css: '"Oswald",sans-serif', w: 400, g: 'Oswald:wght@400' },
     { id: 'Opensans-bold', name: 'Open Sans', css: '"Open Sans",sans-serif', w: 700, g: 'Open+Sans:wght@700' }
   ];
-  var S = { mode: 'text', font: FONTS[1], text: '', img: null, fname: '', logo: null, bg: true, tol: 42, col: 'color', size: 100, busy: false, result: null, pass: false, lid: 0 };
+  var S = { mode: 'text', font: FONTS[1], text: '', img: null, fname: '', logo: null, bg: false, tol: 42, vec: false, col: 'color', size: 100, busy: false, result: null, pass: false, lid: 0 };
   var canvas = $('[data-kt-canvas]'), ctx = canvas.getContext('2d'), scale = canvas.width / SHEET_W;
   canvas.height = Math.round(H * scale);
 
@@ -163,9 +165,16 @@
     if (!S.img) { S.logo = null; return; }
     var iw = S.img.naturalWidth || S.img.width, ih = S.img.naturalHeight || S.img.height;
     if (!iw || !ih) { S.logo = null; return; }
-    var k = Math.min(1, 1400 / Math.max(iw, ih)), w = Math.max(1, Math.round(iw * k)), h = Math.max(1, Math.round(ih * k));
+    var k = S.vec ? 1400 / Math.max(iw, ih) : Math.min(1, 1400 / Math.max(iw, ih)), w = Math.max(1, Math.round(iw * k)), h = Math.max(1, Math.round(ih * k));
     var c = document.createElement('canvas'); c.width = w; c.height = h;
-    var x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(S.img, 0, 0, w, h);
+    var x = c.getContext('2d', { willReadFrequently: true });
+    if (!S.vec) {
+      // Geen drukwerkbestand (PNG/JPG): het logo komt zoals het is op een wit vak
+      var pad = Math.round(Math.max(w, h) * 0.04); c.width = w + 2 * pad; c.height = h + 2 * pad;
+      x = c.getContext('2d'); x.fillStyle = '#ffffff'; x.fillRect(0, 0, c.width, c.height); x.drawImage(S.img, pad, pad, w, h);
+      S.logo = c; S.dark = false; $('[data-kt-warn]').hidden = true; drawThumb(c); return;
+    }
+    x.drawImage(S.img, 0, 0, w, h);
     var id = x.getImageData(0, 0, w, h), d = id.data, n = w * h;
     function px(i) { return i * 4; }
     var corners = [0, w - 1, (h - 1) * w, h * w - 1], hasAlpha = false, r = 0, g = 0, b = 0, opaque = 0;
@@ -205,7 +214,10 @@
     out.getContext('2d').drawImage(c, minX, minY, tw, th, 0, 0, tw, th);
     S.logo = out; S.dark = S.col !== 'white' && cnt > 0 && (lum / cnt) < 70;
     $('[data-kt-warn]').hidden = !S.dark;
-    var tc = $('[data-kt-thumbc]'), tx = tc.getContext('2d'); tx.clearRect(0, 0, tc.width, tc.height);
+    drawThumb(out);
+  }
+  function drawThumb(out) {
+    var tc = $('[data-kt-thumbc]'), tx = tc.getContext('2d'), tw = out.width, th = out.height; tx.clearRect(0, 0, tc.width, tc.height);
     var tk = Math.min((tc.width - 12) / tw, (tc.height - 12) / th); tx.drawImage(out, (tc.width - tw * tk) / 2, (tc.height - th * tk) / 2, tw * tk, th * tk);
   }
 
@@ -265,7 +277,7 @@
   }
   var raf = 0;
   function draw() { cancelAnimationFrame(raf); raf = requestAnimationFrame(function () { drawScene(ctx, true); S.result = null; }); }
-  function signature() { return JSON.stringify([S.mode, S.font.id, S.mode !== 'logo' ? S.text : '', S.mode !== 'text' && S.logo ? [S.logo.width, S.logo.height, S.col, S.bg, S.tol, S.size, S.fname] : 0]); }
+  function signature() { return JSON.stringify([S.mode, S.font.id, S.mode !== 'logo' ? S.text : '', S.mode !== 'text' && S.logo ? [S.logo.width, S.logo.height, S.col, S.vec, S.size, S.fname] : 0]); }
 
   // ---- invoer ----
   var textEl = $('[data-kt-text]'), countEl = $('[data-kt-count]');
@@ -280,18 +292,44 @@
     });
   });
   var fileEl = $('[data-kt-file]'), dropEl = $('[data-kt-drop]');
+  function loadPdfJs() {
+    if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+    return new Promise(function (res, rej) {
+      var sc = document.createElement('script'); sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+      sc.onload = function () { window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; res(window.pdfjsLib); };
+      sc.onerror = function () { rej(new Error('pdf')); }; document.head.appendChild(sc);
+    });
+  }
+  function pdfToCanvas(f) {
+    return Promise.all([loadPdfJs(), f.arrayBuffer()]).then(function (a) {
+      return a[0].getDocument({ data: a[1] }).promise;
+    }).then(function (doc) { return doc.getPage(1); }).then(function (page) {
+      var v1 = page.getViewport({ scale: 1 }), sc = 1600 / Math.max(v1.width, v1.height), vp = page.getViewport({ scale: sc });
+      var c = document.createElement('canvas'); c.width = Math.ceil(vp.width); c.height = Math.ceil(vp.height);
+      return page.render({ canvasContext: c.getContext('2d'), viewport: vp, background: 'rgba(0,0,0,0)' }).promise.then(function () { return c; });
+    });
+  }
+  function acceptLogo(img, f, vec) {
+    S.img = img; S.vec = vec; S.fname = f.name; S.result = null;
+    $('[data-kt-fname]').textContent = f.name; $('[data-kt-dropin]').hidden = true; $('[data-kt-thumb]').hidden = false; $('[data-kt-logoopts]').hidden = false;
+    var info = $('[data-kt-info]'); info.hidden = false;
+    info.textContent = vec ? 'Drukwerkbestand herkend: je logo wordt zonder achtergrond geprint.' : 'Dit is een PNG/JPG, geen drukwerkbestand. We plaatsen je logo op een wit vak. Upload een SVG of PDF voor een logo zonder wit vak.';
+    $('[data-kt-pills]').hidden = !vec;
+    if (!vec) { S.col = 'color'; var cr = $('input[name="hw-kt-col"][value="color"]'); if (cr) cr.checked = true; }
+    refreshLogo(true);
+  }
   function setLogoFile(f) {
     if (!f) return;
-    if (!/^image\//.test(f.type) && !/\.(png|jpe?g|webp|svg|gif|heic|heif)$/i.test(f.name)) { notify('Upload een PNG-, JPG- of SVG-bestand.'); return; }
-    if (f.size > 12 * 1024 * 1024) { notify('Dit bestand is te groot (maximaal 12 MB).'); return; }
+    var isPdf = /pdf/i.test(f.type) || /\.pdf$/i.test(f.name), isSvg = /svg/i.test(f.type) || /\.svg$/i.test(f.name);
+    if (!isPdf && !/^image\//.test(f.type) && !/\.(png|jpe?g|webp|gif)$/i.test(f.name)) { notify('Upload een SVG-, PDF-, PNG- of JPG-bestand.'); return; }
+    if (f.size > 20 * 1024 * 1024) { notify('Dit bestand is te groot (maximaal 20 MB).'); return; }
+    if (isPdf) {
+      pdfToCanvas(f).then(function (c) { acceptLogo(c, f, true); }, function () { notify('Dit PDF-bestand kon niet worden gelezen. Probeer een SVG of PNG.'); });
+      return;
+    }
     var url = URL.createObjectURL(f), im = new Image();
-    im.onload = function () {
-      // SVG zonder vaste afmetingen krijgt een bruikbare raster-grootte
-      S.img = im; S.fname = f.name; S.rawFile = f; S.result = null;
-      $('[data-kt-fname]').textContent = f.name; $('[data-kt-dropin]').hidden = true; $('[data-kt-thumb]').hidden = false; $('[data-kt-logoopts]').hidden = false;
-      refreshLogo(true);
-    };
-    im.onerror = function () { notify('Dit bestand kon niet worden gelezen. Probeer een PNG of JPG.'); URL.revokeObjectURL(url); };
+    im.onload = function () { acceptLogo(im, f, isSvg); };
+    im.onerror = function () { notify('Dit bestand kon niet worden gelezen. Probeer een SVG, PDF of PNG.'); URL.revokeObjectURL(url); };
     im.src = url;
   }
   function refreshLogo(first) {
@@ -303,9 +341,7 @@
   ['dragenter', 'dragover'].forEach(function (ev) { dropEl.addEventListener(ev, function (e) { e.preventDefault(); dropEl.classList.add('is-over'); }); });
   ['dragleave', 'drop'].forEach(function (ev) { dropEl.addEventListener(ev, function (e) { e.preventDefault(); dropEl.classList.remove('is-over'); }); });
   dropEl.addEventListener('drop', function (e) { var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; if (f) setLogoFile(f); });
-  var bgEl = $('[data-kt-bg]'), tolEl = $('[data-kt-tol]'), sizeEl = $('[data-kt-size]');
-  bgEl.addEventListener('change', function () { S.bg = bgEl.checked; $('[data-kt-tolwrap]').hidden = !S.bg; refreshLogo(); });
-  var tolT = 0; tolEl.addEventListener('input', function () { S.tol = +tolEl.value; clearTimeout(tolT); tolT = setTimeout(refreshLogo, 60); });
+  var sizeEl = $('[data-kt-size]');
   sizeEl.addEventListener('input', function () { S.size = +sizeEl.value; draw(); });
   $$('input[name="hw-kt-col"]').forEach(function (r) { r.addEventListener('change', function () { if (r.checked) { S.col = r.value; refreshLogo(); } }); });
 
