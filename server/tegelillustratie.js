@@ -53,6 +53,17 @@ const ONTWERPEN = [
     // bijna-wit naar zuiver wit gezet.
     herken: /driving\s*home\s*for\s*christmas/i,
     assetBestand: 'driving-home-for-christmas.jpg'
+  },
+  {
+    id: 'lieve-zus-je-bent-sterker-dan-je-denkt',
+    // Titel in Shopify: "Tegeltje met tekst - Lieve zus, je bent sterker dan
+    // je denkt." Vaste, volledig gekleurde illustratie (tekst + roze
+    // bloemen in vaas) op een witte achtergrond — alleen leverbaar op wit;
+    // de klant kiest alleen het formaat (10x10 of 13x13). Asset: gerenderd uit
+    // het aangeleverde PDF (Lieve_zus_je_bent_sterker_dan_je_denkt.pdf,
+    // 100x100mm) op 1575x1575px, bijna-wit naar zuiver wit gezet.
+    herken: /lieve\s*zus.*sterker\s*dan\s*je\s*denkt/i,
+    assetBestand: 'lieve-zus-je-bent-sterker-dan-je-denkt.jpg'
   }
 ];
 
