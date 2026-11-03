@@ -67,6 +67,8 @@ function isMusicFrameLineItem(li, alleLineItems) {
 // terechtkomt (zie appendPrintFilesToArchive in index.js).
 function getMusicFrameVariant(li) {
   const text = [li.title, li.variant_title].filter(Boolean).join(' ');
+  // XL / "Extra groot (70x50cm)": komt als "xl" achter de bestandsnaam.
+  if (/\bxl\b|extra\s*groot|70\s*x\s*50/i.test(text)) return 'xl';
   if (/\bdik\b/i.test(text)) return 'dik';
   if (/\bklein\b/i.test(text)) return 'klein';
   return null;

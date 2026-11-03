@@ -739,6 +739,16 @@ app.get('/api/print-files/single-pdf', requireAdmin, async (req, res) => {
   }
 });
 
+// Achtervoegsel voor muziekframe-bestandsnamen: formaat (dik/klein/xl) of, bij een
+// gewone plaat, "muziekframe"; daarachter de achtergrondkleur als er een is gekozen
+// (wit, zwart, marmerwit, marmerzwart — niet bij Transparant/geen).
+function muziekframeNaamSuffix(item) {
+  const v = item.variant === 'dik' ? ' dik' : item.variant === 'klein' ? ' klein' : item.variant === 'xl' ? ' xl' : ' muziekframe';
+  const kleurRaw = String((item.data && item.data.achtergrondKleur) || '').trim().toLowerCase();
+  const kleur = /wit|zwart|marmer/.test(kleurRaw) ? ' ' + kleurRaw.replace(/[^a-z0-9 ]/g, '').replace(/\s+/g, ' ').trim() : '';
+  return v + kleur;
+}
+
 // --- Eén Muziek-/Valentijnframe-drukwerkbestand downloaden vanuit de order-popup ---
 app.get('/api/print-files/musicframe-pdf', requireAdmin, async (req, res) => {
   const orderId = parseInt(req.query.orderId, 10);
@@ -757,7 +767,7 @@ app.get('/api/print-files/musicframe-pdf', requireAdmin, async (req, res) => {
     const pdfBytes = await generateMusicFramePdf(item.data);
     const baseName = String(order.order_number || order.shopify_order_id).replace(/[\\/:*?"<>|]/g, '-');
     const suffix = items.length > 1 ? ` ${itemIndex + 1}` : '';
-    const variantSuffix = item.variant === 'dik' ? ' dik' : item.variant === 'klein' ? ' klein' : ' muziekframe';
+    const variantSuffix = muziekframeNaamSuffix(item);
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="${baseName}${suffix}${variantSuffix}.pdf"`);
     res.send(Buffer.from(pdfBytes));
@@ -1231,16 +1241,14 @@ async function appendPrintFilesToArchive(archive, targets) {
         const numberSuffix = multipleFrames ? ` ${i + 1}` : '';
         const item = musicFrameItems[i];
         let filename;
-        if (item.variant === 'dik') {
-          // Dikke platen krijgen GEEN eigen submap meer (op verzoek) — ze
-          // komen gewoon bij de normale platen in de muziekframe-map, net
-          // als de normale dikte; alleen de "dik" in de bestandsnaam blijft
-          // staan om ze te kunnen onderscheiden.
-          filename = `${dateFolder}/muziekframe/${baseName}${numberSuffix} dik.pdf`;
-        } else if (item.variant === 'klein') {
-          filename = `${dateFolder}/muziekframe/klein/${baseName}${numberSuffix} klein.pdf`;
+        // Bestandsnaam: formaat (dik/klein/xl/muziekframe) + achtergrondkleur (wit, marmer...).
+        const naamSuffix = muziekframeNaamSuffix(item);
+        if (item.variant === 'klein') {
+          filename = `${dateFolder}/muziekframe/klein/${baseName}${numberSuffix}${naamSuffix}.pdf`;
         } else {
-          filename = `${dateFolder}/muziekframe/${baseName}${numberSuffix} muziekframe.pdf`;
+          // Dikke en XL-platen krijgen GEEN eigen submap (op verzoek) — alleen
+          // de naam onderscheidt ze.
+          filename = `${dateFolder}/muziekframe/${baseName}${numberSuffix}${naamSuffix}.pdf`;
         }
         try {
           const pdfBytes = await generateMusicFramePdf(item.data);
