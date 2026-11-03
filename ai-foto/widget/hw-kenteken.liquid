@@ -489,7 +489,7 @@
       if (L.text) { x0 = Math.min(x0, L.text.cx - L.text.w / 2); x1 = Math.max(x1, L.text.cx + L.text.w / 2); }
       if (L.logo) { x0 = Math.min(x0, L.logo.x); x1 = Math.max(x1, L.logo.x + L.logo.w); }
       var cw = x1 > x0 ? x1 - x0 : SHEET_W * 0.5;
-      return Math.max(1, Math.min(3.5, SHEET_W / (cw + 30)));
+      return 1; // geen inzoomen meer: alleen de rand blijft in beeld
     }
     function update() {
       busy = false; topOff = headerOffset();
