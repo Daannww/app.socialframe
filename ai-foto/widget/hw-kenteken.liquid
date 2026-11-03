@@ -500,7 +500,7 @@
       if (fixed && sr.top < topOff && rr_.bottom <= 0) return;
       if (sr.top >= topOff) { if (fixed) reset(); return; }
       if (!fixed) { fixed = true; full = { w: scene.offsetWidth, h: slot.offsetHeight }; }
-      var w = full.w, ch = w * AR, z1 = zoomEnd(), hEnd = (STRIP_H + 0.4) * (w / SHEET_W) * z1;
+      var w = full.w, ch = w * AR, z1 = zoomEnd(), hEnd = Math.min(ch, Math.max((STRIP_H + 0.4) * (w / SHEET_W) * z1, 52));
       var dist = Math.max(80, full.h * 0.8);
       var p = Math.max(0, Math.min(1, (topOff - sr.top) / dist)); p = p * p * (3 - 2 * p);
       var hv = ch + (hEnd - ch) * p, z = 1 + (z1 - 1) * p;
