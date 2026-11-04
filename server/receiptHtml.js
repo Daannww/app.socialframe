@@ -98,7 +98,7 @@ function orderBarcodeSvg(orderNumber) {
     const ruweSvg = bwipjs.toSVG({
       bcid: 'code128',
       text: String(orderNumber),
-      scale: 2,
+      scale: 1, // 1 eenheid = 1 module; de echte breedte wordt hieronder in mm gezet
       height: 10,
       includetext: true,
       textxalign: 'center'
@@ -111,7 +111,13 @@ function orderBarcodeSvg(orderNumber) {
     // geprinte bon kreeg). Hier expliciet naar 100% breedte (van de
     // omliggende, wél op maat gezette container) gezet, met behoud van de
     // eigen beeldverhouding via "height:auto".
-    return ruweSvg.replace('<svg ', '<svg style="width:100%; height:auto; display:block;" ');
+    // Streepjescode op een vaste, afdrukvriendelijke modulebreedte: 0,5 mm per module = precies 4 printpunten
+    // op een 203-dpi-bonnenprinter (en bijna 6 bij 300 dpi). Een willekeurige breedte (bv. 45mm) geeft
+    // balkjes van een niet-heel aantal punten -> onscherpe randen en een scanner die de code soms mist.
+    const vb = ruweSvg.match(/viewBox="0 0 ([\d.]+) [\d.]+"/);
+    const modules = vb ? parseFloat(vb[1]) : 0;
+    const breedteMm = modules ? (modules * 0.5).toFixed(2) + 'mm' : '45mm';
+    return ruweSvg.replace('<svg ', `<svg style="width:${breedteMm}; height:auto; display:block; shape-rendering:crispEdges;" `);
   } catch (e) {
     return ''; // ongeldig ordernummer voor een streepjescode -> gewoon weglaten
   }
@@ -329,7 +335,7 @@ async function buildReceiptHtml(order, serverBasisUrl) {
       ${nietGeladenHtml}
 
       ${order.order_number ? `
-      <div style="text-align:center; margin:8px auto 4px auto;"><div style="display:inline-block; width:45mm;">${orderBarcodeSvg(order.order_number)}</div></div>
+      <div style="text-align:center; margin:8px auto 4px auto;"><div style="display:inline-block;">${orderBarcodeSvg(order.order_number)}</div></div>
       ` : ''}
 
       <div style="margin-top:10px; text-align:center;">${t.contact}</div>

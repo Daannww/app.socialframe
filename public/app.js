@@ -1781,7 +1781,7 @@ async function printOrders(ids, btn, defaultLabel, autoAdvanceStatus = false) {
           body { margin: 0; }
           table { border-collapse: collapse; width: 100%; }
           th, td { padding: 2px 0; }
-          .order-barcode { display: block; margin: 8px auto 4px; width: 45mm; max-width: 100%; height: auto; }
+          .order-barcode { display: block; margin: 8px auto 4px; max-width: 100%; height: auto; }
         </style>
       </head>
       <body>
@@ -1799,16 +1799,16 @@ async function printOrders(ids, btn, defaultLabel, autoAdvanceStatus = false) {
           try {
             printWindow.JsBarcode(el, el.dataset.orderNumber, {
               format: 'CODE128',
-              width: 2,
+              width: 1,
               height: 40,
               fontSize: 14,
               margin: 0,
               background: 'transparent'
             });
-            // Even breed als de foto-preview eronder (45mm): viewBox zetten zodat de svg meeschaalt.
+            // Vaste modulebreedte van 0,5 mm (= 4 printpunten bij 203 dpi): scherpe balkjes, betrouwbaar scannen.
             const bw = parseFloat(el.getAttribute('width')), bh = parseFloat(el.getAttribute('height'));
             if (bw && bh) { el.setAttribute('viewBox', '0 0 ' + bw + ' ' + bh); el.removeAttribute('width'); el.removeAttribute('height'); }
-            el.style.width = '45mm'; el.style.height = 'auto';
+            el.style.width = (bw * 0.5) + 'mm'; el.style.height = 'auto'; el.setAttribute('shape-rendering', 'crispEdges');
           } catch (e) {
             // Ongeldig/leeg ordernummer -> gewoon geen streepjescode voor deze order
           }
