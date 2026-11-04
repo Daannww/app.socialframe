@@ -1781,7 +1781,7 @@ async function printOrders(ids, btn, defaultLabel, autoAdvanceStatus = false) {
           body { margin: 0; }
           table { border-collapse: collapse; width: 100%; }
           th, td { padding: 2px 0; }
-          .order-barcode { display: block; margin: 8px auto 4px; max-width: 100%; height: auto; }
+          .order-barcode { display: block; margin: 8px auto 4px; width: 45mm; max-width: 100%; height: auto; }
         </style>
       </head>
       <body>
@@ -1799,12 +1799,16 @@ async function printOrders(ids, btn, defaultLabel, autoAdvanceStatus = false) {
           try {
             printWindow.JsBarcode(el, el.dataset.orderNumber, {
               format: 'CODE128',
-              width: 1,
-              height: 24,
-              fontSize: 10,
+              width: 2,
+              height: 40,
+              fontSize: 14,
               margin: 0,
               background: 'transparent'
             });
+            // Even breed als de foto-preview eronder (45mm): viewBox zetten zodat de svg meeschaalt.
+            const bw = parseFloat(el.getAttribute('width')), bh = parseFloat(el.getAttribute('height'));
+            if (bw && bh) { el.setAttribute('viewBox', '0 0 ' + bw + ' ' + bh); el.removeAttribute('width'); el.removeAttribute('height'); }
+            el.style.width = '45mm'; el.style.height = 'auto';
           } catch (e) {
             // Ongeldig/leeg ordernummer -> gewoon geen streepjescode voor deze order
           }
@@ -2017,7 +2021,12 @@ function buildReceiptHtml(order) {
     : allPhotoLinksRaw;
   const autopicturaPhotos = allPhotoLinks.filter(l => /autopictura|\/files\/[a-f0-9]{32}-print\.jpg/i.test(l));
   const otherPhotos = allPhotoLinks.filter(l => !/autopictura|\/files\/[a-f0-9]{32}-print\.jpg/i.test(l));
-  const photosForReceipt = [...autopicturaPhotos, ...(otherPhotos.length ? [otherPhotos[0]] : [])];
+  // Kentekenplaathouder: het voorbeeld van de klant (eigenschap "Uw personalisatie", ...-kentekenpreview.jpg)
+  // telt niet mee als foto-link, dus hier apart erbij nemen.
+  const kentekenPreviews = receiptLineItems
+    .filter(li => /kenteken/i.test(li.title || ''))
+    .flatMap(li => (li.properties || []).filter(p => /^\s*Uw personalisatie/i.test(p.name || '') && /^https:\/\//i.test(String(p.value || '').trim())).map(p => String(p.value).trim()));
+  const photosForReceipt = [...new Set([...autopicturaPhotos, ...kentekenPreviews, ...(otherPhotos.length ? [otherPhotos[0]] : [])])];
 
   const photoHtml = photosForReceipt.map(link => `
     <div style="text-align:center; margin-top:10px;">
