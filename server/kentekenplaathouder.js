@@ -58,7 +58,8 @@ const LETTERTYPE_MAP = {
 };
 
 function isKentekenplaathouderLineItem(li) {
-  return /kentekenplaathouder/i.test(li.title || '');
+  // Ook "kentekenplaat-houder" (met streepje) en "kenteken plaat houder" — Shopify-titel is "Gepersonaliseerde kentekenplaat-houder".
+  return /kenteken[\s-]*plaat[\s-]*houder/i.test(li.title || '');
 }
 
 function extractKentekenplaathouderData(li) {
