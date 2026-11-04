@@ -353,12 +353,27 @@ function isBetaald(financialStatus) {
   return BETAALD_STATUSSEN.includes(String(financialStatus).toLowerCase());
 }
 
+// Losse accessoire-regel: herkenbaar aan de titel, zonder enige ingevulde personalisatie-eigenschap, en
+// geen herkend tekst-/illustratie-tegeltje of kentekenhouder (die hebben wél een drukwerkbestand nodig).
+const ACCESSOIRE_TITEL_REGEX = /houder|standaard|ezeltje|lijst\b|ophang|led[\s-]?verlichting|cadeau|inpakken|pootjes|afstandsbediening/i;
+function isAccessoireLineItem(li) {
+  const title = (li && li.title) || '';
+  if (!ACCESSOIRE_TITEL_REGEX.test(title)) return false;
+  if (/kenteken/i.test(title)) return false;
+  if (isTegelTekstLineItem(li) || isTegelIllustratieLineItem(li)) return false;
+  return !((li.properties || []).some(p => String(p.value == null ? '' : p.value).trim() !== ''));
+}
+
 function determineInitialStatus(lineItems, photoLinks, fulfillmentStatus, financialStatus, cancelledAt) {
   if (fulfillmentStatus === 'fulfilled') return 'verzonden';
   if (cancelledAt) return 'geannuleerd';
   if (!isBetaald(financialStatus)) return 'wacht op betaling';
   if (!lineItems || lineItems.length === 0) return 'wacht op drukwerkbestand';
   if (photoLinks && photoLinks.length > 0) return 'wacht op drukwerkbestand';
+  // Bestaat de order UITSLUITEND uit losse accessoires zonder personalisatie (bv. "Tegeltjes Standaard
+  // Kunststof-houder zwart", houders, standaards, lijsten, led-verlichting, cadeauverpakking) — dan is er
+  // geen drukwerkbestand nodig en gaat 'ie meteen naar "wacht op productie".
+  if (lineItems.every(isAccessoireLineItem)) return 'wacht op productie';
   const allTextTiles = lineItems.every(li => /tegeltje met tekst/i.test(li.title || ''));
   if (allTextTiles) {
     // Herkennen we voor ELK van deze tegeltjes een vast ontwerp — via
