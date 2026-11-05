@@ -1800,7 +1800,7 @@ async function printOrders(ids, btn, defaultLabel, autoAdvanceStatus = false) {
             printWindow.JsBarcode(el, el.dataset.orderNumber, {
               format: 'CODE128',
               width: 1,
-              height: 40,
+              height: 20,
               fontSize: 14,
               margin: 0,
               background: 'transparent'

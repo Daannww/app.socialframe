@@ -99,7 +99,7 @@ function orderBarcodeSvg(orderNumber) {
       bcid: 'code128',
       text: String(orderNumber),
       scale: 1, // 1 eenheid = 1 module; de echte breedte wordt hieronder in mm gezet
-      height: 10,
+      height: 5,
       includetext: true,
       textxalign: 'center'
     });
