@@ -100,7 +100,7 @@ function orderBarcodeSvg(orderNumber) {
       text: String(orderNumber),
       scale: 1, // 1 eenheid = 1 module; de echte breedte wordt hieronder in mm gezet
       height: 5,
-      includetext: true,
+      includetext: false,
       textxalign: 'center'
     });
     // BELANGRIJK: bwip-js se toSVG() geeft alleen een "viewBox" mee, GEEN

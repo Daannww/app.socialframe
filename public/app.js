@@ -1801,7 +1801,7 @@ async function printOrders(ids, btn, defaultLabel, autoAdvanceStatus = false) {
               format: 'CODE128',
               width: 1,
               height: 20,
-              fontSize: 14,
+              displayValue: false,
               margin: 0,
               background: 'transparent'
             });
