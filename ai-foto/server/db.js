@@ -72,7 +72,9 @@ const DEFAULT_SETTINGS = {
   variants: '1',                // aantal varianten per poging; de klant kiest er één (1 = geen keuze, max 3)
   text_max: '40',               // maximaal aantal tekens dat een klant mag invullen
   max_attempts: '10',           // pogingen per klant (browser/client_id) per 24 uur
-  max_attempts_ip: '25',        // pogingen per IP-adres per 24 uur (hoger, want gezinnen/kantoren delen een IP)
+  max_attempts_ip: '25',        // pogingen per IPv6-blok (/64) per 24 uur; elke klant heeft daar een eigen blok
+  max_attempts_ip4: '150',      // pogingen per IPv4-adres per 24 uur; hoog, want mobiele providers laten honderden klanten 1 IPv4 delen
+  max_per_hour_ip: '60',        // pogingen per IP per uur
   upscale_model: 'fal-ai/recraft/upscale/crisp',   // goedkoop (±$0,004 per stuk); clarity-upscaler was ±30x duurder
   tegel_px: '2000',             // 13x13 cm @ 300 dpi = 1535 px; 2000 = ±390 dpi, ruim scherp (kaart/route worden op deze maat getekend)
   poster_long_px: '2800',       // 70x50 cm @ ~100 dpi

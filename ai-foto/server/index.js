@@ -72,7 +72,7 @@ app.get('/api/designs', (req, res) => {
   res.json({ designs: rows.map(publicDesign), attempts_left: left, max_attempts: maxA, text_max: parseInt(getSetting('text_max'), 10) });
 });
 
-const genLimiter = rateLimit({ windowMs: 60 * 60 * 1000, limit: 20, standardHeaders: true, legacyHeaders: false, keyGenerator: (req) => clientIp(req), skip: (req) => unlimitedIp(clientIp(req)), validate: false,
+const genLimiter = rateLimit({ windowMs: 60 * 60 * 1000, limit: () => parseInt(getSetting('max_per_hour_ip'), 10) || 60, standardHeaders: true, legacyHeaders: false, keyGenerator: (req) => clientIp(req), skip: (req) => unlimitedIp(clientIp(req)), validate: false,
   message: { error: 'Te veel pogingen, probeer het later opnieuw.' } });
 
 // Limiet geldt op browsersessie EN op IP-adres: pas als beide gewisseld worden, begint iemand opnieuw.
@@ -80,9 +80,26 @@ const unlimitedIp = (ip) => String(getSetting('onbeperkt_ips') || '').split(/[\s
 function attemptsLeft(clientId, ip) {
   const max = parseInt(getSetting('max_attempts'), 10);
   if (unlimitedIp(ip)) return max;   // eigen IP-adressen: nooit beperkt
-  const maxIp = parseInt(getSetting('max_attempts_ip'), 10) || max * 3;
-  const byIp = db.prepare("SELECT COUNT(*) c FROM jobs WHERE ip=? AND client_id!='admin-test' AND profile!='kaart' AND created_at > datetime('now','-1 day') AND status!='error'").get(ip || '').c;
+  const v6 = String(ip || '').includes(':') && !/^::ffff:/i.test(String(ip || ''));
+  const maxIp = v6 ? (parseInt(getSetting('max_attempts_ip'), 10) || max * 3) : (parseInt(getSetting('max_attempts_ip4'), 10) || 150);
+  let byIp;
+  if (v6) {   // IPv6: tel per /64-blok (eerste 4 groepen), want 1 klant heeft een heel blok adressen
+    const pre = (a) => v6Prefix(a);
+    const mine = pre(ip);
+    byIp = db.prepare("SELECT ip, COUNT(*) c FROM jobs WHERE ip LIKE '%:%' AND client_id!='admin-test' AND profile!='kaart' AND created_at > datetime('now','-1 day') AND status!='error' GROUP BY ip").all()
+      .reduce((n, r) => n + (pre(r.ip) === mine ? r.c : 0), 0);
+  } else {
+    byIp = db.prepare("SELECT COUNT(*) c FROM jobs WHERE ip=? AND client_id!='admin-test' AND profile!='kaart' AND created_at > datetime('now','-1 day') AND status!='error'").get(ip || '').c;
+  }
   return Math.max(0, Math.min(max - attemptsUsed(clientId), maxIp - byIp));
+}
+function v6Prefix(a) {
+  try {
+    let [h, t] = String(a).split('::');
+    const hh = h ? h.split(':') : [], tt = t ? t.split(':') : [];
+    const g = [...hh, ...(t === undefined ? [] : Array(8 - hh.length - tt.length).fill('0')), ...tt];
+    return g.slice(0, 4).map((x) => parseInt(x || '0', 16)).join(':');
+  } catch { return String(a); }
 }
 function attemptsUsed(clientId) {
   return db.prepare("SELECT COUNT(*) c FROM jobs WHERE client_id=? AND profile!='kaart' AND created_at > datetime('now','-1 day') AND status!='error'").get(clientId).c;
