@@ -587,6 +587,18 @@ function cleanup() {
 }
 setInterval(cleanup, 24 * 60 * 60 * 1000).unref();
 
+// Fouten (bv. een te grote foto) altijd als JSON teruggeven, zodat de productpagina een duidelijke melding toont
+// in plaats van "Geen verbinding" (een HTML-foutpagina kan de pagina niet lezen).
+app.use((err, req, res, next) => {
+  if (res.headersSent) return next(err);
+  if (err && err.name === 'MulterError') {
+    const tooBig = err.code === 'LIMIT_FILE_SIZE';
+    return res.status(tooBig ? 413 : 400).json({ error: tooBig ? 'Je foto is te groot (maximaal 15 MB). Kies een kleinere foto of verklein hem eerst.' : 'De foto kon niet worden ontvangen. Probeer het opnieuw.' });
+  }
+  console.error('[fout]', req.method, req.path, err && err.message);
+  res.status((err && err.status) || 500).json({ error: 'Er ging iets mis. Probeer het opnieuw.' });
+});
+
 if (require.main === module) {
   const port = process.env.PORT || 3000;
   app.listen(port, () => { console.log('AI-foto service op poort', port); resume(); seedRoutes(); });
