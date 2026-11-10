@@ -64,6 +64,28 @@ const ONTWERPEN = [
     // 100x100mm) op 1575x1575px, bijna-wit naar zuiver wit gezet.
     herken: /lieve\s*zus.*sterker\s*dan\s*je\s*denkt/i,
     assetBestand: 'lieve-zus-je-bent-sterker-dan-je-denkt.jpg'
+  },
+  {
+    id: 'broertje-zelfstandig-naamwoord',
+    // Titel in Shopify: "Tegeltje met tekst - Broertje." (varianten o.a.
+    // Zwart / Zwart metalen houder). Vaste ontwerp-afbeelding (zwarte tekst
+    // op wit: "Broertje - zelfstandig naamwoord" + 5 omschrijvingen); de klant
+    // kiest alleen het formaat (10x10 of 13x13). Asset: gerenderd uit het
+    // aangeleverde PDF (Broertje_zwart_Tekengebied_1.pdf, 100x100mm) op
+    // 1575x1575px, bijna-wit naar zuiver wit gezet.
+    herken: /broertje/i,
+    assetBestand: 'broertje-zelfstandig-naamwoord.jpg'
+  },
+  {
+    id: 'beste-mama-ter-wereld',
+    // Titel in Shopify: "Tegeltje met Tekst en figuur - Beste mama ter
+    // wereld." (varianten o.a. Zwart / Zwart metalen houder). Vaste
+    // ontwerp-afbeelding (zwarte lijntekening van twee handen + tekst op wit);
+    // de klant kiest alleen het formaat (10x10 of 13x13). Asset: gerenderd uit
+    // het aangeleverde PDF (Beste_mama_ter_wereld_Tekengebied_1.pdf,
+    // 100x100mm) op 1575x1575px, bijna-wit naar zuiver wit gezet.
+    herken: /beste\s*mama\s*ter\s*wereld/i,
+    assetBestand: 'beste-mama-ter-wereld.jpg'
   }
 ];
 
