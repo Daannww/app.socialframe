@@ -17,7 +17,13 @@ const SKU_MAP = [
   // SKU van de orderregel). Alleen op SKU gekoppeld (test altijd false). Bestaat het artikel nog niet, dan wordt het aangemaakt
   // met de huidige Shopify-voorraad; bestaat het al, dan geldt het getal in het voorraadtabblad (dus eerst goed zetten!).
   { sku: 'SFLED20', item: 'SFLED20', test: () => false, create: true },
-  { sku: 'SFLEDRGB', item: 'SFLEDRGB', test: () => false, create: true }
+  { sku: 'SFLEDRGB', item: 'SFLEDRGB', test: () => false, create: true },
+  // Extra dikke (6mm) platen: SFD = plaat zonder standaard, SFM6 = marmerlook-standaard 6mm. Zelfde aanpak als de led-
+  // verlichting: gedeelde SKU over veel producten (Muziek-, Date-, Memory-, Bruiloft-frame ...), artikelnaam = SKU.
+  // Het artikel wordt bij de eerste sync aangemaakt met de huidige Shopify-voorraad (nu 0): zet daarna het echte aantal
+  // in het voorraadtabblad, dan volgen alle varianten met die SKU en gaat het bij elke order automatisch af.
+  { sku: 'SFD', item: 'SFD', test: () => false, create: true },
+  { sku: 'SFM6', item: 'SFM6', test: () => false, create: true }
 ];
 
 function enabled() { return process.env.SHOPIFY_STOCK_SYNC === '1'; }
