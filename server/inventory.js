@@ -22,6 +22,10 @@ const INVENTORY_RULES = [
   { name: 'Luxe cadeauverpakking', test: (text) => /luxe\s*cadeau-?verpakking/i.test(text) }
 ];
 
+// Artikelen die één voorraadgetal delen over meerdere SKU's (kleine letters): een orderregel met een van deze SKU's boekt
+// af van het artikel. Houd gelijk met SKU_MAP in shopifyStock.js.
+const SKU_GROEPEN = { sfd: ['sfd', 'sfmo', 'sfh6'] };
+
 // Bepaalt, voor een order met line_items, hoeveel van elk voorraadartikel
 // er verbruikt is. Geeft een object terug zoals { 'Tegeltjes 10x10': 2 }.
 // `items` is de actuele lijst voorraadartikelen (uit de database, dus ook
@@ -46,7 +50,8 @@ function computeDeductionsForOrder(order, items) {
       // de producttekst voorkomt. SKU-vergelijking is bewust exact (geen
       // deelstring), anders zou "SFTMH" ook "SFTMHD" meepakken.
       const sku = String(li.sku || '').trim().toLowerCase();
-      const skuMatch = sku !== '' && sku === String(name).trim().toLowerCase();
+      const naamLc = String(name).trim().toLowerCase();
+      const skuMatch = sku !== '' && (sku === naamLc || (SKU_GROEPEN[naamLc] || []).includes(sku));
       const matches = rule ? rule.test(text) : (skuMatch || text.toLowerCase().includes(name.toLowerCase()));
       if (matches) {
         deductions[name] = (deductions[name] || 0) + (li.quantity || 1);

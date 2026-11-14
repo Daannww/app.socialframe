@@ -22,7 +22,9 @@ const SKU_MAP = [
   // verlichting: gedeelde SKU over veel producten (Muziek-, Date-, Memory-, Bruiloft-frame ...), artikelnaam = SKU.
   // Het artikel wordt bij de eerste sync aangemaakt met de huidige Shopify-voorraad (nu 0): zet daarna het echte aantal
   // in het voorraadtabblad, dan volgen alle varianten met die SKU en gaat het bij elke order automatisch af.
-  { sku: 'SFD', item: 'SFD', test: () => false, create: true },
+  // SFD, SFMO (muur-ophangsysteem) en SFH6 delen BEWUST één voorraadgetal: het artikel heet 'SFD' en alle varianten met
+  // een van deze SKU's krijgen dat getal (zie ook SKU_GROEPEN in inventory.js voor het afboeken bij orders).
+  { sku: 'SFD', skus: ['SFD', 'SFMO', 'SFH6'], item: 'SFD', test: () => false, create: true },
   { sku: 'SFM6', item: 'SFM6', test: () => false, create: true }
 ];
 
@@ -53,12 +55,14 @@ async function locationId(q) {
 async function allVariants(q, loc) {
   const out = [];
   for (const m of SKU_MAP) {
-    let after = null;
-    for (let page = 0; page < 20; page++) {
-      const d = await q(`query($a:String,$q:String!,$l:ID!){ inventoryItems(first:100, after:$a, query:$q){ pageInfo{ hasNextPage endCursor } nodes{ id sku tracked inventoryLevel(locationId:$l){ quantities(names:["available"]){ quantity } } } } }`, { a: after, q: `sku:${m.sku}`, l: loc });
-      for (const it of d.inventoryItems.nodes) if (it.sku === m.sku) out.push({ title: '', sku: it.sku, product: { title: '' }, inventoryItem: it });
-      if (!d.inventoryItems.pageInfo.hasNextPage) break;
-      after = d.inventoryItems.pageInfo.endCursor;
+    for (const sku of (m.skus || [m.sku])) {
+      let after = null;
+      for (let page = 0; page < 20; page++) {
+        const d = await q(`query($a:String,$q:String!,$l:ID!){ inventoryItems(first:100, after:$a, query:$q){ pageInfo{ hasNextPage endCursor } nodes{ id sku tracked inventoryLevel(locationId:$l){ quantities(names:["available"]){ quantity } } } } }`, { a: after, q: `sku:${sku}`, l: loc });
+        for (const it of d.inventoryItems.nodes) if (it.sku === sku) out.push({ title: '', sku: it.sku, product: { title: '' }, inventoryItem: it });
+        if (!d.inventoryItems.pageInfo.hasNextPage) break;
+        after = d.inventoryItems.pageInfo.endCursor;
+      }
     }
   }
   return out;
@@ -87,7 +91,7 @@ async function pushStockToShopify(getInventory, opts = {}) {
     const target = Math.max(0, parseInt(row.stock, 10) || 0);
     const seen = new Set(), changes = [], wijz = [];
     for (const v of variants) {
-      const bySku = v.sku === m.sku, byText = textMatch && m.test(v.title || '') && /tegel/i.test((v.product && v.product.title) || '');
+      const bySku = (m.skus || [m.sku]).includes(v.sku), byText = textMatch && m.test(v.title || '') && /tegel/i.test((v.product && v.product.title) || '');
       if (!bySku && !byText) continue;
       const it = v.inventoryItem; if (!it || seen.has(it.id)) continue; seen.add(it.id);
       if (!it.tracked) continue;
