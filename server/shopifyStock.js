@@ -22,9 +22,9 @@ const SKU_MAP = [
   // verlichting: gedeelde SKU over veel producten (Muziek-, Date-, Memory-, Bruiloft-frame ...), artikelnaam = SKU.
   // Het artikel wordt bij de eerste sync aangemaakt met de huidige Shopify-voorraad (nu 0): zet daarna het echte aantal
   // in het voorraadtabblad, dan volgen alle varianten met die SKU en gaat het bij elke order automatisch af.
-  // SFD, SFMO (muur-ophangsysteem) en SFH6 delen BEWUST één voorraadgetal: het artikel heet 'SFD' en alle varianten met
+  // SFD, SFMO6 (muur-ophangsysteem bij de extra dikke 6mm-platen; het gewone SFMO blijft los) en SFH6 delen BEWUST één voorraadgetal: het artikel heet 'SFD' en alle varianten met
   // een van deze SKU's krijgen dat getal (zie ook SKU_GROEPEN in inventory.js voor het afboeken bij orders).
-  { sku: 'SFD', skus: ['SFD', 'SFMO', 'SFH6'], item: 'SFD', test: () => false, create: true },
+  { sku: 'SFD', skus: ['SFD', 'SFMO6', 'SFH6'], item: 'SFD', test: () => false, create: true },
   { sku: 'SFM6', item: 'SFM6', test: () => false, create: true }
 ];
 

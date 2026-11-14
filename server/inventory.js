@@ -24,7 +24,7 @@ const INVENTORY_RULES = [
 
 // Artikelen die één voorraadgetal delen over meerdere SKU's (kleine letters): een orderregel met een van deze SKU's boekt
 // af van het artikel. Houd gelijk met SKU_MAP in shopifyStock.js.
-const SKU_GROEPEN = { sfd: ['sfd', 'sfmo', 'sfh6'] };
+const SKU_GROEPEN = { sfd: ['sfd', 'sfmo6', 'sfh6'] };
 
 // Bepaalt, voor een order met line_items, hoeveel van elk voorraadartikel
 // er verbruikt is. Geeft een object terug zoals { 'Tegeltjes 10x10': 2 }.
