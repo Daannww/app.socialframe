@@ -63,7 +63,8 @@ CREATE TABLE IF NOT EXISTS schrijf_teksten (
 
 // Migratie: pauze/stop vanuit het dashboard + voortgang tijdens het schrijven.
 // opdracht: NULL | 'pauze' | 'stop' (de agent leest dit tijdens het schrijven)
-for (const kolom of ['opdracht TEXT', 'voortgang INTEGER', 'gepauzeerd INTEGER']) {
+// letterschaal: lettergrootte in procent van het sjabloon (100 = standaard; kleiner = kleinere letters).
+for (const kolom of ['opdracht TEXT', 'voortgang INTEGER', 'gepauzeerd INTEGER', 'letterschaal INTEGER']) {
   try { db.exec(`ALTER TABLE schrijf_jobs ADD COLUMN ${kolom}`); } catch (e) { /* bestaat al */ }
 }
 
@@ -94,6 +95,13 @@ function ruimHangendeJobsOp() {
               WHERE status = 'bezig' AND updated_at < datetime('now', '-15 minutes')`).run();
 }
 
+// Lettergrootte in procent: geheel getal tussen 40 en 100 (standaard 100).
+function cleanLetterschaal(v) {
+  const n = parseInt(v, 10);
+  if (!n) return 100;
+  return Math.max(40, Math.min(100, n));
+}
+
 function jobNaarJson(j) {
   return {
     id: j.id,
@@ -105,6 +113,7 @@ function jobNaarJson(j) {
     tekst: j.tekst,
     sjabloon: j.sjabloon,
     lettertype: j.lettertype,
+    letterschaal: j.letterschaal || 100,
     status: j.status,
     fout: j.fout,
     created_at: j.created_at,
@@ -148,17 +157,39 @@ function agentLaatstGezien() {
 // Geeft `null` terug (en doet niets) als er al een kaartje voor deze order
 // bestaat, als extra vangnet tegen dubbele kaartjes bij een herhaalde sync
 // (al roept syncOrders() dit toch alleen aan bij isNew-orders).
-function maakConceptJobUitOrder({ order_id, order_number, naam, tekst }) {
+// `verwacht` = het hoeveelste kaartje van deze order dit is (1 = eerste, 2 = tweede ...): bestaan er al zoveel kaartjes voor
+// de order, dan wordt er niets aangemaakt. Een order kan meerdere "Handgeschreven kaartje"-regels hebben (elk met een eigen
+// boodschap), dus alleen "bestaat er al een kaartje" is niet genoeg.
+function maakConceptJobUitOrder({ order_id, order_number, naam, tekst, verwacht = 1 }) {
   if (!tekst || !String(tekst).trim()) return null;
   if (order_id) {
-    const bestaat = db.prepare('SELECT id FROM schrijf_jobs WHERE order_id = ?').get(order_id);
-    if (bestaat) return null;
+    const n = db.prepare('SELECT COUNT(*) AS n FROM schrijf_jobs WHERE order_id = ?').get(order_id).n;
+    if (n >= verwacht) return null;
   }
   const lettertype = LETTERTYPES[0];
   const r = db.prepare(`INSERT INTO schrijf_jobs (order_id, order_number, naam, adres_json, tekst, sjabloon, lettertype, status)
                         VALUES (?, ?, ?, '[]', ?, 'tekstvak', ?, 'concept')`)
     .run(order_id || null, order_number || null, naam || null, String(tekst).slice(0, 2000), lettertype);
   return r.lastInsertRowid;
+}
+
+// Eenmalig bij het opstarten (aangeroepen vanuit syncOrders): orders van de laatste 3 dagen waarvoor wel al een kaartje is
+// aangemaakt, maar minder dan er "Handgeschreven kaartje"-regels met een boodschap zijn (bug: vroeger werd alleen de eerste
+// regel gebruikt), krijgen de ontbrekende concept-kaartjes alsnog. Orders zonder enig kaartje blijven met rust (die zijn
+// bewust verwijderd of nog nooit aangemaakt).
+function herstelOntbrekendeKaartjes(extractAlleBoodschappen) {
+  const orders = db.prepare("SELECT id, order_number, customer_name, line_items_json FROM orders WHERE line_items_json LIKE '%andgeschreven kaartje%' AND COALESCE(shopify_created_at, created_at) >= datetime('now', '-3 days')").all();
+  let aangemaakt = 0;
+  for (const o of orders) {
+    let boodschappen = [];
+    try { boodschappen = extractAlleBoodschappen(JSON.parse(o.line_items_json)); } catch { continue; }
+    const n = db.prepare('SELECT COUNT(*) AS n FROM schrijf_jobs WHERE order_id = ?').get(o.id).n;
+    if (n < 1 || n >= boodschappen.length) continue;
+    for (let i = n; i < boodschappen.length; i++) {
+      if (maakConceptJobUitOrder({ order_id: o.id, order_number: o.order_number, naam: o.customer_name, tekst: boodschappen[i], verwacht: i + 1 })) aangemaakt++;
+    }
+  }
+  return aangemaakt;
 }
 
 // --- Routes voor de schrijfagent (GEEN sessie, wel token). Moet vóór
@@ -195,7 +226,11 @@ function registreerAgentRoutes(app) {
       const { job, wacht_op_kaart } = pak();
       if (!job) return res.json({ job: null, wacht_op_kaart: !!wacht_op_kaart });
       const sjabloon = SJABLONEN[job.sjabloon] || SJABLONEN.tekstvak;
-      res.json({ job: { ...jobNaarJson(job), sjabloon_instellingen: { id: job.sjabloon, ...sjabloon } } });
+      // Lettergrootte van dit kaartje: letterhoogte van het sjabloon x letterschaal (alleen voor tekstvak-sjablonen).
+      const schaal = cleanLetterschaal(job.letterschaal);
+      const instellingen = { id: job.sjabloon, ...sjabloon };
+      if (sjabloon.letterhoogte) instellingen.letterhoogte = Math.round(sjabloon.letterhoogte * schaal) / 100;
+      res.json({ job: { ...jobNaarJson(job), sjabloon_instellingen: instellingen } });
     } catch (e) {
       res.status(500).json({ error: e.message });
     }
@@ -266,14 +301,14 @@ function registreerDashboardRoutes(app) {
 
   app.post('/api/schrijfmachine/jobs', (req, res) => {
     try {
-      const { order_id, order_number, naam, adres, tekst, sjabloon, lettertype, thema, direct } = req.body || {};
+      const { order_id, order_number, naam, adres, tekst, sjabloon, lettertype, thema, direct, letterschaal } = req.body || {};
       if (!tekst || !String(tekst).trim()) return res.status(400).json({ error: 'Tekst is verplicht' });
       if (!SJABLONEN[sjabloon]) return res.status(400).json({ error: 'Onbekend sjabloon' });
       if (!LETTERTYPES.includes(lettertype)) return res.status(400).json({ error: 'Onbekend lettertype' });
-      const r = db.prepare(`INSERT INTO schrijf_jobs (order_id, order_number, naam, adres_json, tekst, sjabloon, lettertype, thema, status)
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+      const r = db.prepare(`INSERT INTO schrijf_jobs (order_id, order_number, naam, adres_json, tekst, sjabloon, lettertype, thema, letterschaal, status)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
         .run(order_id || null, order_number || null, naam || null, JSON.stringify(Array.isArray(adres) ? adres : []),
-             String(tekst).slice(0, 2000), sjabloon, lettertype, THEMAS.includes(thema) ? thema : detecteerThema(tekst), direct ? 'wachtrij' : 'concept');
+             String(tekst).slice(0, 2000), sjabloon, lettertype, THEMAS.includes(thema) ? thema : detecteerThema(tekst), cleanLetterschaal(letterschaal), direct ? 'wachtrij' : 'concept');
       if (direct) zetMeta('schrijf_kaart_klaar', '1');
       res.json(jobNaarJson(db.prepare('SELECT * FROM schrijf_jobs WHERE id = ?').get(r.lastInsertRowid)));
     } catch (e) {
@@ -321,7 +356,7 @@ function registreerDashboardRoutes(app) {
   // Sjabloon en/of handschrift van een kaartje wijzigen (niet terwijl hij geschreven wordt).
   app.post('/api/schrijfmachine/jobs/:id/instellingen', (req, res) => {
     try {
-      const { sjabloon, lettertype, thema } = req.body || {};
+      const { sjabloon, lettertype, thema, letterschaal } = req.body || {};
       const job = db.prepare('SELECT status FROM schrijf_jobs WHERE id = ?').get(req.params.id);
       if (!job) return res.status(404).json({ error: 'Kaartje niet gevonden' });
       if (job.status === 'bezig') return res.status(409).json({ error: 'Dit kaartje wordt nu geschreven' });
@@ -329,9 +364,9 @@ function registreerDashboardRoutes(app) {
       if (lettertype !== undefined && !LETTERTYPES.includes(lettertype)) return res.status(400).json({ error: 'Onbekend lettertype' });
       if (thema !== undefined && !THEMAS.includes(thema)) return res.status(400).json({ error: 'Onbekend thema' });
       db.prepare(`UPDATE schrijf_jobs SET sjabloon = COALESCE(?, sjabloon), lettertype = COALESCE(?, lettertype), thema = COALESCE(?, thema),
-                  updated_at = datetime('now') WHERE id = ?`)
+                  letterschaal = COALESCE(?, letterschaal), updated_at = datetime('now') WHERE id = ?`)
         .run(sjabloon === undefined ? null : sjabloon, lettertype === undefined ? null : lettertype,
-             thema === undefined ? null : thema, req.params.id);
+             thema === undefined ? null : thema, letterschaal === undefined ? null : cleanLetterschaal(letterschaal), req.params.id);
       res.json({ ok: true });
     } catch (e) {
       res.status(500).json({ error: e.message });
@@ -378,4 +413,4 @@ function registreerDashboardRoutes(app) {
   });
 }
 
-module.exports = { registreerAgentRoutes, registreerDashboardRoutes, SJABLONEN, LETTERTYPES, maakConceptJobUitOrder };
+module.exports = { registreerAgentRoutes, registreerDashboardRoutes, SJABLONEN, LETTERTYPES, maakConceptJobUitOrder, herstelOntbrekendeKaartjes };

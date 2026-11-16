@@ -3,7 +3,7 @@ const { upsertOrder, getMeta, setMeta, getOrdersForPaymentCheck, setFinancialSta
 const { isTegelTekstLineItem } = require('./texttile');
 const { isTegelIllustratieLineItem } = require('./tegelillustratie');
 const { isVermoedelijkeDubbeleCadeautjeRegel } = require('./pdf-shared');
-const { maakConceptJobUitOrder } = require('./schrijfmachine');
+const { maakConceptJobUitOrder, herstelOntbrekendeKaartjes } = require('./schrijfmachine');
 
 const STORE = process.env.SHOPIFY_STORE;
 const TOKEN = process.env.SHOPIFY_ACCESS_TOKEN;
@@ -326,6 +326,20 @@ function extractHandgeschrevenKaartjeBoodschap(lineItems) {
   return tekst || null;
 }
 
+// ALLE kaartje-boodschappen van een order (een order kan meerdere "Handgeschreven kaartje"-regels hebben, en een regel kan
+// quantity > 1 hebben: dan komt dezelfde boodschap meerdere keren terug). Lege boodschappen worden overgeslagen.
+function extractAlleHandgeschrevenKaartjeBoodschappen(lineItems) {
+  const out = [];
+  (lineItems || []).filter(isHandgeschrevenKaartjeLineItem).forEach(li => {
+    const prop = (li.properties || []).find(p => /boodschap.*kaartje/i.test(p.name || ''));
+    const tekst = prop ? String(prop.value || '').trim() : '';
+    if (!tekst) return;
+    const qty = li.quantity && li.quantity > 0 ? li.quantity : 1;
+    for (let i = 0; i < qty; i++) out.push(tekst);
+  });
+  return out;
+}
+
 // Bepaalt de startstatus van een nieuwe order. Bestaat een order UITSLUITEND
 // uit producten met "Tegeltje met tekst" in de titel EN heeft de order
 // daadwerkelijk geen enkele foto/ontwerp-link (autopictura/upload) — dan
@@ -566,15 +580,16 @@ async function syncOrders() {
         // even het sjabloon/lettertype kiezen en kort meekijken voordat de
         // schrijfmachine 'm echt gaat schrijven.
         try {
-          const boodschap = extractHandgeschrevenKaartjeBoodschap(mapped ? JSON.parse(mapped.line_items_json) : []);
-          if (boodschap) {
+          const boodschappen = extractAlleHandgeschrevenKaartjeBoodschappen(mapped ? JSON.parse(mapped.line_items_json) : []);
+          boodschappen.forEach((boodschap, i) => {
             maakConceptJobUitOrder({
               order_id: result.id,
               order_number: mapped.order_number,
               naam: mapped.customer_name,
-              tekst: boodschap
+              tekst: boodschap,
+              verwacht: i + 1
             });
-          }
+          });
         } catch (e) {
           console.error('[kaartje] kon geen concept-kaartje aanmaken voor nieuwe order:', e.message);
         }
@@ -587,6 +602,15 @@ async function syncOrders() {
     if (orders.length < params.limit) break;
     // Voor de volgende pagina altijd schoon overschakelen naar pure since_id-paginering
     params = { status: 'open', limit: 250, since_id: lastId };
+  }
+
+  // Eenmalig per serverstart: ontbrekende kaartjes bij orders met meerdere "Handgeschreven kaartje"-regels bijmaken.
+  if (!global.__kaartjesHersteld) {
+    global.__kaartjesHersteld = true;
+    try {
+      const n = herstelOntbrekendeKaartjes(extractAlleHandgeschrevenKaartjeBoodschappen);
+      if (n) console.log('[kaartje] ontbrekende concept-kaartjes bijgemaakt:', n);
+    } catch (e) { console.error('[kaartje] herstel mislukt:', e.message); }
   }
 
   await sendAiJobLinks(aiLinks);

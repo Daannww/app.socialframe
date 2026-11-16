@@ -220,7 +220,7 @@
       return st;
     }
     const { breed: W, hoog: H, marge: m } = sjabloon;
-    return tekstBlok(font, tekst, m, m, W - 2 * m, H - 2 * m, sjabloon.letterhoogte || 3.5, { centreer: sjabloon.centreren !== false });
+    return tekstBlok(font, tekst, m, m, W - 2 * m, H - 2 * m, (sjabloon.letterhoogte || 3.5) * huidigeLetterschaal() / 100, { centreer: sjabloon.centreren !== false });
   }
 
   // ---------- Formulier ----------
@@ -240,6 +240,10 @@
   }
 
   function huidigSjabloon() { return info.sjablonen[$('kaartSjabloon').value]; }
+
+  // Lettergrootte in procent (keuzelijst naast het handschrift; 100 = standaard).
+  const LETTERSCHALEN = [100, 90, 80, 70, 60, 50];
+  function huidigeLetterschaal() { const el = $('kaartLetterschaal'); return el ? (parseInt(el.value, 10) || 100) : 100; }
 
   async function tekenVoorbeeld() {
     const doel = $('kaartVoorbeeld');
@@ -372,11 +376,13 @@
             : `<select class="kaart-rij-select kaart-thema thema-${esc(j.thema || 'algemeen')}" data-instelling="thema" data-id="${j.id}" title="Thema wijzigen">${
                 Object.entries(THEMA_LABEL).map(([id, l]) => `<option value="${id}"${id === (j.thema || 'algemeen') ? ' selected' : ''}>${l}</option>`).join('')}</select>`}</td>
           <td>${j.status === 'bezig'
-            ? `${esc(sj ? sj.naam : j.sjabloon)}<div class="kaartjes-klein">${esc(j.lettertype)}</div>`
+            ? `${esc(sj ? sj.naam : j.sjabloon)}<div class="kaartjes-klein">${esc(j.lettertype)}${(j.letterschaal || 100) !== 100 ? ' · letters ' + j.letterschaal + '%' : ''}</div>`
             : `<select class="kaart-rij-select" data-instelling="sjabloon" data-id="${j.id}" title="Sjabloon wijzigen">${
                 Object.entries(info.sjablonen).map(([id, s]) => `<option value="${id}"${id === j.sjabloon ? ' selected' : ''}>${esc(s.naam)}</option>`).join('')}</select>
                <select class="kaart-rij-select kaart-rij-klein" data-instelling="lettertype" data-id="${j.id}" title="Handschrift wijzigen">${
-                info.lettertypes.map(l => `<option${l === j.lettertype ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select>`}</td>
+                info.lettertypes.map(l => `<option${l === j.lettertype ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select>
+               <select class="kaart-rij-select kaart-rij-klein" data-instelling="letterschaal" data-id="${j.id}" title="Lettergrootte wijzigen">${
+                LETTERSCHALEN.map(n => `<option value="${n}"${n === (j.letterschaal || 100) ? ' selected' : ''}>Letters ${n}%</option>`).join('')}</select>`}</td>
           <td class="kaartjes-tekstcel" title="${esc(j.tekst)}"><div class="kaartjes-clamp">${esc(j.tekst.replace(/\n+/g, ' · '))}</div></td>
           <td><span class="badge ${cls}">${label}</span>${j.fout ? `<div class="kaartjes-fout">${esc(j.fout)}</div>` : ''}</td>
           <td class="kaartjes-acties">${acties.join('')}</td>
@@ -474,6 +480,7 @@
         tekst,
         sjabloon: $('kaartSjabloon').value,
         lettertype: $('kaartLettertype').value,
+        letterschaal: huidigeLetterschaal(),
         thema: $('kaartThema').value,
         direct
       });
@@ -509,6 +516,7 @@
           $('kaartAdres').value = (j.adres || []).slice(j.naam ? 1 : 0).join('\n');
           $('kaartSjabloon').value = j.sjabloon;
           $('kaartLettertype').value = j.lettertype;
+          $('kaartLetterschaal').value = String(j.letterschaal || 100);
           $('kaartThema').value = j.thema || 'algemeen';
           $('kaartTekst').value = j.tekst;
           $('kaartTekstKeuze').value = '';
@@ -532,6 +540,10 @@
     $('kaartSjabloon').innerHTML = Object.entries(info.sjablonen)
       .map(([id, s]) => `<option value="${id}">${esc(s.naam)}</option>`).join('');
     $('kaartLettertype').innerHTML = info.lettertypes.map(l => `<option>${esc(l)}</option>`).join('');
+    // Lettergrootte-keuze direct naast het handschrift (zonder index.html aan te passen).
+    if (!$('kaartLetterschaal')) {
+      $('kaartLettertype').insertAdjacentHTML('afterend', ` <select id="kaartLetterschaal" class="${$('kaartLettertype').className}" title="Lettergrootte">${LETTERSCHALEN.map(n => `<option value="${n}">Letters ${n}%</option>`).join('')}</select>`);
+    }
 
     // laatste keuzes onthouden (alleen gemak, per browser)
     try {
@@ -546,6 +558,7 @@
     }
 
     ['kaartNaam', 'kaartAdres', 'kaartTekst'].forEach(id => $(id).addEventListener('input', planVoorbeeld));
+    $('kaartLetterschaal').addEventListener('change', planVoorbeeld);
     ['kaartSjabloon', 'kaartLettertype'].forEach(id => $(id).addEventListener('change', () => {
       try { localStorage.setItem('kaart_' + (id === 'kaartSjabloon' ? 'sjabloon' : 'lettertype'), $(id).value); } catch (e) { /* */ }
       planVoorbeeld();
