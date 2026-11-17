@@ -64,6 +64,17 @@ const ONTWERPEN = [
     // 100x100mm) op 1575x1575px, bijna-wit naar zuiver wit gezet.
     herken: /lieve\s*zus.*sterker\s*dan\s*je\s*denkt/i,
     assetBestand: 'lieve-zus-je-bent-sterker-dan-je-denkt.jpg'
+  },
+  {
+    id: 'vier-het-leven',
+    // Titel in Shopify: "Tegeltje met tekst - Vier het leven." Vaste, volledig
+    // gekleurde illustratie (donkerblauwe tekst, vlaggetjes + confetti) op een
+    // witte achtergrond; de klant kiest alleen het formaat (10x10 of 13x13).
+    // Asset: gerenderd uit het aangeleverde PDF (Vier_het_leven.pdf, 100x100mm,
+    // ingebedde CMYK-afbeelding 1254px) op 1575x1575px, bijna-wit naar zuiver
+    // wit gezet.
+    herken: /vier\s*het\s*leven/i,
+    assetBestand: 'vier-het-leven.jpg'
   }
 ];
 
