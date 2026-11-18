@@ -83,6 +83,14 @@ function getPageOrders() {
   return displayOrders.slice(0, visibleCount);
 }
 
+// Tekst bij het uitroepteken in de orderlijst / popup wanneer het huisnummer in het adres ontbreekt.
+function adresMeldingTekst(o) {
+  let t = 'Huisnummer ontbreekt in het verzendadres';
+  if (o.adres_voorstel) t += ' — vorige bestelling van deze klant: ' + o.adres_voorstel;
+  else if (o.adres_mail_at) t += ' — klant is automatisch gemaild';
+  return t;
+}
+
 function renderTable() {
   const pageOrders = getPageOrders();
 
@@ -100,7 +108,7 @@ function renderTable() {
       <td><span class="customer-cell">${flagHtml(o.shipping_country_code)}${escapeHtml(o.customer_name || '-')}</span></td>
       <td>${fmtDate(o.shopify_created_at)}</td>
       <td>${o.spotify_links && o.spotify_links.length ? '<span class="spotify-dot">●</span> ' + o.spotify_links.length : '-'}</td>
-      <td>${o.photo_links && o.photo_links.length ? '<i class="fa-solid fa-camera"></i> ' + o.photo_links.length : '-'}</td>
+      <td>${o.adres_check ? `<img src="/uitroepteken.svg" class="adres-waarschuwing" alt="Huisnummer ontbreekt" title="${escapeHtml(adresMeldingTekst(o))}">` : '-'}</td>
       <td><span class="badge ${statusClass(o.status)}">${escapeHtml(o.status)}</span></td>
       <td><button class="btn btn-secondary open-btn" data-id="${o.id}">Bekijken</button></td>
     </tr>
@@ -823,6 +831,7 @@ function renderModal(order) {
     <div class="modal-section">
       <h3>Klantgegevens</h3>
       <p>${contactHtml}</p>
+      ${order.adres_check ? `<div class="adres-melding"><img src="/uitroepteken.svg" alt=""> <span>${escapeHtml(adresMeldingTekst(order))}</span></div>` : ''}
       <div class="address-lines">
         ${popupAddressLines.length
           ? popupAddressLines.map(line => `<div class="copyable" onclick="copyText(this, '${jsEscape(line)}')" title="Klik om te kopiëren">${escapeHtml(line)}</div>`).join('')

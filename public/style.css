@@ -185,6 +185,9 @@ main { padding: 24px; max-width: 1100px; margin: 0 auto; }
 .badge.other { background: #e5e7eb; color: #374151; }
 
 .spotify-dot { color: var(--accent); font-size: 16px; }
+.adres-waarschuwing { width: 20px; height: 18px; vertical-align: middle; }
+.adres-melding { display: flex; align-items: center; gap: 8px; margin: 6px 0; padding: 6px 10px; border-radius: 8px; background: #fff8cc; color: #5c4b00; font-size: 13px; }
+.adres-melding img { width: 20px; height: 18px; flex: none; }
 .customer-cell {
   display: inline-flex;
   align-items: center;

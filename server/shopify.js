@@ -4,6 +4,7 @@ const { isTegelTekstLineItem } = require('./texttile');
 const { isTegelIllustratieLineItem } = require('./tegelillustratie');
 const { isVermoedelijkeDubbeleCadeautjeRegel } = require('./pdf-shared');
 const { maakConceptJobUitOrder, herstelOntbrekendeKaartjes } = require('./schrijfmachine');
+const { controleerAdres, markeerBestaandeOrders } = require('./huisnummer');
 
 const STORE = process.env.SHOPIFY_STORE;
 const TOKEN = process.env.SHOPIFY_ACCESS_TOKEN;
@@ -572,6 +573,8 @@ async function syncOrders() {
     for (const order of orders) {
       const mapped = mapOrder(order);
       const result = upsertOrder(mapped);
+      // Ontbreekt het huisnummer in het verzendadres? Markeren (uitroepteken) en bij een nieuwe order de klant mailen.
+      try { await controleerAdres(order, mapped, result.isNew); } catch (e) { console.error('[adres] controle mislukt:', e.message); }
       if (result.isNew) {
         totalNew++;
         // Nieuwe order met een "Handgeschreven kaartje toevoegen."-regel?
@@ -605,6 +608,12 @@ async function syncOrders() {
     if (orders.length < params.limit) break;
     // Voor de volgende pagina altijd schoon overschakelen naar pure since_id-paginering
     params = { status: 'open', limit: 250, since_id: lastId };
+  }
+
+  // Eenmalig per serverstart: bestaande orders zonder huisnummer markeren (zonder te mailen).
+  if (!global.__adressenGemarkeerd) {
+    global.__adressenGemarkeerd = true;
+    try { const n = markeerBestaandeOrders(); if (n) console.log('[adres] orders zonder huisnummer gemarkeerd:', n); } catch (e) { console.error('[adres] markeren mislukt:', e.message); }
   }
 
   // Eenmalig per serverstart: ontbrekende kaartjes bij orders met meerdere "Handgeschreven kaartje"-regels bijmaken.
