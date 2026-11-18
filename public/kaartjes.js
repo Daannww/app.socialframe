@@ -330,6 +330,15 @@
   };
   let bezigJob = null;
 
+  // Besteldatum + tijd (Nederlandse tijd). SQLite-datums zonder tijdzone zijn UTC.
+  function orderDatumTekst(d) {
+    if (!d) return '';
+    const iso = /[zZ]|[+-]\d\d:?\d\d$/.test(d) ? d : d.replace(' ', 'T') + 'Z';
+    const t = new Date(iso);
+    if (isNaN(t)) return '';
+    return t.toLocaleString('nl-NL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Amsterdam' });
+  }
+
   const THEMA_LABEL = { algemeen: 'Algemeen', verjaardag: 'Verjaardag', condoleance: 'Condoleance', kerst: 'Kerst' };
 
   async function laadJobs() {
@@ -369,7 +378,7 @@
         acties.push(`<button class="btn btn-secondary btn-klein" data-actie="laad" data-id="${j.id}" title="Tekst en instellingen in het formulier laden"><i class="fa-solid fa-pen-to-square"></i></button>`);
         if (j.status !== 'bezig') acties.push(`<button class="inventory-delete-btn" data-actie="verwijder" data-id="${j.id}" title="Verwijderen"><i class="fa-solid fa-trash"></i></button>`);
         return `<tr>
-          <td>${j.order_number ? '#' + esc(j.order_number) : '—'}</td>
+          <td>${j.order_number ? '#' + esc(j.order_number) : '—'}${orderDatumTekst(j.order_datum) ? `<div class="kaartjes-klein">${esc(orderDatumTekst(j.order_datum))}</div>` : ''}</td>
           <td>${esc(j.naam || '—')}</td>
           <td><span class="badge thema-${esc(j.thema || 'algemeen')}">${esc(THEMA_LABEL[j.thema] || 'Algemeen')}</span></td>
           <td>${j.status === 'bezig'

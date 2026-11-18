@@ -107,6 +107,7 @@ function jobNaarJson(j) {
     id: j.id,
     order_id: j.order_id,
     order_number: j.order_number,
+    order_datum: j.order_datum || null,
     naam: j.naam,
     thema: j.thema || 'algemeen',
     adres: JSON.parse(j.adres_json || '[]'),
@@ -290,7 +291,9 @@ function registreerDashboardRoutes(app) {
   app.get('/api/schrijfmachine/jobs', (req, res) => {
     try {
       ruimHangendeJobsOp();
-      const jobs = db.prepare(`SELECT * FROM schrijf_jobs
+      const jobs = db.prepare(`SELECT schrijf_jobs.*,
+        (SELECT COALESCE(shopify_created_at, created_at) FROM orders WHERE orders.id = schrijf_jobs.order_id) AS order_datum
+        FROM schrijf_jobs
         WHERE status != 'klaar' OR geschreven_at > datetime('now', '-3 days')
         ORDER BY CASE status WHEN 'bezig' THEN 0 WHEN 'wachtrij' THEN 1 WHEN 'fout' THEN 2 WHEN 'gestopt' THEN 2 WHEN 'concept' THEN 3 ELSE 4 END,
                  updated_at DESC LIMIT 200`).all();
