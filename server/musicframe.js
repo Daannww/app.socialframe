@@ -316,7 +316,11 @@ async function generateMusicFramePdf(data) {
 
   const iconShiftMm = codeType === 'spotify' ? SPOTIFY_SHIFT_MM : BASE_SHIFT_MM;
 
-  ['shuffle_1', 'shuffle_2', 'shuffle_3', 'prev', 'play_triangle', 'play_circle', 'next', 'repeat_1', 'repeat_2'].forEach(name => {
+  // Bij een QR-code staat die op de plek van het herhaal-icoon. Bij een witte stijl (doorzichtige QR-achtergrond) scheen
+  // dat icoon dan dwars door de QR-code heen, daarom wordt het herhaal-icoon bij een QR-code niet getekend.
+  const iconNamen = ['shuffle_1', 'shuffle_2', 'shuffle_3', 'prev', 'play_triangle', 'play_circle', 'next', 'repeat_1', 'repeat_2']
+    .filter(name => !(hasCode && codeType === 'qr' && name.startsWith('repeat')));
+  iconNamen.forEach(name => {
     drawIconPath(page, { ...paths[name], pageTopMm: paths[name].pageTopMm + iconShiftMm }, styleColor);
   });
 
