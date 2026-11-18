@@ -334,8 +334,10 @@ function extractAlleHandgeschrevenKaartjeBoodschappen(lineItems) {
     const prop = (li.properties || []).find(p => /boodschap.*kaartje/i.test(p.name || ''));
     const tekst = prop ? String(prop.value || '').trim() : '';
     if (!tekst) return;
+    const themaProp = (li.properties || []).find(p => /^\s*thema\s*kaartje/i.test(p.name || ''));
+    const thema = themaProp ? String(themaProp.value || '').trim().toLowerCase() : null;
     const qty = li.quantity && li.quantity > 0 ? li.quantity : 1;
-    for (let i = 0; i < qty; i++) out.push(tekst);
+    for (let i = 0; i < qty; i++) out.push({ tekst, thema });
   });
   return out;
 }
@@ -586,7 +588,8 @@ async function syncOrders() {
               order_id: result.id,
               order_number: mapped.order_number,
               naam: mapped.customer_name,
-              tekst: boodschap,
+              tekst: boodschap.tekst,
+              thema: boodschap.thema,
               verwacht: i + 1
             });
           });

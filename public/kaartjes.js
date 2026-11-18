@@ -371,10 +371,7 @@
         return `<tr>
           <td>${j.order_number ? '#' + esc(j.order_number) : '—'}</td>
           <td>${esc(j.naam || '—')}</td>
-          <td>${j.status === 'bezig'
-            ? `<span class="badge thema-${esc(j.thema || 'algemeen')}">${esc(THEMA_LABEL[j.thema] || 'Algemeen')}</span>`
-            : `<select class="kaart-rij-select kaart-thema thema-${esc(j.thema || 'algemeen')}" data-instelling="thema" data-id="${j.id}" title="Thema wijzigen">${
-                Object.entries(THEMA_LABEL).map(([id, l]) => `<option value="${id}"${id === (j.thema || 'algemeen') ? ' selected' : ''}>${l}</option>`).join('')}</select>`}</td>
+          <td><span class="badge thema-${esc(j.thema || 'algemeen')}">${esc(THEMA_LABEL[j.thema] || 'Algemeen')}</span></td>
           <td>${j.status === 'bezig'
             ? `${esc(sj ? sj.naam : j.sjabloon)}<div class="kaartjes-klein">${esc(j.lettertype)}${(j.letterschaal || 100) !== 100 ? ' · letters ' + j.letterschaal + '%' : ''}</div>`
             : `<select class="kaart-rij-select" data-instelling="sjabloon" data-id="${j.id}" title="Sjabloon wijzigen">${

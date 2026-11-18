@@ -160,16 +160,17 @@ function agentLaatstGezien() {
 // `verwacht` = het hoeveelste kaartje van deze order dit is (1 = eerste, 2 = tweede ...): bestaan er al zoveel kaartjes voor
 // de order, dan wordt er niets aangemaakt. Een order kan meerdere "Handgeschreven kaartje"-regels hebben (elk met een eigen
 // boodschap), dus alleen "bestaat er al een kaartje" is niet genoeg.
-function maakConceptJobUitOrder({ order_id, order_number, naam, tekst, verwacht = 1 }) {
+function maakConceptJobUitOrder({ order_id, order_number, naam, tekst, thema, verwacht = 1 }) {
   if (!tekst || !String(tekst).trim()) return null;
   if (order_id) {
     const n = db.prepare('SELECT COUNT(*) AS n FROM schrijf_jobs WHERE order_id = ?').get(order_id).n;
     if (n >= verwacht) return null;
   }
   const lettertype = LETTERTYPES[0];
-  const r = db.prepare(`INSERT INTO schrijf_jobs (order_id, order_number, naam, adres_json, tekst, sjabloon, lettertype, status)
-                        VALUES (?, ?, ?, '[]', ?, 'tekstvak', ?, 'concept')`)
-    .run(order_id || null, order_number || null, naam || null, String(tekst).slice(0, 2000), lettertype);
+  const themaKlant = THEMAS.includes(thema) ? thema : detecteerThema(tekst);
+  const r = db.prepare(`INSERT INTO schrijf_jobs (order_id, order_number, naam, adres_json, tekst, sjabloon, lettertype, thema, status)
+                        VALUES (?, ?, ?, '[]', ?, 'tekstvak', ?, ?, 'concept')`)
+    .run(order_id || null, order_number || null, naam || null, String(tekst).slice(0, 2000), lettertype, themaKlant);
   return r.lastInsertRowid;
 }
 
@@ -186,7 +187,7 @@ function herstelOntbrekendeKaartjes(extractAlleBoodschappen) {
     const n = db.prepare('SELECT COUNT(*) AS n FROM schrijf_jobs WHERE order_id = ?').get(o.id).n;
     if (n < 1 || n >= boodschappen.length) continue;
     for (let i = n; i < boodschappen.length; i++) {
-      if (maakConceptJobUitOrder({ order_id: o.id, order_number: o.order_number, naam: o.customer_name, tekst: boodschappen[i], verwacht: i + 1 })) aangemaakt++;
+      if (maakConceptJobUitOrder({ order_id: o.id, order_number: o.order_number, naam: o.customer_name, tekst: boodschappen[i].tekst, thema: boodschappen[i].thema, verwacht: i + 1 })) aangemaakt++;
     }
   }
   return aangemaakt;
