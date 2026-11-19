@@ -359,6 +359,12 @@ app.post('/api/orders/:id/size-override', (req, res) => {
   res.json(order);
 });
 
+// Klant is om het huisnummer gevraagd (mail/WhatsApp vanuit de popup): uitroepteken weghalen.
+app.post('/api/orders/:id/adres-afgehandeld', (req, res) => {
+  db.prepare("UPDATE orders SET adres_afgehandeld_at = datetime('now'), adres_check = NULL WHERE id = ?").run(req.params.id);
+  res.json({ ok: true });
+});
+
 // --- Vrij notitieveld per order — verschijnt ook onderaan op de pakbon als
 // 'm is ingevuld (zie buildReceiptHtml in public/app.js). ---
 app.post('/api/orders/:id/note', (req, res) => {

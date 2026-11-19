@@ -8,7 +8,7 @@
 //   bij een NIEUWE order automatisch de klant (Resend) als er geen huisnummer is en er ook geen voorstel is.
 const { db } = require('./db');
 
-for (const kolom of ['adres_check TEXT', 'adres_voorstel TEXT', 'adres_mail_at TEXT']) {
+for (const kolom of ['adres_check TEXT', 'adres_voorstel TEXT', 'adres_mail_at TEXT', 'adres_afgehandeld_at TEXT']) {
   try { db.exec(`ALTER TABLE orders ADD COLUMN ${kolom}`); } catch (e) { /* bestaat al */ }
 }
 
@@ -87,10 +87,11 @@ async function stuurMail(order, addr) {
 
 // raw: de ruwe Shopify-order, mapped: uitkomst van mapOrder, isNew: alleen dan wordt er (eventueel) gemaild.
 async function controleerAdres(raw, mapped, isNew) {
-  const row = db.prepare('SELECT id, status, adres_mail_at FROM orders WHERE shopify_order_id = ?').get(mapped.shopify_order_id);
+  const row = db.prepare('SELECT id, status, adres_mail_at, adres_afgehandeld_at FROM orders WHERE shopify_order_id = ?').get(mapped.shopify_order_id);
   if (!row) return;
   const addr = raw.shipping_address || null;
-  if (!mistHuisnummer(addr)) {
+  // Klant al benaderd via het popup-scherm (adres_afgehandeld_at)? Dan geen uitroepteken meer.
+  if (!mistHuisnummer(addr) || row.adres_afgehandeld_at) {
     db.prepare("UPDATE orders SET adres_check = NULL, adres_voorstel = NULL WHERE id = ?").run(row.id);
     return;
   }
@@ -112,7 +113,7 @@ async function controleerAdres(raw, mapped, isNew) {
 
 // Eenmalig per serverstart: bestaande, nog niet verzonden orders markeren (nooit mailen).
 function markeerBestaandeOrders() {
-  const rijen = db.prepare("SELECT id, customer_email, raw_json FROM orders WHERE status NOT IN ('verzonden','geannuleerd')").all();
+  const rijen = db.prepare("SELECT id, customer_email, raw_json FROM orders WHERE status NOT IN ('verzonden','geannuleerd') AND adres_afgehandeld_at IS NULL").all();
   const set = db.prepare('UPDATE orders SET adres_check = ?, adres_voorstel = ? WHERE id = ?');
   let n = 0;
   for (const r of rijen) {

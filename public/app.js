@@ -840,8 +840,8 @@ function renderModal(order) {
       </div>
       <div class="contact-actions">
         ${fullAddressText ? `<button type="button" class="btn btn-secondary" onclick="copyText(this, '${jsEscape(fullAddressText)}')" title="Klik om te kopiëren"><i class="fa-solid fa-copy"></i> Kopieer naam + adres</button>` : ''}
-        ${mailtoHref ? `<a class="btn btn-secondary" href="${mailtoHref}"><i class="fa-solid fa-envelope"></i> Vraag huisnummer per e-mail</a>` : ''}
-        ${whatsappHref ? `<a class="btn btn-whatsapp" href="${whatsappHref}" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i> Vraag huisnummer via WhatsApp</a>` : ''}
+        ${mailtoHref ? `<a class="btn btn-secondary" href="${mailtoHref}" onclick="adresAfgehandeld(${order.id})"><i class="fa-solid fa-envelope"></i> Vraag huisnummer per e-mail</a>` : ''}
+        ${whatsappHref ? `<a class="btn btn-whatsapp" href="${whatsappHref}" target="_blank" rel="noopener" onclick="adresAfgehandeld(${order.id})"><i class="fa-brands fa-whatsapp"></i> Vraag huisnummer via WhatsApp</a>` : ''}
       </div>
     </div>
 
@@ -983,6 +983,14 @@ function renderModal(order) {
 
   window._currentSpotifyLinks = order.spotify_links || [];
 }
+
+// Mail/WhatsApp om het huisnummer verstuurd vanuit de popup: uitroepteken direct weghalen.
+window.adresAfgehandeld = function (orderId) {
+  fetch(`/api/orders/${orderId}/adres-afgehandeld`, { method: 'POST' }).catch(() => {});
+  const o = ordersCache.find(x => String(x.id) === String(orderId));
+  if (o) { o.adres_check = null; renderTable(); }
+  const m = document.querySelector('.adres-melding'); if (m) m.remove();
+};
 
 window.saveNote = async function (orderId, btn) {
   const textarea = document.getElementById(`noteInput-${orderId}`);
