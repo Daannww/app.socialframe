@@ -75,13 +75,38 @@ const ONTWERPEN = [
     // wit gezet.
     herken: /vier\s*het\s*leven/i,
     assetBestand: 'vier-het-leven.jpg'
-  }
+  },
+  // Landkaart-tegeltjes op plaatsnaam ("Landkaart tegeltje Nijmegen – stadskaart op keramiek"): vaste kaart per stad,
+  // 2000x2000px drukbestand op de ai-foto-server. Wordt bij het eerste gebruik opgehaald en in DATA_DIR bewaard.
+  // Orders MET een eigen AI-drukbestand (_AI drukbestand, kaartwidget) vallen hier bewust buiten.
+  { id: 'landkaart-amsterdam', stad: true, herken: /landkaart.*\b(?:amsterdam)\b/i, bronUrl: 'https://ai-foto.socialframe.nl/files/e9637ed597ce4db50d6272aee6cddc3e-print.jpg' },
+  { id: 'landkaart-rotterdam', stad: true, herken: /landkaart.*\b(?:rotterdam)\b/i, bronUrl: 'https://ai-foto.socialframe.nl/files/cce913f346ec5f15943def710e0b0557-print.jpg' },
+  { id: 'landkaart-den-haag', stad: true, herken: /landkaart.*\b(?:den\s*haag|'s[-\s]?gravenhage)\b/i, bronUrl: 'https://ai-foto.socialframe.nl/files/09880ca2a3709a312225ca8840bde70e-print.jpg' },
+  { id: 'landkaart-utrecht', stad: true, herken: /landkaart.*\b(?:utrecht)\b/i, bronUrl: 'https://ai-foto.socialframe.nl/files/d3e0378ddcfbab184759cc261443aa24-print.jpg' },
+  { id: 'landkaart-eindhoven', stad: true, herken: /landkaart.*\b(?:eindhoven)\b/i, bronUrl: 'https://ai-foto.socialframe.nl/files/e4c663d78d876980f1f10e204198e1b6-print.jpg' },
+  { id: 'landkaart-groningen', stad: true, herken: /landkaart.*\b(?:groningen)\b/i, bronUrl: 'https://ai-foto.socialframe.nl/files/7a8cd13720b965016e5bb80bf1e8aecf-print.jpg' },
+  { id: 'landkaart-tilburg', stad: true, herken: /landkaart.*\b(?:tilburg)\b/i, bronUrl: 'https://ai-foto.socialframe.nl/files/4b12e6fe1e059a79bd3abb520cdb2999-print.jpg' },
+  { id: 'landkaart-almere', stad: true, herken: /landkaart.*\b(?:almere)\b/i, bronUrl: 'https://ai-foto.socialframe.nl/files/2c3b78cb23a8349885f1c46ae1753f5e-print.jpg' },
+  { id: 'landkaart-breda', stad: true, herken: /landkaart.*\b(?:breda)\b/i, bronUrl: 'https://ai-foto.socialframe.nl/files/cf071655acbc163eed2814b7addb628f-print.jpg' },
+  { id: 'landkaart-nijmegen', stad: true, herken: /landkaart.*\b(?:nijmegen)\b/i, bronUrl: 'https://ai-foto.socialframe.nl/files/03dbaa33b0b851d3e7ab92e96afcfa72-print.jpg' },
+  { id: 'landkaart-arnhem', stad: true, herken: /landkaart.*\b(?:arnhem)\b/i, bronUrl: 'https://ai-foto.socialframe.nl/files/84a715006dd2ebb127893144c0b81fdc-print.jpg' },
+  { id: 'landkaart-haarlem', stad: true, herken: /landkaart.*\b(?:haarlem)\b/i, bronUrl: 'https://ai-foto.socialframe.nl/files/69ff83dabeb841ef02362bfce5f45ddd-print.jpg' },
+  { id: 'landkaart-enschede', stad: true, herken: /landkaart.*\b(?:enschede)\b/i, bronUrl: 'https://ai-foto.socialframe.nl/files/ef67c9c74ee5aa082b8c4bc3d8f70c80-print.jpg' },
+  { id: 'landkaart-apeldoorn', stad: true, herken: /landkaart.*\b(?:apeldoorn)\b/i, bronUrl: 'https://ai-foto.socialframe.nl/files/b1a7fe4ca93561bfc8567fe255cce895-print.jpg' },
+  { id: 'landkaart-amersfoort', stad: true, herken: /landkaart.*\b(?:amersfoort)\b/i, bronUrl: 'https://ai-foto.socialframe.nl/files/749e0e9199366a4456454bf4459e3649-print.jpg' },
+  { id: 'landkaart-zwolle', stad: true, herken: /landkaart.*\b(?:zwolle)\b/i, bronUrl: 'https://ai-foto.socialframe.nl/files/37ef264c631f6146f4b6c87f076b571b-print.jpg' },
+  { id: 'landkaart-leiden', stad: true, herken: /landkaart.*\b(?:leiden)\b/i, bronUrl: 'https://ai-foto.socialframe.nl/files/7c801914ec97fb04dae536896d28db7e-print.jpg' },
+  { id: 'landkaart-maastricht', stad: true, herken: /landkaart.*\b(?:maastricht)\b/i, bronUrl: 'https://ai-foto.socialframe.nl/files/ee17a768a5a4609ce330ad0553ab3dcf-print.jpg' },
+  { id: 'landkaart-dordrecht', stad: true, herken: /landkaart.*\b(?:dordrecht)\b/i, bronUrl: 'https://ai-foto.socialframe.nl/files/835339dff3949cf937fcd9083229bd9b-print.jpg' },
+  { id: 'landkaart-delft', stad: true, herken: /landkaart.*\b(?:delft)\b/i, bronUrl: 'https://ai-foto.socialframe.nl/files/6d8d6220e98b243fccc101c095978282-print.jpg' },
+  { id: 'landkaart-den-bosch', stad: true, herken: /landkaart.*\b(?:den\s*bosch|'s[-\s]?hertogenbosch)\b/i, bronUrl: 'https://ai-foto.socialframe.nl/files/8cb26b65e3fdebe29b95d5934a2a7525-print.jpg' }
 ];
 
 function matchTegelIllustratieOntwerp(li) {
   const titel = li.title || '';
-  if (!/tegeltje met (tekst|recept)|wc\s*tegeltje|tegeltje\s+driving\s*home/i.test(titel)) return null;
-  return ONTWERPEN.find(o => o.herken.test(titel)) || null;
+  if (!/tegeltje met (tekst|recept)|wc\s*tegeltje|tegeltje\s+driving\s*home|landkaart\s*tegeltje/i.test(titel)) return null;
+  const heeftEigenAiBestand = (li.properties || []).some(p => /^_?\s*AI drukbestand/i.test(p.name || ''));
+  return ONTWERPEN.find(o => o.herken.test(titel) && !(o.stad && heeftEigenAiBestand)) || null;
 }
 
 function isTegelIllustratieLineItem(li) {
@@ -111,9 +136,22 @@ function extractTegelIllustratieItemsFromOrder(rawOrder) {
   return items;
 }
 
+// Vaste asset uit de repo, of (landkaart-steden) eenmalig downloaden van de ai-foto-server en cachen in DATA_DIR.
+async function laadOntwerpAfbeelding(ontwerp) {
+  if (ontwerp.assetBestand) return fs.readFileSync(path.join(__dirname, 'tegel-illustratie-assets', ontwerp.assetBestand));
+  const dir = path.join(process.env.DATA_DIR || require('os').tmpdir(), 'tegel-illustratie-cache');
+  const cachePad = path.join(dir, ontwerp.id + '.jpg');
+  try { return fs.readFileSync(cachePad); } catch { /* nog niet gecachet */ }
+  const axios = require('axios');
+  const res = await axios.get(ontwerp.bronUrl, { responseType: 'arraybuffer', timeout: 30000 });
+  const buf = Buffer.from(res.data);
+  if (buf.length < 10000) throw new Error('Kaartafbeelding voor ' + ontwerp.id + ' lijkt leeg of ongeldig');
+  try { fs.mkdirSync(dir, { recursive: true }); fs.writeFileSync(cachePad, buf); } catch { /* cache is optioneel */ }
+  return buf;
+}
+
 async function generateTegelIllustratiePdf(data) {
-  const assetPad = path.join(__dirname, 'tegel-illustratie-assets', data.ontwerp.assetBestand);
-  const buffer = fs.readFileSync(assetPad);
+  const buffer = await laadOntwerpAfbeelding(data.ontwerp);
   const sizeCm = data.is13x13 ? 13 : 10;
   return imageBufferToPrintPdf(buffer, { widthCm: sizeCm, heightCm: sizeCm, dpi: 300 });
 }
