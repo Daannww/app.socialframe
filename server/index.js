@@ -736,7 +736,7 @@ app.get('/api/print-files/single-pdf', requireAdmin, async (req, res) => {
     if (/posterlyapp\.io/i.test(link)) {
       imageBuffer = await cropPosterlyCanvas(imageBuffer, Math.max(widthCm, heightCm) * 10); // cm -> mm
     }
-    const pdfContent = await imageBufferToPrintPdf(imageBuffer, { widthCm, heightCm, dpi: 300 });
+    const pdfContent = await imageBufferToPrintPdf(imageBuffer, { widthCm, heightCm, dpi: 300, maxDpi: 400 });
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.send(pdfContent);
@@ -1187,7 +1187,7 @@ async function appendPrintFilesToArchive(archive, targets) {
           if (tileItem.isPosterly) {
             imageBuffer = await cropPosterlyCanvas(imageBuffer, sizeCm * 10); // cm -> mm
           }
-          const pdfContent = await imageBufferToPrintPdf(imageBuffer, { widthCm: sizeCm, heightCm: sizeCm, dpi: 300 });
+          const pdfContent = await imageBufferToPrintPdf(imageBuffer, { widthCm: sizeCm, heightCm: sizeCm, dpi: 300, maxDpi: 400 });
           archive.append(pdfContent, { name: filename });
           orderSucceeded = true;
         } catch (e) {

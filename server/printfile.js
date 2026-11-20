@@ -30,7 +30,16 @@ async function cropPosterlyCanvas(inputBuffer, targetMm) {
 // meest universeel ondersteunde drukwerkformaat en wordt hier met pdf-lib
 // opgebouwd — een pure JS-library, dus zonder afhankelijkheid van een losse
 // PostScript-renderer om te weten dat de opbouw klopt.
-async function imageBufferToPrintPdf(inputBuffer, { widthCm = 10, heightCm = 10, dpi = 300 } = {}) {
+// maxDpi (optioneel): heeft de bron meer pixels dan dpi nodig heeft, dan wordt er niet verder verkleind dan tot maxDpi
+// (bv. 3200 px kaart-tegels: 13 cm @ 400 dpi = 2047 px i.p.v. 1535 px bij 300 dpi). Zonder maxDpi verandert er niets.
+async function imageBufferToPrintPdf(inputBuffer, { widthCm = 10, heightCm = 10, dpi = 300, maxDpi = null } = {}) {
+  if (maxDpi && maxDpi > dpi) {
+    try {
+      const meta = await sharp(inputBuffer).metadata();
+      const bronDpi = Math.min(meta.width / (widthCm / 2.54), meta.height / (heightCm / 2.54));
+      dpi = Math.max(dpi, Math.min(maxDpi, Math.floor(bronDpi)));
+    } catch (e) { /* blijft bij dpi */ }
+  }
   const targetPxWidth = Math.round((widthCm / 2.54) * dpi);
   const targetPxHeight = Math.round((heightCm / 2.54) * dpi);
 
