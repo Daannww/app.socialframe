@@ -24,6 +24,7 @@ const SJABLONEN = {
   vierkant: { naam: 'Vierkant 80 × 80 mm', type: 'tekstvak', breed: 80, hoog: 80, marge: 3, centreren: true, letterhoogte: 3.4 },
   postit: { naam: 'Post-it 90 × 90 mm', type: 'tekstvak', breed: 90, hoog: 90, marge: 4, centreren: true, letterhoogte: 3.6 },
   vierkant100: { naam: 'Vierkant 100 × 100 mm', type: 'tekstvak', breed: 100, hoog: 100, marge: 4, centreren: true, letterhoogte: 3.8 },
+  staand100x140: { naam: 'Staand 100 × 140 mm (kerstkaart)', type: 'tekstvak', breed: 100, hoog: 140, marge: 4, centreren: true, letterhoogte: 3.8 },
   ansichtkaart: { naam: 'Ansichtkaart A6 met adres', type: 'ansichtkaart', breed: 148, hoog: 105, marge: 8 }
 };
 
@@ -71,6 +72,7 @@ for (const kolom of ['opdracht TEXT', 'voortgang INTEGER', 'gepauzeerd INTEGER',
 // Thema van het kaartje (verjaardag / algemeen / condoleance): alleen een label
 // in het dashboard. Kolom later toegevoegd, dus per start controleren.
 const THEMAS = ['verjaardag', 'algemeen', 'condoleance', 'kerst'];
+const KERST_SJABLOON = 'staand100x140';
 
 // Thema automatisch herkennen uit de kaarttekst als de client geen geldig thema meestuurt.
 function detecteerThema(tekst) {
@@ -82,6 +84,14 @@ function detecteerThema(tekst) {
 }
 
 try { db.exec("ALTER TABLE schrijf_jobs ADD COLUMN thema TEXT NOT NULL DEFAULT 'algemeen'"); } catch (e) { /* bestaat al */ }
+
+// Eenmalig: bestaande kerstkaarten die nog als concept op het oude tekstvak staan, gaan naar het kerst-sjabloon.
+try {
+if (!db.prepare("SELECT 1 FROM sync_meta WHERE key = 'mig_kerst_sjabloon'").get()) {
+  db.prepare("UPDATE schrijf_jobs SET sjabloon = ? WHERE status = 'concept' AND thema = 'kerst' AND sjabloon = 'tekstvak'").run(KERST_SJABLOON);
+  db.prepare("INSERT INTO sync_meta (key, value) VALUES ('mig_kerst_sjabloon', '1')").run();
+}
+} catch (e) { console.error('[kaartjes] kerst-migratie mislukt:', e.message); }
 
 if (db.prepare('SELECT COUNT(*) AS c FROM schrijf_teksten').get().c === 0) {
   db.prepare('INSERT INTO schrijf_teksten (naam, tekst) VALUES (?, ?)').run('Standaard bedankje', STANDAARD_TEKST);
@@ -169,9 +179,11 @@ function maakConceptJobUitOrder({ order_id, order_number, naam, tekst, thema, ve
   }
   const lettertype = LETTERTYPES[0];
   const themaKlant = THEMAS.includes(thema) ? thema : detecteerThema(tekst);
+  // Kerstkaarten standaard op het staande kerst-sjabloon (100 x 140 mm), de rest op het tekstvak.
+  const sjabloonKeuze = themaKlant === 'kerst' ? KERST_SJABLOON : 'tekstvak';
   const r = db.prepare(`INSERT INTO schrijf_jobs (order_id, order_number, naam, adres_json, tekst, sjabloon, lettertype, thema, status)
-                        VALUES (?, ?, ?, '[]', ?, 'tekstvak', ?, ?, 'concept')`)
-    .run(order_id || null, order_number || null, naam || null, String(tekst).slice(0, 2000), lettertype, themaKlant);
+                        VALUES (?, ?, ?, '[]', ?, ?, ?, ?, 'concept')`)
+    .run(order_id || null, order_number || null, naam || null, String(tekst).slice(0, 2000), sjabloonKeuze, lettertype, themaKlant);
   return r.lastInsertRowid;
 }
 

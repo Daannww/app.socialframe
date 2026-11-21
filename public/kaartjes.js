@@ -565,6 +565,11 @@
 
     ['kaartNaam', 'kaartAdres', 'kaartTekst'].forEach(id => $(id).addEventListener('input', planVoorbeeld));
     $('kaartLetterschaal').addEventListener('change', planVoorbeeld);
+    // Kiest iemand het thema Kerst (of 'Automatisch' en de tekst wordt als kerst herkend), dan standaard het staande kerst-sjabloon.
+    $('kaartThema').addEventListener('change', () => {
+      const t = $('kaartThema').value === 'auto' ? detecteerThema(definitieveTekst()) : $('kaartThema').value;
+      if (t === 'kerst' && info.sjablonen.staand100x140) { $('kaartSjabloon').value = 'staand100x140'; planVoorbeeld(); }
+    });
     ['kaartSjabloon', 'kaartLettertype'].forEach(id => $(id).addEventListener('change', () => {
       try { localStorage.setItem('kaart_' + (id === 'kaartSjabloon' ? 'sjabloon' : 'lettertype'), $(id).value); } catch (e) { /* */ }
       planVoorbeeld();
